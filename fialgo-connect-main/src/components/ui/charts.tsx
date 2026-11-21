@@ -453,6 +453,7 @@ export const Area: React.FC<AreaProps> = ({
         />
       )}
 
+
       {/* Invisible Interactive Hit Slices */}
       {points.map((pt, idx) => {
         const sliceW = plotW / points.length;
@@ -484,48 +485,75 @@ export interface XAxisProps {
   dataKey?: string;
   format?: (val: any) => string;
   className?: string;
+  minSpacing?: number;
 }
 
 export const XAxis: React.FC<XAxisProps> = ({
   dataKey = "date",
   format,
-  className = "fill-slate-400 dark:fill-neutral-500 text-[10px] font-mono",
+  className = "fill-slate-400 dark:fill-neutral-500 text-[11px] font-medium",
+  minSpacing = 48,
 }) => {
   const ctx = useContext(ChartContext);
   if (!ctx) return null;
   const { data, width, height, padding } = ctx;
 
   const plotW = width - padding.left - padding.right;
-  const step = Math.max(1, Math.floor(data.length / 7));
+
+  // Format all items first
+  const formattedItems = data.map((d, idx) => {
+    const raw = d[dataKey];
+    let label = "";
+    if (raw instanceof Date) {
+      label = raw.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    } else if (typeof raw === "string") {
+      label = raw;
+    } else {
+      label = String(raw);
+    }
+    if (format) label = format(raw);
+    const x = padding.left + (idx / Math.max(1, data.length - 1)) * plotW;
+    return { x, label, idx };
+  });
+
+  // Calculate ticks: ensure no duplicates and minimum spacing
+  const ticks: { x: number; label: string }[] = [];
+  const lastItem = formattedItems[formattedItems.length - 1];
+  let lastPlacedX = -999;
+  let lastPlacedLabel = "";
+
+  formattedItems.forEach((item, i) => {
+    const isLast = i === formattedItems.length - 1;
+
+    // Never repeat the same label consecutively
+    if (item.label === lastPlacedLabel) return;
+
+    // If this is too close to the previous placed tick, skip (unless it's the last one)
+    if (item.x - lastPlacedX < minSpacing && !isLast) return;
+
+    // If this non-last item is too close to the last item, skip it to protect the last tick's spacing
+    if (!isLast && lastItem && (lastItem.x - item.x < minSpacing || lastItem.label === item.label)) {
+      return;
+    }
+
+    ticks.push({ x: item.x, label: item.label });
+    lastPlacedX = item.x;
+    lastPlacedLabel = item.label;
+  });
 
   return (
     <g className={className}>
-      {data.map((d, idx) => {
-        if (idx % step !== 0 && idx !== data.length - 1) return null;
-        const x = padding.left + (idx / Math.max(1, data.length - 1)) * plotW;
-        const raw = d[dataKey];
-        let label = "";
-        if (raw instanceof Date) {
-          label = raw.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        } else if (typeof raw === "string") {
-          label = raw;
-        } else {
-          label = String(raw);
-        }
-        if (format) label = format(raw);
-
-        return (
-          <text
-            key={idx}
-            x={x}
-            y={height - padding.bottom + 22}
-            textAnchor="middle"
-            className="select-none"
-          >
-            {label}
-          </text>
-        );
-      })}
+      {ticks.map((t, idx) => (
+        <text
+          key={`tick-${idx}`}
+          x={t.x}
+          y={height - padding.bottom + 22}
+          textAnchor="middle"
+          className="select-none fill-slate-400 dark:fill-neutral-500 text-[11px] font-medium"
+        >
+          {t.label}
+        </text>
+      ))}
     </g>
   );
 };
@@ -548,7 +576,9 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = () => {
       ? rawDate.toLocaleDateString("en-US", { month: "short", day: "numeric" })
       : String(rawDate);
 
-  const value = item.visitors ?? item.score ?? item.equity ?? Object.values(item)[1];
+  const scoreVal = item.score !== undefined ? `${item.score}%` : null;
+  const equityVal = item.equity || null;
+  const tradesVal = item.trades ? `${item.trades} trades` : null;
 
   return (
     <g className="pointer-events-none">
@@ -562,20 +592,34 @@ export const ChartTooltip: React.FC<ChartTooltipProps> = () => {
         strokeWidth="1.2"
         strokeDasharray="3 3"
       />
-      {/* Hover Center Point */}
-      <circle cx={hoverCoords.x} cy={hoverCoords.y} r="5.5" fill="#38BDF8" opacity="0.3" />
-      <circle cx={hoverCoords.x} cy={hoverCoords.y} r="3.5" fill="#FFFFFF" stroke="#006DFE" strokeWidth="2.5" />
+      {/* Hover Center Point with glow */}
+      <circle cx={hoverCoords.x} cy={hoverCoords.y} r="6.5" fill="#38BDF8" opacity="0.3" />
+      <circle cx={hoverCoords.x} cy={hoverCoords.y} r="4" fill="#FFFFFF" stroke="#006DFE" strokeWidth="2.5" />
 
       {/* Floating Tooltip Box */}
       <foreignObject
-        x={Math.max(10, Math.min(hoverCoords.x - 65, 500))}
-        y={Math.max(10, hoverCoords.y - 55)}
-        width="130"
-        height="50"
+        x={Math.max(padding.left, Math.min(hoverCoords.x - 72, width - padding.right - 150))}
+        y={Math.max(6, hoverCoords.y - 68)}
+        width="145"
+        height="64"
       >
-        <div className="px-2.5 py-1.5 rounded-xl bg-slate-900/95 dark:bg-[#121826]/95 backdrop-blur-md text-white border border-white/10 shadow-xl text-center space-y-0.5">
-          <div className="text-[10px] font-bold text-slate-300">{dateStr}</div>
-          <div className="text-xs font-mono font-black text-[#38BDF8]">{value}</div>
+        <div className="px-2.5 py-1.5 rounded-xl bg-slate-900/95 dark:bg-[#121826]/95 backdrop-blur-md text-white border border-white/10 shadow-2xl space-y-0.5 select-none">
+          <div className="flex items-center justify-between text-[10px] font-bold text-slate-300">
+            <span>{dateStr}</span>
+            {tradesVal && <span className="text-[9.5px] text-slate-400 font-medium">{tradesVal}</span>}
+          </div>
+          <div className="flex items-center justify-between gap-2 pt-0.5">
+            {scoreVal && (
+              <span className="text-xs font-mono font-black text-[#38BDF8]">
+                Score: {scoreVal}
+              </span>
+            )}
+            {equityVal && (
+              <span className="text-[11px] font-mono font-bold text-emerald-400">
+                {equityVal}
+              </span>
+            )}
+          </div>
         </div>
       </foreignObject>
     </g>

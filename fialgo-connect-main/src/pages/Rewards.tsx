@@ -19,6 +19,8 @@ import {
   Zap,
   Activity,
   Wifi,
+  Calendar as CalendarIcon,
+  List as ListIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -134,16 +136,18 @@ export default function Rewards() {
   ------------------------------------------------------------------------- */
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "badges" | "vault">("discipline");
   const [activeRange, setActiveRange] = useState<"7D" | "14D" | "All">("14D");
-  const [xp, setXp] = useState(850);
-  const [score, setScore] = useState(96);
-  const [displayScore, setDisplayScore] = useState(96);
+  const [xp, setXp] = useState(1080);
+  const [score, setScore] = useState(97);
+  const [displayScore, setDisplayScore] = useState(97);
   const [streakDays, setStreakDays] = useState(18);
   const [redeemedRewards, setRedeemedRewards] = useState<Set<string>>(new Set());
   const [replayKey, setReplayKey] = useState(0);
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
+  const [consistencyViewMode, setConsistencyViewMode] = useState<"calendar" | "list">("calendar");
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>("2026-11-21");
 
   // User Profile State
-  const [userName, setUserName] = useState("Nikhil Harake");
+  const [userName, setUserName] = useState("nikhil Harake");
   const [userAvatar, setUserAvatar] = useState("NH");
   const [userTier, setUserTier] = useState("PRO");
 
@@ -156,7 +160,7 @@ export default function Rewards() {
             session.user.user_metadata?.full_name ||
             session.user.user_metadata?.name ||
             session.user.email?.split("@")[0] ||
-            "Nikhil Harake";
+            "nikhil Harake";
           setUserName(name);
           const initials = name
             .split(" ")
@@ -164,7 +168,7 @@ export default function Rewards() {
             .map((n: string) => n[0])
             .join("")
             .toUpperCase()
-            .slice(0, 2) || "TR";
+            .slice(0, 2) || "NH";
           setUserAvatar(initials);
         }
       } catch (e) {
@@ -176,7 +180,7 @@ export default function Rewards() {
 
   // Real-Time Clock & Heartbeat
   const [currentUtcTime, setCurrentUtcTime] = useState("");
-  const [latency, setLatency] = useState(12);
+  const [latency, setLatency] = useState(11);
   const [isLiveStreaming, setIsLiveStreaming] = useState(true);
   const [liveEventPulse, setLiveEventPulse] = useState(false);
 
@@ -195,7 +199,7 @@ export default function Rewards() {
   // Fluctuating real-time MT5 ping latency
   useEffect(() => {
     const pingInterval = setInterval(() => {
-      setLatency(Math.floor(10 + Math.random() * 6));
+      setLatency(Math.floor(10 + Math.random() * 5));
     }, 3500);
     return () => clearInterval(pingInterval);
   }, []);
@@ -220,35 +224,33 @@ export default function Rewards() {
   ------------------------------------------------------------------------- */
   const curveDatasets: Record<"7D" | "14D" | "All", CurveDataset> = {
     "7D": {
-      headline: "+96.0%",
+      headline: "+96.8%",
       delta: "+4.8% this week",
       sessions: "7 closed sessions",
-      scoreLabel: "Score: 96%",
+      scoreLabel: "Score: 97%",
       points: [
         { date: new Date(2026, 10, 15), score: 93, equity: "+91.2%", trades: 2 },
-        { date: new Date(2026, 10, 16), score: 92, equity: "+92.0%", trades: 3 },
+        { date: new Date(2026, 10, 16), score: 91, equity: "+92.0%", trades: 3 },
         { date: new Date(2026, 10, 17), score: 88, equity: "+91.5%", trades: 4 },
         { date: new Date(2026, 10, 18), score: 95, equity: "+93.4%", trades: 2 },
         { date: new Date(2026, 10, 19), score: 94, equity: "+94.7%", trades: 3 },
-        { date: new Date(2026, 10, 20), score: 96, equity: "+95.6%", trades: 2 },
-        { date: new Date(2026, 10, 21), score: 96, equity: "+96.0%", trades: 3 },
+        { date: new Date(2026, 10, 20), score: 96, equity: "+95.8%", trades: 2 },
+        { date: new Date(2026, 10, 21), score: 97, equity: "+96.8%", trades: 3 },
       ],
     },
     "14D": {
-      headline: "+96.0%",
+      headline: "+96.8%",
       delta: "+4.8% this week",
       sessions: "16 closed sessions",
-      scoreLabel: "Score: 96%",
+      scoreLabel: "Score: 97%",
       points: [
         { date: new Date(2026, 10, 9), score: 84, equity: "+82.4%", trades: 2 },
         { date: new Date(2026, 10, 11), score: 89, equity: "+86.1%", trades: 3 },
-        { date: new Date(2026, 10, 13), score: 87, equity: "+85.3%", trades: 2 },
+        { date: new Date(2026, 10, 13), score: 86, equity: "+85.3%", trades: 2 },
         { date: new Date(2026, 10, 15), score: 93, equity: "+90.8%", trades: 2 },
-        { date: new Date(2026, 10, 16), score: 92, equity: "+91.6%", trades: 3 },
         { date: new Date(2026, 10, 17), score: 88, equity: "+89.4%", trades: 4 },
-        { date: new Date(2026, 10, 18), score: 95, equity: "+93.9%", trades: 2 },
         { date: new Date(2026, 10, 19), score: 94, equity: "+94.8%", trades: 3 },
-        { date: new Date(2026, 10, 20), score: 96, equity: "+96.0%", trades: 3 },
+        { date: new Date(2026, 10, 21), score: 97, equity: "+96.8%", trades: 3 },
       ],
     },
     All: {
@@ -264,7 +266,7 @@ export default function Rewards() {
         { date: new Date(2026, 10, 12), score: 90, equity: "+88.7%", trades: 3 },
         { date: new Date(2026, 10, 16), score: 92, equity: "+92.4%", trades: 3 },
         { date: new Date(2026, 10, 19), score: 95, equity: "+104.8%", trades: 2 },
-        { date: new Date(2026, 10, 21), score: 96, equity: "+114.2%", trades: 3 },
+        { date: new Date(2026, 10, 21), score: 97, equity: "+114.2%", trades: 3 },
       ],
     },
   };
@@ -274,7 +276,7 @@ export default function Rewards() {
   const [livePoints7D, setLivePoints7D] = useState<PointData[]>(curveDatasets["7D"].points);
   const [livePoints14D, setLivePoints14D] = useState<PointData[]>(curveDatasets["14D"].points);
   const [livePointsAll, setLivePointsAll] = useState<PointData[]>(curveDatasets["All"].points);
-  const [liveHeadline, setLiveHeadline] = useState("+96.0%");
+  const [liveHeadline, setLiveHeadline] = useState("+96.8%");
   const [liveSessionsCount, setLiveSessionsCount] = useState(16);
   const [liveStopLossPercent, setLiveStopLossPercent] = useState(100);
   const [liveViolationsCount, setLiveViolationsCount] = useState(0);
@@ -290,7 +292,6 @@ export default function Rewards() {
       setLiveViolationsCount(breachLogs.length);
     }
     if (recentTrades && recentTrades.length > 0) {
-      setLiveSessionsCount(recentTrades.length);
       const slTrades = recentTrades.filter((t) => t.sl);
       const slPct = Math.round((slTrades.length / recentTrades.length) * 100);
       setLiveStopLossPercent(slPct);
@@ -300,15 +301,15 @@ export default function Rewards() {
     }
   }, [tradesToday, avgDisciplineScore, breachLogs, recentTrades, dailyXpEarned]);
 
-  // Live Order Simulator / Real-time Execution Trigger
+  // Live Order Simulator / Real-time Execution Trigger (Updates Today's Point in Place)
   const handleSimulateLiveTrade = useCallback(() => {
     const pairs = ["EURUSD", "GBPUSD", "XAUUSD", "USDJPY", "BTCUSD", "NAS100"];
     const pair = pairs[Math.floor(Math.random() * pairs.length)];
     const action = Math.random() > 0.4 ? "BUY" : "SELL";
     const lot = (Math.floor(Math.random() * 6) + 5) / 100;
     const slLatency = (Math.random() * 0.7 + 1.1).toFixed(1);
-    const newScore = Math.min(100, Math.max(91, Math.round(95 + Math.random() * 4)));
-    const addedEquity = +(Math.random() * 0.6 + 0.2).toFixed(1);
+    const newScore = Math.min(100, Math.max(92, Math.round(95 + Math.random() * 4)));
+    const addedEquity = +(Math.random() * 0.5 + 0.2).toFixed(1);
 
     setLiveEventPulse(true);
     setTimeout(() => setLiveEventPulse(false), 2000);
@@ -316,21 +317,27 @@ export default function Rewards() {
     setDisplayScore(newScore);
     setScore(newScore);
     setLiveTradesCount((prev) => Math.min(4, prev + 1));
-    setLiveSessionsCount((prev) => prev + 1);
 
     const updatedHeadline = `+${(96.0 + addedEquity).toFixed(1)}%`;
     setLiveHeadline(updatedHeadline);
 
-    const newPoint: PointData = {
-      date: new Date(),
-      score: newScore,
-      equity: updatedHeadline,
-      trades: Math.min(4, liveTradesCount + 1),
+    // Update the latest point (Today: Nov 21) in-place without appending duplicate date ticks
+    const updateTodayPoint = (prev: PointData[]) => {
+      if (prev.length === 0) return prev;
+      const copy = [...prev];
+      const last = copy.length - 1;
+      copy[last] = {
+        ...copy[last],
+        score: newScore,
+        equity: updatedHeadline,
+        trades: Math.min(4, liveTradesCount + 1),
+      };
+      return copy;
     };
 
-    setLivePoints7D((prev) => [...prev.slice(1), newPoint]);
-    setLivePoints14D((prev) => [...prev.slice(1), newPoint]);
-    setLivePointsAll((prev) => [...prev.slice(1), newPoint]);
+    setLivePoints7D(updateTodayPoint);
+    setLivePoints14D(updateTodayPoint);
+    setLivePointsAll(updateTodayPoint);
 
     setXp((prev) => prev + 25);
 
@@ -339,20 +346,42 @@ export default function Rewards() {
     });
   }, [liveTradesCount]);
 
-  // Real-time periodic live market heartbeat (when streaming is ON)
+  // Real-time periodic live market heartbeat (100% Live Streaming MT5 Feed)
   useEffect(() => {
     if (!isLiveStreaming) return;
     const streamInterval = setInterval(() => {
-      setLiveEventPulse(true);
-      setTimeout(() => setLiveEventPulse(false), 1200);
+      // Realistic server latency fluctuation
+      setLatency(Math.floor(Math.random() * 5) + 10);
 
-      const microDelta = (Math.random() * 0.16 - 0.04).toFixed(1);
+      // Micro pulse
+      setLiveEventPulse(true);
+      setTimeout(() => setLiveEventPulse(false), 900);
+
+      const microDelta = (Math.random() * 0.14 - 0.04).toFixed(1);
       setLiveHeadline((prev) => {
         const current = parseFloat(prev.replace("+", "").replace("%", "")) || 96.0;
-        const updated = Math.max(95.0, Math.min(99.0, current + parseFloat(microDelta))).toFixed(1);
-        return `+${updated}%`;
+        const updated = Math.max(95.0, Math.min(98.8, current + parseFloat(microDelta))).toFixed(1);
+        const headlineStr = `+${updated}%`;
+
+        // Also dynamically reflect on today's chart point
+        const updateMicroEquity = (points: PointData[]) => {
+          if (points.length === 0) return points;
+          const copy = [...points];
+          const last = copy.length - 1;
+          copy[last] = {
+            ...copy[last],
+            equity: headlineStr,
+          };
+          return copy;
+        };
+
+        setLivePoints7D(updateMicroEquity);
+        setLivePoints14D(updateMicroEquity);
+        setLivePointsAll(updateMicroEquity);
+
+        return headlineStr;
       });
-    }, 15000);
+    }, 4000);
 
     return () => clearInterval(streamInterval);
   }, [isLiveStreaming]);
@@ -366,11 +395,11 @@ export default function Rewards() {
       ...base,
       headline: activeRange === "All" ? "+114.2%" : liveHeadline,
       delta: activeRange === "All" ? "+18.4% this month" : "+4.8% this week",
-      sessions: `${liveSessionsCount} closed sessions`,
+      sessions: base.sessions,
       scoreLabel: `Score: ${displayScore}%`,
       points,
     };
-  }, [activeRange, livePoints7D, livePoints14D, livePointsAll, liveHeadline, liveSessionsCount, displayScore]);
+  }, [activeRange, livePoints7D, livePoints14D, livePointsAll, liveHeadline, displayScore]);
 
   /* -------------------------------------------------------------------------
      RULE COMPLIANCE PARAMETERS (4 CARDS WITH UIVERSE BARS)
@@ -720,6 +749,93 @@ export default function Rewards() {
   const weeklyDays = currentWeekData.days;
 
   /* -------------------------------------------------------------------------
+     CALENDAR CONSISTENCY DATA (MONTH OF NOVEMBER 2026 AUDIT TRAIL)
+  ------------------------------------------------------------------------- */
+  interface CalendarDayItem {
+    id: string;
+    dateStr: string;
+    dayNum: number;
+    dayName: string;
+    formattedDate: string;
+    score?: number;
+    grade?: string;
+    tier?: string;
+    trades?: string;
+    pair?: string;
+    net?: string;
+    note?: string;
+    isMarketClosed?: boolean;
+    isUpcoming?: boolean;
+    isToday?: boolean;
+  }
+
+  const calendarDaysMap: Record<string, CalendarDayItem> = useMemo(() => ({
+    "2026-11-02": { id: "nov-2", dateStr: "2026-11-02", dayNum: 2, dayName: "Mon", formattedDate: "Mon, Nov 2", score: 88, grade: "GRADE A", tier: "A", trades: "3 / 4", pair: "EURUSD · AUDUSD", net: "+0.90%", note: "Risk per position kept strictly under 0.8% equity." },
+    "2026-11-03": { id: "nov-3", dateStr: "2026-11-03", dayNum: 3, dayName: "Tue", formattedDate: "Tue, Nov 3", score: 92, grade: "GRADE A", tier: "A", trades: "2 / 4", pair: "XAUUSD", net: "+1.40%", note: "Pre-election market volatility managed with reduced lot size." },
+    "2026-11-04": { id: "nov-4", dateStr: "2026-11-04", dayNum: 4, dayName: "Wed", formattedDate: "Wed, Nov 4", score: 95, grade: "GRADE A+", tier: "A+", trades: "3 / 4", pair: "GBPUSD · EURUSD", net: "+1.85%", note: "Perfect execution across London and NY session overlap." },
+    "2026-11-05": { id: "nov-5", dateStr: "2026-11-05", dayNum: 5, dayName: "Thu", formattedDate: "Thu, Nov 5", score: 90, grade: "GRADE A", tier: "A", trades: "3 / 4", pair: "USDCHF · USDJPY", net: "+0.30%", note: "All trade orders executed with instant stop losses attached." },
+    "2026-11-06": { id: "nov-6", dateStr: "2026-11-06", dayNum: 6, dayName: "Fri", formattedDate: "Fri, Nov 6", score: 96, grade: "GRADE A+", tier: "A+", trades: "2 / 4", pair: "XAUUSD", net: "+1.70%", note: "US NFP news release bypassed as planned; zero slippage violations." },
+    "2026-11-07": { id: "nov-7", dateStr: "2026-11-07", dayNum: 7, dayName: "Sat", formattedDate: "Sat, Nov 7", score: 91, grade: "GRADE A", tier: "A", trades: "2 / 4", pair: "SOLUSD · ETHUSD", net: "+0.65%", note: "Weekend crypto risk limit verified by MT5 Guard." },
+    "2026-11-08": { id: "nov-8", dateStr: "2026-11-08", dayNum: 8, dayName: "Sun", formattedDate: "Sun, Nov 8", isMarketClosed: true, note: "Market Closed. Weekend session guard active. 0 orders allowed." },
+
+    "2026-11-09": { id: "nov-9", dateStr: "2026-11-09", dayNum: 9, dayName: "Mon", formattedDate: "Mon, Nov 9", score: 90, grade: "GRADE A", tier: "A", trades: "3 / 4", pair: "EURUSD", net: "+0.75%", note: "Disciplined stop placement on high-impact ECB release." },
+    "2026-11-10": { id: "nov-10", dateStr: "2026-11-10", dayNum: 10, dayName: "Tue", formattedDate: "Tue, Nov 10", score: 91, grade: "GRADE A", tier: "A", trades: "2 / 4", pair: "GBPUSD · XAUUSD", net: "+1.10%", note: "1.0% risk cap adhered to during NY open volatility." },
+    "2026-11-11": { id: "nov-11", dateStr: "2026-11-11", dayNum: 11, dayName: "Wed", formattedDate: "Wed, Nov 11", score: 89, grade: "GRADE A", tier: "A", trades: "4 / 4", pair: "USDJPY", net: "+0.45%", note: "Cooldown period respected after early morning scratch trade." },
+    "2026-11-12": { id: "nov-12", dateStr: "2026-11-12", dayNum: 12, dayName: "Thu", formattedDate: "Thu, Nov 12", score: 93, grade: "GRADE A", tier: "A", trades: "2 / 4", pair: "EURUSD · GBPUSD", net: "+1.35%", note: "Zero overtrading; session locked at daily target profit." },
+    "2026-11-13": { id: "nov-13", dateStr: "2026-11-13", dayNum: 13, dayName: "Fri", formattedDate: "Fri, Nov 13", score: 87, grade: "GRADE A", tier: "A", trades: "3 / 4", pair: "XAUUSD", net: "-0.60%", note: "Strict daily loss limit triggered; stopped trading for the day." },
+    "2026-11-14": { id: "nov-14", dateStr: "2026-11-14", dayNum: 14, dayName: "Sat", formattedDate: "Sat, Nov 14", score: 94, grade: "GRADE A", tier: "A", trades: "2 / 4", pair: "BTCUSD · SOLUSD", net: "+0.80%", note: "Clean weekend crypto execution with verified protective SL." },
+    "2026-11-15": { id: "nov-15", dateStr: "2026-11-15", dayNum: 15, dayName: "Sun", formattedDate: "Sun, Nov 15", isMarketClosed: true, note: "Market Closed. Weekend session guard active. 0 orders allowed." },
+
+    "2026-11-16": { id: "nov-16", dateStr: "2026-11-16", dayNum: 16, dayName: "Mon", formattedDate: "Mon, Nov 16", score: 92, grade: "GRADE A", tier: "A", trades: "3 / 4", pair: "EURUSD · XAUUSD", net: "+1.15%", note: "All stop-losses attached within 1.8s of entry." },
+    "2026-11-17": { id: "nov-17", dateStr: "2026-11-17", dayNum: 17, dayName: "Tue", formattedDate: "Tue, Nov 17", score: 88, grade: "GRADE A", tier: "A", trades: "4 / 4", pair: "GBPUSD · USDJPY", net: "-0.42%", note: "Hit 4/4 daily trade cap; stopped trading immediately per rules." },
+    "2026-11-18": { id: "nov-18", dateStr: "2026-11-18", dayNum: 18, dayName: "Wed", formattedDate: "Wed, Nov 18", score: 95, grade: "GRADE A+", tier: "A+", trades: "2 / 4", pair: "XAUUSD", net: "+1.64%", note: "Zero drawdown violation; 0.75% max risk per position." },
+    "2026-11-19": { id: "nov-19", dateStr: "2026-11-19", dayNum: 19, dayName: "Thu", formattedDate: "Thu, Nov 19", score: 94, grade: "GRADE A", tier: "A", trades: "3 / 4", pair: "EURUSD · NAS100", net: "+0.88%", note: "Respected 15-min cooldown after morning breakeven stop." },
+    "2026-11-20": { id: "nov-20", dateStr: "2026-11-20", dayNum: 20, dayName: "Fri", formattedDate: "Fri, Nov 20", score: 96, grade: "GRADE A+", tier: "A+", trades: "2 / 4", pair: "XAUUSD · GBPJPY", net: "+1.32%", note: "Flawless London-NY overlap execution; 100% SL compliance." },
+    "2026-11-21": { id: "nov-21", dateStr: "2026-11-21", dayNum: 21, dayName: "Sat", formattedDate: "Sat, Nov 21 (Today)", score: displayScore, grade: displayScore >= 95 ? "GRADE A+" : "GRADE A", tier: displayScore >= 95 ? "A+" : "A", trades: `${liveTradesCount} / 4`, pair: "BTCUSD · ETHUSD", net: "+0.92%", isToday: true, note: "Live MT5 compliance active. Real-time trade discipline verified." },
+    "2026-11-22": { id: "nov-22", dateStr: "2026-11-22", dayNum: 22, dayName: "Sun", formattedDate: "Sun, Nov 22", isMarketClosed: true, note: "Market Closed. Weekend session guard active. 0 orders allowed." },
+
+    "2026-11-23": { id: "nov-23", dateStr: "2026-11-23", dayNum: 23, dayName: "Mon", formattedDate: "Mon, Nov 23", isUpcoming: true, note: "Upcoming MT5 session. Risk guard rules will engage on first execution." },
+    "2026-11-24": { id: "nov-24", dateStr: "2026-11-24", dayNum: 24, dayName: "Tue", formattedDate: "Tue, Nov 24", isUpcoming: true, note: "Upcoming MT5 session. Risk guard rules will engage on first execution." },
+    "2026-11-25": { id: "nov-25", dateStr: "2026-11-25", dayNum: 25, dayName: "Wed", formattedDate: "Wed, Nov 25", isUpcoming: true, note: "Upcoming MT5 session. Risk guard rules will engage on first execution." },
+    "2026-11-26": { id: "nov-26", dateStr: "2026-11-26", dayNum: 26, dayName: "Thu", formattedDate: "Thu, Nov 26", isUpcoming: true, note: "Upcoming MT5 session. Risk guard rules will engage on first execution." },
+    "2026-11-27": { id: "nov-27", dateStr: "2026-11-27", dayNum: 27, dayName: "Fri", formattedDate: "Fri, Nov 27", isUpcoming: true, note: "Upcoming MT5 session. Risk guard rules will engage on first execution." },
+    "2026-11-28": { id: "nov-28", dateStr: "2026-11-28", dayNum: 28, dayName: "Sat", formattedDate: "Sat, Nov 28", isUpcoming: true, note: "Upcoming MT5 session. Risk guard rules will engage on first execution." },
+    "2026-11-29": { id: "nov-29", dateStr: "2026-11-29", dayNum: 29, dayName: "Sun", formattedDate: "Sun, Nov 29", isMarketClosed: true, note: "Market Closed. Weekend session guard active. 0 orders allowed." },
+  }), [displayScore, liveTradesCount]);
+
+  const calendarWeeks = [
+    ["2026-11-02", "2026-11-03", "2026-11-04", "2026-11-05", "2026-11-06", "2026-11-07", "2026-11-08"],
+    ["2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15"],
+    ["2026-11-16", "2026-11-17", "2026-11-18", "2026-11-19", "2026-11-20", "2026-11-21", "2026-11-22"],
+    ["2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26", "2026-11-27", "2026-11-28", "2026-11-29"],
+  ];
+
+  const selectedCalendarRecord = calendarDaysMap[selectedCalendarDate] || calendarDaysMap["2026-11-21"];
+
+  const handleOpenCalendarDayModal = (day: CalendarDayItem) => {
+    if (day.isMarketClosed) {
+      toast.info("Market Closed", { description: "Forex and stock indices are closed on Sunday." });
+      return;
+    }
+    if (day.isUpcoming) {
+      toast.info("Upcoming Session", { description: "Session audit will generate automatically once the session opens." });
+      return;
+    }
+    setActiveAuditModal({
+      isOpen: true,
+      badge: `${day.grade || "GRADE A"} · ${day.score || 90}/100`,
+      title: `Session Audit — ${day.formattedDate}`,
+      summary: day.note || "Verified MT5 disciplined trade execution.",
+      stats: [
+        { label: "Executions", value: day.trades || "3 / 4" },
+        { label: "Pairs Traded", value: day.pair || "EURUSD" },
+        { label: "Session Return", value: day.net || "+0.00%" },
+      ],
+    });
+  };
+
+
+  /* -------------------------------------------------------------------------
      BADGES DATA
   ------------------------------------------------------------------------- */
   const badgesData: BadgeItem[] = [
@@ -1034,7 +1150,7 @@ export default function Rewards() {
                     ACCOUNT
                   </div>
                   <div className="text-[13px] font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
-                    {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#88412"}
+                    {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#79870"}
                   </div>
                 </div>
 
@@ -1075,11 +1191,11 @@ export default function Rewards() {
 
               <div className="flex items-center gap-2 text-[11px] font-medium">
                 <span className="text-purple-600 dark:text-purple-400 font-semibold">
-                  +{dailyXpEarned || 850} XP this cycle
+                  +{dailyXpEarned || 180} XP this cycle
                 </span>
                 <span className="text-slate-300 dark:text-neutral-700">·</span>
                 <span className="text-slate-500 dark:text-neutral-400">
-                  {1000 - (xp % 1000)} XP to Lv 2
+                  {xp >= 1000 ? `${2000 - xp} XP to Lv 2` : `${1000 - xp} XP to Lv 2`}
                 </span>
               </div>
             </div>
@@ -1278,22 +1394,34 @@ export default function Rewards() {
                 </p>
               </div>
 
-              {/* Dashboard-Style Range Switcher */}
-              <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07] shrink-0">
-                {(["7D", "14D", "All"] as const).map((range) => (
-                  <button
-                    key={range}
-                    type="button"
-                    onClick={() => setActiveRange(range)}
-                    className={`px-2.5 py-1 text-[11px] font-bold rounded-[8px] transition-all cursor-pointer ${
-                      activeRange === range
-                        ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    {range}
-                  </button>
-                ))}
+              {/* Range Switcher & Live Order Trigger */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleSimulateLiveTrade}
+                  title="Trigger Real-Time MT5 Trade Execution"
+                  className="tactile-white-pill inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] text-[10.5px] font-bold text-slate-700 dark:text-slate-200 cursor-pointer hover:border-[#006DFE]/50 transition-all shadow-2xs"
+                >
+                  <Zap size={11} className="text-amber-500 fill-amber-500" />
+                  <span className="hidden sm:inline">Simulate Live Order</span>
+                </button>
+
+                <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07] shrink-0">
+                  {(["7D", "14D", "All"] as const).map((range) => (
+                    <button
+                      key={range}
+                      type="button"
+                      onClick={() => setActiveRange(range)}
+                      className={`px-2.5 py-1 text-[11px] font-bold rounded-[8px] transition-all cursor-pointer ${
+                        activeRange === range
+                          ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
+                          : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1313,7 +1441,7 @@ export default function Rewards() {
               )}
             </div>
 
-            {/* AreaChart: Wide width, height matching Image 2, no line, heavier fill, faded edges */}
+            {/* AreaChart: Wide width, height matching Image 2, smooth stroke, heavier fill, faded edges */}
             <div className="w-full flex-1 flex flex-col justify-center min-h-[195px] h-[195px] max-h-[210px]">
               <AreaChart
                 ariaLabel="Area Chart - Fill"
@@ -1325,10 +1453,11 @@ export default function Rewards() {
                 <Area
                   dataKey="score"
                   fadeEdges
-                  fillOpacity={0.6}
-                  gradientToOpacity={0.05}
+                  fillOpacity={0.55}
+                  gradientToOpacity={0.04}
                   label="Discipline"
                   showLine={false}
+                  strokeColor="#006DFE"
                 />
                 <XAxis />
                 <ChartTooltip />
@@ -1388,35 +1517,35 @@ export default function Rewards() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
             
             {/* Rule Compliance Parameters Card (Left side: 7 cols) */}
-            <div className={`lg:col-span-7 xl:col-span-7 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+            <div className={`lg:col-span-7 xl:col-span-7 ${CARD_BASE} p-3 sm:p-3.5 flex flex-col justify-between gap-2`}>
               
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 mb-1 border-b border-slate-100 dark:border-white/[0.06] gap-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 mb-0.5 border-b border-slate-100 dark:border-white/[0.06] gap-1.5">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#006DFE] dark:text-blue-400 shrink-0">
-                      <Shield size={14} className="stroke-[2.2]" />
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#006DFE] dark:text-blue-400 shrink-0">
+                      <Shield size={13} className="stroke-[2.2]" />
                     </div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+                    <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">
                       Rule Compliance Parameters
                     </h3>
                   </div>
-                  <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5 pl-8 font-medium">
-                    Synced with your Exness MT5 account &amp; live Risk Guard enforcer. Click any parameter to inspect audit logs.
+                  <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium truncate">
+                    Synced with your Exness MT5 account &amp; live Risk Guard enforcer.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 self-start sm:self-auto pl-8 sm:pl-0">
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
                   <button
                     type="button"
                     onClick={handleReplayBars}
-                    className="tactile-white-pill inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold cursor-pointer"
+                    className="tactile-white-pill inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold cursor-pointer"
                   >
-                    <RefreshCw size={12} />
+                    <RefreshCw size={11} />
                     <span>Replay Sync</span>
                   </button>
 
-                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-xs font-bold text-[#006DFE] dark:text-blue-400 tabular-nums">
+                  <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-[11px] font-bold text-[#006DFE] dark:text-blue-400 tabular-nums">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE] animate-pulse" />
                     <span>Score: {score}/100</span>
                   </div>
@@ -1424,13 +1553,13 @@ export default function Rewards() {
               </div>
 
               {/* 2x2 Interactive Rule Cards with Exact Uiverse .loaderBar */}
-              <div key={replayKey} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5 my-auto">
+              <div key={replayKey} className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 flex-1 py-0.5">
                 {complianceRules.map((rule) => (
                   <button
                     key={rule.id}
                     type="button"
                     onClick={() => handleOpenRuleModal(rule)}
-                    className="w-full text-left p-3.5 rounded-2xl bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex flex-col justify-between gap-2.5 group"
+                    className="w-full text-left p-2.5 sm:p-3 rounded-xl bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex flex-col justify-between gap-1.5 group"
                   >
                     {/* Top: Title & Badge */}
                     <div className="flex items-start justify-between gap-2 w-full">
@@ -1441,20 +1570,20 @@ export default function Rewards() {
                             {rule.title}
                           </span>
                         </div>
-                        <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate pl-5">
+                        <p className="text-[10px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate pl-4">
                           {rule.subtitle}
                         </p>
                       </div>
 
-                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full border shadow-2xs whitespace-nowrap shrink-0 tabular-nums bg-white dark:bg-white/[0.05] text-slate-700 dark:text-neutral-300 border-slate-200 dark:border-white/10">
+                      <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full border shadow-2xs whitespace-nowrap shrink-0 tabular-nums bg-white dark:bg-white/[0.05] text-slate-700 dark:text-neutral-300 border-slate-200 dark:border-white/10">
                         {rule.badgeText}
                       </span>
                     </div>
 
                     {/* Middle: 3D Horizontal Bar + Percentage */}
-                    <div className="flex items-center gap-2.5 w-full pt-0.5">
+                    <div className="flex items-center gap-2 w-full pt-0.5">
                       {/* 3D Track with inset shadow */}
-                      <div className="relative flex-1 h-[10px] rounded-full bg-[#EAEFF5] dark:bg-[#080C14] border border-slate-300/80 dark:border-[#006DFE]/40 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] overflow-hidden">
+                      <div className="relative flex-1 h-[8px] rounded-full bg-[#EAEFF5] dark:bg-[#080C14] border border-slate-300/80 dark:border-[#006DFE]/40 p-[1px] shadow-[inset_0_1.5px_3px_rgba(0,0,0,0.12)] overflow-hidden">
                         {/* 3D Horizontal Striped Loader Bar */}
                         <motion.div
                           initial={{ width: 0 }}
@@ -1482,7 +1611,7 @@ export default function Rewards() {
                       </div>
 
                       <span
-                        className={`text-xs font-black tabular-nums shrink-0 min-w-[34px] text-right ${
+                        className={`text-[11px] font-black tabular-nums shrink-0 min-w-[30px] text-right ${
                           rule.colorType === "green"
                             ? "text-emerald-600 dark:text-emerald-400"
                             : rule.colorType === "amber"
@@ -1496,12 +1625,12 @@ export default function Rewards() {
 
                     {/* Bottom: Micro Telemetry Stat */}
                     {rule.telemetryStat && (
-                      <div className="flex items-center justify-between text-[11px] font-medium text-slate-500 dark:text-neutral-400 pt-1 border-t border-slate-200/50 dark:border-white/[0.04]">
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-neutral-600" />
-                          {rule.telemetryStat}
+                      <div className="flex items-center justify-between text-[10.5px] font-medium text-slate-500 dark:text-neutral-400 pt-0.5 border-t border-slate-200/50 dark:border-white/[0.04]">
+                        <span className="flex items-center gap-1.5 truncate">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-neutral-600 shrink-0" />
+                          <span className="truncate">{rule.telemetryStat}</span>
                         </span>
-                        <span className="text-[10px] text-[#006DFE] dark:text-blue-400 font-semibold group-hover:underline">
+                        <span className="text-[10px] text-[#006DFE] dark:text-blue-400 font-semibold group-hover:underline shrink-0 pl-1">
                           Inspect &rarr;
                         </span>
                       </div>
@@ -1511,23 +1640,23 @@ export default function Rewards() {
               </div>
 
               {/* Unified Forex 24/5 Session Rhythm Bar */}
-              <div className="pt-3 border-t border-slate-100 dark:border-white/[0.06] flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-xs shrink-0">
+              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between gap-2 text-[11px]">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="w-4 h-4 rounded bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[10px] shrink-0">
                     🌐
                   </div>
-                  <div>
+                  <div className="truncate">
                     <span className="font-bold text-slate-900 dark:text-white mr-1.5">
                       Forex 24/5 Session Rhythm
                     </span>
-                    <span className="text-[10.5px] text-slate-400 dark:text-neutral-500 font-medium hidden sm:inline">
+                    <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium hidden sm:inline">
                       Continuous live sync · Auto-locks midnight 00:00 MT5
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1 text-[9.5px] font-semibold text-slate-500 dark:text-neutral-400">
                     <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5">SYD</span>
                     <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5">TYO</span>
                     <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] font-bold">
@@ -1538,7 +1667,7 @@ export default function Rewards() {
                     </span>
                   </div>
 
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-[9.5px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     London &amp; NY Active
                   </span>
@@ -1546,159 +1675,322 @@ export default function Rewards() {
               </div>
             </div>
 
-            {/* Weekly Consistency Log (Right side: 5 cols, spacious and systematic) */}
-            <div className={`lg:col-span-5 xl:col-span-5 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
-              <div className="flex-1 flex flex-col">
+            {/* Weekly Consistency Log & Calendar (Right side: 5 cols) */}
+            <div className={`lg:col-span-5 xl:col-span-5 ${CARD_BASE} p-3 sm:p-3.5 flex flex-col justify-between gap-2`}>
+              <div className="flex-1 flex flex-col justify-between">
                 
-                {/* Header: Title, Range & History Selector */}
-                <div className="pb-3 mb-2 border-b border-slate-100 dark:border-white/[0.06] space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#006DFE] dark:text-blue-400 shrink-0">
-                        <History size={14} className="stroke-[2.2]" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
-                          Weekly Consistency Log
-                        </h3>
-                        <p className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium">
-                          Audit past MT5 sessions &amp; rule pass rate
-                        </p>
-                      </div>
+                {/* Header: Title, Subtitle & View Mode Switcher */}
+                <div className="pb-2 mb-1 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <div className="w-5 h-5 rounded-md bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#006DFE] dark:text-blue-400 shrink-0">
+                      <CalendarIcon size={13} className="stroke-[2.2]" />
                     </div>
-
-                    {/* Clean legend: A+ and A */}
-                    <div className="flex items-center gap-2.5 text-xs font-semibold text-slate-500 dark:text-neutral-400 shrink-0">
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                        <span className="text-slate-700 dark:text-slate-300">A+</span>
-                      </span>
-                      <span className="inline-flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-[#006DFE]" />
-                        <span className="text-slate-700 dark:text-slate-300">A</span>
-                      </span>
+                    <div className="min-w-0">
+                      <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight truncate">
+                        Weekly Consistency Log
+                      </h3>
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium truncate">
+                        Audit past MT5 sessions &amp; score history
+                      </p>
                     </div>
                   </div>
 
-                  {/* Week Navigator Bar: Stepper & Quick Jump Tabs */}
-                  <div className="flex items-center justify-between gap-2 pt-0.5">
-                    {/* Stepper with Chevrons and Date Range */}
-                    <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-white/[0.04] p-1 rounded-xl border border-slate-200/70 dark:border-white/[0.06]">
-                      <button
-                        type="button"
-                        disabled={selectedWeekIndex >= weeklyHistory.length - 1}
-                        onClick={() => setSelectedWeekIndex((prev) => Math.min(weeklyHistory.length - 1, prev + 1))}
-                        title="Previous Week"
-                        className="w-7 h-7 rounded-lg bg-white dark:bg-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.12] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-200 shadow-2xs transition-all cursor-pointer"
-                      >
-                        <ChevronLeft size={14} />
-                      </button>
-                      <span className="px-2.5 text-xs font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                        {currentWeekData.rangeLabel}
-                      </span>
-                      <button
-                        type="button"
-                        disabled={selectedWeekIndex <= 0}
-                        onClick={() => setSelectedWeekIndex((prev) => Math.max(0, prev - 1))}
-                        title="Next Week"
-                        className="w-7 h-7 rounded-lg bg-white dark:bg-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.12] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-200 shadow-2xs transition-all cursor-pointer"
-                      >
-                        <ChevronRight size={14} />
-                      </button>
+                  {/* View Mode Toggle (Calendar vs List) */}
+                  <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-white/[0.04] p-0.5 rounded-lg border border-slate-200/70 dark:border-white/[0.06] shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setConsistencyViewMode("calendar")}
+                      title="Calendar View"
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all flex items-center gap-1 ${
+                        consistencyViewMode === "calendar"
+                          ? "bg-[#006DFE] text-white shadow-xs"
+                          : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <CalendarIcon size={11} />
+                      <span>Calendar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConsistencyViewMode("list")}
+                      title="List View"
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-semibold cursor-pointer transition-all flex items-center gap-1 ${
+                        consistencyViewMode === "list"
+                          ? "bg-[#006DFE] text-white shadow-xs"
+                          : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                      }`}
+                    >
+                      <ListIcon size={11} />
+                      <span>List</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* VIEW 1: INTERACTIVE DISCIPLINE CALENDAR */}
+                {consistencyViewMode === "calendar" ? (
+                  <div className="flex-1 flex flex-col justify-between gap-1.5">
+                    
+                    {/* Month Header & Legend */}
+                    <div className="flex items-center justify-between pb-0.5 text-[11px]">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+                        <span className="text-slate-400 dark:text-neutral-500 font-normal">Month:</span>
+                        <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 font-mono text-[10.5px]">
+                          November 2026
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
+                        <span className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>A+ (95+)</span>
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
+                          <span>A (85-94)</span>
+                        </span>
+                      </div>
                     </div>
 
-                    {/* Quick Week Jump Pills */}
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.04] p-1 rounded-xl border border-slate-200/70 dark:border-white/[0.06]">
-                      {weeklyHistory.map((week, idx) => {
-                        const isSelected = selectedWeekIndex === idx;
+                    {/* 7-Weekday Header */}
+                    <div className="grid grid-cols-7 gap-1 text-center py-0.5">
+                      {["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"].map((d) => (
+                        <span
+                          key={d}
+                          className={`text-[8.5px] font-mono font-bold ${
+                            d === "SUN" ? "text-slate-300 dark:text-neutral-600" : "text-slate-400 dark:text-neutral-500"
+                          }`}
+                        >
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* 4-Week Calendar Grid (Each day shows its score clearly) */}
+                    <div className="grid grid-rows-4 gap-1">
+                      {calendarWeeks.map((week, wIdx) => (
+                        <div key={`cw-${wIdx}`} className="grid grid-cols-7 gap-1">
+                          {week.map((dateStr) => {
+                            const day = calendarDaysMap[dateStr];
+                            if (!day) return <div key={dateStr} />;
+                            const isSelected = selectedCalendarDate === dateStr;
+                            const isToday = day.isToday;
+                            const hasScore = typeof day.score === "number";
+                            const isAPlus = hasScore && day.score >= 95;
+
+                            let cellStyle = "bg-slate-50/70 dark:bg-white/[0.025] text-slate-700 dark:text-neutral-300 border-slate-200/70 dark:border-white/[0.06]";
+                            if (hasScore) {
+                              if (isAPlus) {
+                                cellStyle = "bg-emerald-50 dark:bg-emerald-500/10 border-emerald-300/80 dark:border-emerald-500/25 text-emerald-800 dark:text-emerald-300 shadow-2xs";
+                              } else {
+                                cellStyle = "bg-blue-50/80 dark:bg-blue-500/10 border-blue-300/80 dark:border-blue-500/25 text-[#006DFE] dark:text-blue-300 shadow-2xs";
+                              }
+                            } else if (day.isMarketClosed) {
+                              cellStyle = "bg-slate-100/40 dark:bg-white/[0.015] border-transparent text-slate-300 dark:text-neutral-600";
+                            } else if (day.isUpcoming) {
+                              cellStyle = "border-dashed border-slate-200 dark:border-white/10 text-slate-400 dark:text-neutral-500";
+                            }
+
+                            return (
+                              <button
+                                key={dateStr}
+                                type="button"
+                                onClick={() => setSelectedCalendarDate(dateStr)}
+                                title={hasScore ? `${day.formattedDate}: Score ${day.score} (${day.grade})` : day.formattedDate}
+                                className={`relative p-0.5 rounded-lg border flex flex-col items-center justify-between transition-all cursor-pointer h-7 sm:h-[29px] min-h-[28px] ${cellStyle} ${
+                                  isSelected ? "ring-2 ring-[#006DFE] dark:ring-blue-400 shadow-xs scale-[1.02]" : "hover:scale-[1.02]"
+                                }`}
+                              >
+                                {/* Day Number Header */}
+                                <div className="flex items-center justify-between w-full px-0.5">
+                                  <span className={`text-[8.5px] font-mono font-bold leading-none ${isToday ? "text-[#006DFE] dark:text-blue-400 font-black" : ""}`}>
+                                    {day.dayNum}
+                                  </span>
+                                  {isToday && (
+                                    <span className="w-1 h-1 rounded-full bg-[#006DFE] animate-pulse" title="Today's Active Session" />
+                                  )}
+                                </div>
+
+                                {/* Score in Center */}
+                                <div className="my-auto">
+                                  {hasScore ? (
+                                    <span className={`text-[9.5px] font-black font-mono leading-none tracking-tight ${
+                                      isAPlus ? "text-emerald-700 dark:text-emerald-400" : "text-[#006DFE] dark:text-blue-400"
+                                    }`}>
+                                      {day.score}
+                                    </span>
+                                  ) : day.isMarketClosed ? (
+                                    <span className="text-[8px] font-mono text-slate-300 dark:text-neutral-600">Off</span>
+                                  ) : (
+                                    <span className="text-[8px] font-mono text-slate-300 dark:text-neutral-600">·</span>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Selected Day Inspector Mini Card */}
+                    <div className="px-2.5 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] flex items-center justify-between gap-2 shadow-2xs">
+                      <div className="min-w-0 flex items-center gap-2 truncate">
+                        <span className="text-[11px] font-bold text-slate-900 dark:text-white shrink-0">
+                          {selectedCalendarRecord.formattedDate}:
+                        </span>
+                        {selectedCalendarRecord.score ? (
+                          <span className={`text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded border shrink-0 ${
+                            selectedCalendarRecord.score >= 95
+                              ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/70"
+                              : "bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border-blue-200/70"
+                          }`}>
+                            Score: {selectedCalendarRecord.score}
+                          </span>
+                        ) : (
+                          <span className="text-[9.5px] font-mono text-slate-400 dark:text-neutral-500 shrink-0">
+                            {selectedCalendarRecord.isMarketClosed ? "Weekend Off" : "Pending"}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 dark:text-neutral-500 truncate font-medium">
+                          {selectedCalendarRecord.trades ? `${selectedCalendarRecord.trades} Trades · ${selectedCalendarRecord.net}` : selectedCalendarRecord.note}
+                        </span>
+                      </div>
+
+                      {selectedCalendarRecord.score && (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenCalendarDayModal(selectedCalendarRecord)}
+                          className="px-2 py-0.5 rounded-md text-[10px] font-bold text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 border border-blue-200/60 dark:border-blue-500/20 shrink-0 cursor-pointer transition-all"
+                        >
+                          Audit Log &rarr;
+                        </button>
+                      )}
+                    </div>
+
+                  </div>
+                ) : (
+                  /* VIEW 2: WEEKLY AUDIT LIST */
+                  <div className="flex-1 flex flex-col justify-between gap-2">
+                    
+                    {/* Stepper with Chevrons and Date Range */}
+                    <div className="flex items-center justify-between gap-1.5">
+                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.04] p-0.5 rounded-lg border border-slate-200/70 dark:border-white/[0.06]">
+                        <button
+                          type="button"
+                          disabled={selectedWeekIndex >= weeklyHistory.length - 1}
+                          onClick={() => setSelectedWeekIndex((prev) => Math.min(weeklyHistory.length - 1, prev + 1))}
+                          title="Previous Week"
+                          className="w-6 h-6 rounded-md bg-white dark:bg-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.12] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-200 shadow-2xs transition-all cursor-pointer"
+                        >
+                          <ChevronLeft size={12} />
+                        </button>
+                        <span className="px-2 text-[11px] font-semibold text-slate-800 dark:text-slate-200 whitespace-nowrap">
+                          {currentWeekData.rangeLabel}
+                        </span>
+                        <button
+                          type="button"
+                          disabled={selectedWeekIndex <= 0}
+                          onClick={() => setSelectedWeekIndex((prev) => Math.max(0, prev - 1))}
+                          title="Next Week"
+                          className="w-6 h-6 rounded-md bg-white dark:bg-white/[0.08] hover:bg-slate-50 dark:hover:bg-white/[0.12] disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center text-slate-700 dark:text-neutral-200 shadow-2xs transition-all cursor-pointer"
+                        >
+                          <ChevronRight size={12} />
+                        </button>
+                      </div>
+
+                      {/* Quick Week Jump Pills */}
+                      <div className="flex items-center gap-1 bg-slate-100 dark:bg-white/[0.04] p-0.5 rounded-lg border border-slate-200/70 dark:border-white/[0.06]">
+                        {weeklyHistory.map((week, idx) => {
+                          const isSelected = selectedWeekIndex === idx;
+                          return (
+                            <button
+                              key={week.id}
+                              type="button"
+                              onClick={() => setSelectedWeekIndex(idx)}
+                              className={`px-2 py-0.5 rounded text-[10.5px] font-semibold cursor-pointer transition-all ${
+                                isSelected
+                                  ? "bg-[#006DFE] text-white shadow-xs"
+                                  : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
+                              }`}
+                            >
+                              {idx === 0 ? "Current" : idx === 1 ? "-1W" : "-2W"}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 6 Sleek Compact Interactive Audit Rows */}
+                    <div className="space-y-1 py-0.5">
+                      {weeklyDays.map((day) => {
+                        const isAPlus = day.tier === "A+";
+                        const dotColor = isAPlus ? "bg-emerald-500" : "bg-[#006DFE]";
+                        const gradeColor = isAPlus
+                          ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/70 dark:border-emerald-500/25"
+                          : "text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200/70 dark:border-blue-500/25";
+
+                        const formattedDayTitle = day.day.replace(
+                          /^(MON|TUE|WED|THU|FRI|SAT),\s*(NOV|DEC|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT)\s*(\d+)$/i,
+                          (_, d, m, n) => {
+                            const capD = d.charAt(0).toUpperCase() + d.slice(1).toLowerCase();
+                            const capM = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
+                            return `${capD}, ${capM} ${n}`;
+                          }
+                        );
+
                         return (
                           <button
-                            key={week.id}
+                            key={day.id}
                             type="button"
-                            onClick={() => setSelectedWeekIndex(idx)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-semibold cursor-pointer transition-all ${
-                              isSelected
-                                ? "bg-[#006DFE] text-white shadow-xs"
-                                : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-                            }`}
+                            onClick={() => handleOpenDayModal(day)}
+                            className="w-full px-2.5 py-1 rounded-lg bg-slate-50/80 dark:bg-white/[0.025] hover:bg-blue-50/50 dark:hover:bg-blue-500/10 border border-slate-200/60 dark:border-white/[0.05] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex items-center justify-between text-left group"
                           >
-                            {idx === 0 ? "Current" : idx === 1 ? "-1W" : "-2W"}
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="w-6 h-6 rounded-md bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-[10px] font-bold text-slate-700 dark:text-neutral-200 shrink-0 shadow-2xs">
+                                {day.dayHeader.slice(0, 3)}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="text-[11.5px] font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors leading-tight">
+                                  {formattedDayTitle}
+                                </div>
+                                <div className="text-[10px] font-medium text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 truncate">
+                                  <span className={`w-1.5 h-1.5 rounded-full ${dotColor} shrink-0`} />
+                                  <span className="truncate">{day.pair}</span>
+                                  <span className="text-slate-300 dark:text-neutral-700">·</span>
+                                  <span className={`font-semibold shrink-0 ${day.net.startsWith("+") ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
+                                    {day.net}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0 pl-1">
+                              <span className="text-xs font-bold text-slate-900 dark:text-white tabular-nums group-hover:text-[#006DFE] transition-colors">
+                                {day.score}
+                              </span>
+                              <span className={`px-1.5 py-0.2 rounded text-[9.5px] font-bold border ${gradeColor}`}>
+                                {day.grade}
+                              </span>
+                            </div>
                           </button>
                         );
                       })}
                     </div>
+
                   </div>
-                </div>
+                )}
 
-                {/* 6 Sleek Compact Interactive Audit Rows */}
-                <div className="space-y-1.5 py-0.5">
-                  {weeklyDays.map((day) => {
-                    const isAPlus = day.tier === "A+";
-                    const dotColor = isAPlus ? "bg-emerald-500" : "bg-[#006DFE]";
-                    const gradeColor = isAPlus
-                      ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/70 dark:border-emerald-500/25"
-                      : "text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200/70 dark:border-blue-500/25";
-
-                    // Format day title cleanly: "Mon, Nov 16"
-                    const formattedDayTitle = day.day.replace(
-                      /^(MON|TUE|WED|THU|FRI|SAT),\s*(NOV|DEC|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT)\s*(\d+)$/i,
-                      (_, d, m, n) => {
-                        const capD = d.charAt(0).toUpperCase() + d.slice(1).toLowerCase();
-                        const capM = m.charAt(0).toUpperCase() + m.slice(1).toLowerCase();
-                        return `${capD}, ${capM} ${n}`;
-                      }
-                    );
-
-                    return (
-                      <button
-                        key={day.id}
-                        type="button"
-                        onClick={() => handleOpenDayModal(day)}
-                        className="w-full px-3 py-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.025] hover:bg-blue-50/50 dark:hover:bg-blue-500/10 border border-slate-200/60 dark:border-white/[0.05] hover:border-[#006DFE]/40 dark:hover:border-[#006DFE]/40 transition-all cursor-pointer flex items-center justify-between text-left group"
-                      >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-xs font-bold text-slate-700 dark:text-neutral-200 shrink-0 shadow-2xs">
-                            {day.dayHeader.slice(0, 3)}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors">
-                              {formattedDayTitle}
-                            </div>
-                            <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 flex items-center gap-1.5 truncate mt-0.5">
-                              <span className={`w-1.5 h-1.5 rounded-full ${dotColor} shrink-0`} />
-                              <span className="truncate">{day.pair}</span>
-                              <span className="text-slate-300 dark:text-neutral-700">·</span>
-                              <span className={`font-semibold shrink-0 ${day.net.startsWith("+") ? "text-emerald-600 dark:text-emerald-400" : "text-rose-500 dark:text-rose-400"}`}>
-                                {day.net}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2.5 shrink-0 pl-2">
-                          <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums group-hover:text-[#006DFE] transition-colors">
-                            {day.score}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border ${gradeColor}`}>
-                            {day.grade}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
 
-              {/* Weekly Audit Summary Strip */}
-              <div className="pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400">
+              {/* Consistency Summary Strip */}
+              <div className="pt-1.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400">
                 <div className="flex items-center gap-1.5 font-medium">
-                  <span>6 Sessions Audited</span>
+                  <span>18 Sessions Audited</span>
                   <span className="text-slate-300 dark:text-neutral-700">·</span>
-                  <span>Avg Score: <strong className="text-slate-900 dark:text-white font-bold">{currentWeekData.avgScore}</strong></span>
+                  <span>Month Avg: <strong className="text-slate-900 dark:text-white font-bold">92.1</strong></span>
                 </div>
-                <div className="flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
-                  <CheckCircle2 size={13} className="text-emerald-500" />
-                  <span>{currentWeekData.passRate}</span>
+                <div className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 size={12} className="text-emerald-500" />
+                  <span>100% Pass Rate</span>
                 </div>
               </div>
             </div>
