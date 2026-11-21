@@ -137,6 +137,20 @@ interface VaultReward {
   terms: string;
 }
 
+interface StreakLevelMilestone {
+  level: number;
+  title: string;
+  subtitle: string;
+  targetDays: number;
+  currentDays: number;
+  status: "completed" | "active" | "locked";
+  xpReward: string;
+  perks: string;
+  multiplier: string;
+  completedDate?: string;
+  criteria: string;
+}
+
 const CARD_BASE =
   "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none";
 
@@ -1048,78 +1062,116 @@ export default function Rewards() {
     });
   };
 
-  const streakWeeksData = useMemo(() => [
+  const streakLevelsData: StreakLevelMilestone[] = useMemo(() => [
     {
-      weekId: "w1",
-      phaseTitle: "Phase 1: Foundation & Routine",
-      dateRange: "Nov 4 – Nov 10",
-      badgeText: "Bronze Shield Unlocked · 1.15x XP",
-      isCompleted: true,
-      progressLabel: "7/7 Verified",
-      days: [
-        { dayNum: 1, dateStr: "Mon, Nov 4", pair: "EURUSD", score: 94, net: "+1.20%", trades: "2 / 4", status: "completed" },
-        { dayNum: 2, dateStr: "Tue, Nov 5", pair: "GBPUSD", score: 91, net: "+0.85%", trades: "3 / 4", status: "completed" },
-        { dayNum: 3, dateStr: "Wed, Nov 6", pair: "USDJPY", score: 96, net: "+1.40%", trades: "2 / 4", status: "completed" },
-        { dayNum: 4, dateStr: "Thu, Nov 7", pair: "XAUUSD", score: 89, net: "+0.60%", trades: "4 / 4", status: "completed" },
-        { dayNum: 5, dateStr: "Fri, Nov 8", pair: "EURUSD", score: 95, net: "+1.75%", trades: "2 / 4", status: "completed" },
-        { dayNum: 6, dateStr: "Sat, Nov 9", pair: "BTCUSD", score: 92, net: "+0.90%", trades: "3 / 4", status: "completed" },
-        { dayNum: 7, dateStr: "Sun, Nov 10", pair: "Weekend", score: 95, net: "+0.45%", trades: "1 / 4", status: "completed", isMilestone: true, milestoneName: "Bronze Shield" },
-      ],
+      level: 1,
+      title: "3-Day Foundation Sprint",
+      subtitle: "Establish baseline MT5 execution rhythm & zero impulsive entries",
+      targetDays: 3,
+      currentDays: 3,
+      status: "completed",
+      xpReward: "+50 XP",
+      perks: "1.05x Multiplier Floor",
+      multiplier: "1.05x",
+      completedDate: "Nov 6, 2026",
+      criteria: "Complete 3 consecutive sessions with Grade A discipline and 0 stop-loss removals.",
     },
     {
-      weekId: "w2",
-      phaseTitle: "Phase 2: Execution Consistency",
-      dateRange: "Nov 11 – Nov 17",
-      badgeText: "Silver Shield Unlocked · 1.25x XP",
-      isCompleted: true,
-      progressLabel: "7/7 Verified",
-      days: [
-        { dayNum: 8, dateStr: "Mon, Nov 11", pair: "EURUSD", score: 93, net: "+1.10%", trades: "3 / 4", status: "completed" },
-        { dayNum: 9, dateStr: "Tue, Nov 12", pair: "GBPUSD", score: 90, net: "+0.75%", trades: "2 / 4", status: "completed" },
-        { dayNum: 10, dateStr: "Wed, Nov 13", pair: "XAUUSD", score: 97, net: "+2.10%", trades: "2 / 4", status: "completed" },
-        { dayNum: 11, dateStr: "Thu, Nov 14", pair: "USDJPY", score: 92, net: "+0.80%", trades: "3 / 4", status: "completed" },
-        { dayNum: 12, dateStr: "Fri, Nov 15", pair: "EURUSD", score: 94, net: "+1.35%", trades: "2 / 4", status: "completed" },
-        { dayNum: 13, dateStr: "Sat, Nov 16", pair: "BTCUSD", score: 96, net: "+1.05%", trades: "2 / 4", status: "completed" },
-        { dayNum: 14, dateStr: "Sun, Nov 17", pair: "Weekend", score: 95, net: "+0.50%", trades: "1 / 4", status: "completed", isMilestone: true, milestoneName: "Silver Shield" },
-      ],
+      level: 2,
+      title: "7-Day Routine Mastery",
+      subtitle: "Build subconscious risk control habits across full trading week",
+      targetDays: 7,
+      currentDays: 7,
+      status: "completed",
+      xpReward: "+150 XP",
+      perks: "1.15x Permanent Multiplier Floor",
+      multiplier: "1.15x",
+      completedDate: "Nov 10, 2026",
+      criteria: "7 consecutive sessions adhering strictly to 15-minute post-loss cooldowns.",
     },
     {
-      weekId: "w3",
-      phaseTitle: "Phase 3: The 21-Day Iron Shield Sprint",
-      dateRange: "Nov 18 – Nov 24",
-      badgeText: "Final Stretch · 3 Sessions Remaining",
-      isCompleted: false,
-      progressLabel: "4/7 Active (Day 18 Today)",
-      days: [
-        { dayNum: 15, dateStr: "Mon, Nov 18", pair: "EURUSD · GBPUSD", score: 95, net: "+1.64%", trades: "2 / 4", status: "completed" },
-        { dayNum: 16, dateStr: "Tue, Nov 19", pair: "GBPUSD · USDJPY", score: 88, net: "-0.42%", trades: "4 / 4", status: "completed" },
-        { dayNum: 17, dateStr: "Wed, Nov 20", pair: "XAUUSD", score: 96, net: "+1.32%", trades: "2 / 4", status: "completed" },
-        { dayNum: 18, dateStr: "Thu, Nov 21", pair: "BTCUSD · ETHUSD", score: displayScore, net: "+0.92%", trades: `${liveTradesCount} / 4`, status: "active", isToday: true },
-        { dayNum: 19, dateStr: "Fri, Nov 22", pair: "Pending Session", score: null, net: "--", trades: "0 / 4", status: "upcoming" },
-        { dayNum: 20, dateStr: "Sat, Nov 23", pair: "Pending Session", score: null, net: "--", trades: "0 / 4", status: "upcoming" },
-        { dayNum: 21, dateStr: "Sun, Nov 24", pair: "Master Target", score: null, net: "--", trades: "0 / 4", status: "shield_milestone", isFinalGoal: true, milestoneName: "21-Day Iron Shield" },
-      ],
+      level: 3,
+      title: "14-Day Consistency Pro",
+      subtitle: "Two full consecutive weeks of institutional risk compliance",
+      targetDays: 14,
+      currentDays: 14,
+      status: "completed",
+      xpReward: "+250 XP",
+      perks: "1.25x Permanent Multiplier Floor",
+      multiplier: "1.25x",
+      completedDate: "Nov 17, 2026",
+      criteria: "14 consecutive sessions keeping average risk strictly below 1.0% per trade.",
     },
+    {
+      level: 4,
+      title: "21-Day Iron Shield Sprint",
+      subtitle: "Unlock automated strike absorption shield against volatile market news",
+      targetDays: 21,
+      currentDays: streakDays,
+      status: "active",
+      xpReward: "+500 XP",
+      perks: "1 Drawdown Shield · 1.35x Multiplier",
+      multiplier: "1.35x",
+      criteria: "Reach 21 consecutive disciplined sessions. Grants 1 automatic stop-out strike buffer.",
+    },
+    {
+      level: 5,
+      title: "30-Day Master Institution",
+      subtitle: "Top 1% elite discipline status & permanent prop challenge readiness",
+      targetDays: 30,
+      currentDays: 0,
+      status: "locked",
+      xpReward: "+1,000 XP",
+      perks: "Lifetime Elite Status · 1.50x Multiplier Ceiling",
+      multiplier: "1.50x",
+      criteria: "Complete 30 consecutive flawless sessions to cement permanent prop-firm pass readiness.",
+    },
+  ], [streakDays]);
+
+  const currentWeekDays = useMemo(() => [
+    { dayNum: 15, dayName: "Mon", dateStr: "Nov 18", score: 95, pair: "EURUSD", status: "completed", net: "+1.64%", trades: "2 / 4" },
+    { dayNum: 16, dayName: "Tue", dateStr: "Nov 19", score: 88, pair: "GBPUSD", status: "completed", net: "-0.42%", trades: "4 / 4" },
+    { dayNum: 17, dayName: "Wed", dateStr: "Nov 20", score: 96, pair: "XAUUSD", status: "completed", net: "+1.32%", trades: "2 / 4" },
+    { dayNum: 18, dayName: "Thu", dateStr: "Nov 21", score: displayScore, pair: "BTCUSD · ETHUSD", status: "active", isToday: true, net: "+0.92%", trades: `${liveTradesCount} / 4` },
+    { dayNum: 19, dayName: "Fri", dateStr: "Nov 22", score: null, pair: "Pending Session", status: "upcoming", net: "--", trades: "0 / 4" },
+    { dayNum: 20, dayName: "Sat", dateStr: "Nov 23", score: null, pair: "Weekend Protected", status: "upcoming", net: "--", trades: "0 / 4" },
+    { dayNum: 21, dayName: "Sun", dateStr: "Nov 24", score: null, pair: "21d Shield Goal", status: "milestone", isGoal: true, net: "--", trades: "0 / 4" },
   ], [displayScore, liveTradesCount]);
 
-  const handleStreakDayClick = (dayItem: any) => {
-    if (dayItem.status === "upcoming" || (dayItem.status === "shield_milestone" && !dayItem.score)) {
+  const handleCurrentWeekDayClick = (dayItem: any) => {
+    if (dayItem.status === "upcoming" || (dayItem.status === "milestone" && !dayItem.score)) {
       toast("Upcoming Milestone Session", {
-        description: `Session ${dayItem.dayNum} (${dayItem.dateStr}) unlocks as soon as you complete your next compliant MT5 trading session.`,
+        description: `Session ${dayItem.dayNum} (${dayItem.dayName}, ${dayItem.dateStr}) logs as soon as your next compliant MT5 trade session closes.`,
       });
       return;
     }
     setActiveAuditModal({
       isOpen: true,
-      badge: `DAY ${dayItem.dayNum} AUDIT · ${dayItem.dateStr}`,
-      title: `Session ${dayItem.dayNum} Compliance Telemetry`,
+      badge: `DAY ${dayItem.dayNum} AUDIT · ${dayItem.dayName.toUpperCase()}, ${dayItem.dateStr.toUpperCase()}`,
+      title: `Day ${dayItem.dayNum} Compliance Telemetry`,
       summary: `Verified Exness MT5 session on ${dayItem.dateStr}. Executed ${dayItem.pair} with a ${dayItem.score}% discipline rating and ${dayItem.net} net result. Stop-loss was 100% verified with zero emotional cooldown breaches.`,
       stats: [
         { label: "Discipline Rating", value: `${dayItem.score}/100` },
-        { label: "Executed Trades", value: `${dayItem.trades} Executions` },
         { label: "Session P&L Net", value: dayItem.net },
+        { label: "Executed Trades", value: `${dayItem.trades} Executions` },
         { label: "Protective SL", value: "100% Enforced" },
         { label: "XP Multiplier", value: "1.35x Active" },
+      ],
+    });
+  };
+
+  const handleStreakLevelClick = (lvl: StreakLevelMilestone) => {
+    setActiveAuditModal({
+      isOpen: true,
+      badge: `LEVEL ${lvl.level} · ${lvl.status === "completed" ? "ACHIEVED" : lvl.status === "active" ? "IN PROGRESS" : "LOCKED"}`,
+      title: lvl.title,
+      summary: `${lvl.subtitle}. ${lvl.criteria}`,
+      stats: [
+        { label: "Target Streak", value: `${lvl.targetDays} Consecutive Days` },
+        { label: "Current Progress", value: `${lvl.status === "completed" ? lvl.targetDays : lvl.status === "active" ? streakDays : 0} / ${lvl.targetDays} Days` },
+        { label: "XP Reward", value: lvl.xpReward },
+        { label: "Perks Granted", value: lvl.perks },
+        { label: "Status", value: lvl.status === "completed" ? `Unlocked (${lvl.completedDate})` : lvl.status === "active" ? `${lvl.targetDays - streakDays} Sessions Left` : "Locked" },
       ],
     });
   };
@@ -1243,29 +1295,34 @@ export default function Rewards() {
         ========================================================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-4 sm:mb-5">
           
-          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols - Unboxed Hero Style like Dashboard) */}
-          <div className="lg:col-span-6 px-1 py-1 flex flex-col justify-between gap-3">
+          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols) */}
+          <div className={`lg:col-span-6 ${CARD_BASE} p-3 sm:p-3.5 flex flex-col justify-between gap-2.5`}>
             
             {/* Top row: Status header */}
-            <div className="flex items-center justify-between pb-1 border-b border-slate-200/60 dark:border-white/[0.06]">
+            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.06]">
               <div className="flex items-center gap-2">
                 <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                  DISCIPLINE STATUS
+                  Discipline Status
                 </span>
                 <span className="text-slate-300 dark:text-neutral-700">·</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  {isConnected ? `${accountMetrics?.broker || "MT5 Server"} – Live` : "MT5 Server – Live"}
+                  {isConnected ? `${accountMetrics?.broker || "MT5 Server"} · Live` : "MT5 Server · Live"}
                 </span>
               </div>
 
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
-                <CheckCircle2 size={11} />
-                <span>Session Finalized</span>
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                  <CheckCircle2 size={11} />
+                  <span>Session Finalized</span>
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 dark:text-neutral-500">
+                  13ms
+                </span>
+              </div>
             </div>
 
-            {/* Middle row: Avatar + Name + 3 Right-aligned Stat Chips */}
+            {/* Middle row: Avatar + Name + 4 Stat Chips */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
               
               {/* User avatar and name */}
@@ -1289,26 +1346,38 @@ export default function Rewards() {
                     <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
                       {userTier}
                     </span>
+                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/80 dark:border-purple-500/30 leading-none">
+                      Level 1
+                    </span>
                   </div>
                   <p className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mt-0.5 truncate">
-                    Level 1 Pro MT5 Trader
+                    Level 1 Pro MT5 Trader · Exness Real Verified
                   </p>
                 </div>
               </div>
 
-              {/* 3 Stat Chips: ACCOUNT, RISK CAP, STREAK */}
-              <div className="flex items-center gap-2 text-center shrink-0">
-                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
-                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
-                    ACCOUNT
+              {/* 4 Stat Chips: TOTAL XP, ACCOUNT, RISK CAP, STREAK */}
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap shrink-0">
+                <div className="px-2.5 py-1.5 rounded-xl bg-purple-50/70 dark:bg-purple-500/10 border border-purple-200/80 dark:border-purple-500/25 shadow-2xs text-center">
+                  <div className="text-[9px] font-mono font-bold uppercase text-purple-700 dark:text-purple-300 flex items-center justify-center gap-0.5">
+                    <Star size={9} className="fill-purple-500 text-purple-500" /> TOTAL XP
                   </div>
-                  <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
-                    {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#88412"}
+                  <div className="text-xs font-mono font-black text-purple-700 dark:text-purple-300 mt-0.5 tabular-nums">
+                    3,030 XP
                   </div>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
-                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs text-center">
+                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                    ACCOUNT
+                  </div>
+                  <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
+                    {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#79870"}
+                  </div>
+                </div>
+
+                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs text-center">
+                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     RISK CAP
                   </div>
                   <div className="text-xs font-mono font-bold text-[#006DFE] dark:text-blue-400 mt-0.5 tabular-nums">
@@ -1316,8 +1385,8 @@ export default function Rewards() {
                   </div>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
-                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs text-center">
+                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     STREAK
                   </div>
                   <div className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
@@ -1326,6 +1395,20 @@ export default function Rewards() {
                 </div>
               </div>
 
+            </div>
+
+            {/* Bottom Row */}
+            <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400">
+              <div className="flex items-center gap-1.5 truncate">
+                <span className="font-bold text-slate-900 dark:text-white">3,030 Lifetime XP Earned</span>
+                <span className="text-slate-300 dark:text-neutral-600">·</span>
+                <span className="font-medium">Top 4% Trader Rank</span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-bold text-purple-600 dark:text-purple-400">+180 XP this cycle</span>
+                <span className="text-slate-300 dark:text-neutral-600">·</span>
+                <span className="font-medium text-slate-600 dark:text-neutral-300">970 XP to Lv 2</span>
+              </div>
             </div>
           </div>
 
@@ -2182,243 +2265,268 @@ export default function Rewards() {
           </div>
         )}
 
-        {/* ── PANEL 2: DAILY STREAK ROADMAP (HUMAN-CRAFTED MILESTONE JOURNEY) ── */}
+        {/* ── PANEL 2: DAILY STREAK (DAILY CHECK-IN & LEVEL-WISE PROGRESSION) ── */}
         {activeTab === "streak" && (
           <div className="space-y-4 sm:space-y-5">
             
-            {/* Top Streak Stats Bento (4 Pro Cards) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
-              
-              {/* Card 1: Active Streak */}
-              <div className={`${CARD_BASE} p-4 flex flex-col justify-between gap-2.5`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                    CURRENT STREAK
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/70 dark:border-amber-500/25">
-                    <Flame size={11} className="fill-amber-500 text-amber-500" />
-                    <span>Active Pace</span>
-                  </span>
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
-                    {streakDays} Consecutive Days
+            {/* 1. TODAY'S DAILY CHECK-IN HERO CARD */}
+            <div className={`${CARD_BASE} p-4 sm:p-5 flex flex-col gap-4`}>
+              {/* Top Row: Today's Status & Streak Flame */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 border-b border-slate-100 dark:border-white/[0.06] gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-orange-500/20 to-amber-500/10 border border-amber-300/40 dark:border-amber-500/30 flex items-center justify-center text-2xl shadow-sm shrink-0">
+                    <span className="animate-flame">🔥</span>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 font-medium">
-                    Nov 4 – Today (Nov 21) · Zero risk breaches
-                  </p>
-                </div>
-                {/* 18 / 21 Progress bar */}
-                <div className="space-y-1 pt-1 border-t border-slate-100 dark:border-white/[0.06]">
-                  <div className="flex items-center justify-between text-[10.5px] font-medium text-slate-500 dark:text-neutral-400">
-                    <span>Target: 21 Days</span>
-                    <span className="font-bold text-amber-600 dark:text-amber-400">3 Sessions Left</span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight tabular-nums leading-none">
+                        {streakDays} Consecutive Days
+                      </h3>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/70 dark:border-amber-500/25">
+                        <Flame size={10} className="fill-amber-500 text-amber-500" />
+                        <span>Active Streak</span>
+                      </span>
+                    </div>
+                    <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 font-medium mt-1 flex items-center gap-1.5 flex-wrap">
+                      <span>Today (Thu, Nov 21)</span>
+                      <span className="text-slate-300 dark:text-neutral-700">·</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                        <CheckCircle2 size={12} />
+                        Session Finalized · Grade A+ (96%) Verified
+                      </span>
+                    </p>
                   </div>
-                  <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
-                      style={{ width: `${(streakDays / 21) * 100}%` }}
-                    />
+                </div>
+
+                {/* Right Stat Badges */}
+                <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                  <div className="px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-500/10 border border-purple-200/80 dark:border-purple-500/25 flex items-center gap-1.5 text-xs font-bold text-purple-700 dark:text-purple-400 shadow-2xs">
+                    <Star size={12} className="fill-purple-500 text-purple-500 shrink-0" />
+                    <span>1.35x Multiplier Active</span>
+                  </div>
+                  <div className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/80 dark:border-blue-500/25 flex items-center gap-1.5 text-xs font-bold text-[#006DFE] dark:text-blue-400 shadow-2xs">
+                    <Shield size={12} className="stroke-[2.2] shrink-0" />
+                    <span>3 Days to Shield</span>
                   </div>
                 </div>
               </div>
 
-              {/* Card 2: XP Multiplier */}
-              <div className={`${CARD_BASE} p-4 flex flex-col justify-between gap-2.5`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                    XP MULTIPLIER
+              {/* Middle: Current Week Rhythm (7 Days: Mon 18 - Sun 24) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <CalendarIcon size={13} className="text-[#006DFE]" />
+                    <span>Current Week Rhythm (Nov 18 – Nov 24)</span>
                   </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/70 dark:border-purple-500/25">
-                    <Star size={11} className="fill-purple-500 text-purple-500" />
-                    <span>Tier 2 Boost</span>
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                    <CheckCircle2 size={12} />
+                    <span>Today Logged &amp; Verified</span>
                   </span>
                 </div>
-                <div>
-                  <div className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
-                    1.35x Multiplier
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 font-medium">
-                    +35% bonus XP awarded on all verified MT5 trades
-                  </p>
-                </div>
-                <div className="pt-1 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] text-slate-500 dark:text-neutral-400">
-                  <span>Next: Day 21 Master</span>
-                  <span className="font-bold text-purple-600 dark:text-purple-400">1.50x Multiplier</span>
+
+                {/* 7-Day Responsive Strip */}
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-2 pt-1">
+                  {currentWeekDays.map((d) => {
+                    const isCompleted = d.status === "completed";
+                    const isToday = d.isToday;
+                    const isMilestone = d.isGoal;
+
+                    return (
+                      <button
+                        key={d.dayNum}
+                        type="button"
+                        onClick={() => handleCurrentWeekDayClick(d)}
+                        className={`p-2 sm:p-2.5 rounded-xl border text-center flex flex-col items-center justify-between gap-1.5 transition-all cursor-pointer select-none group ${
+                          isToday
+                            ? "bg-blue-50/80 dark:bg-blue-500/10 border-[#006DFE] dark:border-[#006DFE] shadow-sm ring-2 ring-[#006DFE]/25"
+                            : isCompleted
+                            ? "bg-white dark:bg-[#17171A] hover:bg-slate-50 dark:hover:bg-white/[0.04] border-slate-200/80 dark:border-white/[0.08] shadow-2xs"
+                            : isMilestone
+                            ? "bg-gradient-to-b from-blue-50/50 to-amber-50/50 dark:from-blue-500/5 dark:to-amber-500/5 border-dashed border-[#006DFE]/60 hover:border-[#006DFE]"
+                            : "bg-slate-50/50 dark:bg-white/[0.02] border-dashed border-slate-200/70 dark:border-white/[0.06] opacity-75 hover:opacity-100"
+                        }`}
+                      >
+                        {/* Day Name & Date */}
+                        <div>
+                          <div className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${
+                            isToday ? "text-[#006DFE] dark:text-blue-400" : "text-slate-400 dark:text-neutral-500"
+                          }`}>
+                            {d.dayName}
+                          </div>
+                          <div className="text-[11.5px] sm:text-xs font-black text-slate-800 dark:text-white tabular-nums mt-0.5">
+                            {d.dateStr.split(" ")[1]}
+                          </div>
+                        </div>
+
+                        {/* Status Icon */}
+                        <div className="my-0.5">
+                          {isToday ? (
+                            <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-500/20 text-[#006DFE] flex items-center justify-center">
+                              <Flame size={12} className="fill-[#006DFE] text-[#006DFE]" />
+                            </div>
+                          ) : isCompleted ? (
+                            <div className="w-5 h-5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                              <CheckCircle2 size={12} className="text-emerald-500" />
+                            </div>
+                          ) : isMilestone ? (
+                            <div className="w-5 h-5 rounded-full bg-amber-50 dark:bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                              <Shield size={12} className="text-amber-500" />
+                            </div>
+                          ) : (
+                            <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-400 flex items-center justify-center">
+                              <Clock size={11} className="text-slate-400" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Bottom Score or Tag */}
+                        <div className="text-[9.5px] sm:text-[10px] font-bold tabular-nums">
+                          {isToday ? (
+                            <span className="text-[#006DFE] dark:text-blue-400">96%</span>
+                          ) : isCompleted ? (
+                            <span className="text-emerald-600 dark:text-emerald-400">{d.score}%</span>
+                          ) : isMilestone ? (
+                            <span className="text-amber-600 dark:text-amber-400 font-bold">Goal</span>
+                          ) : (
+                            <span className="text-slate-400 dark:text-neutral-500">Wait</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
-
-              {/* Card 3: Streak Shield Protection */}
-              <div className={`${CARD_BASE} p-4 flex flex-col justify-between gap-2.5`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                    AUTOMATIC SHIELD
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/70 dark:border-blue-500/25">
-                    <Shield size={11} className="stroke-[2.2]" />
-                    <span>In Progress</span>
-                  </span>
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
-                    3 Sessions Left
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 font-medium">
-                    Unlocks automated strike absorption on volatile news
-                  </p>
-                </div>
-                <div className="pt-1 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] text-slate-500 dark:text-neutral-400">
-                  <span>Perk</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">1 Drawdown Breach Shield</span>
-                </div>
-              </div>
-
-              {/* Card 4: Historical Best */}
-              <div className={`${CARD_BASE} p-4 flex flex-col justify-between gap-2.5`}>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                    HISTORICAL RECORD
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-500/25">
-                    <Trophy size={11} className="text-emerald-500" />
-                    <span>Top 3%</span>
-                  </span>
-                </div>
-                <div>
-                  <div className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
-                    26 Days PB
-                  </div>
-                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 font-medium">
-                    Personal best reached Oct 2026 · 8 days away
-                  </p>
-                </div>
-                <div className="pt-1 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] text-slate-500 dark:text-neutral-400">
-                  <span>Pass Rate</span>
-                  <span className="font-bold text-slate-900 dark:text-white">100% MT5 Compliant</span>
-                </div>
-              </div>
-
             </div>
 
-            {/* 3 Structured Weekly Chapters */}
-            <div className="space-y-4">
-              {streakWeeksData.map((week) => (
-                <div key={week.weekId} className={`${CARD_BASE} p-4 sm:p-5 flex flex-col gap-3`}>
-                  
-                  {/* Chapter Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2.5 border-b border-slate-100 dark:border-white/[0.06] gap-2">
-                    <div className="flex items-center gap-2.5">
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold ${
-                        week.isCompleted
-                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20"
-                          : "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20"
-                      }`}>
-                        {week.isCompleted ? <CheckCircle2 size={13} /> : <Flame size={13} />}
+            {/* 2. LEVEL-WISE DISCIPLINE PROGRESSION (LEVELS 1 TO 5) */}
+            <div className={`${CARD_BASE} p-4 sm:p-5 space-y-4`}>
+              
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.06] gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
+                      <Trophy size={13} className="stroke-[2.2]" />
+                    </div>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight">
+                      Discipline Milestone Levels
+                    </h3>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 font-medium">
+                    Unlock permanent multiplier floors, drawdown shields, and vault spending rewards.
+                  </p>
+                </div>
+
+                <div className="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/80 dark:border-amber-500/25 flex items-center gap-1.5 shadow-2xs self-start sm:self-auto tabular-nums">
+                  <Flame size={12} className="fill-amber-500 text-amber-500" />
+                  <span>Level 4 Active · 18 / 21 Days</span>
+                </div>
+              </div>
+
+              {/* 5 Levels Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-3.5">
+                {streakLevelsData.map((lvl) => {
+                  const isCompleted = lvl.status === "completed";
+                  const isActive = lvl.status === "active";
+                  const isLocked = lvl.status === "locked";
+                  const progressPct = isCompleted ? 100 : isActive ? Math.round((streakDays / lvl.targetDays) * 100) : 0;
+
+                  return (
+                    <button
+                      key={lvl.level}
+                      type="button"
+                      onClick={() => handleStreakLevelClick(lvl)}
+                      className={`p-3.5 sm:p-4 rounded-xl border text-left flex flex-col justify-between gap-3 transition-all cursor-pointer group select-none ${
+                        isActive
+                          ? "bg-white dark:bg-[#17171A] border-[#006DFE]/70 dark:border-[#006DFE]/60 shadow-md ring-1 ring-[#006DFE]/25"
+                          : isCompleted
+                          ? "bg-white dark:bg-[#17171A] hover:bg-slate-50/80 dark:hover:bg-white/[0.03] border-slate-200/80 dark:border-white/[0.08] shadow-2xs hover:border-[#006DFE]/40"
+                          : "bg-slate-50/60 dark:bg-white/[0.02] border-dashed border-slate-200/80 dark:border-white/[0.06] opacity-75 hover:opacity-100"
+                      }`}
+                    >
+                      {/* Top: Level Tag + Status + XP Reward */}
+                      <div className="flex items-center justify-between gap-2 w-full">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
+                            isCompleted
+                              ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 border border-emerald-200/60 dark:border-emerald-500/20"
+                              : isActive
+                              ? "bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] border border-blue-200/60 dark:border-blue-500/20"
+                              : "bg-slate-100 dark:bg-white/10 text-slate-400 border border-slate-200 dark:border-white/10"
+                          }`}>
+                            {lvl.level}
+                          </span>
+                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                            {lvl.targetDays} Days Target
+                          </span>
+                        </div>
+
+                        <span className="px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold tabular-nums bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/70 dark:border-purple-500/20">
+                          {lvl.xpReward}
+                        </span>
                       </div>
+
+                      {/* Middle: Title & Subtitle */}
                       <div>
-                        <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">
-                          {week.phaseTitle}
+                        <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors leading-tight">
+                          {lvl.title}
                         </h4>
-                        <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
-                          {week.dateRange} · {week.progressLabel}
+                        <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 line-clamp-2 font-medium leading-relaxed">
+                          {lvl.subtitle}
                         </p>
                       </div>
-                    </div>
 
-                    <span className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border self-start sm:self-auto shrink-0 ${
-                      week.isCompleted
-                        ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/70 dark:border-emerald-500/25"
-                        : "bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border-blue-200/70 dark:border-blue-500/25"
-                    }`}>
-                      {week.badgeText}
-                    </span>
-                  </div>
+                      {/* Perk Pill */}
+                      <div className="pt-2 border-t border-slate-100 dark:border-white/[0.05] space-y-2 w-full">
+                        <div className="flex items-center justify-between text-[10.5px]">
+                          <span className="text-slate-500 dark:text-neutral-400 font-medium">Perk Reward:</span>
+                          <span className="font-bold text-slate-900 dark:text-white truncate max-w-[65%] text-right">
+                            {lvl.perks}
+                          </span>
+                        </div>
 
-                  {/* 7 Days Row */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
-                    {week.days.map((item) => {
-                      const isCompleted = item.status === "completed";
-                      const isActiveToday = item.isToday;
-                      const isUpcoming = item.status === "upcoming";
-                      const isMilestone = item.isFinalGoal || item.isMilestone;
-
-                      return (
-                        <button
-                          key={item.dayNum}
-                          type="button"
-                          onClick={() => handleStreakDayClick(item)}
-                          className={`p-2.5 rounded-xl border text-left flex flex-col justify-between gap-2 transition-all cursor-pointer group ${
-                            isActiveToday
-                              ? "bg-blue-50/70 dark:bg-blue-500/10 border-[#006DFE] dark:border-[#006DFE] shadow-sm ring-1 ring-[#006DFE]/30"
-                              : isCompleted
-                              ? "bg-white dark:bg-[#17171A] hover:bg-slate-50 dark:hover:bg-white/[0.04] border-slate-200/70 dark:border-white/[0.07] hover:border-[#006DFE]/40 shadow-2xs"
-                              : isMilestone
-                              ? "bg-gradient-to-b from-blue-50/50 to-amber-50/50 dark:from-blue-500/5 dark:to-amber-500/5 border-dashed border-[#006DFE]/50"
-                              : "bg-slate-50/50 dark:bg-white/[0.02] border-dashed border-slate-200/70 dark:border-white/5 opacity-65 hover:opacity-100"
-                          }`}
-                        >
-                          {/* Top: Day # + Status Icon */}
-                          <div className="flex items-center justify-between w-full">
-                            <span className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
-                              isActiveToday
-                                ? "text-[#006DFE] dark:text-blue-400"
-                                : "text-slate-400 dark:text-neutral-500"
-                            }`}>
-                              Day {String(item.dayNum).padStart(2, "0")}
+                        {/* Progress bar or Status */}
+                        {isActive ? (
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] font-medium text-slate-500 dark:text-neutral-400">
+                              <span className="text-[#006DFE] font-bold">18 / 21 Days</span>
+                              <span className="font-bold text-amber-600 dark:text-amber-400">3 Sessions Left</span>
+                            </div>
+                            <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-amber-500 to-[#006DFE]"
+                                style={{ width: `${progressPct}%` }}
+                              />
+                            </div>
+                          </div>
+                        ) : isCompleted ? (
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 size={11} className="text-emerald-500" />
+                              <span>Achieved &amp; Claimed</span>
                             </span>
-
-                            {isActiveToday ? (
-                              <span className="w-2 h-2 rounded-full bg-[#006DFE] animate-ping" />
-                            ) : isCompleted ? (
-                              <CheckCircle2 size={12} className="text-emerald-500" />
-                            ) : isMilestone ? (
-                              <Shield size={12} className="text-[#006DFE]" />
-                            ) : (
-                              <Clock size={11} className="text-slate-400" />
-                            )}
+                            <span className="text-slate-400 dark:text-neutral-500 font-mono">
+                              {lvl.completedDate}
+                            </span>
                           </div>
-
-                          {/* Middle: Date + Pair */}
-                          <div>
-                            <div className="text-[11.5px] font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors">
-                              {isActiveToday ? "Today" : item.dateStr.split(",")[1] || item.dateStr}
-                            </div>
-                            <div className="text-[9.5px] font-medium text-slate-400 dark:text-neutral-500 truncate mt-0.5">
-                              {item.pair}
-                            </div>
+                        ) : (
+                          <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500">
+                            <span className="inline-flex items-center gap-1">
+                              <Lock size={10} />
+                              <span>Locked Milestone</span>
+                            </span>
+                            <span>Unlocks at Lv 4</span>
                           </div>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-                          {/* Bottom: Score or Action badge */}
-                          <div className="pt-1 border-t border-slate-100 dark:border-white/[0.05] flex items-center justify-between text-[9.5px]">
-                            {item.score ? (
-                              <>
-                                <span className="font-bold text-slate-800 dark:text-slate-200">
-                                  Score: {item.score}
-                                </span>
-                                <span className={`font-semibold ${item.net.startsWith("+") ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`}>
-                                  {item.net}
-                                </span>
-                              </>
-                            ) : isMilestone ? (
-                              <span className="font-bold text-[#006DFE] dark:text-blue-400 truncate">
-                                21d Shield
-                              </span>
-                            ) : (
-                              <span className="text-slate-400 dark:text-neutral-500">
-                                Upcoming
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                </div>
-              ))}
             </div>
 
-            {/* Streak & Shield Mechanics FAQ Cards (3-col) */}
+            {/* 3. STREAK & SHIELD MECHANICS FAQ CARDS (3 COLS) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
               <div className={`${CARD_BASE} p-4 space-y-1.5`}>
                 <div className="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white">
@@ -2436,7 +2544,7 @@ export default function Rewards() {
                   <span>XP Multiplier Stacking</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed font-medium">
-                  Compliant sessions stack multipliers from 1.15x to 1.50x. Achieving 7-day checkpoints locks in your permanent multiplier floor.
+                  Compliant sessions stack multipliers from 1.05x to 1.50x. Achieving milestone checkpoints locks in your permanent multiplier floor.
                 </p>
               </div>
 

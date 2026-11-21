@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor, Zap, Gauge, Plus, Flame } from "lucide-react";
+import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor, Zap, Gauge, Plus, Flame, Star } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import FloatingAICoach from "./FloatingAICoach";
 import { PurchaseCreditsModal } from "./PurchaseCreditsModal";
@@ -17,6 +17,7 @@ import NotificationHub from "./NotificationHub";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import FiAlgoLayout from "./FiAlgoLayout";
+import { getGamificationState } from "@/utils/gamification";
 
 interface Breadcrumb {
   label: string;
@@ -448,9 +449,24 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         const parsed = JSON.parse(gam);
         if (parsed.streak) return parsed.streak;
       }
-      return 16;
+      return 18;
     } catch {
-      return 16;
+      return 18;
+    }
+  });
+
+  const [totalXP, setTotalXP] = useState<number>(() => {
+    try {
+      const gam = getGamificationState();
+      if (gam?.xp) return gam.xp;
+      const raw = localStorage.getItem("tradifive_forex_discipline_state");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.xp) return parsed.xp;
+      }
+      return 1030;
+    } catch {
+      return 1030;
     }
   });
 
@@ -497,9 +513,12 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     };
     const handleXPUpdated = () => {
       try {
+        const gam = getGamificationState();
+        if (gam?.xp) setTotalXP(gam.xp);
         const raw = localStorage.getItem("tradifive_forex_discipline_state");
         if (raw) {
           const parsed = JSON.parse(raw);
+          if (parsed.xp) setTotalXP(parsed.xp);
           if (parsed.streakDays) setStreakDays(parsed.streakDays);
         }
       } catch (_) {}
@@ -740,6 +759,19 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   </span>
                 </button>
 
+                {/* Mobile Compact Total XP Badge */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/rewards?tab=vault')}
+                  className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-purple-700 dark:text-purple-400"
+                  title={`${totalXP.toLocaleString()} Total XP (Click to redeem perks in Vault)`}
+                >
+                  <Star size={11} className="fill-purple-500 text-purple-500 shrink-0" />
+                  <span className="text-[11px] font-bold tabular-nums tracking-tight leading-none">
+                    {totalXP.toLocaleString()}
+                  </span>
+                </button>
+
                 {/* Mobile Compact Credits Badge — [ (gauge) 40/250 + ] */}
                 <div
                   onClick={() => setIsPurchaseCreditsOpen(true)}
@@ -794,7 +826,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   </div>
                 </button>
 
-                {/* Desktop Daily Streak Pill — [ 🔥 16 ] */}
+                {/* Desktop Daily Streak Pill — [ 🔥 18 ] */}
                 <button
                   type="button"
                   onClick={() => navigate('/rewards?tab=streak')}
@@ -804,6 +836,19 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                   <Flame size={13.5} className="text-orange-500 fill-orange-500 shrink-0" />
                   <span className="text-[12px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
                     {streakDays}
+                  </span>
+                </button>
+
+                {/* Desktop Total XP Pill — [ ⭐ 1,030 XP ] */}
+                <button
+                  type="button"
+                  onClick={() => navigate('/rewards?tab=vault')}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-purple-300 dark:hover:border-purple-500/40 transition-all text-purple-700 dark:text-purple-400"
+                  title={`${totalXP.toLocaleString()} Total XP (Redeem for Subscriptions, Competitions & AI Credits in Vault)`}
+                >
+                  <Star size={13} className="fill-purple-500 text-purple-500 shrink-0" />
+                  <span className="text-[12px] font-bold tabular-nums tracking-tight leading-none">
+                    {totalXP.toLocaleString()} XP
                   </span>
                 </button>
 
