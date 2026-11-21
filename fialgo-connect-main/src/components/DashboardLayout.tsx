@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor, Zap, Gauge, Plus, Flame, Star } from "lucide-react";
+import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor, Zap, Gauge, Plus, Star } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import FloatingAICoach from "./FloatingAICoach";
 import { PurchaseCreditsModal } from "./PurchaseCreditsModal";
@@ -746,19 +746,6 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               <div className="flex items-center gap-2 sm:gap-2.5">
                 {headerActions}
 
-                {/* Mobile Compact Streak Badge */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/rewards?tab=streak')}
-                  className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-slate-800 dark:text-slate-100"
-                  title={`${streakDays}-Day Forex Streak`}
-                >
-                  <Flame size={12} className="text-orange-500 fill-orange-500 shrink-0" />
-                  <span className="text-[11px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
-                    {streakDays}
-                  </span>
-                </button>
-
                 {/* Mobile Compact Total XP Badge */}
                 <button
                   type="button"
@@ -824,19 +811,6 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                       />
                     )}
                   </div>
-                </button>
-
-                {/* Desktop Daily Streak Pill — [ 🔥 18 ] */}
-                <button
-                  type="button"
-                  onClick={() => navigate('/rewards?tab=streak')}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-slate-300 dark:hover:border-white/20 transition-all text-slate-800 dark:text-slate-100"
-                  title={`${streakDays}-Day Forex Trading Streak (Click to view Rewards & Check-In)`}
-                >
-                  <Flame size={13.5} className="text-orange-500 fill-orange-500 shrink-0" />
-                  <span className="text-[12px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
-                    {streakDays}
-                  </span>
                 </button>
 
                 {/* Desktop Total XP Pill — [ ⭐ 1,030 XP ] */}
