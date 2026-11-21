@@ -50,29 +50,22 @@ export function getTodayDateString(): string {
 }
 
 const DEFAULT_DISCIPLINE_STATE: ForexDisciplineState = {
-  score: 96,
+  score: 100,
   grade: "A+",
-  streakDays: 16,
+  streakDays: 0,
   isSessionWrapped: false,
   lastWrappedDate: "",
   breakdown: {
     stopLossRate: 100,
     stopLossScore: 30,
-    lotSizeRate: 95,
-    lotSizeScore: 24,
+    lotSizeRate: 100,
+    lotSizeScore: 25,
     cooldownScore: 25,
-    tradeCapScore: 17,
-    tradesCount: 3,
+    tradeCapScore: 20,
+    tradesCount: 0,
     maxDailyTrades: 4,
   },
-  calendarHistory: {
-    "2026-11-15": { date: "2026-11-15", score: 98, grade: "A+", tradesCount: 2, stopLossRate: 100, xpEarned: 120 },
-    "2026-11-16": { date: "2026-11-16", score: 92, grade: "A", tradesCount: 3, stopLossRate: 100, xpEarned: 100 },
-    "2026-11-17": { date: "2026-11-17", score: 88, grade: "A", tradesCount: 4, stopLossRate: 100, xpEarned: 90 },
-    "2026-11-18": { date: "2026-11-18", score: 95, grade: "A+", tradesCount: 3, stopLossRate: 100, xpEarned: 120 },
-    "2026-11-19": { date: "2026-11-19", score: 94, grade: "A+", tradesCount: 2, stopLossRate: 100, xpEarned: 120 },
-    "2026-11-20": { date: "2026-11-20", score: 96, grade: "A+", tradesCount: 3, stopLossRate: 100, xpEarned: 120 },
-  },
+  calendarHistory: {},
 };
 
 export function getForexDisciplineState(): ForexDisciplineState {
@@ -83,6 +76,18 @@ export function getForexDisciplineState(): ForexDisciplineState {
       return DEFAULT_DISCIPLINE_STATE;
     }
     const parsed = JSON.parse(raw);
+
+    // Purge old mock data from previous defaults (e.g. mock 16/18 days or mock 2026-11-15 calendar)
+    if (
+      parsed.streakDays === 16 ||
+      parsed.streakDays === 18 ||
+      parsed.calendarHistory?.["2026-11-15"] ||
+      parsed.breakdown?.tradesCount === 3
+    ) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_DISCIPLINE_STATE));
+      return DEFAULT_DISCIPLINE_STATE;
+    }
+
     const today = getTodayDateString();
     
     // Check if new day

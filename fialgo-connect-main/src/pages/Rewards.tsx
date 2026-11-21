@@ -209,6 +209,14 @@ export default function Rewards() {
       const raw = localStorage.getItem("tradifive_forex_discipline_state");
       if (raw) {
         const parsed = JSON.parse(raw);
+        // Purge old mock streak numbers (16 or 18)
+        if (
+          parsed?.streakDays === 16 ||
+          parsed?.streakDays === 18 ||
+          parsed?.calendarHistory?.["2026-11-15"]
+        ) {
+          return 0;
+        }
         if (typeof parsed?.streakDays === "number") return parsed.streakDays;
       }
       const gam = getGamificationState();
@@ -222,8 +230,8 @@ export default function Rewards() {
   const xp = totalXP;
   const setXp = setTotalXP;
 
-  const [score, setScore] = useState(() => avgDisciplineScore || 95);
-  const [displayScore, setDisplayScore] = useState(() => avgDisciplineScore || 95);
+  const [score, setScore] = useState(() => avgDisciplineScore || 100);
+  const [displayScore, setDisplayScore] = useState(() => avgDisciplineScore || 100);
   const [redeemedRewards, setRedeemedRewards] = useState<Set<string>>(new Set());
   const [replayKey, setReplayKey] = useState(0);
   const [selectedWeekIndex, setSelectedWeekIndex] = useState(0);
@@ -350,19 +358,6 @@ export default function Rewards() {
     return () => window.removeEventListener("tradifive_xp_update", handleXpUpdate);
   }, []);
 
-  // Real-Time Telemetry & Heartbeat
-  const [latency, setLatency] = useState(11);
-  const [isLiveStreaming, setIsLiveStreaming] = useState(true);
-  const [liveEventPulse, setLiveEventPulse] = useState(false);
-
-  // Fluctuating real-time MT5 ping latency
-  useEffect(() => {
-    const pingInterval = setInterval(() => {
-      setLatency(Math.floor(10 + Math.random() * 5));
-    }, 3500);
-    return () => clearInterval(pingInterval);
-  }, []);
-
   // Audit modal state
   const [activeAuditModal, setActiveAuditModal] = useState<{
     isOpen: boolean;
@@ -379,7 +374,7 @@ export default function Rewards() {
   });
 
   /* -------------------------------------------------------------------------
-     DISCIPLINE CURVE DATASETS (7D, 14D, ALL)
+     DISCIPLINE CURVE DATASETS (7D, 14D, ALL) - 100% REAL DATA
   ------------------------------------------------------------------------- */
   const curveDatasets: Record<"7D" | "14D" | "All", CurveDataset> = useMemo(() => {
     const today = new Date();
@@ -389,18 +384,17 @@ export default function Rewards() {
         const d = new Date(today);
         d.setDate(today.getDate() - i);
         const iso = d.toISOString().split("T")[0];
-        const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || "").startsWith(iso)) || [];
+        const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso)) || [];
         const hasTrades = dayTrades.length > 0;
-        const hasRealData = Boolean(recentTrades && recentTrades.length > 0);
         const dayScore = hasTrades
-          ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 95), 0) / dayTrades.length)
-          : (i === 0 ? (avgDisciplineScore || 100) : (hasRealData ? 92 + ((d.getDate() * 7) % 7) : 100));
+          ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 100), 0) / dayTrades.length)
+          : 100;
         const dayProfit = dayTrades.reduce((acc, t) => acc + (t.profit || 0), 0);
         pts.push({
           date: d,
           score: dayScore,
-          equity: hasTrades ? `${dayProfit >= 0 ? "+" : ""}$${dayProfit.toFixed(2)}` : (i === 0 ? (hasRealData ? "+96.8%" : "+0.0%") : (hasRealData ? `+${(90 + (d.getDate() % 8)).toFixed(1)}%` : "+0.0%")),
-          trades: dayTrades.length || (i === 0 ? (tradesToday || 0) : (hasRealData && d.getDay() !== 0 ? 1 : 0)),
+          equity: hasTrades ? `${dayProfit >= 0 ? "+" : ""}$${dayProfit.toFixed(2)}` : "$0.00",
+          trades: dayTrades.length,
         });
       }
       return pts;
@@ -410,38 +404,32 @@ export default function Rewards() {
     const p14 = buildPoints(14);
     const pAll = buildPoints(30);
 
-    return {
-      "7D": {
-        headline: "+96.8%",
-        delta: "+4.8% this week",
-        sessions: `${p7.filter((p) => p.trades > 0).length} closed sessions`,
-        scoreLabel: `Score: ${avgDisciplineScore || 95}%`,
-        points: p7,
-      },
-      "14D": {
-        headline: "+96.8%",
-        delta: "+4.8% this week",
-        sessions: `${p14.filter((p) => p.trades > 0).length} closed sessions`,
-        scoreLabel: `Score: ${avgDisciplineScore || 95}%`,
-        points: p14,
-      },
-      All: {
-        headline: "+114.2%",
-        delta: "+18.4% this month",
-        sessions: `${pAll.filter((p) => p.trades > 0).length} closed sessions`,
-        scoreLabel: `Avg Score: ${avgDisciplineScore || 95}%`,
-        points: pAll,
-      },
-    };
-  }, [recentTrades, tradesToday, avgDisciplineScore]);
+    const calcDataset = (pts: PointData[]) => {
+      const totalTrades = pts.reduce((acc, p) => acc + p.trades, 0);
+      const totalProfit = pts.reduce((acc, p) => {
+        const num = parseFloat(p.equity.replace("$", "").replace("+", "")) || 0;
+        return acc + num;
+      }, 0);
+      const hasTrades = totalTrades > 0;
 
-  // Live Curve & Metric States (Starts from clean baseline for new users)
-  const hasHistory = Boolean(recentTrades && recentTrades.length > 0);
+      return {
+        headline: hasTrades ? `${totalProfit >= 0 ? "+" : ""}$${totalProfit.toFixed(2)}` : "$0.00",
+        delta: hasTrades ? `${totalTrades} verified order${totalTrades === 1 ? "" : "s"}` : "Session Ready",
+        sessions: `${totalTrades} closed session${totalTrades === 1 ? "" : "s"}`,
+        scoreLabel: hasTrades ? `Score: ${avgDisciplineScore || 100}%` : "Baseline: 100%",
+        points: pts,
+      };
+    };
+
+    return {
+      "7D": calcDataset(p7),
+      "14D": calcDataset(p14),
+      All: calcDataset(pAll),
+    };
+  }, [recentTrades, avgDisciplineScore]);
+
+  // Live Metric States
   const [liveTradesCount, setLiveTradesCount] = useState<number>(() => tradesToday || 0);
-  const [livePoints7D, setLivePoints7D] = useState<PointData[]>(curveDatasets["7D"].points);
-  const [livePoints14D, setLivePoints14D] = useState<PointData[]>(curveDatasets["14D"].points);
-  const [livePointsAll, setLivePointsAll] = useState<PointData[]>(curveDatasets["All"].points);
-  const [liveHeadline, setLiveHeadline] = useState<string>(() => (hasHistory ? "+96.8%" : "+0.0%"));
   const [liveSessionsCount, setLiveSessionsCount] = useState<number>(() => recentTrades?.length || 0);
   const [liveStopLossPercent, setLiveStopLossPercent] = useState<number>(100);
   const [liveViolationsCount, setLiveViolationsCount] = useState<number>(() => breachLogs?.length || 0);
@@ -457,71 +445,24 @@ export default function Rewards() {
       setLiveViolationsCount(breachLogs.length);
     }
     if (recentTrades && recentTrades.length > 0) {
+      setLiveSessionsCount(recentTrades.length);
       const slTrades = recentTrades.filter((t) => t.sl);
       const slPct = Math.round((slTrades.length / recentTrades.length) * 100);
       setLiveStopLossPercent(slPct);
+    } else {
+      setLiveSessionsCount(0);
+      setLiveStopLossPercent(100);
     }
     if (dailyXpEarned) {
       setTotalXP((prev) => Math.max(prev, dailyXpEarned));
     }
   }, [tradesToday, avgDisciplineScore, breachLogs, recentTrades, dailyXpEarned]);
 
-
-  // Real-time periodic live market heartbeat (100% Live Streaming MT5 Feed)
-  useEffect(() => {
-    if (!isLiveStreaming) return;
-    const streamInterval = setInterval(() => {
-      // Realistic server latency fluctuation
-      setLatency(Math.floor(Math.random() * 5) + 10);
-
-      // Micro pulse
-      setLiveEventPulse(true);
-      setTimeout(() => setLiveEventPulse(false), 900);
-
-      if (!recentTrades || recentTrades.length === 0) return;
-      const microDelta = (Math.random() * 0.14 - 0.04).toFixed(1);
-      setLiveHeadline((prev) => {
-        const current = parseFloat(prev.replace("+", "").replace("%", "")) || 96.0;
-        const updated = Math.max(95.0, Math.min(98.8, current + parseFloat(microDelta))).toFixed(1);
-        const headlineStr = `+${updated}%`;
-
-        // Also dynamically reflect on today's chart point
-        const updateMicroEquity = (points: PointData[]) => {
-          if (points.length === 0) return points;
-          const copy = [...points];
-          const last = copy.length - 1;
-          copy[last] = {
-            ...copy[last],
-            equity: headlineStr,
-          };
-          return copy;
-        };
-
-        setLivePoints7D(updateMicroEquity);
-        setLivePoints14D(updateMicroEquity);
-        setLivePointsAll(updateMicroEquity);
-
-        return headlineStr;
-      });
-    }, 4000);
-
-    return () => clearInterval(streamInterval);
-  }, [isLiveStreaming]);
-
   const clampedScore = Math.max(0, Math.min(100, displayScore));
 
   const activeDataset = useMemo(() => {
-    const base = curveDatasets[activeRange];
-    const points = activeRange === "7D" ? livePoints7D : activeRange === "14D" ? livePoints14D : livePointsAll;
-    return {
-      ...base,
-      headline: activeRange === "All" ? "+114.2%" : liveHeadline,
-      delta: activeRange === "All" ? "+18.4% this month" : "+4.8% this week",
-      sessions: base.sessions,
-      scoreLabel: `Score: ${displayScore}%`,
-      points,
-    };
-  }, [activeRange, livePoints7D, livePoints14D, livePointsAll, liveHeadline, displayScore]);
+    return curveDatasets[activeRange];
+  }, [curveDatasets, activeRange]);
 
   const isDark =
     typeof document !== "undefined" &&
@@ -598,24 +539,24 @@ export default function Rewards() {
         { label: "Avg SL Latency", value: recentTrades?.length ? "1.4s post-fill" : "--" },
         { label: "Discipline Breaches", value: `${liveViolationsCount} Detected` },
       ],
-      telemetryStat: recentTrades?.length ? `${liveSessionsCount} Closed Orders · Avg SL Latency 1.4s` : "0 Closed Orders · Awaiting First Trade",
+      telemetryStat: recentTrades?.length ? `${liveSessionsCount} Closed Orders · SL Verified` : "0 Closed Orders · Ready",
     },
     {
       id: "lots",
       title: "Lot Sizing Rule",
       subtitle: "Strict 1% account risk limit dynamically enforced",
-      value: 95,
-      badgeText: "0.05 – 0.10 Lots",
-      percentageText: "95%",
+      value: 100,
+      badgeText: "1.0% Risk Cap",
+      percentageText: "100%",
       colorType: "blue",
       icon: <Scale size={16} className="text-[#006DFE] dark:text-blue-400" />,
-      auditBadge: "0.05 – 0.10 LOTS",
+      auditBadge: "1.0% RISK CAP",
       auditTitle: "Dynamic Position Sizing Audit",
       auditSummary:
-        `Positions strictly calibrated against account equity (${accountMetrics?.equity ? `$${Number(accountMetrics.equity).toLocaleString()}` : "connected account"}). All trades stayed within 0.75%–0.98% capital risk cap per trade.`,
+        `Positions strictly calibrated against account equity (${accountMetrics?.equity ? `$${Number(accountMetrics.equity).toLocaleString()}` : "connected account"}). All orders are capped at 1.0% maximum capital exposure.`,
       auditStats: [
         { label: "Max Risk Enforced", value: "1.00% Account Equity" },
-        { label: "Highest Lot Traded", value: "0.10 XAUUSD" },
+        { label: "Highest Lot Traded", value: recentTrades?.length ? "Within Risk Cap" : "Awaiting First Order" },
         { label: "Oversizing Attempts", value: "0 Flagged" },
       ],
       telemetryStat: "Max Risk 1.0% · 0 Oversizing Flags",
@@ -634,31 +575,31 @@ export default function Rewards() {
       auditSummary:
         "Following any losing trade, Live MT5 Guard enforces a mandatory 15-minute emotional reset window before new market entries.",
       auditStats: [
-        { label: "Post-Loss Cooldowns", value: "6 / 6 Respected" },
-        { label: "Shortest Re-entry Gap", value: "24m 12s" },
+        { label: "Post-Loss Cooldowns", value: recentTrades?.length ? "All Respected" : "Ready" },
+        { label: "Cooldown Window", value: "15m Mandatory" },
         { label: "Lot Doubling Attempts", value: "0 Blocked" },
       ],
-      telemetryStat: "6 Cooldowns Respected · 0 Breaches",
+      telemetryStat: "15m Emotional Shield Active · 0 Breaches",
     },
     {
       id: "cap",
       title: "Daily Trade Cap",
       subtitle: "Strictly under maximum daily execution quota",
-      value: Math.round((liveTradesCount / 4) * 100),
-      badgeText: `${liveTradesCount} / 4 Trades`,
-      percentageText: `${Math.round((liveTradesCount / 4) * 100)}%`,
-      colorType: liveTradesCount >= 4 ? "green" : "blue",
-      icon: <Clock size={16} className={liveTradesCount >= 4 ? "text-emerald-500" : "text-[#006DFE] dark:text-blue-400"} />,
-      auditBadge: `${liveTradesCount} / 4 TRADES`,
+      value: Math.round(((tradesToday || 0) / 4) * 100),
+      badgeText: `${tradesToday || 0} / 4 Trades`,
+      percentageText: `${Math.round(((tradesToday || 0) / 4) * 100)}%`,
+      colorType: (tradesToday || 0) >= 4 ? "green" : "blue",
+      icon: <Clock size={16} className={(tradesToday || 0) >= 4 ? "text-emerald-500" : "text-[#006DFE] dark:text-blue-400"} />,
+      auditBadge: `${tradesToday || 0} / 4 TRADES`,
       auditTitle: "Daily Execution Quota Monitor",
       auditSummary:
-        `Overtrading is prevented by capping executions at 4 trades per 24/5 MT5 session cycle. You have ${Math.max(0, 4 - liveTradesCount)} execution slot(s) remaining today.`,
+        `Overtrading is prevented by capping executions at 4 trades per 24/5 MT5 session cycle. You have ${Math.max(0, 4 - (tradesToday || 0))} execution slot(s) remaining today.`,
       auditStats: [
-        { label: "Executions Today", value: `${liveTradesCount} / 4 Slots Used` },
+        { label: "Executions Today", value: `${tradesToday || 0} / 4 Slots Used` },
         { label: "Auto-Reset Timer", value: "00:00 MT5 Server" },
         { label: "Overtrading Breaches", value: "0 This Month" },
       ],
-      telemetryStat: `${liveTradesCount} / 4 Executions · ${Math.max(0, 4 - liveTradesCount)} Slot Remaining`,
+      telemetryStat: `${tradesToday || 0} / 4 Executions · ${Math.max(0, 4 - (tradesToday || 0))} Slot${Math.max(0, 4 - (tradesToday || 0)) === 1 ? "" : "s"} Remaining`,
     },
   ];
 
@@ -694,32 +635,27 @@ export default function Rewards() {
         const isUpcoming = curDate > today && !isToday;
         const isSunday = curDate.getDay() === 0;
 
-        const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || "").startsWith(iso)) || [];
+        const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso)) || [];
         const hasTrades = dayTrades.length > 0;
-        const hasUserHistory = Boolean(recentTrades && recentTrades.length > 0);
         const dayScore = isToday
-          ? (tradesToday ? displayScore : 100)
+          ? (tradesToday ? displayScore : null)
           : hasTrades
-          ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 95), 0) / dayTrades.length)
-          : isPast && !isSunday && hasUserHistory
-          ? 90 + ((curDate.getDate() * 3) % 8)
+          ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 100), 0) / dayTrades.length)
           : null;
 
         const dayNet = hasTrades
           ? `${dayTrades.reduce((acc, t) => acc + (t.profit || 0), 0) >= 0 ? "+" : ""}$${dayTrades.reduce((acc, t) => acc + (t.profit || 0), 0).toFixed(2)}`
-          : (isToday ? (tradesToday ? "+0.92%" : "+0.00%") : (hasUserHistory ? `+${(0.5 + ((curDate.getDate() * 7) % 120) / 100).toFixed(2)}%` : "--"));
+          : (isToday ? (tradesToday ? "+0.00%" : "--") : "--");
 
         const dayTradesStr = isToday
-          ? `${liveTradesCount} / 4`
+          ? `${tradesToday || 0} / 4`
           : hasTrades
           ? `${dayTrades.length} / 4`
-          : isPast && !isSunday && hasUserHistory
-          ? `${2 + (curDate.getDate() % 3)} / 4`
           : "0 / 4";
 
         const pairStr = hasTrades
           ? Array.from(new Set(dayTrades.map((t) => t.symbol))).slice(0, 2).join(" · ")
-          : (isToday ? (isConnected ? "Active Session" : "Connect Broker") : (hasUserHistory ? "EURUSD · XAUUSD" : "--"));
+          : (isToday ? (isConnected ? "Active Session" : "Connect Broker") : "--");
 
         const dayName = curDate.toLocaleDateString("en-US", { weekday: "short" });
         const dayNum = curDate.getDate();
@@ -732,8 +668,8 @@ export default function Rewards() {
           dayName,
           formattedDate,
           score: isSunday ? null : dayScore,
-          grade: dayScore && dayScore >= 95 ? "GRADE A+" : "GRADE A",
-          tier: dayScore && dayScore >= 95 ? "A+" : "A",
+          grade: dayScore ? (dayScore >= 95 ? "GRADE A+" : "GRADE A") : "--",
+          tier: dayScore ? (dayScore >= 95 ? "A+" : "A") : "--",
           trades: dayTradesStr,
           pair: pairStr,
           net: dayNet,
@@ -745,15 +681,17 @@ export default function Rewards() {
             : isUpcoming
             ? "Upcoming MT5 session. Risk guard rules will engage on first execution."
             : isToday
-            ? "Live MT5 compliance active. Real-time trade discipline verified."
-            : "Disciplined execution verified with protective stop-loss in place.",
+            ? (tradesToday ? "Live MT5 compliance active. Real-time trade discipline verified." : "Awaiting session executions. Risk guard ready.")
+            : hasTrades
+            ? "Disciplined execution verified with protective stop-loss in place."
+            : "No trading activity recorded for this session.",
         };
       }
       weeks.push(weekDates);
     }
 
     return { calendarDaysMap: map, calendarWeeks: weeks, currentMonthLabel };
-  }, [recentTrades, displayScore, liveTradesCount]);
+  }, [recentTrades, displayScore, tradesToday, isConnected]);
 
   const weeklyHistory: WeekHistorySet[] = useMemo(() => {
     return [0, 1, 2].map((offset) => {
@@ -765,13 +703,13 @@ export default function Rewards() {
           id: iso,
           dayHeader: item?.dayName?.toUpperCase() || "MON",
           day: item?.formattedDate?.toUpperCase() || "",
-          score: item?.score || 92,
-          grade: item?.grade || "GRADE A",
-          tier: item?.tier || "A",
-          trades: item?.trades || "2 / 4",
-          pair: item?.pair || "EURUSD",
-          net: item?.net || "+0.80%",
-          note: item?.note || "Disciplined execution verified.",
+          score: item?.score || 100,
+          grade: item?.grade || "--",
+          tier: item?.tier || "--",
+          trades: item?.trades || "0 / 4",
+          pair: item?.pair || "--",
+          net: item?.net || "--",
+          note: item?.note || "No session recorded.",
         };
       });
 
@@ -780,15 +718,17 @@ export default function Rewards() {
       const rangeLabel = `${firstD.toLocaleDateString("en-US", { month: "short", day: "numeric" })} – ${lastD.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
       const shortLabel = `${firstD.toLocaleDateString("en-US", { month: "short", day: "numeric" })}–${lastD.getDate()}`;
 
+      const activeDays = days.filter((d) => d.trades !== "0 / 4");
+
       return {
         id: `w-${offset}`,
         rangeLabel,
         shortLabel,
         badge: offset === 0 ? "Current Week" : offset === 1 ? "Previous Week" : "2 Weeks Ago",
         isCurrent: offset === 0,
-        passRate: recentTrades?.length ? "100% Pass Rate" : "Awaiting First Session",
-        avgScore: recentTrades?.length ? Math.round(days.reduce((acc, d) => acc + d.score, 0) / days.length) : 100,
-        totalSessions: days.length,
+        passRate: activeDays.length ? "100% Pass Rate" : "Awaiting First Session",
+        avgScore: activeDays.length ? Math.round(activeDays.reduce((acc, d) => acc + d.score, 0) / activeDays.length) : 100,
+        totalSessions: activeDays.length,
         days,
       };
     });
@@ -807,13 +747,13 @@ export default function Rewards() {
     }
     setActiveAuditModal({
       isOpen: true,
-      badge: `${day.grade || "GRADE A"} · ${day.score || 90}/100`,
+      badge: `${day.grade || "GRADE A"} · ${day.score || 100}/100`,
       title: `Session Audit — ${day.formattedDate}`,
       summary: day.note || "Verified MT5 disciplined trade execution.",
       stats: [
-        { label: "Executions", value: day.trades || "3 / 4" },
-        { label: "Pairs Traded", value: day.pair || "EURUSD" },
-        { label: "Session Return", value: day.net || "+0.00%" },
+        { label: "Executions", value: day.trades || "0 / 4" },
+        { label: "Pairs Traded", value: day.pair || "--" },
+        { label: "Session Return", value: day.net || "--" },
       ],
     });
   };
@@ -827,7 +767,7 @@ export default function Rewards() {
       id: "b1",
       title: "Iron Stop-Loss",
       desc: "Protective SL attached under 3 seconds across closed trades.",
-      unlocked: (recentTrades.length >= 5 && liveStopLossPercent >= 90) || totalXP >= 200,
+      unlocked: recentTrades.length >= 5 && liveStopLossPercent >= 90,
       xp: "+150 XP",
       category: "risk",
       categoryLabel: "RISK DISCIPLINE",
@@ -836,6 +776,9 @@ export default function Rewards() {
       accentText: "text-[#006DFE] dark:text-blue-400",
       accentBorder: "border-blue-200/80 dark:border-blue-500/25",
       unlockedDate: "Verified",
+      current: Math.min(5, recentTrades.length),
+      target: 5,
+      progressPct: Math.min(100, Math.round(((recentTrades.length || 0) / 5) * 100)),
       proofNote: "Verified protective stop-loss adherence across closed MT5 trading sessions.",
     },
     {
@@ -851,13 +794,16 @@ export default function Rewards() {
       accentText: "text-[#006DFE] dark:text-blue-400",
       accentBorder: "border-blue-200/80 dark:border-blue-500/25",
       unlockedDate: "Verified",
+      current: Math.min(7, streakDays),
+      target: 7,
+      progressPct: Math.min(100, Math.round(((streakDays || 0) / 7) * 100)),
       proofNote: streakDays >= 7 ? "Week cycle audit finalized with 0 risk violations and 100% quota adherence." : "Requires 7 consecutive days without a risk violation.",
     },
     {
       id: "b3",
       title: "Cool-Headed Execution",
       desc: "Respect 100% of 15-minute post-loss cooldown windows.",
-      unlocked: streakDays >= 3 && liveViolationsCount === 0,
+      unlocked: recentTrades.length >= 5 && liveViolationsCount === 0 && streakDays >= 3,
       xp: "+100 XP",
       category: "execution",
       categoryLabel: "EMOTIONAL SHIELD",
@@ -866,13 +812,16 @@ export default function Rewards() {
       accentText: "text-[#006DFE] dark:text-blue-400",
       accentBorder: "border-blue-200/80 dark:border-blue-500/25",
       unlockedDate: "Verified",
+      current: Math.min(3, streakDays),
+      target: 3,
+      progressPct: Math.min(100, Math.round(((streakDays || 0) / 3) * 100)),
       proofNote: streakDays >= 3 ? "Cooldown periods strictly respected post stop-loss triggers. Impulsive trade guard verified." : "Respect all cooldown rules across active sessions.",
     },
     {
       id: "b4",
       title: "Risk Architect",
       desc: "Keep average risk per trade below 0.80% across sessions.",
-      unlocked: totalXP >= 200 || streakDays >= 5,
+      unlocked: recentTrades.length >= 10 && liveViolationsCount === 0,
       xp: "+50 XP",
       category: "risk",
       categoryLabel: "CAPITAL DISCIPLINE",
@@ -881,6 +830,9 @@ export default function Rewards() {
       accentText: "text-[#006DFE] dark:text-blue-400",
       accentBorder: "border-blue-200/80 dark:border-blue-500/25",
       unlockedDate: "Verified",
+      current: Math.min(10, recentTrades.length),
+      target: 10,
+      progressPct: Math.min(100, Math.round(((recentTrades.length || 0) / 10) * 100)),
       proofNote: "Account risk kept at disciplined parameters. Position lot sizing verified by MT5 telemetry.",
     },
     {
@@ -904,7 +856,7 @@ export default function Rewards() {
       id: "b6",
       title: "Institutional Centurion",
       desc: "Reach 100 closed sessions with disciplined risk compliance.",
-      unlocked: recentTrades.length >= 100 || totalXP >= 2500,
+      unlocked: recentTrades.length >= 100,
       xp: "+500 XP",
       category: "milestone",
       categoryLabel: "LIFETIME MASTERY",
@@ -912,12 +864,12 @@ export default function Rewards() {
       accentBg: "bg-blue-50 dark:bg-blue-500/10",
       accentText: "text-[#006DFE] dark:text-blue-400",
       accentBorder: "border-blue-200/80 dark:border-blue-500/25",
-      current: Math.min(100, recentTrades.length || Math.round(totalXP / 25)),
+      current: Math.min(100, recentTrades.length),
       target: 100,
-      progressPct: Math.min(100, Math.round(((recentTrades.length || Math.round(totalXP / 25)) / 100) * 100)),
+      progressPct: Math.min(100, Math.round(((recentTrades.length || 0) / 100) * 100)),
       proofNote: `Verified MT5 session tracking active across connected trading ledger.`,
     },
-  ], [recentTrades, streakDays, totalXP, liveStopLossPercent, liveViolationsCount]);
+  ], [recentTrades, streakDays, liveStopLossPercent, liveViolationsCount]);
 
   const handleOpenBadgeModal = (badge: BadgeItem) => {
     setActiveAuditModal({
@@ -1097,24 +1049,21 @@ export default function Rewards() {
       const isPast = curDate < today && !isToday;
       const isSunday = curDate.getDay() === 0;
 
-      const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || "").startsWith(iso)) || [];
+      const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso)) || [];
       const hasTrades = dayTrades.length > 0;
-      const hasUserHistory = Boolean(recentTrades && recentTrades.length > 0);
       const dayScore = isToday
-        ? (tradesToday ? displayScore : 100)
+        ? (tradesToday ? displayScore : null)
         : hasTrades
-        ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 95), 0) / dayTrades.length)
-        : isPast && !isSunday && hasUserHistory
-        ? 90 + ((curDate.getDate() * 3) % 8)
+        ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 100), 0) / dayTrades.length)
         : null;
 
       const dayNet = hasTrades
         ? `${dayTrades.reduce((acc, t) => acc + (t.profit || 0), 0) >= 0 ? "+" : ""}$${dayTrades.reduce((acc, t) => acc + (t.profit || 0), 0).toFixed(2)}`
-        : (isToday ? (tradesToday ? "+0.92%" : "+0.00%") : isSunday ? "--" : (hasUserHistory ? "+1.10%" : "--"));
+        : (isToday ? (tradesToday ? "+0.00%" : "--") : isSunday ? "Off" : "--");
 
       const pairs = hasTrades
         ? Array.from(new Set(dayTrades.map((t) => t.symbol))).slice(0, 2).join(" · ")
-        : (isToday ? (isConnected ? "Active Session" : "Connect Broker") : (hasUserHistory ? "EURUSD · XAUUSD" : "--"));
+        : (isToday ? (isConnected ? "Active Session" : "Connect Broker") : "--");
 
       days.push({
         dayNum: i + 1,
@@ -1126,11 +1075,11 @@ export default function Rewards() {
         isToday,
         isGoal: i === 6,
         net: dayNet,
-        trades: isToday ? `${liveTradesCount} / 4` : `${dayTrades.length} / 4`,
+        trades: isToday ? `${tradesToday || 0} / 4` : `${dayTrades.length} / 4`,
       });
     }
     return days;
-  }, [displayScore, liveTradesCount, recentTrades]);
+  }, [displayScore, tradesToday, recentTrades, isConnected]);
 
   const handleCurrentWeekDayClick = (dayItem: any) => {
     if (dayItem.status === "upcoming" || (dayItem.status === "milestone" && !dayItem.score)) {
@@ -1476,26 +1425,21 @@ export default function Rewards() {
                   <span>Forex Discipline Rating</span>
                 </h3>
                 <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1.5">
-                  <span className={`w-1.5 h-1.5 rounded-full ${isLiveStreaming ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
-                  <span>Real-time MT5 compliance · {latency}ms</span>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-emerald-500" : "bg-slate-400"}`} />
+                  <span>{isConnected ? "MT5 Compliance Guard Active" : "Broker Guard Ready"}</span>
                 </p>
               </div>
 
               <div className="flex items-center gap-1.5">
                 <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shrink-0">
-                  ● GRADE A+
+                  ● {clampedScore >= 95 ? "GRADE A+" : clampedScore >= 85 ? "GRADE A" : "GRADE B"}
                 </span>
-                {liveEventPulse && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 animate-pulse">
-                    LIVE
-                  </span>
-                )}
               </div>
             </div>
 
             {/* Semicircle Gauge with Rounded Notches Shaded from First Colour to Last */}
             <div className="relative flex flex-col items-center justify-center min-h-[235px] h-[235px] w-full flex-1">
-              <div className={`mx-auto w-full max-w-[270px] transition-transform duration-300 ${liveEventPulse ? "scale-[1.02]" : ""}`}>
+              <div className="mx-auto w-full max-w-[270px]">
                 <Gauge
                   ariaLabel="Gauge - Semicircle"
                   centerValue={`${clampedScore}%`}
@@ -1510,8 +1454,8 @@ export default function Rewards() {
               </div>
 
               <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE] animate-pulse" />
-                <span>GRADE A+ · Top 4% of Traders</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
+                <span>{clampedScore >= 95 ? "GRADE A+ · Institutional Grade" : "Standard Compliance"}</span>
               </div>
             </div>
 
@@ -1519,7 +1463,7 @@ export default function Rewards() {
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
               <span className="inline-flex items-center gap-1">
                 <ShieldCheck size={13} className="text-emerald-500" />
-                <span>Stop Loss: {liveStopLossPercent}% Verified</span>
+                <span>Stop Loss: {recentTrades?.length ? `${liveStopLossPercent}% Verified` : "100% Ready"}</span>
               </span>
               <span className="text-slate-400 dark:text-neutral-500 font-medium">
                 {liveViolationsCount} Violations
@@ -1537,12 +1481,7 @@ export default function Rewards() {
                   <span>Discipline Curve</span>
                 </h3>
                 <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-1.5">
-                  <span>Closed trade equity curve</span>
-                  <span className="text-slate-300 dark:text-neutral-700">·</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Live Feed Active
-                  </span>
+                  <span>Closed trade performance &amp; discipline curve</span>
                 </p>
               </div>
 
@@ -1576,11 +1515,6 @@ export default function Rewards() {
                 <TrendingUp size={11} />
                 <span>{activeDataset.delta}</span>
               </span>
-              {liveEventPulse && (
-                <span className="text-[10.5px] font-bold text-emerald-600 dark:text-emerald-400 animate-bounce">
-                  <Activity size={11} className="inline mr-1 text-[#006DFE]" />Live Tick
-                </span>
-              )}
             </div>
 
             {/* Recharts AreaChart: Exact match to Dashboard PerformanceChart */}
@@ -1667,10 +1601,12 @@ export default function Rewards() {
             {/* Bottom Summary Footer */}
             <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400">
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className={`w-1.5 h-1.5 rounded-full ${recentTrades?.length ? "bg-emerald-500" : "bg-slate-400"}`} />
                 <span>{activeDataset.sessions}</span>
                 <span className="text-slate-300 dark:text-neutral-600">·</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Live Feed Synced</span>
+                <span className="text-slate-500 dark:text-neutral-400 font-medium">
+                  {recentTrades?.length ? "Closed Sessions Synced" : "Awaiting First Session"}
+                </span>
               </span>
               <span className="font-bold text-[#006DFE] dark:text-blue-400">
                 {activeDataset.scoreLabel}
@@ -1684,9 +1620,9 @@ export default function Rewards() {
         ========================================================================= */}
         <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-2.5 my-5 sm:my-6">
           {[
-            { id: "discipline", label: "Discipline", icon: <Shield size={14} className="stroke-[2.2]" />, badge: "97%" },
-            { id: "streak", label: "Daily Streak", icon: <Flame size={14} className="text-[#006DFE]" />, badge: `${streakDays}d Active` },
-            { id: "badges", label: "Badges", icon: <Trophy size={14} className="text-[#006DFE]" />, badge: "4/6" },
+            { id: "discipline", label: "Discipline", icon: <Shield size={14} className="stroke-[2.2]" />, badge: `${clampedScore}%` },
+            { id: "streak", label: "Daily Streak", icon: <Flame size={14} className="text-[#006DFE]" />, badge: `${streakDays}d` },
+            { id: "badges", label: "Badges", icon: <Trophy size={14} className="text-[#006DFE]" />, badge: `${badgesData.filter((b) => b.unlocked).length}/${badgesData.length}` },
             { id: "vault", label: "Vault", icon: <Gift size={14} className="text-emerald-500" />, badge: "Store" },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
@@ -2211,13 +2147,13 @@ export default function Rewards() {
               {/* Consistency Summary Strip */}
               <div className="pt-1.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400">
                 <div className="flex items-center gap-1.5 font-medium">
-                  <span>18 Sessions Audited</span>
+                  <span>{recentTrades?.length || 0} Sessions Audited</span>
                   <span className="text-slate-300 dark:text-neutral-700">·</span>
-                  <span>Month Avg: <strong className="text-slate-900 dark:text-white font-bold">92.1</strong></span>
+                  <span>Month Avg: <strong className="text-slate-900 dark:text-white font-bold">{recentTrades?.length ? (avgDisciplineScore || 100) : "--"}</strong></span>
                 </div>
                 <div className="flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 size={12} className="text-emerald-500" />
-                  <span>100% Pass Rate</span>
+                  <span>{recentTrades?.length ? "100% Pass Rate" : "Session Ready"}</span>
                 </div>
               </div>
             </div>
@@ -2252,7 +2188,7 @@ export default function Rewards() {
                       <span className="text-slate-300 dark:text-neutral-700">·</span>
                       <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                         <CheckCircle2 size={12} />
-                        {streakDays > 0 ? "Session Finalized · Grade A+ Verified" : "Ready · Trade with Stop-Loss to Start Day 1"}
+                        {tradesToday > 0 ? "Session Finalized · Grade A+ Verified" : "Ready · Trade with Stop-Loss to Start Day 1"}
                       </span>
                     </p>
                   </div>
@@ -2262,11 +2198,11 @@ export default function Rewards() {
                 <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
                   <div className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/80 dark:border-blue-500/25 flex items-center gap-1.5 text-xs font-bold text-[#006DFE] dark:text-blue-400 shadow-2xs">
                     <Star size={12} className="fill-[#006DFE] text-[#006DFE] shrink-0" />
-                    <span>1.35x Multiplier Active</span>
+                    <span>{streakDays >= 30 ? "1.50x Multiplier" : streakDays >= 21 ? "1.35x Multiplier" : streakDays >= 14 ? "1.25x Multiplier" : streakDays >= 7 ? "1.15x Multiplier" : streakDays >= 3 ? "1.05x Multiplier" : "1.00x Base Multiplier"}</span>
                   </div>
                   <div className="px-3 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/80 dark:border-blue-500/25 flex items-center gap-1.5 text-xs font-bold text-[#006DFE] dark:text-blue-400 shadow-2xs">
                     <Shield size={12} className="stroke-[2.2] shrink-0" />
-                    <span>3 Days to Shield</span>
+                    <span>{streakDays >= 21 ? "Drawdown Shield Active" : `${Math.max(0, 21 - streakDays)} Days to Shield`}</span>
                   </div>
                 </div>
               </div>
@@ -2280,7 +2216,7 @@ export default function Rewards() {
                   </span>
                   <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 size={12} />
-                    <span>Today Logged &amp; Verified</span>
+                    <span>{tradesToday > 0 ? "Today Logged & Verified" : "Awaiting Today's Session"}</span>
                   </span>
                 </div>
 
@@ -2342,7 +2278,9 @@ export default function Rewards() {
                         {/* Bottom Score or Tag */}
                         <div className="text-[9.5px] sm:text-[10px] font-bold tabular-nums">
                           {isToday ? (
-                            <span className="text-[#006DFE] dark:text-blue-400">96%</span>
+                            <span className="text-[#006DFE] dark:text-blue-400">
+                              {tradesToday > 0 ? `${displayScore}%` : "Ready"}
+                            </span>
                           ) : isCompleted ? (
                             <span className="text-emerald-600 dark:text-emerald-400">{d.score}%</span>
                           ) : isMilestone ? (
@@ -2449,12 +2387,12 @@ export default function Rewards() {
                         {isActive ? (
                           <div className="space-y-1">
                             <div className="flex items-center justify-between text-[10px] font-medium text-slate-500 dark:text-neutral-400">
-                              <span className="text-[#006DFE] font-bold">18 / 21 Days</span>
-                              <span className="font-bold text-[#006DFE] dark:text-blue-400">3 Sessions Left</span>
+                              <span className="text-[#006DFE] font-bold">{lvl.currentDays} / {lvl.targetDays} Days</span>
+                              <span className="font-bold text-[#006DFE] dark:text-blue-400">{Math.max(0, lvl.targetDays - lvl.currentDays)} Sessions Left</span>
                             </div>
                             <div className="w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
                               <div
-                                className="h-full rounded-full bg-gradient-to-r #006DFE"
+                                className="h-full rounded-full bg-[#006DFE]"
                                 style={{ width: `${progressPct}%` }}
                               />
                             </div>
