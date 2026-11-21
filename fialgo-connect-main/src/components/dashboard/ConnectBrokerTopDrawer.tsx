@@ -140,17 +140,21 @@ export default function ConnectBrokerTopDrawer({
 
       // Also upsert to local Supabase mt5_accounts if user exists
       if (user) {
-        await supabase.from("mt5_accounts").upsert({
-          user_id: user.id,
-          account_number: cleanAccount,
-          broker_server: cleanServer,
-          server: cleanServer,
-          broker: cleanServer.split("-")[0] || "MT5",
-          connection_status: "deployed",
-          is_connected: true,
-          is_active: true,
-          updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" }).catch(() => {});
+        try {
+          await supabase.from("mt5_accounts").upsert({
+            user_id: user.id,
+            account_number: cleanAccount,
+            broker_server: cleanServer,
+            server: cleanServer,
+            broker: cleanServer.split("-")[0] || "MT5",
+            connection_status: "deployed",
+            is_connected: true,
+            is_active: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: "user_id" });
+        } catch (dbErr) {
+          console.warn("Supabase local upsert notice:", dbErr);
+        }
       }
 
       // 3. Cache connection in localStorage for instant UI responsiveness
@@ -167,14 +171,23 @@ export default function ConnectBrokerTopDrawer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ accountNumber: cleanAccount, userId: user?.id }),
         }).catch(() => {});
-        await supabase.functions.invoke("sync-metaapi-trades").catch(() => {});
+        try {
+          await supabase.functions.invoke("sync-metaapi-trades");
+        } catch (_) {}
       } catch (syncErr) {
         console.warn("Background sync initial invocation:", syncErr);
       }
 
-      toast.success("Broker Connected & Synced!", {
-        description: `Connected to ${cleanServer} (Account: ${cleanAccount}). Trades & balance are syncing.`,
-      });
+      if (deployData?.warning) {
+        toast.warning("MetaAPI Connected (Top-Up Required)", {
+          description: deployData.warning,
+          duration: 12000,
+        });
+      } else {
+        toast.success("Broker Connected & Synced!", {
+          description: `Connected to ${cleanServer} (Account: ${cleanAccount}). Trades & balance are syncing.`,
+        });
+      }
 
       if (onConnected) onConnected();
       onClose();

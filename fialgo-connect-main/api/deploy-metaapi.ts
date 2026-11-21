@@ -124,11 +124,27 @@ export default async function handler(req: VercelRequest | any, res: VercelRespo
     }
 
     // 3. Trigger account deployment if not already deployed
+    let deploymentStatus = 'deployed';
+    let warningMsg = '';
+
     if (metaapiAccountId) {
-      fetch(`${metaApiUrl}/${metaapiAccountId}/deploy`, {
-        method: 'POST',
-        headers: { 'auth-token': metaApiToken },
-      }).catch((e) => console.warn('Non-blocking deploy error:', e));
+      try {
+        const deployRes = await fetch(`${metaApiUrl}/${metaapiAccountId}/deploy`, {
+          method: 'POST',
+          headers: { 'auth-token': metaApiToken },
+        });
+
+        if (!deployRes.ok) {
+          const deployErr = await deployRes.json().catch(() => ({}));
+          console.warn('MetaAPI deploy response:', deployRes.status, deployErr);
+          if (deployErr.message?.includes('top up') || deployRes.status === 403) {
+            warningMsg = 'Account registered in MetaAPI, but deployment is paused: please top up your MetaAPI account balance ($0 or negative balance) to allow live streaming.';
+            deploymentStatus = 'pending_topup';
+          }
+        }
+      } catch (deployEx) {
+        console.warn('Deploy call exception:', deployEx);
+      }
     }
 
     // 4. Save to Supabase mt5_accounts
@@ -151,7 +167,7 @@ export default async function handler(req: VercelRequest | any, res: VercelRespo
             account_number: String(accountNumber),
             broker_server: brokerServer,
             metaapi_account_id: metaapiAccountId,
-            connection_status: 'deployed',
+            connection_status: deploymentStatus,
             is_active: true,
             updated_at: new Date().toISOString(),
           }),
@@ -163,8 +179,9 @@ export default async function handler(req: VercelRequest | any, res: VercelRespo
 
     return sendJson(res, 200, {
       success: true,
-      message: 'Account successfully registered and deployed with MetaAPI.',
+      message: warningMsg || 'Account successfully registered and deployed with MetaAPI.',
       accountId: metaapiAccountId,
+      warning: warningMsg || undefined,
     });
   } catch (err: any) {
     console.error('MetaAPI handler error:', err);
