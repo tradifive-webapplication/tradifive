@@ -465,26 +465,6 @@ const Dashboard = () => {
                   <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                     Dashboard
                   </h1>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDemoMode((v) => {
-                        const next = !v;
-                        try {
-                          localStorage.setItem("tf_dashboard_demo_mode", String(next));
-                        } catch {}
-                        return next;
-                      });
-                    }}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
-                      demoMode
-                        ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
-                        : "bg-slate-200/70 text-slate-500 dark:bg-white/[0.06] dark:text-neutral-400"
-                    }`}
-                    title="Toggle demo preview data"
-                  >
-                    {demoMode ? "Demo data · On" : "Demo data · Off"}
-                  </button>
                 </div>
                 <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1">
                   {todayFormatted}
@@ -625,7 +605,7 @@ const Dashboard = () => {
                     <motion.button
                       whileTap={{ scale: 0.96 }}
                       type="button"
-                      onClick={() => navigate("/settings?tab=trading")}
+                      onClick={() => setIsConnectBrokerDrawerOpen(true)}
                       className="tactile-white-pill rounded-full px-3.5 py-1.5 text-[12px] font-semibold cursor-pointer"
                     >
                       Connect broker

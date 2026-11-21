@@ -82,12 +82,25 @@ export default function ConnectBrokerTopDrawer({
 
     setIsSubmitting(true);
     try {
+      // Store in Supabase mt5_accounts if user session exists
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase.from("mt5_accounts").upsert({
+          user_id: user.id,
+          account_number: accountNumber.trim(),
+          server: brokerServer.trim(),
+          broker: brokerServer.split("-")[0] || "MT5",
+          is_connected: true,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" });
+      }
+
       // Simulate/trigger MetaAPI account deployment
       const { data, error } = await supabase.functions.invoke("deploy-metaapi-account", {
         body: {
-          accountNumber,
-          masterPassword: password,
-          brokerServer,
+          accountNumber: accountNumber.trim(),
+          masterPassword: password.trim(),
+          brokerServer: brokerServer.trim(),
           purpose: "risk_journal",
         },
       });
@@ -98,8 +111,10 @@ export default function ConnectBrokerTopDrawer({
 
       // Store cached broker connection
       localStorage.setItem("tradifive_broker_connected", "true");
+      localStorage.setItem("tradifive_cached_account_number", accountNumber.trim());
       localStorage.setItem("tradifive_broker_name", brokerServer.split("-")[0] || "MT5");
-      localStorage.setItem("tradifive_broker_server", brokerServer);
+      localStorage.setItem("tradifive_broker_server", brokerServer.trim());
+      window.dispatchEvent(new Event("tradifive_broker_connected_update"));
 
       toast.success("Broker Connected Successfully!", {
         description: `Connected to ${brokerServer} (Account: ${accountNumber}).`,
@@ -110,8 +125,10 @@ export default function ConnectBrokerTopDrawer({
     } catch (err: any) {
       // Graceful fallback for demo or dev environment
       localStorage.setItem("tradifive_broker_connected", "true");
+      localStorage.setItem("tradifive_cached_account_number", accountNumber.trim());
       localStorage.setItem("tradifive_broker_name", brokerServer.split("-")[0] || "MT5");
-      localStorage.setItem("tradifive_broker_server", brokerServer);
+      localStorage.setItem("tradifive_broker_server", brokerServer.trim());
+      window.dispatchEvent(new Event("tradifive_broker_connected_update"));
 
       toast.success("Broker Connected Successfully!", {
         description: `Connected to ${brokerServer} (Account: ${accountNumber}).`,
@@ -288,7 +305,7 @@ export default function ConnectBrokerTopDrawer({
 
                     <div>
                       <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        MT5 Login / Account ID
+                        Username / MT5 Login (Account Number)
                       </label>
                       <input
                         type="text"
@@ -302,7 +319,7 @@ export default function ConnectBrokerTopDrawer({
 
                     <div>
                       <label className="text-[11.5px] font-semibold text-slate-700 dark:text-slate-300 block mb-1">
-                        Master or Investor Password
+                        Password (Master or Investor Password)
                       </label>
                       <div className="relative">
                         <input

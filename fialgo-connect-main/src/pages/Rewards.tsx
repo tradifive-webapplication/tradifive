@@ -280,7 +280,8 @@ export default function Rewards() {
       return "";
     }
   });
-  const [userTier, setUserTier] = useState("PRO");
+  const [userTier, setUserTier] = useState<string>("");
+  const [isVerified, setIsVerified] = useState<boolean>(false);
 
   // Fetch real profile from Supabase profiles table
   useEffect(() => {
@@ -291,7 +292,7 @@ export default function Rewards() {
         if (session?.user && isMounted) {
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, display_name, avatar_url, tier, xp_total, xp_level, streak_days")
+            .select("username, display_name, avatar_url, tier, xp_total, xp_level, streak_days, is_verified, plan_type, subscription_status")
             .eq("id", session.user.id)
             .maybeSingle();
 
@@ -304,11 +305,14 @@ export default function Rewards() {
             "Trader";
 
           const avatar = profile?.avatar_url || session.user.user_metadata?.avatar_url || "";
-          const tier = profile?.tier?.toUpperCase() || "PRO";
+          const rawTier = (profile?.tier || profile?.plan_type || profile?.subscription_status || "").toUpperCase();
+          const tier = (rawTier === "PRO" || rawTier === "ELITE" || rawTier === "STARTER") ? rawTier : "";
+          const verified = Boolean(profile?.is_verified);
 
           if (isMounted) {
             setUserName(name);
             setUserTier(tier);
+            setIsVerified(verified);
             if (avatar) {
               setUserAvatarUrl(avatar);
               try {
@@ -1282,9 +1286,11 @@ export default function Rewards() {
                       </div>
                     )}
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[9px] text-white font-bold shadow-2xs">
-                    ✓
-                  </div>
+                  {isVerified && (
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 sm:w-4.5 sm:h-4.5 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[9px] text-white font-bold shadow-2xs" title="Verified Trader">
+                      ✓
+                    </div>
+                  )}
                 </div>
 
                 <div className="min-w-0">
@@ -1292,15 +1298,17 @@ export default function Rewards() {
                     <h2 className="text-[17px] sm:text-[19px] font-black text-slate-900 dark:text-white tracking-tight leading-tight truncate">
                       {userName}
                     </h2>
-                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
-                      {userTier}
-                    </span>
+                    {userTier && (
+                      <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
+                        {userTier}
+                      </span>
+                    )}
                     <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-neutral-300 border border-slate-200/80 dark:border-white/[0.08] leading-none">
                       Level {levelInfo.level}
                     </span>
                   </div>
                   <p className="text-[11.5px] font-semibold text-slate-500 dark:text-neutral-400 mt-0.5 truncate">
-                    Level {levelInfo.level} Pro MT5 Trader
+                    Level {levelInfo.level} {userTier ? `${userTier} ` : ""}MT5 Trader
                   </p>
                 </div>
               </div>

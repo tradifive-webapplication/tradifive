@@ -572,10 +572,8 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           const resolvedAvatar = profile.avatar_url || "";
           setMobileUsername(resolvedUsername);
           setMobileAvatarUrl(resolvedAvatar);
-          if (typeof profile.xp_total === "number" && connected && profile.xp_total !== 1030 && profile.xp_total !== 3030 && profile.xp_total !== 350) {
+          if (typeof profile.xp_total === "number" && profile.xp_total !== 1030 && profile.xp_total !== 3030 && profile.xp_total !== 350) {
             setTotalXP(profile.xp_total);
-          } else if (!connected) {
-            setTotalXP(0);
           }
           if (typeof profile.streak_days === "number" && connected && profile.streak_days !== 16 && profile.streak_days !== 18) {
             setStreakDays(profile.streak_days);
@@ -774,19 +772,17 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 {headerActions}
 
                 {/* Mobile Compact Total XP Badge */}
-                {hasConnectedAccount && totalXP > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => navigate('/rewards?tab=vault')}
-                    className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-purple-700 dark:text-purple-400"
-                    title={`${totalXP.toLocaleString()} Total XP (Click to redeem perks in Vault)`}
-                  >
-                    <Star size={11} className="fill-purple-500 text-purple-500 shrink-0" />
-                    <span className="text-[11px] font-bold tabular-nums tracking-tight leading-none">
-                      {totalXP.toLocaleString()}
-                    </span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => navigate('/rewards')}
+                  className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-purple-700 dark:text-purple-400"
+                  title={`${(totalXP || 0).toLocaleString()} Total XP (Click to view Rewards)`}
+                >
+                  <Star size={11} className="fill-purple-500 text-purple-500 shrink-0" />
+                  <span className="text-[11px] font-bold tabular-nums tracking-tight leading-none">
+                    {(totalXP || 0).toLocaleString()} XP
+                  </span>
+                </button>
 
                 {/* Mobile Compact Credits Badge — [ (gauge) 40/250 + ] */}
                 <div
@@ -843,19 +839,17 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 </button>
 
                 {/* Desktop Total XP Pill — [ ⭐ Total XP ] */}
-                {hasConnectedAccount && totalXP > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => navigate('/rewards?tab=vault')}
-                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-purple-300 dark:hover:border-purple-500/40 transition-all text-purple-700 dark:text-purple-400"
-                    title={`${totalXP.toLocaleString()} Total XP (Redeem for Subscriptions, Competitions & AI Credits in Vault)`}
-                  >
-                    <Star size={13} className="fill-purple-500 text-purple-500 shrink-0" />
-                    <span className="text-[12px] font-bold tabular-nums tracking-tight leading-none">
-                      {totalXP.toLocaleString()} XP
-                    </span>
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => navigate('/rewards')}
+                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-purple-300 dark:hover:border-purple-500/40 transition-all text-purple-700 dark:text-purple-400"
+                  title={`${(totalXP || 0).toLocaleString()} Total XP (View Rewards & Vault)`}
+                >
+                  <Star size={13} className="fill-purple-500 text-purple-500 shrink-0" />
+                  <span className="text-[12px] font-bold tabular-nums tracking-tight leading-none">
+                    {(totalXP || 0).toLocaleString()} XP
+                  </span>
+                </button>
 
                 {/* Desktop Small AI Credits Badge — exact match to user design: [ (gauge) 40/250 + ] */}
                 <div
