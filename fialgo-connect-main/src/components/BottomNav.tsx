@@ -7,7 +7,7 @@ import {
   Bookmark, TicketStar, 
   ChevronRight 
 } from "react-iconly";
-import { Sparkles, ArrowUp, X, MoreHorizontal, HelpCircle } from "lucide-react";
+import { Sparkles, ArrowUp, X, MoreHorizontal, HelpCircle, Trophy } from "lucide-react";
 
 export default function BottomNav() {
   const location = useLocation();
@@ -340,22 +340,22 @@ export default function BottomNav() {
                     </div>
                   </button>
 
-                  {/* Strategy Builder */}
+                  {/* Rewards */}
                   <button
                     type="button"
-                    onClick={() => handleNavigate("/strategy-builder")}
+                    onClick={() => handleNavigate("/rewards")}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Setting set="curved" stroke="bold" primaryColor="currentColor" size={18} />
+                        <Trophy size={18} className="text-[#006DFE] dark:text-blue-400 stroke-[2.2]" />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
-                        Strategy Builder
+                        Rewards
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Add a setup</span>
+                      <span>XP & perks</span>
                       <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
@@ -395,7 +395,7 @@ export default function BottomNav() {
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Rewards</span>
+                      <span>Invite & earn</span>
                       <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                     </div>
                   </button>
