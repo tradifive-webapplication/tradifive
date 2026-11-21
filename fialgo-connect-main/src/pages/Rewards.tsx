@@ -178,7 +178,7 @@ export default function Rewards() {
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "badges" | "vault">("discipline");
   const [activeRange, setActiveRange] = useState<"7D" | "14D" | "All">("14D");
 
-  const hasTrades = Boolean(recentTrades && recentTrades.length > 0);
+  const hasTrades = Boolean(isConnected && recentTrades && recentTrades.length > 0);
 
   // Real Gamification State (Real XP & Streak)
   const [totalXP, setTotalXP] = useState<number>(() => {
@@ -327,14 +327,20 @@ export default function Rewards() {
               localStorage.setItem("tradifive_cached_display_name", name);
             } catch (_) {}
 
-            if (typeof profile?.xp_total === "number") {
+            if (typeof profile?.xp_total === "number" && isConnected && profile.xp_total !== 1030 && profile.xp_total !== 3030 && profile.xp_total !== 350) {
               setTotalXP(profile.xp_total);
+            } else if (!isConnected) {
+              setTotalXP(0);
             }
-            if (typeof profile?.xp_level === "number") {
+            if (typeof profile?.xp_level === "number" && isConnected) {
               setCurrentLevel(profile.xp_level);
+            } else if (!isConnected) {
+              setCurrentLevel(1);
             }
-            if (typeof profile?.streak_days === "number") {
+            if (typeof profile?.streak_days === "number" && isConnected && profile.streak_days !== 16 && profile.streak_days !== 18) {
               setStreakDays(profile.streak_days);
+            } else if (!isConnected) {
+              setStreakDays(0);
             }
           }
         }
@@ -387,7 +393,7 @@ export default function Rewards() {
         d.setDate(today.getDate() - i);
         const iso = d.toISOString().split("T")[0];
         const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso)) || [];
-        const hasTrades = dayTrades.length > 0;
+        const hasTrades = Boolean(isConnected && dayTrades.length > 0);
         const dayScore = hasTrades
           ? Math.round(dayTrades.reduce((acc, t) => acc + (t.discipline_score || 100), 0) / dayTrades.length)
           : 100;
@@ -556,18 +562,20 @@ export default function Rewards() {
       title: "Lot Sizing Rule",
       subtitle: "Strict 1% account risk limit dynamically enforced",
       value: hasTrades ? 100 : 0,
-      badgeText: "1.0% Risk Cap",
+      badgeText: hasTrades ? "1.0% Risk Cap" : "--",
       percentageText: hasTrades ? "100%" : "--",
       colorType: "blue",
       icon: <Scale size={16} className="text-[#006DFE] dark:text-blue-400" />,
-      auditBadge: "1.0% RISK CAP",
+      auditBadge: hasTrades ? "1.0% RISK CAP" : "-- RISK CAP",
       auditTitle: "Dynamic Position Sizing Audit",
       auditSummary:
-        `Positions strictly calibrated against account equity (${accountMetrics?.equity ? `$${Number(accountMetrics.equity).toLocaleString()}` : "connected account"}). All orders are capped at 1.0% maximum capital exposure.`,
+        hasTrades
+          ? `Positions strictly calibrated against account equity (${accountMetrics?.equity ? `$${Number(accountMetrics.equity).toLocaleString()}` : "connected account"}). All orders are capped at 1.0% maximum capital exposure.`
+          : "Positions strictly calibrated against account equity upon first MT5 market order.",
       auditStats: [
-        { label: "Max Risk Enforced", value: "1.00% Account Equity" },
+        { label: "Max Risk Enforced", value: hasTrades ? "1.00% Account Equity" : "--" },
         { label: "Highest Lot Traded", value: hasTrades ? "Within Risk Cap" : "Awaiting First Order" },
-        { label: "Oversizing Attempts", value: "0 Flagged" },
+        { label: "Oversizing Attempts", value: hasTrades ? "0 Flagged" : "--" },
       ],
       telemetryStat: hasTrades ? "Max Risk 1.0% · 0 Oversizing Flags" : "Max Risk 1.0% · Awaiting First Trade",
     },
@@ -576,18 +584,20 @@ export default function Rewards() {
       title: "Revenge Trade Shield",
       subtitle: "15-minute emotional cooldown respected post-loss",
       value: hasTrades ? 100 : 0,
-      badgeText: "0 Violations",
+      badgeText: hasTrades ? "0 Violations" : "--",
       percentageText: hasTrades ? "100%" : "--",
       colorType: "green",
       icon: <CheckCircle2 size={16} className="text-emerald-500" />,
-      auditBadge: "0 VIOLATIONS",
+      auditBadge: hasTrades ? "0 VIOLATIONS" : "-- VIOLATIONS",
       auditTitle: "Revenge Trade Shield Telemetry",
       auditSummary:
-        "Following any losing trade, Live MT5 Guard enforces a mandatory 15-minute emotional reset window before new market entries.",
+        hasTrades
+          ? "Following any losing trade, Live MT5 Guard enforces a mandatory 15-minute emotional reset window before new market entries."
+          : "Following any losing trade, Live MT5 Guard enforces a mandatory 15-minute emotional reset window.",
       auditStats: [
-        { label: "Post-Loss Cooldowns", value: hasTrades ? "All Respected" : "Ready" },
+        { label: "Post-Loss Cooldowns", value: hasTrades ? "All Respected" : "Awaiting First Session" },
         { label: "Cooldown Window", value: "15m Mandatory" },
-        { label: "Lot Doubling Attempts", value: "0 Blocked" },
+        { label: "Lot Doubling Attempts", value: hasTrades ? "0 Blocked" : "--" },
       ],
       telemetryStat: hasTrades ? "15m Emotional Shield Active · 0 Breaches" : "15m Shield Ready · 0 Breaches",
     },
@@ -646,7 +656,7 @@ export default function Rewards() {
         const isSunday = curDate.getDay() === 0;
 
         const dayTrades = recentTrades?.filter((t) => (t.close_time || t.open_time || t.closed_at || "").startsWith(iso)) || [];
-        const hasTrades = dayTrades.length > 0;
+        const hasTrades = Boolean(isConnected && dayTrades.length > 0);
         const dayScore = isToday
           ? (tradesToday && hasTrades ? displayScore : null)
           : hasTrades
