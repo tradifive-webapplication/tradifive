@@ -38,90 +38,72 @@ serve(async (req) => {
       // 3. Register Account with MetaApi
       const metaApiUrl = 'https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai/users/current/accounts';
       
-      // FIRST: Check if an account with this login already exists and delete it to prevent "stuck" high-reliability accounts
+      // FIRST: Check if an account with this login already exists in MetaApi to avoid slow re-provisioning
+      let existingAccount: any = null;
       try {
         const listRes = await fetch(metaApiUrl, {
           headers: { 'auth-token': META_API_TOKEN }
         });
         if (listRes.ok) {
           const accounts = await listRes.json();
-          const existing = accounts.find((a: any) => a.login === String(accountNumber) && a.server === brokerServer);
-          if (existing) {
-            console.log("Found existing account, deleting it to recreate with correct tier:", existing.id);
-            await fetch(`${metaApiUrl}/${existing.id}`, {
-              method: 'DELETE',
-              headers: { 'auth-token': META_API_TOKEN }
-            });
-          }
+          existingAccount = accounts.find((a: any) => a.login === String(accountNumber) && a.server === brokerServer);
         }
       } catch (e) {
-        console.warn("Could not check/delete existing accounts", e);
+        console.warn("Could not check existing accounts", e);
       }
 
-      const registrationPayload = {
-        name: `Tradifive-${accountNumber}`,
-        type: 'cloud-g1',
-        login: String(accountNumber),
-        password: masterPassword,
-        server: brokerServer,
-        platform: 'mt5',
-        magic: 1000,
-        reliability: 'regular'
-      };
+      if (existingAccount) {
+        console.log("Reusing existing MetaApi account:", existingAccount.id);
+        metaapiAccountId = String(existingAccount.id || existingAccount._id);
+      } else {
+        const registrationPayload = {
+          name: `Tradifive-${accountNumber}`,
+          type: 'cloud-g1',
+          login: String(accountNumber),
+          password: masterPassword,
+          server: brokerServer,
+          platform: 'mt5',
+          magic: 1000,
+          reliability: 'regular'
+        };
 
-      console.log("Registering with MetaApi. Payload:", JSON.stringify({ ...registrationPayload, password: '***' }));
-      
-      const registerResponse = await fetch(metaApiUrl, {
-        method: 'POST',
-        headers: {
-          'auth-token': META_API_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(registrationPayload)
-      });
-
-      const metaApiData = await registerResponse.json();
-      
-      if (!registerResponse.ok) {
-        console.error('MetaApi Registration Error:', metaApiData);
+        console.log("Registering with MetaApi. Payload:", JSON.stringify({ ...registrationPayload, password: '***' }));
         
-        // Handle specific "Validation failed" errors with more detail
-        if (metaApiData.message === 'Validation failed' && metaApiData.details) {
-          const details = metaApiData.details.map((d: any) => `${d.path}: ${d.message}`).join(', ');
-          throw new Error(`MetaApi Validation Failed: ${details}`);
-        }
+        const registerResponse = await fetch(metaApiUrl, {
+          method: 'POST',
+          headers: {
+            'auth-token': META_API_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(registrationPayload)
+        });
 
-        // If account already exists, we might get a 400. 
-        if (registerResponse.status === 400 && (metaApiData.message?.includes('already exists') || JSON.stringify(metaApiData).includes('already exists'))) {
-          console.log("Account already exists in MetaApi, attempting to fetch existing account ID...");
-          const listRes = await fetch('https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai/users/current/accounts', {
-            headers: { 'auth-token': META_API_TOKEN }
-          });
-          const accounts = await listRes.json();
-          const existing = accounts.find((a: any) => a.login === accountNumber);
-          if (existing) {
-            metaApiData.id = existing.id;
-          } else {
-            throw new Error('Account exists but could not be retrieved');
+        const metaApiData = await registerResponse.json();
+        
+        if (!registerResponse.ok) {
+          console.error('MetaApi Registration Error:', metaApiData);
+          
+          if (metaApiData.message === 'Validation failed' && metaApiData.details) {
+            const details = metaApiData.details.map((d: any) => `${d.path}: ${d.message}`).join(', ');
+            throw new Error(`MetaApi Validation Failed: ${details}`);
           }
-        } else {
-          throw new Error(metaApiData.message || 'MetaApi: ' + JSON.stringify(metaApiData));
+
+          if (registerResponse.status === 400 && (metaApiData.message?.includes('already exists') || JSON.stringify(metaApiData).includes('already exists'))) {
+            const listRes = await fetch(metaApiUrl, { headers: { 'auth-token': META_API_TOKEN } });
+            const accounts = await listRes.json();
+            const existing = accounts.find((a: any) => a.login === accountNumber);
+            if (existing) {
+              metaApiData.id = existing.id;
+            } else {
+              throw new Error('Account exists but could not be retrieved');
+            }
+          } else {
+            throw new Error(metaApiData.message || 'MetaApi: ' + JSON.stringify(metaApiData));
+          }
         }
-      }
 
-      metaapiAccountId = metaApiData.id || metaApiData.accountId;
-
-      // 4. Explicitly DEPLOY the account (required for cloud-g2)
-      console.log("Deploying MetaApi account:", metaapiAccountId);
-      const deployRes = await fetch(`https://mt-provisioning-api-v1.agiliumtrade.agiliumtrade.ai/users/current/accounts/${metaapiAccountId}/deploy`, {
-        method: 'POST',
-        headers: { 'auth-token': META_API_TOKEN }
-      });
-      
-      if (!deployRes.ok) {
-        const deployError = await deployRes.json();
-        console.error("Deployment Error:", deployError);
-        throw new Error(`MetaApi Deployment Failed: ${deployError.message || 'Insufficient balance or billing error in MetaApi'}`);
+        metaapiAccountId = String(metaApiData.id || metaApiData.accountId || '');
+        console.log("MetaApi account created successfully:", metaapiAccountId);
       }
     }
 

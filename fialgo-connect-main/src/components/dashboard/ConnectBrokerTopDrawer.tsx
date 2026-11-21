@@ -59,6 +59,10 @@ export default function ConnectBrokerTopDrawer({
     }
 
     setIsSubmitting(true);
+    const toastId = toast.loading("Connecting to MT5 via MetaAPI...", {
+      description: `Authenticating with ${cleanServer} (takes ~10-20s)...`,
+    });
+
     try {
       // 1. Get current Supabase user if session exists
       const { data: { user } } = await supabase.auth.getUser();
@@ -74,6 +78,8 @@ export default function ConnectBrokerTopDrawer({
         },
       });
 
+      toast.dismiss(toastId);
+
       if (error) {
         let errMsg = error.message;
         try {
@@ -82,9 +88,14 @@ export default function ConnectBrokerTopDrawer({
             if (errBody?.error) errMsg = errBody.error;
           }
         } catch (_) {}
+
+        if (errMsg.includes("Failed to send a request")) {
+          errMsg = "MetaAPI handshake took longer than expected or network interrupted. Please verify your login credentials and click Connect again.";
+        }
+
         toast.error("Broker Connection Failed", {
           description: errMsg,
-          duration: 8000,
+          duration: 9000,
         });
         setIsSubmitting(false);
         return;
