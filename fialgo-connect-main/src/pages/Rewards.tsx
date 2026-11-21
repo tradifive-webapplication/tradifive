@@ -42,6 +42,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { RuleComplianceAnalytics } from "@/components/RuleComplianceAnalytics";
+import { WeeklyConsistencyTactileCalendar } from "@/components/WeeklyConsistencyTactileCalendar";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
   getGamificationState,
@@ -729,66 +730,12 @@ export default function Rewards() {
               {/* 1. Rule Compliance Parameters Card (Includes 3D Bars & Session Rhythm) */}
               <RuleComplianceAnalytics score={disciplineState.score} />
 
-              {/* 2. Weekly Consistency Log Card — Small, Crisp & Nice (Dashboard Systemic) */}
-              <div className={`${CARD} p-3 sm:p-3.5`}>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 mb-2.5 border-b border-slate-100 dark:border-white/[0.06] gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-[#2563EB] dark:text-blue-400 shrink-0">
-                      <Calendar size={13.5} />
-                    </div>
-                    <div>
-                      <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white tracking-tight">
-                        Weekly Consistency Log
-                      </h4>
-                      <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium">
-                        6-day MT5 discipline streak &amp; execution grade
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[9.5px] font-semibold text-slate-500 dark:text-neutral-400 self-start sm:self-auto">
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" /> A+ (95+)
-                    </span>
-                    <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] inline-block" /> A (85–94)
-                    </span>
-                  </div>
-                </div>
-
-                {/* 6 Day Consistency Boxes - Small, crisp, refined like Dashboard */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-                  {Object.values(disciplineState.calendarHistory).slice(-6).map((item) => {
-                    const isAPlus = item.score >= 95;
-                    const dateObj = new Date(item.date);
-                    const weekday = dateObj.toLocaleDateString("en-US", { weekday: "short" });
-                    const monthDay = dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-                    return (
-                      <div
-                        key={item.date}
-                        className="px-2 py-2 rounded-[11px] bg-[#F8FAFC] dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-slate-300 dark:hover:border-white/15 transition-all text-center flex flex-col items-center justify-between gap-0.5 shadow-2xs group cursor-default"
-                      >
-                        <span className="text-[8.5px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
-                          {weekday}, {monthDay}
-                        </span>
-                        <div className="text-[15px] font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight my-0.5">
-                          {item.score}
-                        </div>
-                        <span
-                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] font-extrabold tabular-nums border ${
-                            isAPlus
-                              ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20"
-                              : "bg-blue-50 dark:bg-blue-500/10 text-[#2563EB] dark:text-blue-400 border-blue-200/60 dark:border-blue-500/20"
-                          }`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full ${isAPlus ? "bg-emerald-500" : "bg-[#2563EB]"}`} />
-                          GRADE {item.grade}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              {/* 2. Tactile Weekly Consistency Log Strip (Matches Reference Design) */}
+              <WeeklyConsistencyTactileCalendar
+                calendarHistory={disciplineState.calendarHistory}
+                todayScore={disciplineState.score}
+                todayGrade={disciplineState.grade}
+              />
             </motion.div>
           )}
 
