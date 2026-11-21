@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield,
@@ -13,13 +13,9 @@ import {
   CheckCircle2,
   X,
   Scale,
-  Server,
-  Zap,
-  Info
 } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
-import ConnectBrokerTopDrawer from "@/components/dashboard/ConnectBrokerTopDrawer";
 import {
   Gauge,
   Area,
@@ -102,17 +98,12 @@ export default function Rewards() {
   ------------------------------------------------------------------------- */
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "badges" | "vault">("discipline");
   const [activeRange, setActiveRange] = useState<"7D" | "14D" | "All">("14D");
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [isConnectBrokerDrawerOpen, setIsConnectBrokerDrawerOpen] = useState(false);
   const [xp, setXp] = useState(850);
   const [score, setScore] = useState(96);
   const [displayScore, setDisplayScore] = useState(96);
   const [streakDays, setStreakDays] = useState(18);
   const [redeemedRewards, setRedeemedRewards] = useState<Set<string>>(new Set());
   const [replayKey, setReplayKey] = useState(0);
-
-  // Time & Clock state
-  const [mt5Clock, setMt5Clock] = useState("MT5 07:37:47 UTC");
 
   // Audit modal state
   const [activeAuditModal, setActiveAuditModal] = useState<{
@@ -128,54 +119,6 @@ export default function Rewards() {
     summary: "",
     stats: [],
   });
-
-  /* -------------------------------------------------------------------------
-     LIVE MT5 CLOCK TICKER
-  ------------------------------------------------------------------------- */
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      const hh = String(now.getUTCHours()).padStart(2, "0");
-      const mm = String(now.getUTCMinutes()).padStart(2, "0");
-      const ss = String(now.getUTCSeconds()).padStart(2, "0");
-      setMt5Clock(`MT5 ${hh}:${mm}:${ss} UTC`);
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  /* -------------------------------------------------------------------------
-     LIVE SESSION SIMULATOR
-  ------------------------------------------------------------------------- */
-  useEffect(() => {
-    if (!isSimulating) return;
-
-    const interval = setInterval(() => {
-      const jitter = Math.random() > 0.45 ? 97 : 96;
-      setScore(jitter);
-      setDisplayScore(jitter);
-      setXp((prev) => (prev < 980 ? prev + 10 : prev));
-    }, 2200);
-
-    return () => clearInterval(interval);
-  }, [isSimulating]);
-
-  const toggleSimulation = () => {
-    if (!isSimulating) {
-      setIsSimulating(true);
-      toast.success("Live MT5 Session Simulator Active", {
-        description: "Simulating live trade compliance telemetry in real-time.",
-      });
-    } else {
-      setIsSimulating(false);
-      setScore(96);
-      setDisplayScore(96);
-      toast.info("Session Finalized", {
-        description: "Compliance locked at Score 96/100 (Grade A+).",
-      });
-    }
-  };
 
   /* -------------------------------------------------------------------------
      DISCIPLINE CURVE DATASETS (7D, 14D, ALL)
@@ -519,7 +462,7 @@ export default function Rewards() {
   };
 
   return (
-    <DashboardLayout>
+    <DashboardLayout breadcrumbs={[{ label: "Rewards" }]} noScroll={true} noPadding={true}>
       {/* ── CUSTOM ARCHITECTURAL STYLES ── */}
       <style>{`
         /* Uiverse.io 3D loaderBar Animation */
@@ -561,77 +504,21 @@ export default function Rewards() {
         }
       `}</style>
 
-      <div className="w-full max-w-[1360px] mx-auto px-3.5 sm:px-6 lg:px-8 py-5 sm:py-7 min-h-screen text-slate-900 dark:text-slate-100 selection:bg-blue-500/25">
-        
-        {/* =========================================================================
-            TOP APPLICATION HEADER & LIVE TELEMETRY ROW (UNIFIED WITH DASHBOARD)
-        ========================================================================= */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-5 mb-5 border-b border-slate-200/80 dark:border-white/[0.08] gap-4">
-          
-          {/* Left: Brand Title & Live MT5 Guard Telemetry */}
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#006DFE] via-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-[0_4px_12px_rgba(0,109,254,0.35)] shrink-0">
-                <Shield size={18} className="fill-white/20 stroke-white stroke-[2.2]" />
-              </div>
-              <h1 className="text-2xl sm:text-[26px] font-black tracking-tight text-slate-900 dark:text-white">
-                Rewards Hub
+      <div className="flex-1 h-full min-h-0 bg-[#F7F8FA] dark:bg-[#141416] flex flex-col overflow-hidden font-sans transition-colors">
+        {/* ── Pinned Header Row (Exactly matches Dashboard, Journal & Home) ── */}
+        <header className="shrink-0 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md z-20 border-b border-slate-200/70 dark:border-white/[0.07]">
+          <div className="w-full max-w-[1440px] mx-auto px-3.5 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2.5">
+            <div className="min-w-0">
+              <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                Rewards
               </h1>
-              
-              {/* Animated Live MT5 Guard Pill */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50/90 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/20 shadow-2xs">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                <span>Live MT5 Guard</span>
-              </div>
             </div>
-
-            {/* Server Timestamp & Account context */}
-            <p className="text-xs font-mono font-medium text-slate-500 dark:text-neutral-400">
-              Sat, Nov 21, 2026 · Exness-Real #88412 · <span className="text-[#006DFE] dark:text-blue-400">{mt5Clock}</span>
-            </p>
           </div>
+        </header>
 
-          {/* Right: Connect Broker Status Pill & Simulate Session Toggle (Dashboard Style) */}
-          <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-auto">
-            
-            {/* Broker Status Pill with Connect Broker Top Drawer Trigger */}
-            <div className="inline-flex items-center gap-2.5 bg-white dark:bg-[#17171A] rounded-full pl-3.5 pr-1.5 py-1.5 border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
-              <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>MT5 Server · Live</span>
-                <span className="text-slate-300 dark:text-neutral-700">·</span>
-                <span className="text-slate-500 dark:text-neutral-400 font-mono text-[11px]">$28,308.50</span>
-              </div>
-              <div className="h-4 w-px bg-slate-200/80 dark:bg-white/10" />
-              <button
-                type="button"
-                onClick={() => setIsConnectBrokerDrawerOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#006DFE] hover:bg-blue-600 text-white shadow-xs transition-all cursor-pointer"
-              >
-                <Server size={12} />
-                <span>Connect Broker</span>
-              </button>
-            </div>
-
-            {/* Simulate Live Session Button */}
-            <button
-              type="button"
-              onClick={toggleSimulation}
-              className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer ${
-                isSimulating
-                  ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/25"
-                  : "bg-white dark:bg-[#17171A] border border-slate-200/75 dark:border-white/[0.08] text-slate-700 dark:text-slate-200 hover:border-[#006DFE]/60 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none"
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${isSimulating ? "bg-white animate-ping" : "bg-slate-400"}`} />
-              <span>{isSimulating ? "Stop Simulation" : "Simulate Live Session"}</span>
-            </button>
-
-          </div>
-        </div>
+        {/* ── Scrollable Body Area (Matching Dashboard & Journal) ── */}
+        <div className="flex-1 min-h-0 overflow-y-auto px-3.5 sm:px-6 pt-3.5 pb-12 scroll-smooth">
+          <div className="w-full max-w-[1440px] mx-auto space-y-4 sm:space-y-5">
 
         {/* =========================================================================
             HERO ROW (12-COL GRID) — MATCHING DASHBOARD/JOURNAL CARD STYLING
@@ -1023,7 +910,7 @@ export default function Rewards() {
                   <button
                     type="button"
                     onClick={handleReplayBars}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-slate-600 dark:text-neutral-300 hover:bg-slate-100 dark:hover:bg-white/[0.05] transition-colors cursor-pointer border border-slate-200/70 dark:border-white/10"
+                    className="tactile-white-pill inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold cursor-pointer"
                   >
                     <RefreshCw size={12} />
                     <span>Replay Sync</span>
@@ -1500,23 +1387,8 @@ export default function Rewards() {
           )}
         </AnimatePresence>
 
-        {/* =========================================================================
-            CONNECT BROKER TOP DRAWER
-        ========================================================================= */}
-        <ConnectBrokerTopDrawer
-          isOpen={isConnectBrokerDrawerOpen}
-          onClose={() => setIsConnectBrokerDrawerOpen(false)}
-          isConnected={true}
-          currentBroker="Exness-Real14"
-          currentEquity={28308.5}
-          onConnected={() => {
-            toast.success("Broker Connected", {
-              description: "MT5 Server connection synchronized.",
-            });
-            setIsConnectBrokerDrawerOpen(false);
-          }}
-        />
-
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   );
