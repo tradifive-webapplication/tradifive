@@ -528,8 +528,8 @@ export default function Rewards() {
         ========================================================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-5 sm:mb-6">
           
-          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols) */}
-          <div className={`lg:col-span-6 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3.5`}>
+          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols - Unboxed Hero Style like Dashboard) */}
+          <div className="lg:col-span-6 px-1 py-1 flex flex-col justify-between gap-3">
             
             {/* Top row: Status header */}
             <div className="flex items-center justify-between">
@@ -583,7 +583,7 @@ export default function Rewards() {
 
               {/* 3 Stat Chips: ACCOUNT, RISK CAP, STREAK */}
               <div className="flex items-center gap-2 text-center">
-                <div className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.06]">
+                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
                   <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     ACCOUNT
                   </div>
@@ -592,7 +592,7 @@ export default function Rewards() {
                   </div>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.06]">
+                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
                   <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     RISK CAP
                   </div>
@@ -601,7 +601,7 @@ export default function Rewards() {
                   </div>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.06]">
+                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
                   <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     STREAK
                   </div>
