@@ -26,14 +26,16 @@ import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { supabase } from "@/lib/supabase";
+import { Gauge } from "@/components/ui/charts";
 import {
-  Gauge,
-  Area,
   AreaChart,
-  ChartTooltip,
-  Grid,
+  Area,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
-} from "@/components/ui/charts";
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 
 /* =========================================================================
    TYPES & DATA MODELS
@@ -136,7 +138,7 @@ export default function Rewards() {
   ------------------------------------------------------------------------- */
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "badges" | "vault">("discipline");
   const [activeRange, setActiveRange] = useState<"7D" | "14D" | "All">("14D");
-  const [xp, setXp] = useState(1080);
+  const [xp, setXp] = useState(850);
   const [score, setScore] = useState(97);
   const [displayScore, setDisplayScore] = useState(97);
   const [streakDays, setStreakDays] = useState(18);
@@ -147,7 +149,7 @@ export default function Rewards() {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>("2026-11-21");
 
   // User Profile State
-  const [userName, setUserName] = useState("nikhil Harake");
+  const [userName, setUserName] = useState("Nikhil Harake");
   const [userAvatar, setUserAvatar] = useState("NH");
   const [userTier, setUserTier] = useState("PRO");
 
@@ -160,7 +162,7 @@ export default function Rewards() {
             session.user.user_metadata?.full_name ||
             session.user.user_metadata?.name ||
             session.user.email?.split("@")[0] ||
-            "nikhil Harake";
+            "Nikhil Harake";
           setUserName(name);
           const initials = name
             .split(" ")
@@ -400,6 +402,57 @@ export default function Rewards() {
       points,
     };
   }, [activeRange, livePoints7D, livePoints14D, livePointsAll, liveHeadline, displayScore]);
+
+  const isDark =
+    typeof document !== "undefined" &&
+    document.documentElement.classList.contains("dark");
+
+  const rechartsData = useMemo(() => {
+    return activeDataset.points.map((pt) => {
+      const d = pt.date instanceof Date ? pt.date : new Date(pt.date);
+      const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const fullDate = d.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
+      return {
+        label,
+        fullDate,
+        score: pt.score,
+        equity: pt.equity,
+        trades: pt.trades,
+      };
+    });
+  }, [activeDataset.points]);
+
+  const DisciplineChartTooltip = ({ active, payload }: any) => {
+    if (!active || !payload || !payload.length) return null;
+    const pt = payload[0].payload;
+    return (
+      <div
+        className={`px-3 py-2 rounded-[10px] border text-[12px] shadow-[0_6px_20px_rgba(15,23,42,0.1)] ${
+          isDark
+            ? "bg-[#18181B] border-white/10 text-white"
+            : "bg-white border-slate-200/90 text-slate-900"
+        }`}
+      >
+        <p className="text-[11px] text-slate-400 font-medium">{pt.fullDate}</p>
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="text-[14px] font-bold tabular-nums text-[#006DFE] dark:text-blue-400">
+            Discipline: {pt.score}%
+          </span>
+          <span className="text-slate-300 dark:text-neutral-600">·</span>
+          <span className="text-[12px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums">
+            {pt.equity}
+          </span>
+        </div>
+        <p className="text-[10.5px] text-slate-500 dark:text-neutral-400 mt-0.5">
+          {pt.trades} closed trade{pt.trades !== 1 ? "s" : ""} verified
+        </p>
+      </div>
+    );
+  };
 
   /* -------------------------------------------------------------------------
      RULE COMPLIANCE PARAMETERS (4 CARDS WITH UIVERSE BARS)
@@ -1003,57 +1056,13 @@ export default function Rewards() {
       `}</style>
 
       <div className="flex-1 h-full min-h-0 bg-[#F7F8FA] dark:bg-[#141416] flex flex-col overflow-hidden font-sans transition-colors">
-        {/* ── Pinned Header Row (Exactly matches Dashboard, Journal & Home) ── */}
+        {/* ── Pinned Header Row (Clean, matching Dashboard & Journal) ── */}
         <header className="shrink-0 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md z-20 border-b border-slate-200/70 dark:border-white/[0.07]">
-          <div className="w-full max-w-[1440px] mx-auto px-3.5 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5">
-            <div className="min-w-0 flex items-center gap-2.5">
+          <div className="w-full max-w-[1440px] mx-auto px-3.5 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2.5">
+            <div className="min-w-0">
               <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                 Rewards
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Live MT5 Guard
-              </span>
-            </div>
-
-            {/* Real-time Telemetry & Action Buttons */}
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-2xs tabular-nums">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
-                <span>{currentUtcTime || "MT5 Live"}</span>
-                <span className="text-slate-300 dark:text-neutral-600">·</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">{latency}ms</span>
-              </div>
-
-              <button
-                type="button"
-                onClick={handleSimulateLiveTrade}
-                className="tactile-white-pill inline-flex items-center gap-1.5 px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold text-slate-800 dark:text-white cursor-pointer active:scale-95 transition-all"
-                title="Simulate incoming live MT5 trade and update discipline metrics in real time"
-              >
-                <Zap size={12} className="text-[#006DFE] fill-[#006DFE]" />
-                <span>Simulate Live Order</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const nextState = !isLiveStreaming;
-                  setIsLiveStreaming(nextState);
-                  toast(nextState ? "Real-Time Stream Resumed" : "Real-Time Stream Paused", {
-                    description: nextState ? "MT5 compliance telemetry ticking live." : "Telemetry paused.",
-                  });
-                }}
-                className={`inline-flex items-center gap-1.5 px-3 py-1 sm:py-1.5 rounded-full text-xs font-bold cursor-pointer active:scale-95 transition-all ${
-                  isLiveStreaming
-                    ? "tactile-black-pill"
-                    : "tactile-white-pill text-slate-500 dark:text-neutral-400"
-                }`}
-                title="Toggle Real-Time Stream"
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${isLiveStreaming ? "bg-emerald-400 animate-pulse" : "bg-slate-400"}`} />
-                <span>{isLiveStreaming ? "Live Feed: ON" : "Live Feed: OFF"}</span>
-              </button>
             </div>
           </div>
         </header>
@@ -1064,142 +1073,96 @@ export default function Rewards() {
 
         {/* =========================================================================
             HERO ROW (12-COL GRID) — MATCHING DASHBOARD/JOURNAL CARD STYLING
-            Card 1: Discipline Status & Identity (6 cols)
+            Card 1: Discipline Status & Identity (6 cols - Unboxed like Dashboard)
             Card 2: Trading Streak (3 cols)
             Card 3: Trader Rank & XP (3 cols)
         ========================================================================= */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-4 sm:mb-5">
           
-          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols - Sculpted Hero Profile) */}
-          <div className={`lg:col-span-6 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+          {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols - Unboxed Hero Style like Dashboard) */}
+          <div className="lg:col-span-6 px-1 py-1 flex flex-col justify-between gap-3">
             
             {/* Top row: Status header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="flex items-center justify-between pb-1 border-b border-slate-200/60 dark:border-white/[0.06]">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400">
-                  Discipline Status
+                <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                  DISCIPLINE STATUS
                 </span>
                 <span className="text-slate-300 dark:text-neutral-700">·</span>
                 <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  {isConnected ? `${accountMetrics?.broker || "MT5 Server"} · Live` : "MT5 Server · Live"}
+                  {isConnected ? `${accountMetrics?.broker || "MT5 Server"} – Live` : "MT5 Server – Live"}
                 </span>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
-                  <CheckCircle2 size={11} />
-                  <span>Session Finalized</span>
-                </span>
-                <span className="px-2.5 py-0.5 rounded-md text-[10.5px] font-semibold tabular-nums bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-neutral-300">
-                  {latency}ms
-                </span>
-              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                <CheckCircle2 size={11} />
+                <span>Session Finalized</span>
+              </span>
             </div>
 
-            {/* Middle row: Avatar + Name + 4 Right-aligned Stat Chips */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-0.5">
+            {/* Middle row: Avatar + Name + 3 Right-aligned Stat Chips */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-0.5">
               
               {/* User avatar and name */}
-              <div className="flex items-center gap-3.5 min-w-0">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="relative shrink-0">
-                  <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl p-[2px] bg-gradient-to-tr from-[#006DFE] via-indigo-500 to-cyan-400 shadow-sm">
-                    <div className="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center text-white text-base sm:text-lg font-black overflow-hidden tracking-tight">
+                  <div className="w-12 h-12 rounded-xl p-[2px] bg-gradient-to-tr from-[#006DFE] to-cyan-400 shadow-sm">
+                    <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center text-white text-base font-black overflow-hidden">
                       {userAvatar}
                     </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[10px] text-white font-bold shadow-2xs">
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[9px] text-white font-bold shadow-2xs">
                     ✓
                   </div>
                 </div>
 
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <h2 className="text-base sm:text-[17px] font-black text-slate-900 dark:text-white tracking-tight leading-tight truncate">
                       {userName}
                     </h2>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
+                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
                       {userTier}
                     </span>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/80 dark:border-purple-500/30 leading-none">
-                      Level 1
-                    </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 font-medium truncate">
-                    Level 1 Pro MT5 Trader · Exness Real Verified
+                  <p className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mt-0.5 truncate">
+                    Level 1 Pro MT5 Trader
                   </p>
                 </div>
               </div>
 
-              {/* 4 Stat Chips: TOTAL XP, ACCOUNT, RISK CAP, STREAK */}
-              <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 shrink-0 text-center">
-                {/* TOTAL XP EARNED */}
-                <div className="px-3 py-1.5 rounded-xl bg-purple-50/70 dark:bg-purple-500/10 border border-purple-200/80 dark:border-purple-500/25 shadow-2xs">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400 flex items-center justify-center gap-1">
-                    <Star size={9} className="fill-purple-500 text-purple-500" />
-                    <span>TOTAL XP</span>
-                  </div>
-                  <div className="text-[13px] font-black text-purple-900 dark:text-purple-200 mt-0.5 tabular-nums">
-                    {(2000 + xp).toLocaleString()} XP
-                  </div>
-                </div>
-
-                {/* ACCOUNT */}
-                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+              {/* 3 Stat Chips: ACCOUNT, RISK CAP, STREAK */}
+              <div className="flex items-center gap-2 text-center shrink-0">
+                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
+                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     ACCOUNT
                   </div>
-                  <div className="text-[13px] font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
-                    {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#79870"}
+                  <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5 tabular-nums">
+                    {accountMetrics?.account_number ? `#${accountMetrics.account_number}` : "#88412"}
                   </div>
                 </div>
 
-                {/* RISK CAP */}
-                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
+                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     RISK CAP
                   </div>
-                  <div className="text-[13px] font-bold text-[#006DFE] dark:text-blue-400 mt-0.5 tabular-nums">
+                  <div className="text-xs font-mono font-bold text-[#006DFE] dark:text-blue-400 mt-0.5 tabular-nums">
                     1.0%
                   </div>
                 </div>
 
-                {/* STREAK */}
-                <div className="px-2.5 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
+                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     STREAK
                   </div>
-                  <div className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
+                  <div className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
                     6W Net
                   </div>
                 </div>
               </div>
 
             </div>
-
-            {/* Bottom Row: Lifetime XP context strip */}
-            <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex flex-wrap items-center justify-between text-xs text-slate-500 dark:text-neutral-400 gap-1.5">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-800 dark:text-slate-200">
-                  {(2000 + xp).toLocaleString()} Lifetime XP Earned
-                </span>
-                <span className="text-slate-300 dark:text-neutral-700">·</span>
-                <span className="text-[11px] font-medium text-slate-400 dark:text-neutral-500">
-                  Top 4% Trader Rank
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2 text-[11px] font-medium">
-                <span className="text-purple-600 dark:text-purple-400 font-semibold">
-                  +{dailyXpEarned || 180} XP this cycle
-                </span>
-                <span className="text-slate-300 dark:text-neutral-700">·</span>
-                <span className="text-slate-500 dark:text-neutral-400">
-                  {xp >= 1000 ? `${2000 - xp} XP to Lv 2` : `${1000 - xp} XP to Lv 2`}
-                </span>
-              </div>
-            </div>
-
           </div>
 
           {/* Card B: Trading Streak (3 cols - Compact Height) */}
@@ -1441,27 +1404,85 @@ export default function Rewards() {
               )}
             </div>
 
-            {/* AreaChart: Wide width, height matching Image 2, smooth stroke, heavier fill, faded edges */}
-            <div className="w-full flex-1 flex flex-col justify-center min-h-[195px] h-[195px] max-h-[210px]">
-              <AreaChart
-                ariaLabel="Area Chart - Fill"
-                aspectRatio="auto"
-                className="w-full h-full min-h-[195px] max-h-[210px]"
-                data={activeDataset.points}
-              >
-                <Grid horizontal />
-                <Area
-                  dataKey="score"
-                  fadeEdges
-                  fillOpacity={0.55}
-                  gradientToOpacity={0.04}
-                  label="Discipline"
-                  showLine={false}
-                  strokeColor="#006DFE"
-                />
-                <XAxis />
-                <ChartTooltip />
-              </AreaChart>
+            {/* Recharts AreaChart: Exact match to Dashboard PerformanceChart */}
+            <div className="w-full flex-1 flex flex-col justify-center min-h-[220px] h-[220px] select-none outline-none focus:outline-none">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={rechartsData}
+                  margin={{ top: 10, right: 10, left: -16, bottom: 0 }}
+                  accessibilityLayer={false}
+                >
+                  <defs>
+                    <linearGradient id="tfDisciplineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#006DFE" stopOpacity={0.25} />
+                      <stop offset="85%" stopColor="#006DFE" stopOpacity={0.03} />
+                      <stop offset="100%" stopColor="#006DFE" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+
+                  <CartesianGrid
+                    vertical={false}
+                    stroke={isDark ? "rgba(255,255,255,0.06)" : "rgba(15,23,42,0.06)"}
+                  />
+
+                  <XAxis
+                    dataKey="label"
+                    axisLine={false}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                    minTickGap={35}
+                    tick={{
+                      fill: isDark ? "#71717A" : "#94A3B8",
+                      fontSize: 11,
+                      fontWeight: 500,
+                    }}
+                    dy={8}
+                  />
+
+                  <YAxis
+                    domain={[75, 100]}
+                    ticks={[75, 80, 85, 90, 95, 100]}
+                    axisLine={false}
+                    tickLine={false}
+                    width={42}
+                    tick={{
+                      fill: isDark ? "#71717A" : "#94A3B8",
+                      fontSize: 11,
+                      fontWeight: 500,
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+                    }}
+                    tickFormatter={(val) => `${val}%`}
+                  />
+
+                  <Tooltip
+                    content={<DisciplineChartTooltip />}
+                    cursor={{
+                      stroke: isDark ? "rgba(255,255,255,0.18)" : "rgba(15,23,42,0.18)",
+                      strokeWidth: 1,
+                      strokeDasharray: "3 3",
+                    }}
+                  />
+
+                  <Area
+                    type="monotone"
+                    dataKey="score"
+                    stroke="#006DFE"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#tfDisciplineGrad)"
+                    dot={false}
+                    activeDot={{
+                      r: 4,
+                      strokeWidth: 2,
+                      stroke: isDark ? "#17171A" : "#FFFFFF",
+                      fill: "#006DFE",
+                    }}
+                    isAnimationActive={true}
+                    animationDuration={850}
+                    animationEasing="ease-out"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
 
             {/* Bottom Summary Footer */}
