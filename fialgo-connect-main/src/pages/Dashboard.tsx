@@ -33,6 +33,7 @@ import PreMarketPlanModal, {
   DailyPreMarketPlan,
 } from "@/components/dashboard/PreMarketPlanModal";
 import LogTradeModal from "@/components/dashboard/LogTradeModal";
+import ConnectBrokerTopDrawer from "@/components/dashboard/ConnectBrokerTopDrawer";
 import JournalCharts from "@/components/journal/JournalCharts";
 import { ChartRadarDefault } from "@/components/journal/ChartRadarDefault";
 import { JournalSettingsProvider } from "@/contexts/JournalSettingsContext";
@@ -203,6 +204,7 @@ const Dashboard = () => {
     }
   });
   const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+  const [isConnectBrokerDrawerOpen, setIsConnectBrokerDrawerOpen] = useState(false);
   const [todayPlan, setTodayPlan] = useState<DailyPreMarketPlan | null>(() =>
     loadTodayPlan()
   );
@@ -549,16 +551,14 @@ const Dashboard = () => {
                       >
                         Import
                       </motion.button>
-                      {!isConnected && (
-                        <motion.button
-                          whileTap={{ scale: 0.96 }}
-                          type="button"
-                          onClick={() => navigate("/settings?tab=trading")}
-                          className="tactile-black-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap"
-                        >
-                          Connect
-                        </motion.button>
-                      )}
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        type="button"
+                        onClick={() => setIsConnectBrokerDrawerOpen(true)}
+                        className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap hover:border-blue-400 dark:hover:border-blue-500/40"
+                      >
+                        Connect broker
+                      </motion.button>
                     </div>
                   </div>
                 )}
@@ -690,16 +690,14 @@ const Dashboard = () => {
                     >
                       Import
                     </motion.button>
-                    {!isConnected && (
-                      <motion.button
-                        whileTap={{ scale: 0.96 }}
-                        type="button"
-                        onClick={() => navigate("/settings?tab=trading")}
-                        className="tactile-black-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer"
-                      >
-                        Connect
-                      </motion.button>
-                    )}
+                    <motion.button
+                      whileTap={{ scale: 0.96 }}
+                      type="button"
+                      onClick={() => setIsConnectBrokerDrawerOpen(true)}
+                      className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer hover:border-blue-400"
+                    >
+                      Connect broker
+                    </motion.button>
                   </div>
                 </div>
               )}
@@ -1322,6 +1320,15 @@ const Dashboard = () => {
               win_rate: `${metrics.winRatePct.toFixed(1)}%`,
               level: effectiveLevel,
             }}
+          />
+
+          <ConnectBrokerTopDrawer
+            isOpen={isConnectBrokerDrawerOpen}
+            onClose={() => setIsConnectBrokerDrawerOpen(false)}
+            isConnected={isConnected}
+            currentBroker={effectiveBroker || "MT5 Server"}
+            currentEquity={effectiveEquity}
+            onConnected={() => refetch()}
           />
         </div>
       )}

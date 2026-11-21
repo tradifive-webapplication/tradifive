@@ -683,31 +683,33 @@ export default function Rewards() {
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            4. WORKSPACE BENTO: TABS & ACTION MODULES
+            4. WORKSPACE BENTO: TABS & ACTION MODULES (Centered Compact Pill matching Design)
         ══════════════════════════════════════════════════════════ */}
-        <div className="flex items-center gap-1 p-0.5 rounded-[12px] bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.05] overflow-x-auto scrollbar-none">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`relative px-3 py-1.5 rounded-[9px] text-[11px] sm:text-[11.5px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === tab.id
-                  ? "text-slate-900 dark:text-white shadow-xs"
-                  : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-              }`}
-            >
-              {activeTab === tab.id && (
-                <motion.span
-                  layoutId="rewards-tab-indicator"
-                  transition={{ type: "spring", stiffness: 480, damping: 36 }}
-                  className="absolute inset-0 bg-white dark:bg-[#1A1A1E] rounded-[9px] shadow-xs"
-                />
-              )}
-              <span className="relative z-10 text-[12px]">{tab.emoji}</span>
-              <span className="relative z-10">{tab.label}</span>
-            </button>
-          ))}
+        <div className="flex justify-center w-full my-2">
+          <div className="inline-flex items-center gap-1 p-1 rounded-[14px] bg-[#EEF2F6] dark:bg-[#1E1E22] border border-slate-200/70 dark:border-white/[0.07] shadow-xs overflow-x-auto scrollbar-none">
+            {TABS.map(tab => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`relative px-3.5 py-1.5 rounded-[10px] text-[11px] sm:text-[11.5px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === tab.id
+                    ? "text-slate-900 dark:text-white"
+                    : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                }`}
+              >
+                {activeTab === tab.id && (
+                  <motion.span
+                    layoutId="rewards-tab-indicator"
+                    transition={{ type: "spring", stiffness: 480, damping: 36 }}
+                    className="absolute inset-0 bg-white dark:bg-[#121214] rounded-[10px] shadow-[0_1px_3px_rgba(15,23,42,0.08),0_1px_2px_rgba(15,23,42,0.04)]"
+                  />
+                )}
+                <span className="relative z-10 text-[12px]">{tab.emoji}</span>
+                <span className="relative z-10">{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════
