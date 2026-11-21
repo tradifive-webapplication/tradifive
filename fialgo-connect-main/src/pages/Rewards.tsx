@@ -719,30 +719,35 @@ export default function Rewards() {
             Left (5 cols): Forex Discipline Rating Semi-Circular Notch Gauge
             Right (7 cols): Discipline Curve AreaChart with heavier fill, no top line, faded edges
         ========================================================================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-5 sm:mb-6">
+        {/* =========================================================================
+            OPEN 2-GRAPH ANALYTICS BAND (UNBOXED - EXACT MATCH TO DASHBOARD IMAGE 2)
+            Left (1 of 2): Forex Discipline Rating Semicircular Notch Gauge
+            Right (2 of 2): Discipline Curve AreaChart (Balanced Width, Fits Cleanly)
+        ========================================================================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-5 pb-2 border-t border-slate-200/75 dark:border-white/[0.08] items-stretch mb-5 sm:mb-6">
           
-          {/* ── LEFT (5 COLS): FOREX DISCIPLINE RATING GAUGE ── */}
-          <div className={`lg:col-span-5 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3 select-none`}>
-            
+          {/* ── LEFT (1 OF 2): FOREX DISCIPLINE RATING (OPEN / NO BOX) ── */}
+          <div className="flex flex-col justify-between h-full px-0.5 pt-0.5 pb-1 select-none">
             {/* Header */}
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="flex items-start justify-between gap-2 pb-2 min-h-[42px]">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
-                  Forex Discipline Rating
+                <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight flex items-center gap-1.5">
+                  <ShieldCheck size={14} className="text-[#006DFE] shrink-0" />
+                  <span>Forex Discipline Rating</span>
                 </h3>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium">
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1">
                   Real-time MT5 compliance
                 </p>
               </div>
 
-              <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 shrink-0">
                 ● GRADE A+
               </span>
             </div>
 
             {/* Semicircle Gauge with Rounded Notches Shaded from First Colour to Last */}
-            <div className="relative flex flex-col items-center justify-center py-2">
-              <div className="mx-auto w-full max-w-sm">
+            <div className="relative flex flex-col items-center justify-center py-2 flex-1">
+              <div className="mx-auto w-full max-w-[320px]">
                 <Gauge
                   ariaLabel="Gauge - Semicircle"
                   centerValue={`${clampedScore}%`}
@@ -763,7 +768,7 @@ export default function Rewards() {
             </div>
 
             {/* Bottom Verification Footer */}
-            <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
               <span className="inline-flex items-center gap-1">
                 <ShieldCheck size={13} />
                 <span>Stop Loss: 100% Verified</span>
@@ -772,29 +777,28 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* ── RIGHT (7 COLS): DISCIPLINE CURVE AREA CHART (FADED EDGES, NO TOP LINE, HEAVIER FILL) ── */}
-          <div className={`lg:col-span-7 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3 select-none`}>
-            
+          {/* ── RIGHT (2 OF 2): DISCIPLINE CURVE AREA CHART (OPEN / NO BOX, PROPER WIDTH) ── */}
+          <div className="flex flex-col justify-between h-full pt-5 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-200/75 dark:border-white/[0.08] lg:pl-8 select-none">
             {/* Header & Timeframe Switcher */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-slate-100 dark:border-white/[0.06] gap-2">
+            <div className="flex items-start justify-between gap-2 pb-2 min-h-[42px]">
               <div>
-                <div className="flex items-center gap-1.5 text-sm font-bold text-slate-900 dark:text-white tracking-tight">
-                  <TrendingUp size={15} className="text-[#006DFE]" />
+                <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight flex items-center gap-1.5">
+                  <TrendingUp size={14} className="text-[#006DFE] shrink-0" />
                   <span>Discipline Curve</span>
-                </div>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium">
+                </h3>
+                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1">
                   Closed trade equity curve
                 </p>
               </div>
 
               {/* Dashboard-Style Range Switcher */}
-              <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07] self-start sm:self-auto">
+              <div className="inline-flex items-center p-0.5 rounded-[10px] bg-slate-200/70 dark:bg-white/[0.07] shrink-0">
                 {(["7D", "14D", "All"] as const).map((range) => (
                   <button
                     key={range}
                     type="button"
                     onClick={() => setActiveRange(range)}
-                    className={`px-3 py-1 text-xs font-bold rounded-[8px] transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 text-[11px] font-bold rounded-[8px] transition-all cursor-pointer ${
                       activeRange === range
                         ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
                         : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
@@ -807,21 +811,21 @@ export default function Rewards() {
             </div>
 
             {/* Headline Metric Row */}
-            <div className="flex items-baseline gap-3 my-0.5">
-              <span className="text-3xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
+            <div className="flex items-baseline gap-2.5 my-1">
+              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
                 {activeDataset.headline}
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
-                <TrendingUp size={12} />
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                <TrendingUp size={11} />
                 <span>{activeDataset.delta}</span>
               </span>
             </div>
 
-            {/* AreaChart: Heavier fill, no top line, gradient stopping short of transparent, edges faded out */}
-            <div className="w-full">
+            {/* AreaChart: Proper width, no line, heavier fill, faded edges */}
+            <div className="w-full flex-1 flex flex-col justify-center min-h-[200px] h-[200px]">
               <AreaChart
                 ariaLabel="Area Chart - Fill"
-                aspectRatio="5 / 2"
+                aspectRatio="16 / 9"
                 data={activeDataset.points}
               >
                 <Grid horizontal />
@@ -839,7 +843,7 @@ export default function Rewards() {
             </div>
 
             {/* Bottom Summary Footer */}
-            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-mono text-slate-400 dark:text-neutral-500">
+            <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[11px] font-mono text-slate-400 dark:text-neutral-500">
               <span>{activeDataset.sessions}</span>
               <span className="font-bold text-[#006DFE] dark:text-blue-400">
                 {activeDataset.scoreLabel}
