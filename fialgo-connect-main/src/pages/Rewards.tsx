@@ -391,13 +391,13 @@ export default function Rewards() {
 
   const handleRedeemCoins = (title: string, cost: number, action: () => void) => {
     if (gamState.bounty_balance < cost) {
-      toast.error("Insufficient TradiCoins!", { description: `You need ${cost} coins.` });
+      toast.error("Insufficient points!", { description: `You need ${cost} points.` });
       return;
     }
     const updated = {
       ...gamState,
       bounty_balance: gamState.bounty_balance - cost,
-      ledger: [{ event: `Redeemed: ${title}`, date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }), mult: "Perk", xp: `-${cost} Coins` }, ...gamState.ledger],
+      ledger: [{ event: `Redeemed: ${title}`, date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }), mult: "Perk", xp: `-${cost} Points` }, ...gamState.ledger],
     };
     saveGamificationState(updated);
     setGamState(updated);
@@ -523,8 +523,8 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* RIGHT: 3 Small Telemetry Boxes (Matching Dashboard) */}
-          <div className="lg:col-span-6 grid grid-cols-3 gap-2 sm:gap-2.5">
+          {/* RIGHT: 2 Telemetry Boxes (Matching Dashboard) */}
+          <div className="lg:col-span-6 grid grid-cols-2 gap-2 sm:gap-2.5">
             {/* Box 1: Trading Streak */}
             <div className="px-2.5 py-2 sm:px-3 sm:py-2.5 text-center bg-white dark:bg-[#17171A] rounded-[16px] border border-slate-200/70 dark:border-white/[0.07] shadow-xs flex flex-col items-center justify-center">
               <div className="flex items-center justify-center gap-1 text-[10px] sm:text-[10.5px] font-medium text-slate-400 dark:text-neutral-500">
@@ -552,35 +552,17 @@ export default function Rewards() {
                 {userXpRequired - userXp} XP to Lv {userLevel + 1}
               </span>
             </div>
-
-            {/* Box 3: TradiCoins */}
-            <div className="px-2.5 py-2 sm:px-3 sm:py-2.5 text-center bg-white dark:bg-[#17171A] rounded-[16px] border border-slate-200/70 dark:border-white/[0.07] shadow-xs flex flex-col items-center justify-center">
-              <div className="flex items-center justify-center gap-1 text-[10px] sm:text-[10.5px] font-medium text-slate-400 dark:text-neutral-500">
-                <span>TradiCoins</span>
-                <Coins size={11.5} className="text-amber-500" />
-              </div>
-              <p className="mt-0.5 text-[14px] sm:text-[16px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight flex items-center justify-center gap-1">
-                {(gamState.bounty_balance || 150).toLocaleString()} <span className="text-[12px]">🪙</span>
-              </p>
-              <button
-                type="button"
-                onClick={() => setActiveTab("vault")}
-                className="mt-0.5 text-[9px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
-              >
-                Redeem →
-              </button>
-            </div>
           </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            3. MIDDLE ROW: 2 Sleek Analytics Visualizations (Open on Backside Page, Matching Journal App)
+            3. MIDDLE ROW: 2 Sleek Analytics Visualizations (Symmetric 50/50, Matching Journal App)
                Left: Forex Discipline Rating (Arc Gauge)
                Right: Discipline Curve (Area Chart)
         ══════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch pt-0.5 pb-0.5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 items-stretch pt-0.5 pb-0.5">
           {/* Item 1: Forex Discipline Rating (Open on page background, NO BOX) */}
-          <div className="lg:col-span-5 flex flex-col justify-between gap-2 p-1">
+          <div className="flex flex-col justify-between gap-2 p-1">
             <div className="flex items-start justify-between">
               <div>
                 <h3 className="text-[13px] sm:text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight">
@@ -609,8 +591,8 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* Item 2: Discipline Curve (Open on page background, NO BOX) */}
-          <div className="lg:col-span-7 flex flex-col justify-between gap-2 p-1">
+          {/* Item 2: Discipline Curve (Symmetric 50% width, NO BOX) */}
+          <div className="flex flex-col justify-between gap-2 p-1">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h3 className="text-[13px] sm:text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
@@ -1066,13 +1048,13 @@ export default function Rewards() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Forex Rewards &amp; Benefit Vault</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Exchange TradiCoins for AI coaching, EA licenses &amp; discounts.</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Exchange reward points for AI coaching, EA licenses &amp; discounts.</p>
                 </div>
                 <div className={`${INNER_BOX} flex items-center gap-2 px-3 py-1.5 self-start`}>
-                  <span className="text-base">🪙</span>
+                  <span className="text-base">🏆</span>
                   <div>
                     <div className="text-[9.5px] font-semibold text-slate-400 uppercase">Balance</div>
-                    <div className="text-[13.5px] font-black text-slate-900 dark:text-white">{gamState.bounty_balance.toLocaleString()} Coins</div>
+                    <div className="text-[13.5px] font-black text-slate-900 dark:text-white">{gamState.bounty_balance.toLocaleString()} Pts</div>
                   </div>
                 </div>
               </div>
