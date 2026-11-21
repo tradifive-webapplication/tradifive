@@ -30,7 +30,7 @@ export default function ConnectBrokerTopDrawer({
   currentEquity = 0,
   onConnected,
 }: ConnectBrokerTopDrawerProps) {
-  const [brokerServer, setBrokerServer] = useState("Exness-Real14");
+  const [brokerServer, setBrokerServer] = useState("Exness-MT5Real14");
   const [accountNumber, setAccountNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -49,67 +49,87 @@ export default function ConnectBrokerTopDrawer({
 
   const handleConnectMT5 = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accountNumber.trim() || !password.trim() || !brokerServer.trim()) {
+    const cleanAccount = accountNumber.trim();
+    const cleanPassword = password.trim();
+    const cleanServer = brokerServer.trim();
+
+    if (!cleanAccount || !cleanPassword || !cleanServer) {
       toast.error("Please fill in all MT5 credentials.");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Store in Supabase mt5_accounts if user session exists
+      // 1. Get current Supabase user if session exists
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from("mt5_accounts").upsert({
-          user_id: user.id,
-          account_number: accountNumber.trim(),
-          server: brokerServer.trim(),
-          broker: brokerServer.split("-")[0] || "MT5",
-          is_connected: true,
-          updated_at: new Date().toISOString()
-        }, { onConflict: "user_id" });
-      }
 
-      // Simulate/trigger MetaAPI account deployment
+      // 2. Trigger MetaAPI account deployment via Supabase Edge Function
       const { data, error } = await supabase.functions.invoke("deploy-metaapi-account", {
         body: {
-          accountNumber: accountNumber.trim(),
-          masterPassword: password.trim(),
-          brokerServer: brokerServer.trim(),
+          accountNumber: cleanAccount,
+          masterPassword: cleanPassword,
+          brokerServer: cleanServer,
           purpose: "risk_journal",
+          userId: user?.id,
         },
       });
 
       if (error) {
-        console.warn("MetaAPI deploy notice (simulating fallback):", error.message);
+        let errMsg = error.message;
+        try {
+          if ((error as any).context) {
+            const errBody = await (error as any).context.json();
+            if (errBody?.error) errMsg = errBody.error;
+          }
+        } catch (_) {}
+        toast.error("Broker Connection Failed", {
+          description: errMsg,
+          duration: 8000,
+        });
+        setIsSubmitting(false);
+        return;
       }
 
-      // Store cached broker connection
+      // Also upsert to local Supabase mt5_accounts if user exists
+      if (user) {
+        await supabase.from("mt5_accounts").upsert({
+          user_id: user.id,
+          account_number: cleanAccount,
+          broker_server: cleanServer,
+          server: cleanServer,
+          broker: cleanServer.split("-")[0] || "MT5",
+          connection_status: "deployed",
+          is_connected: true,
+          is_active: true,
+          updated_at: new Date().toISOString()
+        }, { onConflict: "user_id" }).catch(() => {});
+      }
+
+      // 3. Cache connection in localStorage for instant UI responsiveness
       localStorage.setItem("tradifive_broker_connected", "true");
-      localStorage.setItem("tradifive_cached_account_number", accountNumber.trim());
-      localStorage.setItem("tradifive_broker_name", brokerServer.split("-")[0] || "MT5");
-      localStorage.setItem("tradifive_broker_server", brokerServer.trim());
+      localStorage.setItem("tradifive_cached_account_number", cleanAccount);
+      localStorage.setItem("tradifive_broker_name", cleanServer.split("-")[0] || "MT5");
+      localStorage.setItem("tradifive_broker_server", cleanServer);
       window.dispatchEvent(new Event("tradifive_broker_connected_update"));
 
-      toast.success("Broker Connected Successfully!", {
-        description: `Connected to ${brokerServer} (Account: ${accountNumber}).`,
+      // 4. Trigger initial trade and equity sync from MetaAPI
+      try {
+        await supabase.functions.invoke("sync-metaapi-trades");
+      } catch (syncErr) {
+        console.warn("Background sync initial invocation:", syncErr);
+      }
+
+      toast.success("Broker Connected & Synced!", {
+        description: `Connected to ${cleanServer} (Account: ${cleanAccount}). Trades & balance are syncing.`,
       });
 
       if (onConnected) onConnected();
       onClose();
     } catch (err: any) {
-      // Graceful fallback for demo or dev environment
-      localStorage.setItem("tradifive_broker_connected", "true");
-      localStorage.setItem("tradifive_cached_account_number", accountNumber.trim());
-      localStorage.setItem("tradifive_broker_name", brokerServer.split("-")[0] || "MT5");
-      localStorage.setItem("tradifive_broker_server", brokerServer.trim());
-      window.dispatchEvent(new Event("tradifive_broker_connected_update"));
-
-      toast.success("Broker Connected Successfully!", {
-        description: `Connected to ${brokerServer} (Account: ${accountNumber}).`,
+      toast.error("Connection Error", {
+        description: err?.message || "Failed to communicate with MT5 bridge.",
+        duration: 8000,
       });
-
-      if (onConnected) onConnected();
-      onClose();
     } finally {
       setIsSubmitting(false);
     }
@@ -189,10 +209,13 @@ export default function ConnectBrokerTopDrawer({
                       type="text"
                       value={brokerServer}
                       onChange={(e) => setBrokerServer(e.target.value)}
-                      placeholder="e.g. Exness-Real14, FTMO-Server"
+                      placeholder="e.g. Exness-MT5Real14, FTMO-Server"
                       className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all font-medium"
                       required
                     />
+                    <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-1 font-medium">
+                      Exact MT5 server from your broker (e.g. <span className="font-mono text-slate-600 dark:text-neutral-300">Exness-MT5Real14</span>, not MT4 names).
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

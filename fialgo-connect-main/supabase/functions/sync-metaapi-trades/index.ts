@@ -26,7 +26,6 @@ serve(async (req) => {
       .from('mt5_accounts')
       .select('*')
       .eq('connection_status', 'deployed')
-      .eq('is_active', true)
 
     if (accError) throw accError
     if (!accounts || accounts.length === 0) {

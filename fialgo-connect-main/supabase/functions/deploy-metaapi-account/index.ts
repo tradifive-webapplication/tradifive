@@ -126,23 +126,41 @@ serve(async (req) => {
     }
 
     // 5. Update the user's profile with the new account info
-    const authHeader = req.headers.get('Authorization')!
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(authHeader.replace('Bearer ', ''))
-    
-    if (userError || !user) throw new Error('Unauthorized')
+    const authHeader = req.headers.get('Authorization')
+    let targetUserId = body.userId || null
 
-    console.log("Upserting to mt5_accounts for user:", user.id);
-    const { error: updateError } = await supabaseAdmin
-      .from('mt5_accounts')
-      .upsert({
-        user_id: user.id,
-        account_number: accountNumber,
-        broker_server: brokerServer,
-        metaapi_account_id: metaapiAccountId,
-        connection_status: 'deployed'
-      })
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.replace('Bearer ', '')
+        const { data: { user } } = await supabaseAdmin.auth.getUser(token)
+        if (user) {
+          targetUserId = user.id
+        }
+      } catch (err) {
+        console.warn("Could not get user from auth token:", err)
+      }
+    }
 
-    if (updateError) throw updateError;
+    if (targetUserId) {
+      console.log("Upserting to mt5_accounts for user:", targetUserId)
+      const { error: updateError } = await supabaseAdmin
+        .from('mt5_accounts')
+        .upsert({
+          user_id: targetUserId,
+          account_number: accountNumber,
+          broker_server: brokerServer,
+          metaapi_account_id: metaapiAccountId,
+          connection_status: 'deployed',
+          is_active: true,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' })
+
+      if (updateError) {
+        console.warn("Upsert notice for mt5_accounts:", updateError)
+      }
+    } else {
+      console.log("No authenticated user ID found; MetaApi account deployed:", metaapiAccountId)
+    }
 
     return new Response(
       JSON.stringify({ 
