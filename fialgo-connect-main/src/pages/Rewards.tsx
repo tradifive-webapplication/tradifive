@@ -161,7 +161,7 @@ export default function Rewards() {
   ------------------------------------------------------------------------- */
   const [activeTab, setActiveTab] = useState<"discipline" | "streak" | "badges" | "vault">("discipline");
   const [activeRange, setActiveRange] = useState<"7D" | "14D" | "All">("14D");
-  const [xp, setXp] = useState(850);
+  const [xp, setXp] = useState(1030);
   const [score, setScore] = useState(97);
   const [displayScore, setDisplayScore] = useState(97);
   const [streakDays, setStreakDays] = useState(18);
@@ -323,7 +323,7 @@ export default function Rewards() {
       setLiveStopLossPercent(slPct);
     }
     if (dailyXpEarned) {
-      setXp(850 + dailyXpEarned);
+      setXp(1030 + dailyXpEarned);
     }
   }, [tradesToday, avgDisciplineScore, breachLogs, recentTrades, dailyXpEarned]);
 
@@ -1423,11 +1423,11 @@ export default function Rewards() {
                   Level 1
                 </div>
                 <div className="text-xs font-semibold text-slate-500 dark:text-neutral-400 tabular-nums">
-                  {xp} / 1,000 XP
+                  {xp.toLocaleString()} / {(xp >= 1000 ? 2000 : 1000).toLocaleString()} XP
                 </div>
               </div>
               <div className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
-                {1000 - xp} XP to Lv 2
+                {Math.max(0, (xp >= 1000 ? 2000 : 1000) - xp)} XP to Lv 2
               </div>
             </div>
 
@@ -1435,7 +1435,7 @@ export default function Rewards() {
             <div className="relative w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden bar-shimmer">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#006DFE] via-indigo-500 to-purple-500 transition-all duration-500"
-                style={{ width: `${(xp / 1000) * 100}%` }}
+                style={{ width: `${Math.min(100, (xp / (xp >= 1000 ? 2000 : 1000)) * 100)}%` }}
               />
             </div>
           </div>
@@ -2628,8 +2628,8 @@ export default function Rewards() {
               </div>
             </div>
 
-            {/* 3 Vault Perk Cards (Tactile Cards matching Badges & Streaks) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {/* 3 Vault Perk Cards (Tactile Cards matching Dashboard & Journal) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {vaultRewards.map((reward) => {
                 const isClaimed = redeemedRewards.has(reward.id);
                 const canAfford = xp >= reward.cost;
@@ -2637,75 +2637,71 @@ export default function Rewards() {
                 return (
                   <div
                     key={reward.id}
-                    className={`p-4 rounded-xl border text-left flex flex-col justify-between gap-3.5 transition-all group ${
+                    className={`p-4 sm:p-5 rounded-2xl border text-left flex flex-col justify-between gap-4 transition-all group ${
                       isClaimed
                         ? "bg-emerald-50/20 dark:bg-emerald-500/5 border-emerald-200/70 dark:border-emerald-500/20 shadow-2xs"
-                        : "bg-white dark:bg-[#17171A] hover:bg-slate-50/80 dark:hover:bg-white/[0.03] border-slate-200/80 dark:border-white/[0.08] hover:border-[#006DFE]/40 shadow-2xs"
+                        : "bg-white dark:bg-[#17171A] hover:bg-slate-50/80 dark:hover:bg-white/[0.03] border-slate-200/80 dark:border-white/[0.08] hover:border-[#006DFE]/40 shadow-[0_2px_10px_rgba(15,23,42,0.03),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none"
                     }`}
                   >
-                    {/* Top Row: Icon + Category + Cost Pill */}
+                    {/* Top Row: Icon + Category Tag + Cost */}
                     <div className="flex items-center justify-between gap-2 w-full">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${reward.accentBg} ${reward.accentBorder}`}>
                           {reward.icon}
                         </div>
                         <div className="min-w-0">
-                          <span className="text-[9.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 truncate block">
-                            {reward.categoryLabel}
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider ${reward.accentBg} ${reward.accentText} border ${reward.accentBorder}`}>
+                            {reward.tag}
                           </span>
-                          <h4 className="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-white truncate group-hover:text-[#006DFE] transition-colors leading-tight mt-0.5">
-                            {reward.title}
-                          </h4>
                         </div>
                       </div>
 
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[10.5px] font-mono font-bold shrink-0 tabular-nums ${
-                          isClaimed
-                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-500/20"
-                            : "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/70 dark:border-purple-500/20"
-                        }`}
-                      >
+                      <span className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 tabular-nums px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 border border-slate-200/70 dark:border-white/10">
                         {reward.cost} XP
                       </span>
                     </div>
 
-                    {/* Middle: Description */}
-                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed font-medium">
-                      {reward.desc}
-                    </p>
+                    {/* Middle: Title & Description */}
+                    <div>
+                      <h4 className="text-[14.5px] sm:text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-snug group-hover:text-[#006DFE] transition-colors">
+                        {reward.title}
+                      </h4>
+                      <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed font-medium mt-1">
+                        {reward.desc}
+                      </p>
+                    </div>
 
                     {/* Bottom: Action Button & Verification Note */}
                     <div className="pt-2 border-t border-slate-100 dark:border-white/[0.05] w-full space-y-2">
                       <button
                         type="button"
                         onClick={() => handleRedeemReward(reward)}
-                        className={`w-full py-2 px-3 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-98 ${
+                        className={`w-full h-10 px-4 rounded-xl text-xs sm:text-[12.5px] font-bold tracking-tight transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] ${
                           isClaimed
                             ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-500/25 hover:bg-emerald-100/50"
                             : canAfford
-                            ? "bg-[#006DFE] hover:bg-blue-600 text-white shadow-xs"
+                            ? "bg-[#006DFE] hover:bg-blue-600 text-white shadow-[0_2px_8px_rgba(0,109,254,0.3)] hover:shadow-[0_4px_12px_rgba(0,109,254,0.4)]"
                             : "bg-slate-100 dark:bg-white/[0.04] text-slate-400 dark:text-neutral-500 border border-slate-200/60 dark:border-white/[0.05] cursor-not-allowed"
                         }`}
                       >
                         {isClaimed ? (
                           <>
-                            <CheckCircle2 size={12} className="text-emerald-500" />
-                            <span>Voucher Active · Click to View Code</span>
+                            <CheckCircle2 size={13} className="text-emerald-500" />
+                            <span>✓ Voucher Claimed · View Code</span>
                           </>
                         ) : canAfford ? (
                           <>
-                            <Sparkles size={12} />
-                            <span>Redeem Perk for {reward.cost} XP</span>
+                            <Sparkles size={13} />
+                            <span>Redeem for {reward.cost} XP</span>
                           </>
                         ) : (
                           <span>Insufficient XP ({reward.cost - xp} Needed)</span>
                         )}
                       </button>
 
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500 px-0.5">
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-neutral-500 px-0.5 font-medium">
                         <span className="truncate">{reward.terms.split(".")[0]}.</span>
-                        <span className="font-mono text-slate-500 shrink-0">{reward.tag}</span>
+                        <span className="font-mono text-slate-500 dark:text-neutral-400 shrink-0">{reward.categoryLabel}</span>
                       </div>
                     </div>
                   </div>
