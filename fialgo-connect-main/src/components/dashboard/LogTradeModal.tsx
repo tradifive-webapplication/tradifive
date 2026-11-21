@@ -6,18 +6,13 @@ import {
   PlusCircle,
   FileSpreadsheet,
   Check,
-  TrendingUp,
-  TrendingDown,
   RefreshCw,
   Calendar,
   Clock,
   Image as ImageIcon,
-  Link2,
-  Trash2,
   ShieldCheck,
-  Sparkles,
-  ArrowUpRight,
-  ArrowDownRight,
+  Tag,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -39,6 +34,9 @@ type TradeTypeCategory = "Day Trade" | "Scalp" | "Swing" | "Position";
 type SessionType = "Asia" | "London" | "NY AM" | "NY PM" | "No session";
 type GradeType = "A+" | "A" | "B" | "C" | "F";
 
+const POPULAR_SETUPS = ["Liquidity Sweep", "Order Block", "FVG", "Breakout", "Break & Retest", "BOS / CHoCH"];
+const POPULAR_MISTAKES = ["FOMO", "Chased Entry", "Revenge Trade", "Moved Stop Loss", "Overleveraged", "Early Exit"];
+
 export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   isOpen,
   open,
@@ -49,9 +47,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   onSaved,
 }) => {
   const isModalOpen = isOpen ?? open ?? false;
-
-  // Main Drawer Tab: Manual vs CSV Import
-  const [activeMainTab, setActiveMainTab] = useState<"manual" | "import">(initialTab);
+  const isImportMode = initialTab === "import";
 
   // Manual Sub-mode: Basic | Advanced | No Trade Day
   const [modeTab, setModeTab] = useState<ModeTab>("basic");
@@ -67,7 +63,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
 
   // Session
   const [entryTime, setEntryTime] = useState("");
-  const [session, setSession] = useState<SessionType>("NY AM");
+  const [session, setSession] = useState<SessionType>("No session");
 
   // Plan & Account
   const [followedPlan, setFollowedPlan] = useState<"yes" | "no">("yes");
@@ -81,6 +77,12 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   const [lotSize, setLotSize] = useState("1");
   const [plannedRr, setPlannedRr] = useState("");
   const [realizedRr, setRealizedRr] = useState("");
+
+  // Advanced-only fields
+  const [stopLoss, setStopLoss] = useState("");
+  const [takeProfit, setTakeProfit] = useState("");
+  const [selectedSetups, setSelectedSetups] = useState<string[]>([]);
+  const [selectedMistakes, setSelectedMistakes] = useState<string[]>([]);
 
   // Performance & Grade
   const [grade, setGrade] = useState<GradeType>("A");
@@ -101,11 +103,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
 
   const [saving, setSaving] = useState(false);
 
-  // Synchronize initialTab when opening
+  // Fetch accounts on open
   useEffect(() => {
     if (isModalOpen) {
-      setActiveMainTab(initialTab);
-      // Fetch user's connected MT5 accounts if available
       (async () => {
         try {
           const { data: { session: sess } } = await supabase.auth.getSession();
@@ -123,7 +123,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
         } catch (_) {}
       })();
     }
-  }, [isModalOpen, initialTab]);
+  }, [isModalOpen]);
 
   // Close on Escape key
   useEffect(() => {
@@ -136,9 +136,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen, onClose]);
 
-  // Handle global paste for images
+  // Global paste handler for images
   useEffect(() => {
-    if (!isModalOpen || activeMainTab !== "manual") return;
+    if (!isModalOpen || isImportMode) return;
 
     const handlePaste = (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -163,7 +163,19 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
 
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
-  }, [isModalOpen, activeMainTab]);
+  }, [isModalOpen, isImportMode]);
+
+  // Auto calculate P&L when prices and lot change (if user hasn't typed a custom P&L)
+  const handleAutoCalcPnl = (entryStr: string, exitStr: string, sizeStr: string, dir: DirectionType) => {
+    const en = parseFloat(entryStr);
+    const ex = parseFloat(exitStr);
+    const sz = parseFloat(sizeStr) || 1;
+    if (!isNaN(en) && !isNaN(ex) && en > 0 && ex > 0) {
+      const diff = dir === "BUY" ? ex - en : en - ex;
+      const calcPnl = diff * sz;
+      setProfit(calcPnl >= 0 ? `+${calcPnl.toFixed(2)}` : calcPnl.toFixed(2));
+    }
+  };
 
   const notifyComplete = () => {
     if (onSuccess) onSuccess();
@@ -203,7 +215,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   // Manual Submit
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const pnlNum = parseFloat(profit);
+    const pnlNum = parseFloat(profit.replace(/[+$,₹\s]/g, ""));
 
     if (modeTab !== "no_trade_day" && (!symbol.trim() || isNaN(pnlNum))) {
       toast.error("Please enter a valid Symbol and P&L amount.");
@@ -226,24 +238,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
         : openedIso;
 
       const lotNum = parseFloat(lotSize) || 1;
-      const parsedEntry = parseFloat(entryPrice);
-      const parsedExit = parseFloat(exitPrice);
       const rrNum = parseFloat(realizedRr || plannedRr);
-
-      // Structure metadata so rich journal fields persist
-      const meta = {
-        assetClass,
-        tradeCategory,
-        session,
-        followedPlan: followedPlan === "yes",
-        account: selectedAccount,
-        entryPrice: !isNaN(parsedEntry) ? parsedEntry : null,
-        exitPrice: !isNaN(parsedExit) ? parsedExit : null,
-        plannedRr: parseFloat(plannedRr) || null,
-        realizedRr: parseFloat(realizedRr) || null,
-        grade,
-        picturesCount: pictures.length,
-      };
 
       if (modeTab === "no_trade_day") {
         // Record a disciplined No Trade Day
@@ -267,10 +262,17 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
         if (error) throw error;
         toast.success("Disciplined No Trade Day recorded! Streak protected.");
       } else {
-        // Standard or Advanced Trade Insert
+        // Structured trade insert
+        const setupString = [
+          session !== "No session" ? session : "",
+          tradeCategory,
+          ...selectedSetups,
+        ].filter(Boolean).join(" · ");
+
         const fullNotes = [
           notes.trim(),
           `[Grade: ${grade}] [Session: ${session}] [Plan: ${followedPlan.toUpperCase()}]`,
+          selectedMistakes.length > 0 ? `[Mistakes: ${selectedMistakes.join(", ")}]` : "",
           pictures.length > 0 ? `[Screenshots: ${pictures.length} attached]` : "",
         ]
           .filter(Boolean)
@@ -284,7 +286,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
           lot_size: lotNum,
           profit: pnlNum,
           risk_reward_ratio: !isNaN(rrNum) ? rrNum : null,
-          setup: session ? `${session} ${tradeCategory}` : null,
+          setup: setupString || null,
           notes: fullNotes,
           opened_at: openedIso,
           closed_at: closedIso,
@@ -401,7 +403,6 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
     weekday: "short",
     month: "short",
     day: "numeric",
-    year: "numeric",
   });
 
   return (
@@ -433,28 +434,28 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
               }
             }}
             className={`relative z-50 w-full ${
-              activeMainTab === "import" ? "max-w-3xl" : "max-w-5xl"
+              isImportMode ? "max-w-2xl sm:max-w-3xl" : "max-w-5xl"
             } max-h-[92vh] overflow-hidden bg-white dark:bg-[#161619] border-b border-x border-slate-200/80 dark:border-white/10 rounded-b-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] select-none overscroll-contain flex flex-col transition-all duration-300`}
           >
-            {/* Drawer Top Header */}
+            {/* Drawer Header */}
             <div className="flex items-center justify-between px-6 sm:px-8 pt-4 pb-3.5 border-b border-slate-100 dark:border-white/[0.06] shrink-0 bg-white dark:bg-[#161619]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white flex items-center justify-center border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs">
-                  {activeMainTab === "manual" ? (
-                    <PlusCircle size={18} strokeWidth={2.2} />
-                  ) : (
+                  {isImportMode ? (
                     <FileSpreadsheet size={18} strokeWidth={2.2} />
+                  ) : (
+                    <PlusCircle size={18} strokeWidth={2.2} />
                   )}
                 </div>
 
                 <div>
                   <h2 className="text-[17px] sm:text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                    {activeMainTab === "manual" ? "Log Trade" : "Import Trades"}
+                    {isImportMode ? "Import Trades" : "Log Trade"}
                   </h2>
                   <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                    {activeMainTab === "manual"
-                      ? "Full trade journaling with execution metrics, sessions, discipline rating, and screenshots."
-                      : "Upload CSV export from MT5, TradingView, or broker statements."}
+                    {isImportMode
+                      ? "Upload CSV export from MT5, TradingView, or broker statements."
+                      : "Full trade journaling with execution metrics, sessions, discipline rating, and screenshots."}
                   </p>
                 </div>
               </div>
@@ -470,8 +471,8 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
               </button>
             </div>
 
-            {/* Sub-Header: Mode Pills (Basic | Advanced | No Trade Day) */}
-            {activeMainTab === "manual" && (
+            {/* Mode Pills Sub-Header (Only in Manual mode) */}
+            {!isImportMode && (
               <div className="px-6 sm:px-8 py-2.5 bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.05] flex items-center justify-between gap-3 shrink-0">
                 <div className="inline-flex items-center p-1 rounded-xl bg-slate-200/60 dark:bg-white/[0.06] border border-slate-300/50 dark:border-white/10">
                   <button
@@ -511,7 +512,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
 
                 <div className="text-[11.5px] text-slate-500 dark:text-neutral-400 font-medium hidden sm:block">
                   {modeTab === "basic" && "Fast entry for quick setups & P&L"}
-                  {modeTab === "advanced" && "Complete execution details, sessions & screenshots"}
+                  {modeTab === "advanced" && "Complete targets, tags & rule adherence"}
                   {modeTab === "no_trade_day" && "Log discipline hold to protect streak & psychology"}
                 </div>
               </div>
@@ -522,661 +523,8 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
               onPointerDownCapture={(e) => e.stopPropagation()}
               className="overflow-y-auto max-h-[calc(92vh-140px)] px-6 sm:px-8 py-5 select-text"
             >
-              {activeMainTab === "manual" ? (
-                modeTab === "no_trade_day" ? (
-                  /* ── NO TRADE DAY SCREEN ── */
-                  <form onSubmit={handleManualSubmit} className="max-w-2xl mx-auto space-y-4 py-2">
-                    <div className="p-5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-4">
-                      <div className="flex items-center gap-3 pb-3 border-b border-slate-200/60 dark:border-white/10">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                          <ShieldCheck size={20} />
-                        </div>
-                        <div>
-                          <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
-                            Log Disciplined No-Trade Day
-                          </h3>
-                          <p className="text-[12px] text-slate-500 dark:text-neutral-400">
-                            Preserve your consistency streak without forcing suboptimal trades.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div>
-                        <label className="text-[11.5px] font-semibold text-slate-700 dark:text-neutral-300 block mb-1.5 uppercase tracking-wider">
-                          Date
-                        </label>
-                        <input
-                          type="date"
-                          value={tradeDate}
-                          onChange={(e) => setTradeDate(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl text-[13px] font-medium bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-[11.5px] font-semibold text-slate-700 dark:text-neutral-300 block mb-1.5 uppercase tracking-wider">
-                          Discipline Reason
-                        </label>
-                        <select
-                          value={noTradeReason}
-                          onChange={(e) => setNoTradeReason(e.target.value)}
-                          className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
-                        >
-                          <option value="Market conditions choppy / No high-probability setup">
-                            Market conditions choppy / No high-probability setup
-                          </option>
-                          <option value="High-impact news event (Fed, CPI, NFP) avoided">
-                            High-impact news event (Fed, CPI, NFP) avoided
-                          </option>
-                          <option value="Followed trading rules: Daily limit or risk threshold met">
-                            Followed trading rules: Daily limit or risk threshold met
-                          </option>
-                          <option value="Psychological check: Rested and avoided revenge trading">
-                            Psychological check: Rested and avoided revenge trading
-                          </option>
-                          <option value="Personal schedule / Away from terminal">
-                            Personal schedule / Away from terminal
-                          </option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-[11.5px] font-semibold text-slate-700 dark:text-neutral-300 block mb-1.5 uppercase tracking-wider">
-                          Reflection &amp; Market Notes
-                        </label>
-                        <textarea
-                          rows={3}
-                          value={noTradeNotes}
-                          onChange={(e) => setNoTradeNotes(e.target.value)}
-                          placeholder="What did the market do today? How did waiting protect your capital?"
-                          className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3 pt-2">
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        className="tactile-white-pill rounded-full px-5 py-2 text-[12.5px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={saving}
-                        className="tactile-black-pill rounded-full px-6 py-2.5 font-bold text-[13px] active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none"
-                      >
-                        {saving ? (
-                          <>
-                            <RefreshCw size={13} className="animate-spin" />
-                            <span>Recording...</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShieldCheck size={14} />
-                            <span>Log No Trade Day</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </form>
-                ) : (
-                  /* ── MANUAL LOG TRADE (BASIC & ADVANCED 2-COLUMN VIEW) ── */
-                  <form onSubmit={handleManualSubmit} className="space-y-5">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                      {/* ── LEFT COLUMN: Trade Info, Execution, Performance, Notes (col-span-7) ── */}
-                      <div className="lg:col-span-7 space-y-4">
-                        {/* 1. Trade Info Card */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-4">
-                          <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                            Trade Info
-                          </h3>
-
-                          {/* Symbol & Date */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                Symbol
-                              </label>
-                              <input
-                                type="text"
-                                required
-                                value={symbol}
-                                onChange={(e) => setSymbol(e.target.value)}
-                                placeholder="MNQ, SPY, XAUUSD..."
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-bold uppercase bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                Date
-                              </label>
-                              <div className="relative">
-                                <input
-                                  type="date"
-                                  value={tradeDate}
-                                  onChange={(e) => setTradeDate(e.target.value)}
-                                  className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
-                                />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Asset Class & Trade Type (Advanced view) */}
-                          {modeTab === "advanced" && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                  Asset Class
-                                </label>
-                                <select
-                                  value={assetClass}
-                                  onChange={(e) => setAssetClass(e.target.value as AssetClassType)}
-                                  className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
-                                >
-                                  <option value="Futures">Futures</option>
-                                  <option value="Forex">Forex</option>
-                                  <option value="Crypto">Crypto</option>
-                                  <option value="Stocks">Stocks</option>
-                                  <option value="Indices">Indices</option>
-                                  <option value="Commodities">Commodities</option>
-                                </select>
-                              </div>
-
-                              <div>
-                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                  Trade Type
-                                </label>
-                                <select
-                                  value={tradeCategory}
-                                  onChange={(e) => setTradeCategory(e.target.value as TradeTypeCategory)}
-                                  className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
-                                >
-                                  <option value="Day Trade">Day Trade</option>
-                                  <option value="Scalp">Scalp</option>
-                                  <option value="Swing">Swing</option>
-                                  <option value="Position">Position</option>
-                                </select>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Closed on another day toggle */}
-                          {modeTab === "advanced" && (
-                            <div className="flex items-center justify-between pt-0.5">
-                              <label className="text-[12px] font-medium text-slate-600 dark:text-neutral-300 flex items-center gap-2 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={closedAnotherDay}
-                                  onChange={(e) => setClosedAnotherDay(e.target.checked)}
-                                  className="rounded text-slate-900 focus:ring-0"
-                                />
-                                <span>Closed on another day?</span>
-                              </label>
-
-                              {closedAnotherDay && (
-                                <input
-                                  type="date"
-                                  value={exitDate}
-                                  onChange={(e) => setExitDate(e.target.value)}
-                                  className="px-3 py-1.5 rounded-xl text-[12px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white"
-                                />
-                              )}
-                            </div>
-                          )}
-
-                          {/* Direction (↑ Long / ↓ Short) */}
-                          <div className="grid grid-cols-2 gap-2 pt-1">
-                            <button
-                              type="button"
-                              onClick={() => setDirection("BUY")}
-                              className={`py-2.5 rounded-xl text-[13px] font-bold border transition-all cursor-pointer flex items-center justify-center gap-2 select-none ${
-                                direction === "BUY"
-                                  ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md"
-                                  : "bg-white dark:bg-white/[0.04] text-slate-600 dark:text-neutral-400 border-slate-200/90 dark:border-white/10 hover:border-slate-300"
-                              }`}
-                            >
-                              <ArrowUpRight size={15} />
-                              <span>↑ Long</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setDirection("SELL")}
-                              className={`py-2.5 rounded-xl text-[13px] font-bold border transition-all cursor-pointer flex items-center justify-center gap-2 select-none ${
-                                direction === "SELL"
-                                  ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-md"
-                                  : "bg-white dark:bg-white/[0.04] text-slate-600 dark:text-neutral-400 border-slate-200/90 dark:border-white/10 hover:border-slate-300"
-                              }`}
-                            >
-                              <ArrowDownRight size={15} />
-                              <span>↓ Short</span>
-                            </button>
-                          </div>
-
-                          {/* Session Picker & Note (Advanced view) */}
-                          {modeTab === "advanced" && (
-                            <div className="space-y-2.5 pt-1">
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block">
-                                Session
-                              </label>
-
-                              {/* Session Helper Box */}
-                              <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/10 flex items-center justify-between gap-3 flex-wrap">
-                                <div className="flex items-center gap-2 text-[12px] text-slate-600 dark:text-neutral-300">
-                                  <Clock size={14} className="text-slate-400 shrink-0" />
-                                  <span>
-                                    No entry time yet. Add when you got filled, or pick the session.
-                                  </span>
-                                </div>
-                                <input
-                                  type="text"
-                                  placeholder="HH:MM"
-                                  value={entryTime}
-                                  onChange={(e) => setEntryTime(e.target.value)}
-                                  className="w-20 px-2.5 py-1 text-center font-mono text-[12px] rounded-lg bg-white dark:bg-[#202024] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"
-                                />
-                              </div>
-
-                              {/* Session Pills */}
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                {(["Asia", "London", "NY AM", "NY PM", "No session"] as SessionType[]).map(
-                                  (sess) => (
-                                    <button
-                                      key={sess}
-                                      type="button"
-                                      onClick={() => setSession(sess)}
-                                      className={`px-3 py-1.5 rounded-xl text-[12px] font-bold border transition-all cursor-pointer select-none ${
-                                        session === sess
-                                          ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-slate-900 dark:border-white shadow-2xs"
-                                          : "bg-white dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/80 dark:border-white/10 hover:border-slate-300"
-                                      }`}
-                                    >
-                                      {sess}
-                                    </button>
-                                  )
-                                )}
-                              </div>
-
-                              <p className="text-[11px] text-slate-400 dark:text-neutral-500 flex items-center gap-1">
-                                <span>✍</span>
-                                <span>
-                                  Lands in {formattedDateHeadline} under {session}. Counts in daily P&amp;L.
-                                </span>
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Followed My Plan & Account (Advanced view) */}
-                          {modeTab === "advanced" && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                              <div>
-                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                  Followed My Plan
-                                </label>
-                                <div className="grid grid-cols-2 gap-2">
-                                  <button
-                                    type="button"
-                                    onClick={() => setFollowedPlan("yes")}
-                                    className={`py-2 rounded-xl text-[12.5px] font-bold border transition-all cursor-pointer select-none ${
-                                      followedPlan === "yes"
-                                        ? "bg-emerald-500 text-white border-emerald-500 shadow-sm"
-                                        : "bg-white dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/90 dark:border-white/10"
-                                    }`}
-                                  >
-                                    Yes
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setFollowedPlan("no")}
-                                    className={`py-2 rounded-xl text-[12.5px] font-bold border transition-all cursor-pointer select-none ${
-                                      followedPlan === "no"
-                                        ? "bg-rose-500 text-white border-rose-500 shadow-sm"
-                                        : "bg-white dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/90 dark:border-white/10"
-                                    }`}
-                                  >
-                                    No
-                                  </button>
-                                </div>
-                              </div>
-
-                              <div>
-                                <div className="flex items-center justify-between mb-1.5">
-                                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400">
-                                    Account
-                                  </label>
-                                  <span className="text-[11px] text-slate-400 dark:text-neutral-500">
-                                    Manage
-                                  </span>
-                                </div>
-                                <select
-                                  value={selectedAccount}
-                                  onChange={(e) => setSelectedAccount(e.target.value)}
-                                  className="w-full px-3.5 py-2 rounded-xl text-[12.5px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 cursor-pointer"
-                                >
-                                  {availableAccounts.map((acc) => (
-                                    <option key={acc} value={acc}>
-                                      {acc}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 2. Execution Card */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-3.5">
-                          <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                            Execution
-                          </h3>
-
-                          {/* Entry Price & Exit Price */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                Entry Price
-                              </label>
-                              <input
-                                type="number"
-                                step="any"
-                                value={entryPrice}
-                                onChange={(e) => setEntryPrice(e.target.value)}
-                                placeholder="0.00"
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                Exit Price
-                              </label>
-                              <input
-                                type="number"
-                                step="any"
-                                value={exitPrice}
-                                onChange={(e) => setExitPrice(e.target.value)}
-                                placeholder="0.00"
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                              />
-                            </div>
-                          </div>
-
-                          {/* P&L and Size / Qty */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                P&amp;L ({currencySymbol})
-                              </label>
-                              <input
-                                type="number"
-                                step="0.01"
-                                required
-                                value={profit}
-                                onChange={(e) => setProfit(e.target.value)}
-                                placeholder="+500 or -200"
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-bold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                Size / Qty
-                              </label>
-                              <input
-                                type="number"
-                                step="any"
-                                value={lotSize}
-                                onChange={(e) => setLotSize(e.target.value)}
-                                placeholder="1"
-                                className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Planned R:R & Realized R:R (Advanced view) */}
-                          {modeTab === "advanced" && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              <div>
-                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                  Planned R:R
-                                </label>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  value={plannedRr}
-                                  onChange={(e) => setPlannedRr(e.target.value)}
-                                  placeholder="e.g. 2.0"
-                                  className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                                />
-                              </div>
-
-                              <div>
-                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-1.5">
-                                  Realized R:R
-                                </label>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  value={realizedRr}
-                                  onChange={(e) => setRealizedRr(e.target.value)}
-                                  placeholder="e.g. 2.5"
-                                  className="w-full px-3.5 py-2.5 rounded-xl text-[13px] font-semibold bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                                />
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* 3. Performance Card (Trade Grade) */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-3">
-                          <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                            Performance
-                          </h3>
-
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 block mb-2">
-                              Trade Grade
-                            </label>
-                            <div className="grid grid-cols-5 gap-2">
-                              {(["A+", "A", "B", "C", "F"] as GradeType[]).map((g) => {
-                                const isSelected = grade === g;
-                                return (
-                                  <button
-                                    key={g}
-                                    type="button"
-                                    onClick={() => setGrade(g)}
-                                    className={`py-2 rounded-xl text-[13px] font-bold border transition-all cursor-pointer select-none ${
-                                      isSelected
-                                        ? g === "A+" || g === "A"
-                                          ? "bg-emerald-500 text-white border-emerald-500 shadow-[0_2px_8px_rgba(16,185,129,0.3)]"
-                                          : g === "B"
-                                          ? "bg-blue-500 text-white border-blue-500 shadow-sm"
-                                          : g === "C"
-                                          ? "bg-amber-400 text-white border-amber-400 shadow-sm"
-                                          : "bg-rose-500 text-white border-rose-500 shadow-sm"
-                                        : "bg-white dark:bg-white/[0.04] text-slate-600 dark:text-neutral-400 border-slate-200/90 dark:border-white/10 hover:border-slate-300"
-                                    }`}
-                                  >
-                                    {g}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* 4. Notes Card */}
-                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-2">
-                          <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                            Notes
-                          </h3>
-                          <textarea
-                            rows={3}
-                            value={notes}
-                            onChange={(e) => setNotes(e.target.value)}
-                            placeholder="Explain your trade, entry, and insights. What happened? What did you do well? What would you do differently?"
-                            className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all resize-none"
-                          />
-                        </div>
-
-                        {/* Action Buttons: Save Trade & Cancel/Delete */}
-                        <div className="flex items-center gap-3 pt-2">
-                          <button
-                            type="submit"
-                            disabled={saving}
-                            className="tactile-black-pill rounded-full px-7 py-2.5 font-bold text-[13px] active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none shadow-md"
-                          >
-                            {saving ? (
-                              <>
-                                <RefreshCw size={14} className="animate-spin" />
-                                <span>Saving Trade...</span>
-                              </>
-                            ) : (
-                              <>
-                                <Check size={14} />
-                                <span>Save Trade</span>
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={onClose}
-                            className="tactile-white-pill rounded-full px-5 py-2.5 text-[13px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* ── RIGHT COLUMN: PICTURES (col-span-5) ── */}
-                      <div className="lg:col-span-5 space-y-3">
-                        <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 flex flex-col min-h-[480px]">
-                          {/* Pictures Header */}
-                          <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-white/10">
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400">
-                              Pictures
-                            </span>
-
-                            {/* Upload vs Link toggle */}
-                            <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-200/60 dark:bg-white/[0.06] border border-slate-300/50 dark:border-white/10">
-                              <button
-                                type="button"
-                                onClick={() => setPictureMode("upload")}
-                                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer select-none ${
-                                  pictureMode === "upload"
-                                    ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
-                                    : "text-slate-500 dark:text-neutral-400"
-                                }`}
-                              >
-                                Upload
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setPictureMode("link")}
-                                className={`px-2.5 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer select-none ${
-                                  pictureMode === "link"
-                                    ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
-                                    : "text-slate-500 dark:text-neutral-400"
-                                }`}
-                              >
-                                Paste a link
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Hidden File Input */}
-                          <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            multiple
-                            onChange={handlePictureUpload}
-                            className="hidden"
-                          />
-
-                          {/* Paste a link input row */}
-                          {pictureMode === "link" && (
-                            <div className="pt-3 flex gap-2">
-                              <input
-                                type="url"
-                                placeholder="Paste image or chart URL..."
-                                value={imageUrlInput}
-                                onChange={(e) => setImageUrlInput(e.target.value)}
-                                className="flex-1 px-3 py-1.5 rounded-xl text-[12px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-800"
-                              />
-                              <button
-                                type="button"
-                                onClick={handleAddImageUrl}
-                                className="tactile-black-pill rounded-xl px-3 py-1.5 text-[11.5px] font-bold cursor-pointer"
-                              >
-                                Add
-                              </button>
-                            </div>
-                          )}
-
-                          {/* Drag & Drop Area */}
-                          <div
-                            onClick={() => fileInputRef.current?.click()}
-                            className="mt-3 flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30 rounded-2xl p-6 text-center transition-colors cursor-pointer group bg-white/50 dark:bg-white/[0.01]"
-                          >
-                            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-neutral-400 group-hover:scale-105 transition-transform mb-3">
-                              <ImageIcon size={22} strokeWidth={1.8} />
-                            </div>
-                            <p className="text-[13px] font-bold text-slate-700 dark:text-neutral-200">
-                              Drop screenshots, or{" "}
-                              <span className="text-slate-900 dark:text-white underline underline-offset-2">
-                                choose files
-                              </span>
-                            </p>
-                            <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1">
-                              ⌘ Cmd+V works here too
-                            </p>
-                          </div>
-
-                          {/* Thumbnails list if any attached */}
-                          {pictures.length > 0 && (
-                            <div className="pt-3">
-                              <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mb-2">
-                                Attached Screenshots ({pictures.length})
-                              </div>
-                              <div className="grid grid-cols-3 gap-2">
-                                {pictures.map((pic, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group/img bg-slate-100"
-                                  >
-                                    <img
-                                      src={pic}
-                                      alt={`Screenshot ${idx + 1}`}
-                                      className="w-full h-full object-cover"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        removePicture(idx);
-                                      }}
-                                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                      title="Remove image"
-                                    >
-                                      <X size={11} />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-                )
-              ) : (
-                /* ── IMPORT CSV VIEW ── */
+              {isImportMode ? (
+                /* ── IMPORT CSV VIEW (Purely CSV upload, clean & systemic) ── */
                 <div className="space-y-4 max-w-2xl mx-auto py-2">
                   <input
                     ref={csvFileInputRef}
@@ -1231,6 +579,749 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                     </button>
                   </div>
                 </div>
+              ) : modeTab === "no_trade_day" ? (
+                /* ── NO TRADE DAY SCREEN ── */
+                <form onSubmit={handleManualSubmit} className="max-w-2xl mx-auto space-y-4 py-2">
+                  <div className="p-5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-4">
+                    <div className="flex items-center gap-3 pb-3 border-b border-slate-200/60 dark:border-white/10">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                        <ShieldCheck size={20} />
+                      </div>
+                      <div>
+                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                          Log Disciplined No-Trade Day
+                        </h3>
+                        <p className="text-[12px] text-slate-500 dark:text-neutral-400">
+                          Preserve your consistency streak without forcing suboptimal trades.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={tradeDate}
+                        onChange={(e) => setTradeDate(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl text-[13px] font-medium bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5">
+                        Discipline Reason
+                      </label>
+                      <select
+                        value={noTradeReason}
+                        onChange={(e) => setNoTradeReason(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
+                      >
+                        <option value="Market conditions choppy / No high-probability setup">
+                          Market conditions choppy / No high-probability setup
+                        </option>
+                        <option value="High-impact news event (Fed, CPI, NFP) avoided">
+                          High-impact news event (Fed, CPI, NFP) avoided
+                        </option>
+                        <option value="Followed trading rules: Daily limit or risk threshold met">
+                          Followed trading rules: Daily limit or risk threshold met
+                        </option>
+                        <option value="Psychological check: Rested and avoided revenge trading">
+                          Psychological check: Rested and avoided revenge trading
+                        </option>
+                        <option value="Personal schedule / Away from terminal">
+                          Personal schedule / Away from terminal
+                        </option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5">
+                        Reflection &amp; Market Notes
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={noTradeNotes}
+                        onChange={(e) => setNoTradeNotes(e.target.value)}
+                        placeholder="What did the market do today? How did waiting protect your capital?"
+                        className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="tactile-white-pill rounded-full px-5 py-2 text-[12.5px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="tactile-black-pill rounded-full px-6 py-2.5 font-bold text-[13px] active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none"
+                    >
+                      {saving ? (
+                        <>
+                          <RefreshCw size={13} className="animate-spin" />
+                          <span>Recording...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck size={14} />
+                          <span>Log No Trade Day</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* ── COMPREHENSIVE MANUAL LOG TRADE VIEW (Exact matching reference pic) ── */
+                <form onSubmit={handleManualSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                    {/* ── LEFT COLUMN: Trade Info, Execution, Performance, Notes (col-span-7) ── */}
+                    <div className="lg:col-span-7 space-y-4">
+                      {/* 1. Trade Info Card */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-2xs">
+                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                          Trade Info
+                        </h3>
+
+                        {/* Symbol & Date */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Symbol
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={symbol}
+                              onChange={(e) => setSymbol(e.target.value)}
+                              placeholder="MNQ, SPY..."
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-bold uppercase bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Date
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="date"
+                                value={tradeDate}
+                                onChange={(e) => setTradeDate(e.target.value)}
+                                className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Asset Class & Trade Type */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Asset Class
+                            </label>
+                            <select
+                              value={assetClass}
+                              onChange={(e) => setAssetClass(e.target.value as AssetClassType)}
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
+                            >
+                              <option value="Futures">Futures</option>
+                              <option value="Forex">Forex</option>
+                              <option value="Crypto">Crypto</option>
+                              <option value="Stocks">Stocks</option>
+                              <option value="Indices">Indices</option>
+                              <option value="Commodities">Commodities</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Trade Type
+                            </label>
+                            <select
+                              value={tradeCategory}
+                              onChange={(e) => setTradeCategory(e.target.value as TradeTypeCategory)}
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
+                            >
+                              <option value="Day Trade">Day Trade</option>
+                              <option value="Scalp">Scalp</option>
+                              <option value="Swing">Swing</option>
+                              <option value="Position">Position</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Closed on another day toggle */}
+                        <div className="flex items-center justify-between pt-0.5">
+                          <label className="text-[12px] font-medium text-slate-600 dark:text-neutral-300 flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={closedAnotherDay}
+                              onChange={(e) => setClosedAnotherDay(e.target.checked)}
+                              className="rounded text-slate-900 focus:ring-0"
+                            />
+                            <span>Closed on another day?</span>
+                          </label>
+
+                          {closedAnotherDay && (
+                            <input
+                              type="date"
+                              value={exitDate}
+                              onChange={(e) => setExitDate(e.target.value)}
+                              className="px-3 py-1.5 rounded-xl text-[12px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white"
+                            />
+                          )}
+                        </div>
+
+                        {/* Direction (↑ Long / ↓ Short - exact single arrow clean buttons) */}
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDirection("BUY");
+                              handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "BUY");
+                            }}
+                            className={`py-2.5 rounded-xl text-[13px] font-bold border transition-all cursor-pointer flex items-center justify-center select-none ${
+                              direction === "BUY"
+                                ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-sm"
+                                : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
+                            }`}
+                          >
+                            ↑ Long
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setDirection("SELL");
+                              handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "SELL");
+                            }}
+                            className={`py-2.5 rounded-xl text-[13px] font-bold border transition-all cursor-pointer flex items-center justify-center select-none ${
+                              direction === "SELL"
+                                ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-sm"
+                                : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
+                            }`}
+                          >
+                            ↓ Short
+                          </button>
+                        </div>
+
+                        {/* Session Picker & Note */}
+                        <div className="space-y-2.5 pt-1">
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block">
+                            Session
+                          </label>
+
+                          {/* Session Helper Box */}
+                          <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/10 flex items-center justify-between gap-3 flex-wrap">
+                            <div className="flex items-center gap-2 text-[12px] text-slate-600 dark:text-neutral-300">
+                              <Clock size={14} className="text-slate-400 shrink-0" />
+                              <span>
+                                No entry time yet. Add when you got filled, or pick the session, so this trade lands in the right part of your day.
+                              </span>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="HH:MM"
+                              value={entryTime}
+                              onChange={(e) => setEntryTime(e.target.value)}
+                              className="w-20 px-2.5 py-1 text-center font-mono text-[12px] rounded-lg bg-white dark:bg-[#202024] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"
+                            />
+                          </div>
+
+                          {/* Session Pills */}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {(["Asia", "London", "NY AM", "NY PM", "No session"] as SessionType[]).map(
+                              (sess) => (
+                                <button
+                                  key={sess}
+                                  type="button"
+                                  onClick={() => setSession(sess)}
+                                  className={`px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer select-none ${
+                                    session === sess
+                                      ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs font-bold"
+                                      : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
+                                  }`}
+                                >
+                                  {sess}
+                                </button>
+                              )
+                            )}
+                          </div>
+
+                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 flex items-center gap-1.5">
+                            <span className="text-[12px]">✍</span>
+                            <span>
+                              Lands in {formattedDateHeadline} under {session}. Counts in the daily P&amp;L.
+                            </span>
+                          </p>
+                        </div>
+
+                        {/* Followed My Plan & Account */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Followed My Plan
+                            </label>
+                            <div className="grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setFollowedPlan("yes")}
+                                className={`py-2 rounded-xl text-[12.5px] font-bold border transition-all cursor-pointer select-none ${
+                                  followedPlan === "yes"
+                                    ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs"
+                                    : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10"
+                                }`}
+                              >
+                                Yes
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setFollowedPlan("no")}
+                                className={`py-2 rounded-xl text-[12.5px] font-bold border transition-all cursor-pointer select-none ${
+                                  followedPlan === "no"
+                                    ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs"
+                                    : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10"
+                                }`}
+                              >
+                                No
+                              </button>
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                                Account
+                              </label>
+                              <span className="text-[11px] text-slate-400 dark:text-neutral-500 hover:text-slate-800 cursor-pointer">
+                                Manage
+                              </span>
+                            </div>
+                            <select
+                              value={selectedAccount}
+                              onChange={(e) => setSelectedAccount(e.target.value)}
+                              className="w-full px-3.5 py-2 rounded-xl text-[12.5px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 cursor-pointer"
+                            >
+                              {availableAccounts.map((acc) => (
+                                <option key={acc} value={acc}>
+                                  {acc}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 2. Execution Card */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3.5 shadow-2xs">
+                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                          Execution
+                        </h3>
+
+                        {/* Entry Price & Exit Price */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Entry Price
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={entryPrice}
+                              onChange={(e) => {
+                                setEntryPrice(e.target.value);
+                                handleAutoCalcPnl(e.target.value, exitPrice, lotSize, direction);
+                              }}
+                              placeholder="0.00"
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Exit Price
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={exitPrice}
+                              onChange={(e) => {
+                                setExitPrice(e.target.value);
+                                handleAutoCalcPnl(entryPrice, e.target.value, lotSize, direction);
+                              }}
+                              placeholder="0.00"
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                            />
+                          </div>
+                        </div>
+
+                        {/* P&L and Size / Qty */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              P&amp;L ({currencySymbol})
+                            </label>
+                            <input
+                              type="text"
+                              required
+                              value={profit}
+                              onChange={(e) => setProfit(e.target.value)}
+                              placeholder="+500 or -200"
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-bold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Size / Qty
+                            </label>
+                            <input
+                              type="number"
+                              step="any"
+                              value={lotSize}
+                              onChange={(e) => {
+                                setLotSize(e.target.value);
+                                handleAutoCalcPnl(entryPrice, exitPrice, e.target.value, direction);
+                              }}
+                              placeholder="1"
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Planned R:R & Realized R:R */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Planned R:R
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={plannedRr}
+                              onChange={(e) => setPlannedRr(e.target.value)}
+                              placeholder="e.g. 2.0"
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                              Realized R:R
+                            </label>
+                            <input
+                              type="number"
+                              step="0.1"
+                              value={realizedRr}
+                              onChange={(e) => setRealizedRr(e.target.value)}
+                              placeholder="e.g. 2.5"
+                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Stop Loss & Take Profit in Advanced mode */}
+                        {modeTab === "advanced" && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div>
+                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                                Stop Loss Price
+                              </label>
+                              <input
+                                type="number"
+                                step="any"
+                                value={stopLoss}
+                                onChange={(e) => setStopLoss(e.target.value)}
+                                placeholder="e.g. 19500.25"
+                                className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
+                                Take Profit Price
+                              </label>
+                              <input
+                                type="number"
+                                step="any"
+                                value={takeProfit}
+                                onChange={(e) => setTakeProfit(e.target.value)}
+                                placeholder="e.g. 19650.00"
+                                className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Setups & Mistakes Tags in Advanced mode */}
+                      {modeTab === "advanced" && (
+                        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3.5 shadow-2xs">
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-2">
+                              Strategy Setups
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {POPULAR_SETUPS.map((stp) => {
+                                const active = selectedSetups.includes(stp);
+                                return (
+                                  <button
+                                    key={stp}
+                                    type="button"
+                                    onClick={() =>
+                                      setSelectedSetups((prev) =>
+                                        active ? prev.filter((s) => s !== stp) : [...prev, stp]
+                                      )
+                                    }
+                                    className={`px-3 py-1 rounded-xl text-[11.5px] font-semibold border transition-all cursor-pointer ${
+                                      active
+                                        ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs"
+                                        : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
+                                    }`}
+                                  >
+                                    {stp}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-2">
+                              Trading Mistakes (if any)
+                            </label>
+                            <div className="flex flex-wrap gap-1.5">
+                              {POPULAR_MISTAKES.map((mst) => {
+                                const active = selectedMistakes.includes(mst);
+                                return (
+                                  <button
+                                    key={mst}
+                                    type="button"
+                                    onClick={() =>
+                                      setSelectedMistakes((prev) =>
+                                        active ? prev.filter((m) => m !== mst) : [...prev, mst]
+                                      )
+                                    }
+                                    className={`px-3 py-1 rounded-xl text-[11.5px] font-semibold border transition-all cursor-pointer ${
+                                      active
+                                        ? "bg-rose-500 text-white border-rose-500 shadow-2xs"
+                                        : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
+                                    }`}
+                                  >
+                                    {mst}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 3. Performance Card (Trade Grade - exact match to reference screenshot) */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3 shadow-2xs">
+                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                          Performance
+                        </h3>
+
+                        <div>
+                          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-2">
+                            Trade Grade
+                          </label>
+                          <div className="grid grid-cols-5 gap-2">
+                            {(["A+", "A", "B", "C", "F"] as GradeType[]).map((g) => {
+                              const isSelected = grade === g;
+                              return (
+                                <button
+                                  key={g}
+                                  type="button"
+                                  onClick={() => setGrade(g)}
+                                  className={`py-2 rounded-xl text-[13px] font-bold border transition-all cursor-pointer select-none ${
+                                    isSelected
+                                      ? "bg-[#059669] text-white border-[#059669] shadow-[0_2px_8px_rgba(5,150,105,0.35)]"
+                                      : "bg-slate-50/80 dark:bg-white/[0.04] text-slate-700 dark:text-neutral-300 border-slate-200/80 dark:border-white/10 hover:border-slate-300"
+                                  }`}
+                                >
+                                  {g}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 4. Notes Card */}
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-2 shadow-2xs">
+                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                          Notes
+                        </h3>
+                        <textarea
+                          rows={4}
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder="Explain your trade, entry, and insights. What happened? What did you do well? What would you do differently?"
+                          className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all resize-none"
+                        />
+                      </div>
+
+                      {/* Action Buttons: Save Trade & Delete */}
+                      <div className="flex items-center gap-3 pt-2">
+                        <button
+                          type="submit"
+                          disabled={saving}
+                          className="tactile-black-pill rounded-xl px-7 py-2.5 font-bold text-[13.5px] active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none shadow-sm"
+                        >
+                          {saving ? (
+                            <>
+                              <RefreshCw size={14} className="animate-spin" />
+                              <span>Saving Trade...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Check size={14} />
+                              <span>Save Trade</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={onClose}
+                          className="tactile-white-pill rounded-xl px-5 py-2.5 text-[13px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ── RIGHT COLUMN: PICTURES (col-span-5) ── */}
+                    <div className="lg:col-span-5 space-y-3">
+                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 flex flex-col shadow-2xs">
+                        {/* Pictures Header */}
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.08]">
+                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                            PICTURES
+                          </span>
+
+                          {/* Upload vs Link toggle */}
+                          <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/10">
+                            <button
+                              type="button"
+                              onClick={() => setPictureMode("upload")}
+                              className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer select-none ${
+                                pictureMode === "upload"
+                                  ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
+                                  : "text-slate-500 dark:text-neutral-400"
+                              }`}
+                            >
+                              Upload
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setPictureMode("link")}
+                              className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer select-none ${
+                                pictureMode === "link"
+                                  ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
+                                  : "text-slate-500 dark:text-neutral-400"
+                              }`}
+                            >
+                              Paste a link
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Hidden File Input */}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handlePictureUpload}
+                          className="hidden"
+                        />
+
+                        {/* Paste a link input row */}
+                        {pictureMode === "link" && (
+                          <div className="pt-3 flex gap-2">
+                            <input
+                              type="url"
+                              placeholder="Paste image or chart URL..."
+                              value={imageUrlInput}
+                              onChange={(e) => setImageUrlInput(e.target.value)}
+                              className="flex-1 px-3 py-1.5 rounded-xl text-[12px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-800"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleAddImageUrl}
+                              className="tactile-black-pill rounded-xl px-3 py-1.5 text-[11.5px] font-bold cursor-pointer"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Drag & Drop Area */}
+                        <div
+                          onClick={() => fileInputRef.current?.click()}
+                          className="mt-3.5 min-h-[340px] flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200/90 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30 rounded-2xl p-6 text-center transition-colors cursor-pointer group bg-slate-50/40 dark:bg-white/[0.01]"
+                        >
+                          <div className="w-12 h-12 rounded-2xl bg-slate-100/90 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-neutral-400 group-hover:scale-105 transition-transform mb-3">
+                            <ImageIcon size={22} strokeWidth={1.8} />
+                          </div>
+                          <p className="text-[13px] font-bold text-slate-700 dark:text-neutral-200">
+                            Drop screenshots, or{" "}
+                            <span className="text-slate-900 dark:text-white underline underline-offset-2">
+                              choose files
+                            </span>
+                          </p>
+                          <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1">
+                            ⌘ Cmd+V works here too
+                          </p>
+                        </div>
+
+                        {/* Attached Screenshots Thumbnails */}
+                        {pictures.length > 0 && (
+                          <div className="pt-3">
+                            <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mb-2">
+                              Attached Screenshots ({pictures.length})
+                            </div>
+                            <div className="grid grid-cols-3 gap-2">
+                              {pictures.map((pic, idx) => (
+                                <div
+                                  key={idx}
+                                  className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group/img bg-slate-100"
+                                >
+                                  <img
+                                    src={pic}
+                                    alt={`Screenshot ${idx + 1}`}
+                                    className="w-full h-full object-cover"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removePicture(idx);
+                                    }}
+                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
+                                    title="Remove image"
+                                  >
+                                    <X size={11} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </form>
               )}
             </div>
 
