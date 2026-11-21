@@ -40,11 +40,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { TrafficCard } from "@/components/TrafficCard";
-import type { TrafficRange, TrafficChannel } from "@/components/TrafficCard";
 import { RuleComplianceAnalytics } from "@/components/RuleComplianceAnalytics";
-import { ChartRadarDefault } from "@/components/journal/ChartRadarDefault";
-import { buildJournalDemoData } from "@/utils/journalDemoData";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
   getGamificationState,
@@ -157,55 +153,6 @@ const CURVE_DATA: Record<string, { date: string; score: number; label: string }[
     { date: "Nov 20", score: 96, label: "NY Overlap" },
   ],
 };
-
-// ── TRAFFIC CARD DATA ─────────────────────────────────────────────────────
-const TRAFFIC_CHANNELS: TrafficChannel[] = [
-  { id: "discipline", label: "Discipline", color: "#2563EB" },
-  { id: "streak",     label: "Streak",     color: "#f26f6f" },
-  { id: "xp",        label: "XP Activity", color: "#a78bfa" },
-];
-
-const mkPoints = (scores: number[], streaks: number[], xps: number[], labels: string[]) =>
-  labels.map((label, i) => ({
-    label,
-    values: { discipline: scores[i] ?? 0, streak: streaks[i] ?? 0, xp: xps[i] ?? 0 },
-  }));
-
-const TRAFFIC_RANGES: TrafficRange[] = [
-  {
-    id: "7D",
-    label: "7D",
-    caption: "Last 7 days",
-    points: mkPoints(
-      [88, 92, 90, 94, 91, 95, 96],
-      [60, 65, 62, 70, 68, 72, 75],
-      [150, 200, 180, 220, 200, 250, 170],
-      ["Nov 14", "Nov 15", "Nov 16", "Nov 17", "Nov 18", "Nov 19", "Nov 20"],
-    ),
-  },
-  {
-    id: "14D",
-    label: "14D",
-    caption: "Last 14 days",
-    points: mkPoints(
-      [80, 83, 82, 85, 84, 88, 90, 86, 88, 92, 90, 94, 95, 96],
-      [40, 45, 42, 50, 48, 55, 58, 54, 60, 65, 62, 70, 72, 75],
-      [100, 120, 110, 130, 125, 150, 160, 140, 180, 200, 180, 220, 250, 170],
-      ["Nov 7","Nov 8","Nov 9","Nov 10","Nov 11","Nov 12","Nov 13","Nov 14","Nov 15","Nov 16","Nov 17","Nov 18","Nov 19","Nov 20"],
-    ),
-  },
-  {
-    id: "All",
-    label: "All",
-    caption: "Full history",
-    points: mkPoints(
-      [75, 78, 80, 83, 82, 85, 84, 88, 90, 86, 88, 92, 90, 94, 95, 96],
-      [30, 35, 38, 42, 40, 45, 44, 50, 55, 52, 58, 62, 65, 68, 72, 75],
-      [80, 90, 100, 115, 110, 130, 125, 150, 160, 140, 170, 195, 180, 215, 245, 170],
-      ["Nov 5","Nov 6","Nov 7","Nov 8","Nov 9","Nov 10","Nov 11","Nov 12","Nov 13","Nov 14","Nov 15","Nov 16","Nov 17","Nov 18","Nov 19","Nov 20"],
-    ),
-  },
-];
 
 const WEEKLY_REWARDS = [
   { day: 1, xp: 25, label: "+25 XP" },
@@ -471,7 +418,6 @@ export default function Rewards() {
     { id: "vault",      emoji: "🎁", label: "Vault" },
   ];
 
-  const demoData = useMemo(() => buildJournalDemoData("forex"), []);
   const [rangeTab, setRangeTab] = useState<"All" | "1D" | "7D" | "1M">("All");
 
   const todayFormatted = useMemo(() => {
