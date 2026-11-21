@@ -292,7 +292,7 @@ export const AreaChart: React.FC<AreaChartProps> = ({
       <div
         role="region"
         aria-label={ariaLabel}
-        style={{ aspectRatio }}
+        style={aspectRatio && aspectRatio !== "auto" ? { aspectRatio, ...props.style } : props.style}
         className={`relative w-full overflow-hidden select-none ${className}`}
         {...props}
       >

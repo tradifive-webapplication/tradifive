@@ -526,86 +526,86 @@ export default function Rewards() {
             Card 2: Trading Streak (3 cols)
             Card 3: Trader Rank & XP (3 cols)
         ========================================================================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-5 sm:mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-4 sm:mb-5">
           
           {/* Card A: Trader Identity, Live Status & Telemetry Chips (6 cols - Unboxed Hero Style like Dashboard) */}
-          <div className="lg:col-span-6 px-1 py-1 flex flex-col justify-between gap-3">
+          <div className="lg:col-span-6 px-1 py-0.5 flex flex-col justify-between gap-2">
             
             {/* Top row: Status header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
+                <span className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
                   DISCIPLINE STATUS
                 </span>
                 <span className="text-slate-300 dark:text-neutral-700">·</span>
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   MT5 Server - Live
                 </span>
               </div>
 
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
-                <CheckCircle2 size={12} />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
+                <CheckCircle2 size={11} />
                 <span>Session Finalized</span>
               </span>
             </div>
 
             {/* Middle row: Avatar + Name + 3 Right-aligned Stat Chips */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5">
               
               {/* User avatar and name */}
-              <div className="flex items-center gap-3.5">
+              <div className="flex items-center gap-3">
                 <div className="relative">
-                  <div className="w-13 h-13 rounded-2xl p-[2px] bg-gradient-to-tr from-[#006DFE] to-cyan-400 shadow-md">
-                    <div className="w-full h-full rounded-[14px] bg-slate-900 flex items-center justify-center text-white text-base font-black overflow-hidden">
+                  <div className="w-11 h-11 rounded-xl p-[2px] bg-gradient-to-tr from-[#006DFE] to-cyan-400 shadow-sm">
+                    <div className="w-full h-full rounded-[10px] bg-slate-900 flex items-center justify-center text-white text-sm font-black overflow-hidden">
                       NH
                     </div>
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[10px] text-white font-bold">
+                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#006DFE] border-2 border-white dark:border-[#17171A] flex items-center justify-center text-[9px] text-white font-bold">
                     ✓
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="text-base sm:text-[17px] font-black text-slate-900 dark:text-white tracking-tight leading-tight">
                       Nikhil Harake
                     </h2>
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30">
+                    <span className="px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/80 dark:border-blue-500/30 leading-none">
                       PRO
                     </span>
                   </div>
-                  <p className="text-xs font-semibold text-slate-500 dark:text-neutral-400 mt-0.5">
+                  <p className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mt-0.5">
                     Level 1 Pro MT5 Trader
                   </p>
                 </div>
               </div>
 
               {/* 3 Stat Chips: ACCOUNT, RISK CAP, STREAK */}
-              <div className="flex items-center gap-2 text-center">
-                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
-                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+              <div className="flex items-center gap-1.5 text-center">
+                <div className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
+                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     ACCOUNT
                   </div>
-                  <div className="text-xs font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5">
+                  <div className="text-[11.5px] font-mono font-bold text-slate-800 dark:text-slate-200 mt-0.5">
                     #88412
                   </div>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
-                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                <div className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
+                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     RISK CAP
                   </div>
-                  <div className="text-xs font-mono font-bold text-[#006DFE] dark:text-blue-400 mt-0.5">
+                  <div className="text-[11.5px] font-mono font-bold text-[#006DFE] dark:text-blue-400 mt-0.5">
                     1.0%
                   </div>
                 </div>
 
-                <div className="px-3 py-1.5 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-xs">
-                  <div className="text-[9.5px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
+                <div className="px-2.5 py-1 rounded-lg bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] shadow-2xs">
+                  <div className="text-[9px] font-mono font-bold uppercase text-slate-400 dark:text-neutral-500">
                     STREAK
                   </div>
-                  <div className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                  <div className="text-[11.5px] font-mono font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
                     6W Net
                   </div>
                 </div>
@@ -614,30 +614,30 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* Card B: Trading Streak (3 cols) */}
-          <div className={`lg:col-span-3 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+          {/* Card B: Trading Streak (3 cols - Compact Height) */}
+          <div className={`lg:col-span-3 ${CARD_BASE} px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col justify-between gap-1.5`}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400">
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
                 Trading Streak
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/70 dark:border-amber-500/30">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-200/70 dark:border-amber-500/30">
                 <span className="animate-flame">🔥</span>
                 <span>Active</span>
               </span>
             </div>
 
-            <div className="flex items-baseline justify-between">
+            <div className="flex items-center justify-between">
               <div>
-                <div className="text-3xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
+                <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
                   {streakDays} Days
                 </div>
-                <div className="text-xs font-semibold text-amber-600 dark:text-amber-400 mt-0.5">
+                <div className="text-[10.5px] font-semibold text-amber-600 dark:text-amber-400 mt-0.5">
                   21d Shield · 3 days left
                 </div>
               </div>
 
               {/* Circular Mini Ring (18 / 21) */}
-              <div className="relative w-11 h-11 flex items-center justify-center">
+              <div className="relative w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shrink-0">
                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                   <path
                     className="text-slate-100 dark:text-white/10"
@@ -656,7 +656,7 @@ export default function Rewards() {
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   />
                 </svg>
-                <span className="absolute text-[10px] font-mono font-bold text-slate-700 dark:text-slate-200">
+                <span className="absolute text-[8.5px] font-mono font-bold text-slate-700 dark:text-slate-200">
                   18/21
                 </span>
               </div>
@@ -667,7 +667,7 @@ export default function Rewards() {
               {[1, 2, 3, 4, 5, 6, 7].map((b) => (
                 <div
                   key={b}
-                  className={`h-1.5 rounded-full ${
+                  className={`h-1 rounded-full ${
                     b <= 6
                       ? "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.4)]"
                       : "bg-slate-200 dark:bg-white/10"
@@ -677,34 +677,34 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* Card C: Trader Rank & XP Progress (3 cols) */}
-          <div className={`lg:col-span-3 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between gap-3`}>
+          {/* Card C: Trader Rank & XP Progress (3 cols - Compact Height) */}
+          <div className={`lg:col-span-3 ${CARD_BASE} px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col justify-between gap-1.5`}>
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-slate-500 dark:text-neutral-400">
+              <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
                 Trader Rank
               </span>
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/70 dark:border-purple-500/30">
-                <Star size={11} className="fill-purple-500 text-purple-500" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border border-purple-200/70 dark:border-purple-500/30">
+                <Star size={10} className="fill-purple-500 text-purple-500" />
                 <span>Lv 2 Perks</span>
               </span>
             </div>
 
             <div>
               <div className="flex items-baseline justify-between">
-                <div className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white leading-tight">
                   Level 1
                 </div>
-                <div className="text-xs font-mono font-bold text-slate-500 dark:text-neutral-400 tabular-nums">
+                <div className="text-[10.5px] font-mono font-bold text-slate-500 dark:text-neutral-400 tabular-nums">
                   {xp} / 1,000 XP
                 </div>
               </div>
-              <div className="text-[11px] font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
+              <div className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 mt-0.5">
                 {1000 - xp} XP to Lv 2
               </div>
             </div>
 
             {/* Shimmering XP progress bar */}
-            <div className="relative w-full h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden bar-shimmer">
+            <div className="relative w-full h-1.5 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden bar-shimmer">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-[#006DFE] via-indigo-500 to-purple-500 transition-all duration-500"
                 style={{ width: `${(xp / 1000) * 100}%` }}
@@ -721,15 +721,15 @@ export default function Rewards() {
         ========================================================================= */}
         {/* =========================================================================
             OPEN 2-GRAPH ANALYTICS BAND (UNBOXED - EXACT MATCH TO DASHBOARD IMAGE 2)
-            Left (1 of 2): Forex Discipline Rating Semicircular Notch Gauge
-            Right (2 of 2): Discipline Curve AreaChart (Balanced Width, Fits Cleanly)
+            Left (4 cols / 12): Forex Discipline Rating Semicircular Notch Gauge (Compact Box)
+            Right (8 cols / 12): Discipline Curve AreaChart (Wide, Matching Dashboard Height)
         ========================================================================= */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 pt-5 pb-2 border-t border-slate-200/75 dark:border-white/[0.08] items-stretch mb-5 sm:mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-7 pt-5 pb-1 border-t border-slate-200/75 dark:border-white/[0.08] items-stretch mb-5 sm:mb-6">
           
-          {/* ── LEFT (1 OF 2): FOREX DISCIPLINE RATING (OPEN / NO BOX) ── */}
-          <div className="flex flex-col justify-between h-full px-0.5 pt-0.5 pb-1 select-none">
+          {/* ── LEFT (4 OF 12): FOREX DISCIPLINE RATING (COMPACT / PROPORTIONED GAUGE) ── */}
+          <div className="lg:col-span-4 flex flex-col justify-between h-full px-0.5 pt-0.5 pb-1 select-none">
             {/* Header */}
-            <div className="flex items-start justify-between gap-2 pb-2 min-h-[42px]">
+            <div className="flex items-start justify-between gap-2 mb-3 min-h-[42px]">
               <div>
                 <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight flex items-center gap-1.5">
                   <ShieldCheck size={14} className="text-[#006DFE] shrink-0" />
@@ -746,8 +746,8 @@ export default function Rewards() {
             </div>
 
             {/* Semicircle Gauge with Rounded Notches Shaded from First Colour to Last */}
-            <div className="relative flex flex-col items-center justify-center py-2 flex-1">
-              <div className="mx-auto w-full max-w-[320px]">
+            <div className="relative flex flex-col items-center justify-center min-h-[235px] h-[235px] w-full flex-1">
+              <div className="mx-auto w-full max-w-[270px]">
                 <Gauge
                   ariaLabel="Gauge - Semicircle"
                   centerValue={`${clampedScore}%`}
@@ -761,7 +761,7 @@ export default function Rewards() {
                 />
               </div>
 
-              <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
+              <div className="mt-1.5 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[10.5px] font-bold bg-blue-50 dark:bg-blue-500/10 text-[#006DFE] dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
                 <span>GRADE A+ · Top 4% of Traders</span>
               </div>
@@ -777,8 +777,8 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* ── RIGHT (2 OF 2): DISCIPLINE CURVE AREA CHART (OPEN / NO BOX, PROPER WIDTH) ── */}
-          <div className="flex flex-col justify-between h-full pt-5 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-200/75 dark:border-white/[0.08] lg:pl-8 select-none">
+          {/* ── RIGHT (8 OF 12): DISCIPLINE CURVE AREA CHART (WIDE WIDTH, SAME DASHBOARD HEIGHT) ── */}
+          <div className="lg:col-span-8 flex flex-col justify-between h-full pt-5 lg:pt-0 border-t lg:border-t-0 lg:border-l border-slate-200/75 dark:border-white/[0.08] lg:pl-7 select-none">
             {/* Header & Timeframe Switcher */}
             <div className="flex items-start justify-between gap-2 pb-2 min-h-[42px]">
               <div>
@@ -811,8 +811,8 @@ export default function Rewards() {
             </div>
 
             {/* Headline Metric Row */}
-            <div className="flex items-baseline gap-2.5 my-1">
-              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums">
+            <div className="flex items-baseline gap-2.5 mb-2">
+              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
                 {activeDataset.headline}
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
@@ -821,11 +821,12 @@ export default function Rewards() {
               </span>
             </div>
 
-            {/* AreaChart: Proper width, no line, heavier fill, faded edges */}
-            <div className="w-full flex-1 flex flex-col justify-center min-h-[200px] h-[200px]">
+            {/* AreaChart: Wide width, height matching Image 2, no line, heavier fill, faded edges */}
+            <div className="w-full flex-1 flex flex-col justify-center min-h-[195px] h-[195px] max-h-[210px]">
               <AreaChart
                 ariaLabel="Area Chart - Fill"
-                aspectRatio="16 / 9"
+                aspectRatio="auto"
+                className="w-full h-full min-h-[195px] max-h-[210px]"
                 data={activeDataset.points}
               >
                 <Grid horizontal />
@@ -889,10 +890,10 @@ export default function Rewards() {
 
         {/* ── PANEL 1: DISCIPLINE ── */}
         {activeTab === "discipline" && (
-          <div className="space-y-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch">
             
-            {/* Rule Compliance Parameters Card (with exact Uiverse 3D Horizontal Bars) */}
-            <div className={`${CARD_BASE} p-4 sm:p-5`}>
+            {/* Rule Compliance Parameters Card (Left side: 70% - 75% width, with exact Uiverse 3D Horizontal Bars) */}
+            <div className={`lg:col-span-8 xl:col-span-9 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between`}>
               
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 mb-4 border-b border-slate-100 dark:border-white/[0.06] gap-2">
@@ -928,7 +929,7 @@ export default function Rewards() {
               </div>
 
               {/* 2x2 Interactive Rule Cards with Exact Uiverse .loaderBar */}
-              <div key={replayKey} className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-3.5">
+              <div key={replayKey} className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
                 {complianceRules.map((rule) => (
                   <button
                     key={rule.id}
@@ -1031,72 +1032,80 @@ export default function Rewards() {
 
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 text-[10px] font-bold text-emerald-700 dark:text-emerald-400 shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    London &amp; NY Sessions Active
+                    London &amp; NY Active
                   </span>
                 </div>
               </div>
             </div>
 
-            {/* Weekly Consistency Log (6 Cards matching Dashboard/Journal styling) */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2 text-xs">
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    Weekly Consistency Log
-                  </span>
-                  <span className="text-slate-400 dark:text-neutral-500">
-                    · Click any session day for trade audit
-                  </span>
+            {/* Weekly Consistency Log (Right side: 25% - 30% width companion box) */}
+            <div className={`lg:col-span-4 xl:col-span-3 ${CARD_BASE} p-4 sm:p-5 flex flex-col justify-between`}>
+              <div>
+                <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100 dark:border-white/[0.06]">
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">
+                      Weekly Consistency Log
+                    </h3>
+                    <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-0.5 font-medium">
+                      Audit past 6 MT5 sessions
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-slate-500 dark:text-neutral-400">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      A+
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
+                      A
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-[10.5px] font-mono font-bold text-slate-500 dark:text-neutral-400">
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    A+ (95+)
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#006DFE]" />
-                    A (85–94)
-                  </span>
+                {/* 6 Day Cards in a 2-col (or 3-col on md) grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-2 gap-2 sm:gap-2.5">
+                  {weeklyDays.map((day) => {
+                    const isAPlus = day.tier === "A+";
+                    const dotColor = isAPlus ? "bg-emerald-500" : "bg-[#006DFE]";
+                    const gradeColor = isAPlus
+                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/70 dark:border-emerald-500/20"
+                      : "text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200/70 dark:border-blue-500/20";
+
+                    return (
+                      <button
+                        key={day.id}
+                        type="button"
+                        onClick={() => handleOpenDayModal(day)}
+                        className="p-2.5 sm:p-3 rounded-xl bg-slate-50 dark:bg-white/[0.025] border border-slate-200/70 dark:border-white/[0.06] hover:border-[#006DFE]/50 dark:hover:border-[#006DFE]/50 transition-all cursor-pointer flex flex-col items-center justify-between gap-1.5 text-center group"
+                      >
+                        <div className="w-full flex items-center justify-between text-[9px] font-mono font-bold text-slate-400">
+                          <span>{day.dayHeader}</span>
+                          <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
+                        </div>
+
+                        <div>
+                          <div className="text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
+                            {day.day}
+                          </div>
+                          <div className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums mt-0.5 group-hover:text-[#006DFE] transition-colors leading-tight">
+                            {day.score}
+                          </div>
+                        </div>
+
+                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold border ${gradeColor}`}>
+                          {day.grade}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              {/* 6 Day Cards in a row */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                {weeklyDays.map((day) => {
-                  const isAPlus = day.tier === "A+";
-                  const dotColor = isAPlus ? "bg-emerald-500" : "bg-[#006DFE]";
-                  const gradeColor = isAPlus
-                    ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200/70 dark:border-emerald-500/20"
-                    : "text-[#006DFE] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 border-blue-200/70 dark:border-blue-500/20";
-
-                  return (
-                    <button
-                      key={day.id}
-                      type="button"
-                      onClick={() => handleOpenDayModal(day)}
-                      className={`p-4 ${CARD_BASE} hover:border-[#006DFE]/50 dark:hover:border-[#006DFE]/50 transition-all cursor-pointer flex flex-col items-center justify-between gap-3 text-center group`}
-                    >
-                      <div className="w-full flex items-center justify-between text-[10px] font-mono font-bold text-slate-400">
-                        <span>{day.dayHeader}</span>
-                        <span className={`w-1.5 h-1.5 rounded-full ${dotColor}`} />
-                      </div>
-
-                      <div>
-                        <div className="text-[10.5px] font-semibold text-slate-500 dark:text-neutral-400">
-                          {day.day}
-                        </div>
-                        <div className="text-3xl font-black tracking-tight text-slate-900 dark:text-white tabular-nums mt-0.5 group-hover:text-[#006DFE] transition-colors">
-                          {day.score}
-                        </div>
-                      </div>
-
-                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold border ${gradeColor}`}>
-                        {day.grade}
-                      </span>
-                    </button>
-                  );
-                })}
+              {/* Weekly Audit Summary Strip */}
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-[10.5px] font-mono text-slate-400 dark:text-neutral-500">
+                <span>6 Sessions Audited</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400">100% Pass Rate</span>
               </div>
             </div>
 
