@@ -218,12 +218,25 @@ const WEEKLY_REWARDS = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════
-//  DISCIPLINE ARC GAUGE — Compact & Systemic (reference image)
+//  DISCIPLINE ARC GAUGE — Big & Open on Backside Page
 // ═══════════════════════════════════════════════════════════════════
-function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) {
-  const W = 160, H = 84;
-  const cx = W / 2, cy = H - 12;
-  const R = 54;
+function DisciplineArcGauge({
+  score,
+  grade,
+  size = "lg",
+}: {
+  score: number;
+  grade: string;
+  size?: "sm" | "lg";
+}) {
+  const isLg = size === "lg";
+  const W = isLg ? 280 : 160;
+  const H = isLg ? 148 : 84;
+  const cx = W / 2;
+  const cy = H - (isLg ? 18 : 12);
+  const R = isLg ? 100 : 54;
+  const strokeW = isLg ? 10 : 7;
+  const dotR = isLg ? 6 : 4.5;
 
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const arcPath = (startDeg: number, endDeg: number, r: number) => {
@@ -259,7 +272,7 @@ function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) 
               <stop offset="100%" stopColor="#2563EB" />
             </linearGradient>
             <filter id="gaugeGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feGaussianBlur stdDeviation="2.5" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
@@ -269,7 +282,7 @@ function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) 
             d={trackD}
             fill="none"
             stroke="#E2E8F0"
-            strokeWidth={7}
+            strokeWidth={strokeW}
             strokeLinecap="round"
             className="dark:stroke-white/10"
           />
@@ -279,7 +292,7 @@ function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) 
             d={fillD}
             fill="none"
             stroke="url(#gaugeGrad)"
-            strokeWidth={7}
+            strokeWidth={strokeW}
             strokeLinecap="round"
             pathLength={totalLen}
             initial={{ pathLength: 0 }}
@@ -292,36 +305,36 @@ function DisciplineArcGauge({ score, grade }: { score: number; grade: string }) 
           <motion.circle
             cx={needleX}
             cy={needleY}
-            r={4.5}
+            r={dotR}
             fill="#2563EB"
             stroke="white"
-            strokeWidth={2}
+            strokeWidth={2.5}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: 0.8, duration: 0.3 }}
-            className="drop-shadow-[0_0_5px_rgba(37,99,235,0.7)]"
+            className="drop-shadow-[0_0_6px_rgba(37,99,235,0.8)]"
           />
 
           {/* Min & Max labels */}
-          <text x={8} y={H - 2} fontSize={8.5} fontWeight={600} fill="#94A3B8" textAnchor="middle" className="tabular-nums">0</text>
-          <text x={W - 8} y={H - 2} fontSize={8.5} fontWeight={600} fill="#94A3B8" textAnchor="middle" className="tabular-nums">100</text>
+          <text x={isLg ? 24 : 8} y={H - 2} fontSize={isLg ? 11 : 8.5} fontWeight={600} fill="#94A3B8" textAnchor="middle" className="tabular-nums">0</text>
+          <text x={W - (isLg ? 24 : 8)} y={H - 2} fontSize={isLg ? 11 : 8.5} fontWeight={600} fill="#94A3B8" textAnchor="middle" className="tabular-nums">100</text>
         </svg>
 
         {/* Centered score */}
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-2.5 pointer-events-none">
-          <div className="flex items-baseline gap-0.5">
-            <span className="text-[26px] font-bold text-slate-900 dark:text-white leading-none tracking-tight tabular-nums">
+        <div className="absolute inset-0 flex flex-col items-center justify-end pb-3 pointer-events-none">
+          <div className="flex items-baseline gap-1">
+            <span className={`${isLg ? "text-[46px] sm:text-[52px]" : "text-[26px]"} font-black text-slate-900 dark:text-white leading-none tracking-tight tabular-nums`}>
               {score}
             </span>
-            <span className="text-[10px] font-semibold text-slate-400 mb-0.5">/100</span>
+            <span className={`${isLg ? "text-[14px]" : "text-[10px]"} font-semibold text-slate-400 mb-1`}>/100</span>
           </div>
         </div>
       </div>
 
       {/* Status pill below gauge */}
-      <div className="mt-1 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50/90 dark:bg-blue-500/10 border border-blue-200/50 dark:border-blue-500/20">
+      <div className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50/90 dark:bg-blue-500/10 border border-blue-200/50 dark:border-blue-500/20">
         <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] inline-block animate-pulse" />
-        <span className="text-[9.5px] font-bold text-[#2563EB] dark:text-blue-400">
+        <span className="text-[11px] font-bold text-[#2563EB] dark:text-blue-400">
           GRADE {grade} · Top 4% of Traders
         </span>
       </div>
@@ -506,14 +519,15 @@ export default function Rewards() {
             2. TOP ROW: Trader Summary Card + 3 Telemetry Cards (Matching Dashboard)
         ══════════════════════════════════════════════════════════ */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 lg:gap-4 items-stretch">
-          {/* Summary Card (col-span-5) */}
+          {/* Summary Card (col-span-5) — Score removed (already down in graph) */}
           <div className={`lg:col-span-5 ${CARD} p-3.5 sm:p-4 flex flex-col justify-between gap-3`}>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-neutral-500">
                 Discipline Status
               </span>
-              <span className="text-[9.5px] font-bold text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15 border border-blue-200/50 dark:border-blue-500/20 px-2 py-0.5 rounded-full">
-                LIVE MT5
+              <span className="inline-flex items-center gap-1.5 text-[10.5px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Active MT5
               </span>
             </div>
 
@@ -540,38 +554,29 @@ export default function Rewards() {
                 </div>
               </div>
 
-              <div className="text-right shrink-0">
-                <div className="text-[22px] font-black text-slate-900 dark:text-white tabular-nums leading-none">
-                  {disciplineState.score}<span className="text-[11px] font-medium text-slate-400">/100</span>
-                </div>
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
-                  GRADE {disciplineState.grade}
-                </span>
-              </div>
+              <button
+                type="button"
+                disabled={isWrapping || disciplineState.isSessionWrapped}
+                onClick={handleWrapUpSession}
+                className={`py-2 px-3.5 rounded-[10px] text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+                  disciplineState.isSessionWrapped
+                    ? "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-neutral-400 cursor-default border border-slate-200/60 dark:border-white/5"
+                    : "tactile-black-pill hover:scale-[1.008] shadow-xs active:scale-[0.99]"
+                }`}
+              >
+                {disciplineState.isSessionWrapped ? (
+                  <>
+                    <CheckCircle2 size={13} className="text-emerald-500" />
+                    <span>Session Finalized</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🏁</span>
+                    <span>Wrap Up Session</span>
+                  </>
+                )}
+              </button>
             </div>
-
-            <button
-              type="button"
-              disabled={isWrapping || disciplineState.isSessionWrapped}
-              onClick={handleWrapUpSession}
-              className={`w-full py-2 rounded-[10px] text-[11.5px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                disciplineState.isSessionWrapped
-                  ? "bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-neutral-400 cursor-default border border-slate-200/60 dark:border-white/5"
-                  : "tactile-black-pill hover:scale-[1.008] shadow-xs active:scale-[0.99]"
-              }`}
-            >
-              {disciplineState.isSessionWrapped ? (
-                <>
-                  <CheckCircle2 size={13} className="text-emerald-500" />
-                  <span>Session Finalized</span>
-                </>
-              ) : (
-                <>
-                  <span>🏁</span>
-                  <span>Wrap Up Session</span>
-                </>
-              )}
-            </button>
           </div>
 
           {/* 3 Telemetry Cards (col-span-7) */}
@@ -632,33 +637,32 @@ export default function Rewards() {
         </div>
 
         {/* ══════════════════════════════════════════════════════════
-            3. MIDDLE ROW: 3 ANALYTICS CARDS SIDE-BY-SIDE (Matching Dashboard Row 2)
-               Card 1: Forex Discipline Rating (Arc Gauge)
-               Card 2: Discipline Curve (Area Chart)
-               Card 3: TRADIFIVE SCORE (5-Axis Radar)
+            3. MIDDLE ROW: 2 BIG ANALYTICS VISUALIZATIONS OPEN ON BACKSIDE PAGE (NO BOX)
+               Left: Forex Discipline Rating (Large Arc Gauge)
+               Right: Discipline Curve (Large Area Chart)
         ══════════════════════════════════════════════════════════ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 lg:gap-4 items-stretch">
-          {/* Card 1: Forex Discipline Rating */}
-          <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between gap-2`}>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8 items-stretch pt-1 pb-1">
+          {/* Item 1: Forex Discipline Rating (Open on page background, NO BOX) */}
+          <div className="lg:col-span-5 flex flex-col justify-between gap-3 p-1 sm:p-2">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">
+                <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight">
                   Forex Discipline Rating
                 </h3>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
                   Real-time MT5 compliance
                 </p>
               </div>
-              <span className="text-[10px] font-bold text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15 border border-blue-200/50 dark:border-blue-500/20 px-2 py-0.5 rounded-full">
+              <span className="text-[10.5px] font-bold text-[#2563EB] dark:text-blue-400 bg-blue-50/80 dark:bg-blue-500/15 border border-blue-200/50 dark:border-blue-500/20 px-2.5 py-0.5 rounded-full">
                 GRADE {disciplineState.grade}
               </span>
             </div>
 
-            <div className="flex flex-col items-center justify-center my-auto py-1">
-              <DisciplineArcGauge score={disciplineState.score} grade={disciplineState.grade} />
+            <div className="flex flex-col items-center justify-center my-auto py-2">
+              <DisciplineArcGauge score={disciplineState.score} grade={disciplineState.grade} size="lg" />
             </div>
 
-            <div className="flex items-center justify-between text-[10.5px] pt-1.5 border-t border-slate-100 dark:border-white/[0.05]">
+            <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-200/60 dark:border-white/[0.08]">
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 Stop Loss: 100% Verified
               </span>
@@ -668,20 +672,20 @@ export default function Rewards() {
             </div>
           </div>
 
-          {/* Card 2: Discipline Curve */}
-          <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between gap-2`}>
+          {/* Item 2: Discipline Curve (Open on page background, NO BOX) */}
+          <div className="lg:col-span-7 flex flex-col justify-between gap-3 p-1 sm:p-2">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
-                  <TrendingUp size={13} className="text-[#2563EB] dark:text-blue-400" />
+                <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
+                  <TrendingUp size={15} className="text-[#2563EB] dark:text-blue-400" />
                   <span>Discipline Curve</span>
                 </h3>
-                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
                   Closed trade equity curve
                 </p>
               </div>
 
-              <div className="inline-flex items-center p-0.5 rounded-[7px] bg-slate-200/70 dark:bg-white/[0.07]">
+              <div className="inline-flex items-center p-0.5 rounded-[8px] bg-slate-200/70 dark:bg-white/[0.07]">
                 {(["7D", "14D", "All"] as const).map((tab) => {
                   const active = chartTimeframe === tab;
                   return (
@@ -689,7 +693,7 @@ export default function Rewards() {
                       key={tab}
                       type="button"
                       onClick={() => setChartTimeframe(tab)}
-                      className={`relative px-2 py-0.5 rounded-[5px] text-[10px] font-semibold transition-colors cursor-pointer ${
+                      className={`relative px-2.5 py-1 rounded-[6px] text-[10.5px] font-semibold transition-colors cursor-pointer ${
                         active
                           ? "text-slate-900 dark:text-white"
                           : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
@@ -699,7 +703,7 @@ export default function Rewards() {
                         <motion.span
                           layoutId="rewards-curve-pill"
                           transition={{ type: "spring", stiffness: 480, damping: 34 }}
-                          className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[5px] shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+                          className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[6px] shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
                         />
                       )}
                       <span className="relative z-10">{tab}</span>
@@ -709,30 +713,30 @@ export default function Rewards() {
               </div>
             </div>
 
-            <div className="flex items-baseline gap-2 pt-0.5">
-              <span className="text-[24px] sm:text-[26px] font-bold text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
+            <div className="flex items-baseline gap-2 pt-1">
+              <span className="text-[34px] sm:text-[38px] font-black text-slate-900 dark:text-white tabular-nums tracking-tight leading-none">
                 +96.0%
               </span>
-              <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200/50 dark:border-emerald-500/20 px-1.5 py-0.5 rounded-full">
-                ↗ +4.8%
+              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/50 dark:border-emerald-500/20 px-2 py-0.5 rounded-full">
+                ↗ +4.8% this week
               </span>
             </div>
 
-            <div className="w-full h-[110px]">
+            <div className="w-full h-[185px] sm:h-[205px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={CURVE_DATA[chartTimeframe] || CURVE_DATA["14D"]}
-                  margin={{ top: 4, right: 4, left: -18, bottom: 0 }}
+                  margin={{ top: 8, right: 8, left: -18, bottom: 0 }}
                 >
                   <defs>
                     <linearGradient id="areaFillRewards" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#2563EB" stopOpacity={0.2} />
+                      <stop offset="0%" stopColor="#2563EB" stopOpacity={0.25} />
                       <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.12)" vertical={false} />
-                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={9} tickLine={false} axisLine={false} />
-                  <YAxis domain={[75, 100]} ticks={[75, 85, 95, 100]} stroke="#94A3B8" fontSize={9} tickLine={false} axisLine={false} width={32} tickFormatter={(v) => `${v}%`} />
+                  <XAxis dataKey="date" stroke="#94A3B8" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis domain={[75, 100]} ticks={[75, 85, 95, 100]} stroke="#94A3B8" fontSize={10} tickLine={false} axisLine={false} width={34} tickFormatter={(v) => `${v}%`} />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload?.length) {
@@ -747,20 +751,15 @@ export default function Rewards() {
                       return null;
                     }}
                   />
-                  <Area type="monotone" dataKey="score" stroke="#2563EB" strokeWidth={2} fillOpacity={1} fill="url(#areaFillRewards)" dot={false} />
+                  <Area type="monotone" dataKey="score" stroke="#2563EB" strokeWidth={2.5} fillOpacity={1} fill="url(#areaFillRewards)" dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="flex items-center justify-between text-[10.5px] pt-1.5 border-t border-slate-100 dark:border-white/[0.05]">
+            <div className="flex items-center justify-between text-[11px] pt-2 border-t border-slate-200/60 dark:border-white/[0.08]">
               <span className="text-slate-400 dark:text-neutral-500">16 closed sessions</span>
               <span className="font-bold text-[#2563EB] dark:text-blue-400 tabular-nums">Score: 96%</span>
             </div>
-          </div>
-
-          {/* Card 3: TRADIFIVE SCORE 5-Axis Radar */}
-          <div className={`${CARD} p-3.5 sm:p-4 flex flex-col justify-between gap-1.5 overflow-hidden`}>
-            <ChartRadarDefault demoTrades={demoData.allTrades} frameless />
           </div>
         </div>
 
