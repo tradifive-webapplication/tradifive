@@ -7,6 +7,8 @@ import {
   EyeOff,
   Zap,
   RefreshCw,
+  ShieldCheck,
+  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -117,22 +119,22 @@ export default function ConnectBrokerTopDrawer({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center">
-          {/* Backdrop overlay */}
+          {/* Backdrop overlay with smooth blur & fade */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
           />
 
-          {/* Top Drawer Panel sliding down from the top */}
+          {/* Top Drawer Panel sliding down with buttery spring animation */}
           <motion.div
             initial={{ y: "-100%", opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "-100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            transition={{ type: "spring", damping: 28, stiffness: 300, mass: 0.85 }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0.8, bottom: 0.05 }}
@@ -141,14 +143,19 @@ export default function ConnectBrokerTopDrawer({
                 onClose();
               }
             }}
-            className="relative z-50 w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white dark:bg-[#161619] border-b border-x border-slate-200/80 dark:border-white/10 rounded-b-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] select-none overscroll-contain"
+            className="relative z-50 w-full max-w-3xl max-h-[90vh] overflow-hidden bg-white dark:bg-[#161619] border-b border-x border-slate-200/80 dark:border-white/10 rounded-b-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] select-none overscroll-contain flex flex-col"
           >
             {/* Drawer Header */}
-            <div className="flex items-start justify-between px-6 sm:px-7 pt-5 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+            <div className="flex items-start justify-between px-6 sm:px-8 pt-5 pb-4 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white flex items-center justify-center border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs">
+                <motion.div
+                  initial={{ scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 350, damping: 25 }}
+                  className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white flex items-center justify-center border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs"
+                >
                   <Server size={18} strokeWidth={2.2} />
-                </div>
+                </motion.div>
                 <div>
                   <h2 className="text-[17px] sm:text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
                     Connect Broker Account
@@ -159,21 +166,26 @@ export default function ConnectBrokerTopDrawer({
                 </div>
               </div>
 
-              <button
+              {/* Close Button with micro-tap animation */}
+              <motion.button
+                whileTap={{ scale: 0.92 }}
                 type="button"
                 onClick={onClose}
                 className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white bg-slate-100/90 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 border border-slate-200/60 dark:border-white/10 shadow-2xs transition-all cursor-pointer shrink-0 ml-3"
                 title="Close"
               >
                 <X size={15} strokeWidth={2.2} />
-              </button>
+              </motion.button>
             </div>
 
-            {/* Form Body: ONLY Server, Username, Password */}
-            <form
+            {/* Form Body: ONLY Server, Username, Password with smooth staggered entrance */}
+            <motion.form
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08, duration: 0.28, ease: "easeOut" }}
               onSubmit={handleConnectMT5}
               onPointerDownCapture={(e) => e.stopPropagation()}
-              className="px-6 sm:px-7 py-5 space-y-4"
+              className="px-6 sm:px-8 py-5 space-y-4"
             >
               <div className="space-y-3.5">
                 <div>
@@ -185,7 +197,7 @@ export default function ConnectBrokerTopDrawer({
                     value={brokerServer}
                     onChange={(e) => setBrokerServer(e.target.value)}
                     placeholder="e.g. Exness-Real14, FTMO-Server"
-                    className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all font-medium"
                     required
                   />
                 </div>
@@ -200,7 +212,7 @@ export default function ConnectBrokerTopDrawer({
                       value={accountNumber}
                       onChange={(e) => setAccountNumber(e.target.value)}
                       placeholder="e.g. 89124412"
-                      className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 font-mono transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 font-mono transition-all font-semibold"
                       required
                     />
                   </div>
@@ -221,7 +233,7 @@ export default function ConnectBrokerTopDrawer({
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                         title={showPassword ? "Hide password" : "Show password"}
                       >
                         {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -231,19 +243,30 @@ export default function ConnectBrokerTopDrawer({
                 </div>
               </div>
 
-              {/* Action Buttons: Consistent Tactile Pills */}
-              <div className="pt-3 flex items-center justify-end gap-3">
-                <button
+              {/* Encryption & Security note */}
+              <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-neutral-500 pt-1">
+                <span className="flex items-center gap-1.5">
+                  <Lock size={12} className="text-emerald-500" />
+                  <span>256-Bit Encrypted Direct FIX Bridge</span>
+                </span>
+                <span>Investor / Read-Only Pass Supported</span>
+              </div>
+
+              {/* Action Buttons: Consistent Tactile Pills with micro-interactions */}
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   type="button"
                   onClick={onClose}
-                  className="tactile-white-pill rounded-full px-5 py-2 text-[12.5px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
+                  className="tactile-white-pill rounded-full px-5 py-2 text-[12.5px] font-semibold cursor-pointer select-none transition-all"
                 >
                   Cancel
-                </button>
-                <button
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   type="submit"
                   disabled={isSubmitting}
-                  className="tactile-black-pill rounded-full px-6 py-2 font-bold text-[12.5px] active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none"
+                  className="tactile-black-pill rounded-full px-6 py-2 font-bold text-[12.5px] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none shadow-sm"
                 >
                   {isSubmitting ? (
                     <>
@@ -256,17 +279,21 @@ export default function ConnectBrokerTopDrawer({
                       <span>Connect MT5 Account</span>
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
-            </form>
+            </motion.form>
 
-            {/* Bottom Grab Handle & Swipe Bar */}
+            {/* Bottom Grab Handle & Swipe Bar with interactive hover animation */}
             <div
               onClick={onClose}
-              className="flex items-center justify-center py-3 border-t border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group rounded-b-[28px]"
+              className="flex items-center justify-center py-3 border-t border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group rounded-b-[28px] mt-auto"
               title="Drag up or click to close"
             >
-              <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-white/25 group-hover:bg-slate-400 dark:group-hover:bg-white/40 transition-colors" />
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-white/25 group-hover:bg-slate-400 dark:group-hover:bg-white/40 transition-colors"
+              />
             </div>
           </motion.div>
         </div>
