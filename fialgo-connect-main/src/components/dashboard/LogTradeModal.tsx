@@ -7,15 +7,16 @@ import {
   FileSpreadsheet,
   Check,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  ShieldCheck,
   Calendar,
   Clock,
-  Image as ImageIcon,
-  ShieldCheck,
-  Tag,
-  AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import FileUpload from "@/components/ui/FileUpload";
 
 export interface LogTradeModalProps {
   isOpen?: boolean;
@@ -27,15 +28,13 @@ export interface LogTradeModalProps {
   onSaved?: () => void;
 }
 
-type ModeTab = "basic" | "advanced" | "no_trade_day";
 type DirectionType = "BUY" | "SELL";
-type AssetClassType = "Futures" | "Forex" | "Crypto" | "Stocks" | "Indices" | "Commodities";
-type TradeTypeCategory = "Day Trade" | "Scalp" | "Swing" | "Position";
 type SessionType = "Asia" | "London" | "NY AM" | "NY PM" | "No session";
 type GradeType = "A+" | "A" | "B" | "C" | "F";
+type AssetClassType = "Futures" | "Forex" | "Crypto" | "Stocks" | "Indices" | "Commodities";
 
-const POPULAR_SETUPS = ["Liquidity Sweep", "Order Block", "FVG", "Breakout", "Break & Retest", "BOS / CHoCH"];
-const POPULAR_MISTAKES = ["FOMO", "Chased Entry", "Revenge Trade", "Moved Stop Loss", "Overleveraged", "Early Exit"];
+const POPULAR_SETUPS = ["Liquidity Sweep", "Order Block", "FVG", "Breakout", "BOS / CHoCH"];
+const POPULAR_MISTAKES = ["FOMO", "Chased Entry", "Revenge Trade", "Moved Stop Loss", "Overleveraged"];
 
 export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   isOpen,
@@ -47,61 +46,41 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   onSaved,
 }) => {
   const isModalOpen = isOpen ?? open ?? false;
-  const isImportMode = initialTab === "import";
 
-  // Manual Sub-mode: Basic | Advanced | No Trade Day
-  const [modeTab, setModeTab] = useState<ModeTab>("basic");
+  // Active View Tab: "manual" or "import"
+  const [activeTab, setActiveTab] = useState<"manual" | "import">(initialTab);
 
-  // Form State - Trade Info
-  const [symbol, setSymbol] = useState("MNQ");
-  const [tradeDate, setTradeDate] = useState(() => new Date().toISOString().split("T")[0]);
-  const [assetClass, setAssetClass] = useState<AssetClassType>("Futures");
-  const [tradeCategory, setTradeCategory] = useState<TradeTypeCategory>("Day Trade");
-  const [closedAnotherDay, setClosedAnotherDay] = useState(false);
-  const [exitDate, setExitDate] = useState(() => new Date().toISOString().split("T")[0]);
+  useEffect(() => {
+    if (isModalOpen) {
+      setActiveTab(initialTab);
+    }
+  }, [isModalOpen, initialTab]);
+
+  // Form State - Compact Core Fields (matches user's reference exactly)
+  const [symbol, setSymbol] = useState("XAUUSD");
   const [direction, setDirection] = useState<DirectionType>("BUY");
+  const [profit, setProfit] = useState("");
+  const [lotSize, setLotSize] = useState("0.10");
+  const [rMultiple, setRMultiple] = useState("2.0");
+  const [setupTag, setSetupTag] = useState("");
+  const [notes, setNotes] = useState("");
+  const [pictures, setPictures] = useState<string[]>([]);
 
-  // Session
-  const [entryTime, setEntryTime] = useState("");
+  // Advanced section accordion
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [tradeDate, setTradeDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [session, setSession] = useState<SessionType>("No session");
-
-  // Plan & Account
   const [followedPlan, setFollowedPlan] = useState<"yes" | "no">("yes");
-  const [selectedAccount, setSelectedAccount] = useState("None");
-  const [availableAccounts, setAvailableAccounts] = useState<string[]>(["None"]);
-
-  // Execution
+  const [grade, setGrade] = useState<GradeType>("A");
+  const [assetClass, setAssetClass] = useState<AssetClassType>("Forex");
   const [entryPrice, setEntryPrice] = useState("");
   const [exitPrice, setExitPrice] = useState("");
-  const [profit, setProfit] = useState("");
-  const [lotSize, setLotSize] = useState("1");
-  const [plannedRr, setPlannedRr] = useState("");
-  const [realizedRr, setRealizedRr] = useState("");
-
-  // Advanced-only fields
-  const [stopLoss, setStopLoss] = useState("");
-  const [takeProfit, setTakeProfit] = useState("");
-  const [selectedSetups, setSelectedSetups] = useState<string[]>([]);
-  const [selectedMistakes, setSelectedMistakes] = useState<string[]>([]);
-
-  // Performance & Grade
-  const [grade, setGrade] = useState<GradeType>("A");
-
-  // Notes
-  const [notes, setNotes] = useState("");
-
-  // Pictures / Screenshots
-  const [pictureMode, setPictureMode] = useState<"upload" | "link">("upload");
-  const [imageUrlInput, setImageUrlInput] = useState("");
-  const [pictures, setPictures] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const csvFileInputRef = useRef<HTMLInputElement | null>(null);
-
-  // No Trade Day specific fields
-  const [noTradeReason, setNoTradeReason] = useState("Market conditions choppy / No high-probability setup");
-  const [noTradeNotes, setNoTradeNotes] = useState("");
+  const [selectedAccount, setSelectedAccount] = useState("None");
+  const [availableAccounts, setAvailableAccounts] = useState<string[]>(["None"]);
+  const [isNoTradeDay, setIsNoTradeDay] = useState(false);
 
   const [saving, setSaving] = useState(false);
+  const csvFileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Fetch accounts on open
   useEffect(() => {
@@ -136,36 +115,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen, onClose]);
 
-  // Global paste handler for images
-  useEffect(() => {
-    if (!isModalOpen || isImportMode) return;
-
-    const handlePaste = (e: ClipboardEvent) => {
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.indexOf("image") !== -1) {
-          const blob = items[i].getAsFile();
-          if (blob) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              if (reader.result) {
-                setPictures((prev) => [...prev, reader.result as string]);
-                toast.success("Screenshot pasted from clipboard!");
-              }
-            };
-            reader.readAsDataURL(blob);
-          }
-        }
-      }
-    };
-
-    window.addEventListener("paste", handlePaste);
-    return () => window.removeEventListener("paste", handlePaste);
-  }, [isModalOpen, isImportMode]);
-
-  // Auto calculate P&L when prices and lot change (if user hasn't typed a custom P&L)
+  // Auto calculate P&L when prices and lot change
   const handleAutoCalcPnl = (entryStr: string, exitStr: string, sizeStr: string, dir: DirectionType) => {
     const en = parseFloat(entryStr);
     const ex = parseFloat(exitStr);
@@ -182,42 +132,12 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
     if (onSaved) onSaved();
   };
 
-  // Picture Upload handler
-  const handlePictureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (reader.result) {
-          setPictures((prev) => [...prev, reader.result as string]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-    toast.success(`Attached ${files.length} image${files.length > 1 ? "s" : ""}`);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const handleAddImageUrl = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!imageUrlInput.trim()) return;
-    setPictures((prev) => [...prev, imageUrlInput.trim()]);
-    setImageUrlInput("");
-    toast.success("Image link attached!");
-  };
-
-  const removePicture = (index: number) => {
-    setPictures((prev) => prev.filter((_, i) => i !== index));
-  };
-
   // Manual Submit
   const handleManualSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const pnlNum = parseFloat(profit.replace(/[+$,₹\s]/g, ""));
 
-    if (modeTab !== "no_trade_day" && (!symbol.trim() || isNaN(pnlNum))) {
+    if (!isNoTradeDay && (!symbol.trim() || isNaN(pnlNum))) {
       toast.error("Please enter a valid Symbol and P&L amount.");
       return;
     }
@@ -232,16 +152,11 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
         return;
       }
 
-      const openedIso = new Date(`${tradeDate}T${entryTime || "12:00"}:00`).toISOString();
-      const closedIso = closedAnotherDay
-        ? new Date(`${exitDate}T16:00:00`).toISOString()
-        : openedIso;
-
+      const openedIso = new Date(`${tradeDate}T12:00:00`).toISOString();
       const lotNum = parseFloat(lotSize) || 1;
-      const rrNum = parseFloat(realizedRr || plannedRr);
+      const rrNum = parseFloat(rMultiple);
 
-      if (modeTab === "no_trade_day") {
-        // Record a disciplined No Trade Day
+      if (isNoTradeDay) {
         const { error } = await supabase.from("trades").insert({
           user_id: user.id,
           ticket: `NO-TRADE-${Date.now()}`,
@@ -251,9 +166,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
           profit: 0,
           risk_reward_ratio: null,
           setup: "No Trade Day",
-          notes: `[Reason: ${noTradeReason}] ${noTradeNotes}`.trim(),
+          notes: notes.trim() || "Disciplined No Trade Day logged to protect capital and streak.",
           opened_at: openedIso,
-          closed_at: closedIso,
+          closed_at: openedIso,
           status: "closed",
           source: "no_trade_day",
           is_pending: false,
@@ -262,17 +177,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
         if (error) throw error;
         toast.success("Disciplined No Trade Day recorded! Streak protected.");
       } else {
-        // Structured trade insert
-        const setupString = [
-          session !== "No session" ? session : "",
-          tradeCategory,
-          ...selectedSetups,
-        ].filter(Boolean).join(" · ");
-
         const fullNotes = [
           notes.trim(),
           `[Grade: ${grade}] [Session: ${session}] [Plan: ${followedPlan.toUpperCase()}]`,
-          selectedMistakes.length > 0 ? `[Mistakes: ${selectedMistakes.join(", ")}]` : "",
           pictures.length > 0 ? `[Screenshots: ${pictures.length} attached]` : "",
         ]
           .filter(Boolean)
@@ -286,10 +193,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
           lot_size: lotNum,
           profit: pnlNum,
           risk_reward_ratio: !isNaN(rrNum) ? rrNum : null,
-          setup: setupString || null,
+          setup: setupTag.trim() || null,
           notes: fullNotes,
           opened_at: openedIso,
-          closed_at: closedIso,
+          closed_at: openedIso,
           status: "closed",
           source: "manual",
           is_pending: false,
@@ -399,133 +306,94 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
     }
   };
 
-  const formattedDateHeadline = new Date(tradeDate).toLocaleDateString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-
   return (
     <AnimatePresence>
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center">
+        <div className="fixed inset-0 z-50 flex items-start justify-center p-2 sm:p-4 sm:pt-6">
           {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.22 }}
             onClick={onClose}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
           />
 
-          {/* Top Drawer Panel sliding down from ceiling */}
+          {/* Modal / Top-Drawer Dialog - Compact, refined sizing */}
           <motion.div
-            initial={{ y: "-100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "-100%", opacity: 0 }}
-            transition={{ type: "spring", damping: 28, stiffness: 300 }}
-            drag="y"
-            dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0.8, bottom: 0.05 }}
-            onDragEnd={(_, info) => {
-              if (info.offset.y < -50 || info.velocity.y < -250) {
-                onClose();
-              }
-            }}
-            className={`relative z-50 w-full ${
-              isImportMode ? "max-w-2xl sm:max-w-3xl" : "max-w-5xl"
-            } max-h-[92vh] overflow-hidden bg-white dark:bg-[#161619] border-b border-x border-slate-200/80 dark:border-white/10 rounded-b-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] select-none overscroll-contain flex flex-col transition-all duration-300`}
+            initial={{ y: -24, opacity: 0, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: -24, opacity: 0, scale: 0.98 }}
+            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.75 }}
+            className="relative z-50 w-full max-w-[480px] max-h-[92vh] overflow-hidden bg-white dark:bg-[#161619] border border-slate-200/90 dark:border-white/10 rounded-[28px] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] select-none flex flex-col overscroll-contain"
           >
-            {/* Drawer Header */}
-            <div className="flex items-center justify-between px-6 sm:px-8 pt-4 pb-3.5 border-b border-slate-100 dark:border-white/[0.06] shrink-0 bg-white dark:bg-[#161619]">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/[0.08] text-slate-900 dark:text-white flex items-center justify-center border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs">
-                  {isImportMode ? (
-                    <FileSpreadsheet size={18} strokeWidth={2.2} />
-                  ) : (
-                    <PlusCircle size={18} strokeWidth={2.2} />
-                  )}
+            {/* Header: Exact reference styling */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 dark:border-white/[0.06] shrink-0 bg-white dark:bg-[#161619]">
+              {/* When in Dedicated Import Mode: Title without manual switcher */}
+              {initialTab === "import" ? (
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-800 dark:text-white flex items-center justify-center border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs">
+                    <FileSpreadsheet size={16} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                      Import Trades
+                    </h2>
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+                      Upload CSV export from MT5, TradingView, or broker statements.
+                    </p>
+                  </div>
                 </div>
-
-                <div>
-                  <h2 className="text-[17px] sm:text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                    {isImportMode ? "Import Trades" : "Log Trade"}
-                  </h2>
-                  <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                    {isImportMode
-                      ? "Upload CSV export from MT5, TradingView, or broker statements."
-                      : "Full trade journaling with execution metrics, sessions, discipline rating, and screenshots."}
-                  </p>
+              ) : (
+                /* When in Log Trade: Header with segmented pills matching Image 2 */
+                <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] border border-slate-200/80 dark:border-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("manual")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all cursor-pointer select-none ${
+                      activeTab === "manual"
+                        ? "bg-white dark:bg-[#222226] text-slate-900 dark:text-white shadow-xs"
+                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    <PlusCircle size={13} strokeWidth={2.2} />
+                    <span>Log Trade</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("import")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold transition-all cursor-pointer select-none ${
+                      activeTab === "import"
+                        ? "bg-white dark:bg-[#222226] text-slate-900 dark:text-white shadow-xs"
+                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                    }`}
+                  >
+                    <Upload size={12} strokeWidth={2.2} />
+                    <span>Import CSV</span>
+                  </button>
                 </div>
-              </div>
+              )}
 
               {/* Close Button */}
               <button
                 type="button"
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white bg-slate-100/90 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 border border-slate-200/60 dark:border-white/10 shadow-2xs transition-all cursor-pointer shrink-0 ml-3"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white bg-slate-100/90 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 border border-slate-200/60 dark:border-white/10 shadow-2xs transition-all cursor-pointer shrink-0"
                 title="Close"
               >
-                <X size={15} strokeWidth={2.2} />
+                <X size={14} strokeWidth={2.2} />
               </button>
             </div>
-
-            {/* Mode Pills Sub-Header (Only in Manual mode) */}
-            {!isImportMode && (
-              <div className="px-6 sm:px-8 py-2.5 bg-slate-50/70 dark:bg-white/[0.02] border-b border-slate-100 dark:border-white/[0.05] flex items-center justify-between gap-3 shrink-0">
-                <div className="inline-flex items-center p-1 rounded-xl bg-slate-200/60 dark:bg-white/[0.06] border border-slate-300/50 dark:border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setModeTab("basic")}
-                    className={`px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer select-none ${
-                      modeTab === "basic"
-                        ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-sm"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    Basic
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setModeTab("advanced")}
-                    className={`px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer select-none ${
-                      modeTab === "advanced"
-                        ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-sm"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    Advanced
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setModeTab("no_trade_day")}
-                    className={`px-4 py-1.5 rounded-lg text-[12px] font-bold transition-all cursor-pointer select-none ${
-                      modeTab === "no_trade_day"
-                        ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-sm"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                  >
-                    No Trade Day
-                  </button>
-                </div>
-
-                <div className="text-[11.5px] text-slate-500 dark:text-neutral-400 font-medium hidden sm:block">
-                  {modeTab === "basic" && "Fast entry for quick setups & P&L"}
-                  {modeTab === "advanced" && "Complete targets, tags & rule adherence"}
-                  {modeTab === "no_trade_day" && "Log discipline hold to protect streak & psychology"}
-                </div>
-              </div>
-            )}
 
             {/* Scrollable Body Content */}
             <div
               onPointerDownCapture={(e) => e.stopPropagation()}
-              className="overflow-y-auto max-h-[calc(92vh-140px)] px-6 sm:px-8 py-5 select-text"
+              className="overflow-y-auto max-h-[calc(92vh-100px)] px-5 py-4 select-text"
             >
-              {isImportMode ? (
-                /* ── IMPORT CSV VIEW (Purely CSV upload, clean & systemic) ── */
-                <div className="space-y-4 max-w-2xl mx-auto py-2">
+              {activeTab === "import" ? (
+                /* ── DEDICATED IMPORT CSV VIEW (Matching Image 6) ── */
+                <div className="space-y-4 py-2">
                   <input
                     ref={csvFileInputRef}
                     type="file"
@@ -535,15 +403,15 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                   />
                   <div
                     onClick={() => csvFileInputRef.current?.click()}
-                    className="w-full py-16 px-6 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30 bg-slate-50/60 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center transition-all cursor-pointer group"
+                    className="w-full py-10 px-5 rounded-2xl border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30 bg-slate-50/60 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center transition-all cursor-pointer group"
                   >
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-800 dark:text-white shadow-2xs mb-3 group-hover:scale-105 transition-transform">
-                      <FileSpreadsheet size={24} strokeWidth={2.2} />
+                    <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-800 dark:text-white shadow-2xs mb-2.5 group-hover:scale-105 transition-transform">
+                      <FileSpreadsheet size={20} strokeWidth={2.2} />
                     </div>
-                    <p className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight">
+                    <p className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
                       {saving ? "Importing trades..." : "Upload CSV Trade History"}
                     </p>
-                    <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-1 max-w-[340px]">
+                    <p className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5 max-w-[280px]">
                       Include column headers such as{" "}
                       <span className="font-mono text-slate-700 dark:text-neutral-200 font-semibold">
                         symbol, side, lot, profit, date
@@ -553,785 +421,395 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                     <button
                       type="button"
                       disabled={saving}
-                      className="mt-4 tactile-black-pill rounded-full px-6 py-2.5 font-bold text-[12.5px] flex items-center gap-2 cursor-pointer transition-all active:scale-95 select-none"
+                      className="mt-3 tactile-black-pill rounded-full px-5 py-2 font-bold text-[12px] flex items-center gap-2 cursor-pointer transition-all active:scale-95 select-none"
                     >
                       {saving ? (
                         <>
-                          <RefreshCw size={13} className="animate-spin" />
+                          <RefreshCw size={12} className="animate-spin" />
                           <span>Processing CSV...</span>
                         </>
                       ) : (
                         <>
-                          <Upload size={13} />
+                          <Upload size={12} />
                           <span>Choose CSV File</span>
                         </>
                       )}
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-end pt-2">
+                  <div className="flex items-center justify-end pt-1">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="tactile-white-pill rounded-full px-5 py-2 text-[12.5px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
+                      className="tactile-white-pill rounded-full px-5 py-2 text-[12px] font-semibold cursor-pointer select-none transition-all"
                     >
                       Cancel
                     </button>
                   </div>
                 </div>
-              ) : modeTab === "no_trade_day" ? (
-                /* ── NO TRADE DAY SCREEN ── */
-                <form onSubmit={handleManualSubmit} className="max-w-2xl mx-auto space-y-4 py-2">
-                  <div className="p-5 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/10 space-y-4">
-                    <div className="flex items-center gap-3 pb-3 border-b border-slate-200/60 dark:border-white/10">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                        <ShieldCheck size={20} />
-                      </div>
-                      <div>
-                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
-                          Log Disciplined No-Trade Day
-                        </h3>
-                        <p className="text-[12px] text-slate-500 dark:text-neutral-400">
-                          Preserve your consistency streak without forcing suboptimal trades.
-                        </p>
-                      </div>
-                    </div>
-
+              ) : (
+                /* ── COMPACT LOG TRADE VIEW (Exact Match to User Reference Image 2) ── */
+                <form onSubmit={handleManualSubmit} className="space-y-3.5">
+                  {/* Row 1: SYMBOL & DIRECTION */}
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5">
-                        Date
+                      <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                        Symbol
                       </label>
                       <input
-                        type="date"
-                        value={tradeDate}
-                        onChange={(e) => setTradeDate(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl text-[13px] font-medium bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
+                        type="text"
+                        value={symbol}
+                        onChange={(e) => setSymbol(e.target.value)}
+                        placeholder="XAUUSD"
+                        className="w-full h-[38px] px-3.5 rounded-xl text-[13px] font-bold bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white uppercase transition-all"
+                        required={!isNoTradeDay}
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5">
-                        Discipline Reason
+                      <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                        Direction
                       </label>
-                      <select
-                        value={noTradeReason}
-                        onChange={(e) => setNoTradeReason(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
-                      >
-                        <option value="Market conditions choppy / No high-probability setup">
-                          Market conditions choppy / No high-probability setup
-                        </option>
-                        <option value="High-impact news event (Fed, CPI, NFP) avoided">
-                          High-impact news event (Fed, CPI, NFP) avoided
-                        </option>
-                        <option value="Followed trading rules: Daily limit or risk threshold met">
-                          Followed trading rules: Daily limit or risk threshold met
-                        </option>
-                        <option value="Psychological check: Rested and avoided revenge trading">
-                          Psychological check: Rested and avoided revenge trading
-                        </option>
-                        <option value="Personal schedule / Away from terminal">
-                          Personal schedule / Away from terminal
-                        </option>
-                      </select>
+                      <div className="grid grid-cols-2 gap-1.5 h-[38px]">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDirection("BUY");
+                            handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "BUY");
+                          }}
+                          className={`rounded-xl text-[12px] font-bold transition-all cursor-pointer select-none flex items-center justify-center ${
+                            direction === "BUY"
+                              ? "bg-emerald-600 text-white shadow-xs"
+                              : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/[0.08]"
+                          }`}
+                        >
+                          BUY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setDirection("SELL");
+                            handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "SELL");
+                          }}
+                          className={`rounded-xl text-[12px] font-bold transition-all cursor-pointer select-none flex items-center justify-center ${
+                            direction === "SELL"
+                              ? "bg-rose-600 text-white shadow-xs"
+                              : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/[0.08]"
+                          }`}
+                        >
+                          SELL
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Row 2: P&L ($), LOT SIZE, R-MULTIPLE (3 Equal Columns) */}
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <div>
+                      <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                        P&L ({currencySymbol})
+                      </label>
+                      <input
+                        type="text"
+                        value={profit}
+                        onChange={(e) => setProfit(e.target.value)}
+                        placeholder="+125.00"
+                        className={`w-full h-[38px] px-3 rounded-xl text-[13px] font-bold bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white font-mono transition-all ${
+                          profit.startsWith("+")
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : profit.startsWith("-")
+                            ? "text-rose-600 dark:text-rose-400"
+                            : "text-slate-900 dark:text-white"
+                        }`}
+                        required={!isNoTradeDay}
+                      />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1.5">
-                        Reflection &amp; Market Notes
+                      <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                        Lot Size
                       </label>
-                      <textarea
-                        rows={3}
-                        value={noTradeNotes}
-                        onChange={(e) => setNoTradeNotes(e.target.value)}
-                        placeholder="What did the market do today? How did waiting protect your capital?"
-                        className="w-full px-4 py-2.5 rounded-xl text-[13px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all resize-none"
+                      <input
+                        type="text"
+                        value={lotSize}
+                        onChange={(e) => {
+                          setLotSize(e.target.value);
+                          handleAutoCalcPnl(entryPrice, exitPrice, e.target.value, direction);
+                        }}
+                        placeholder="0.10"
+                        className="w-full h-[38px] px-3 rounded-xl text-[13px] font-semibold bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white font-mono transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                        R-Multiple
+                      </label>
+                      <input
+                        type="text"
+                        value={rMultiple}
+                        onChange={(e) => setRMultiple(e.target.value)}
+                        placeholder="2.0"
+                        className="w-full h-[38px] px-3 rounded-xl text-[13px] font-semibold bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white font-mono transition-all"
                       />
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-3 pt-2">
+                  {/* Row 3: SETUP / TAG (OPTIONAL) */}
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                      Setup / Tag (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={setupTag}
+                      onChange={(e) => setSetupTag(e.target.value)}
+                      placeholder="e.g. NY Open FVG, Liquidity Sweep"
+                      className="w-full h-[38px] px-3.5 rounded-xl text-[12.5px] bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white transition-all font-medium"
+                    />
+                  </div>
+
+                  {/* Row 4: NOTES (OPTIONAL) */}
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                      Notes (Optional)
+                    </label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="What went well or what would you improve?"
+                      rows={2}
+                      className="w-full px-3.5 py-2 rounded-xl text-[12.5px] bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white focus:border-zinc-950 dark:focus:border-white resize-none transition-all font-medium"
+                    />
+                  </div>
+
+                  {/* Row 5: PICTURES / SCREENSHOTS - KokonutUI FileUpload Component */}
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1.5">
+                      Screenshots / Pictures (Optional)
+                    </label>
+                    <FileUpload
+                      acceptedFileTypes={["image/png", "image/jpeg", "image/webp"]}
+                      maxFileSize={5 * 1024 * 1024}
+                      maxFiles={5}
+                      uploadDelay={200}
+                      onPicturesChange={(urls) => setPictures(urls)}
+                      className="p-2 border-slate-200/90 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02]"
+                    />
+                  </div>
+
+                  {/* Advanced Execution & Rule Compliance Accordion */}
+                  <div className="pt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[11.5px] font-semibold text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white bg-slate-100/70 dark:bg-white/[0.04] hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-all cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles size={12} className="text-amber-500" />
+                        <span>Advanced Journaling (Date, Session, Grade, Prices)</span>
+                      </span>
+                      {showAdvanced ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                    </button>
+
+                    <AnimatePresence>
+                      {showAdvanced && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden space-y-3 pt-2.5 px-0.5"
+                        >
+                          {/* Date & Asset Class */}
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1">
+                                Date
+                              </label>
+                              <input
+                                type="date"
+                                value={tradeDate}
+                                onChange={(e) => setTradeDate(e.target.value)}
+                                className="w-full h-[34px] px-3 rounded-lg text-[12px] bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1">
+                                Asset Class
+                              </label>
+                              <select
+                                value={assetClass}
+                                onChange={(e) => setAssetClass(e.target.value as AssetClassType)}
+                                className="w-full h-[34px] px-2.5 rounded-lg text-[12px] bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white"
+                              >
+                                {["Forex", "Futures", "Crypto", "Stocks", "Indices", "Commodities"].map((a) => (
+                                  <option key={a} value={a} className="dark:bg-[#1f1f23]">
+                                    {a}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Entry & Exit Prices (Auto Calc P&L) */}
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1">
+                                Entry Price
+                              </label>
+                              <input
+                                type="text"
+                                value={entryPrice}
+                                onChange={(e) => {
+                                  setEntryPrice(e.target.value);
+                                  handleAutoCalcPnl(e.target.value, exitPrice, lotSize, direction);
+                                }}
+                                placeholder="e.g. 2650.50"
+                                className="w-full h-[34px] px-3 rounded-lg text-[12px] font-mono bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1">
+                                Exit Price
+                              </label>
+                              <input
+                                type="text"
+                                value={exitPrice}
+                                onChange={(e) => {
+                                  setExitPrice(e.target.value);
+                                  handleAutoCalcPnl(entryPrice, e.target.value, lotSize, direction);
+                                }}
+                                placeholder="e.g. 2662.00"
+                                className="w-full h-[34px] px-3 rounded-lg text-[12px] font-mono bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Session Selector */}
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1">
+                              Session
+                            </label>
+                            <div className="grid grid-cols-5 gap-1">
+                              {(["Asia", "London", "NY AM", "NY PM", "No session"] as SessionType[]).map((sess) => (
+                                <button
+                                  key={sess}
+                                  type="button"
+                                  onClick={() => setSession(sess)}
+                                  className={`py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    session === sess
+                                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                                      : "bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-neutral-300 hover:bg-slate-200"
+                                  }`}
+                                >
+                                  {sess}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Trade Grade & Followed Plan */}
+                          <div className="grid grid-cols-2 gap-2.5 pt-1">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1">
+                                Trade Grade
+                              </label>
+                              <div className="grid grid-cols-5 gap-1">
+                                {(["A+", "A", "B", "C", "F"] as GradeType[]).map((g) => (
+                                  <button
+                                    key={g}
+                                    type="button"
+                                    onClick={() => setGrade(g)}
+                                    className={`py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer ${
+                                      grade === g
+                                        ? "bg-emerald-600 text-white"
+                                        : "bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-neutral-300"
+                                    }`}
+                                  >
+                                    {g}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block mb-1">
+                                Followed Plan?
+                              </label>
+                              <div className="grid grid-cols-2 gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => setFollowedPlan("yes")}
+                                  className={`py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    followedPlan === "yes"
+                                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                                      : "bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-neutral-300"
+                                  }`}
+                                >
+                                  Yes
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setFollowedPlan("no")}
+                                  className={`py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    followedPlan === "no"
+                                      ? "bg-rose-600 text-white"
+                                      : "bg-slate-100 dark:bg-white/[0.05] text-slate-600 dark:text-neutral-300"
+                                  }`}
+                                >
+                                  No
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* No Trade Day protection checkbox */}
+                          <div className="pt-1 flex items-center justify-between p-2 rounded-xl bg-amber-500/5 border border-amber-500/10">
+                            <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1.5">
+                              <ShieldCheck size={13} />
+                              <span>Mark as Disciplined No Trade Day (protects streak)</span>
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={isNoTradeDay}
+                              onChange={(e) => setIsNoTradeDay(e.target.checked)}
+                              className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer"
+                            />
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Bottom Action Buttons: Cancel (white pill) & Log Trade (black pill) */}
+                  <div className="pt-2 flex items-center justify-end gap-2.5">
                     <button
                       type="button"
                       onClick={onClose}
-                      className="tactile-white-pill rounded-full px-5 py-2 text-[12.5px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
+                      className="tactile-white-pill rounded-full px-5 py-2 text-[12px] font-semibold cursor-pointer select-none transition-all"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={saving}
-                      className="tactile-black-pill rounded-full px-6 py-2.5 font-bold text-[13px] active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none"
+                      className="tactile-black-pill rounded-full px-6 py-2 font-bold text-[12.5px] flex items-center gap-2 cursor-pointer transition-all active:scale-95 select-none disabled:opacity-50 shadow-sm"
                     >
                       {saving ? (
                         <>
-                          <RefreshCw size={13} className="animate-spin" />
-                          <span>Recording...</span>
+                          <RefreshCw size={12} className="animate-spin" />
+                          <span>Saving...</span>
                         </>
                       ) : (
-                        <>
-                          <ShieldCheck size={14} />
-                          <span>Log No Trade Day</span>
-                        </>
+                        <span>Log Trade</span>
                       )}
                     </button>
                   </div>
                 </form>
-              ) : (
-                /* ── COMPREHENSIVE MANUAL LOG TRADE VIEW (Exact matching reference pic) ── */
-                <form onSubmit={handleManualSubmit} className="space-y-5">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-                    {/* ── LEFT COLUMN: Trade Info, Execution, Performance, Notes (col-span-7) ── */}
-                    <div className="lg:col-span-7 space-y-4">
-                      {/* 1. Trade Info Card */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-4 shadow-2xs">
-                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                          Trade Info
-                        </h3>
-
-                        {/* Symbol & Date */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Symbol
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={symbol}
-                              onChange={(e) => setSymbol(e.target.value)}
-                              placeholder="MNQ, SPY..."
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-bold uppercase bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Date
-                            </label>
-                            <div className="relative">
-                              <input
-                                type="date"
-                                value={tradeDate}
-                                onChange={(e) => setTradeDate(e.target.value)}
-                                className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Asset Class & Trade Type */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Asset Class
-                            </label>
-                            <select
-                              value={assetClass}
-                              onChange={(e) => setAssetClass(e.target.value as AssetClassType)}
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
-                            >
-                              <option value="Futures">Futures</option>
-                              <option value="Forex">Forex</option>
-                              <option value="Crypto">Crypto</option>
-                              <option value="Stocks">Stocks</option>
-                              <option value="Indices">Indices</option>
-                              <option value="Commodities">Commodities</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Trade Type
-                            </label>
-                            <select
-                              value={tradeCategory}
-                              onChange={(e) => setTradeCategory(e.target.value as TradeTypeCategory)}
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all cursor-pointer"
-                            >
-                              <option value="Day Trade">Day Trade</option>
-                              <option value="Scalp">Scalp</option>
-                              <option value="Swing">Swing</option>
-                              <option value="Position">Position</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        {/* Closed on another day toggle */}
-                        <div className="flex items-center justify-between pt-0.5">
-                          <label className="text-[12px] font-medium text-slate-600 dark:text-neutral-300 flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={closedAnotherDay}
-                              onChange={(e) => setClosedAnotherDay(e.target.checked)}
-                              className="rounded text-slate-900 focus:ring-0"
-                            />
-                            <span>Closed on another day?</span>
-                          </label>
-
-                          {closedAnotherDay && (
-                            <input
-                              type="date"
-                              value={exitDate}
-                              onChange={(e) => setExitDate(e.target.value)}
-                              className="px-3 py-1.5 rounded-xl text-[12px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white"
-                            />
-                          )}
-                        </div>
-
-                        {/* Direction (↑ Long / ↓ Short - exact single arrow clean buttons) */}
-                        <div className="grid grid-cols-2 gap-2 pt-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDirection("BUY");
-                              handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "BUY");
-                            }}
-                            className={`py-2.5 rounded-xl text-[13px] font-bold border transition-all cursor-pointer flex items-center justify-center select-none ${
-                              direction === "BUY"
-                                ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-sm"
-                                : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
-                            }`}
-                          >
-                            ↑ Long
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setDirection("SELL");
-                              handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "SELL");
-                            }}
-                            className={`py-2.5 rounded-xl text-[13px] font-bold border transition-all cursor-pointer flex items-center justify-center select-none ${
-                              direction === "SELL"
-                                ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-sm"
-                                : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
-                            }`}
-                          >
-                            ↓ Short
-                          </button>
-                        </div>
-
-                        {/* Session Picker & Note */}
-                        <div className="space-y-2.5 pt-1">
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block">
-                            Session
-                          </label>
-
-                          {/* Session Helper Box */}
-                          <div className="p-3 rounded-xl bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/10 flex items-center justify-between gap-3 flex-wrap">
-                            <div className="flex items-center gap-2 text-[12px] text-slate-600 dark:text-neutral-300">
-                              <Clock size={14} className="text-slate-400 shrink-0" />
-                              <span>
-                                No entry time yet. Add when you got filled, or pick the session, so this trade lands in the right part of your day.
-                              </span>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="HH:MM"
-                              value={entryTime}
-                              onChange={(e) => setEntryTime(e.target.value)}
-                              className="w-20 px-2.5 py-1 text-center font-mono text-[12px] rounded-lg bg-white dark:bg-[#202024] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white"
-                            />
-                          </div>
-
-                          {/* Session Pills */}
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {(["Asia", "London", "NY AM", "NY PM", "No session"] as SessionType[]).map(
-                              (sess) => (
-                                <button
-                                  key={sess}
-                                  type="button"
-                                  onClick={() => setSession(sess)}
-                                  className={`px-3 py-1.5 rounded-xl text-[12px] font-semibold border transition-all cursor-pointer select-none ${
-                                    session === sess
-                                      ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs font-bold"
-                                      : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
-                                  }`}
-                                >
-                                  {sess}
-                                </button>
-                              )
-                            )}
-                          </div>
-
-                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 flex items-center gap-1.5">
-                            <span className="text-[12px]">✍</span>
-                            <span>
-                              Lands in {formattedDateHeadline} under {session}. Counts in the daily P&amp;L.
-                            </span>
-                          </p>
-                        </div>
-
-                        {/* Followed My Plan & Account */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Followed My Plan
-                            </label>
-                            <div className="grid grid-cols-2 gap-2">
-                              <button
-                                type="button"
-                                onClick={() => setFollowedPlan("yes")}
-                                className={`py-2 rounded-xl text-[12.5px] font-bold border transition-all cursor-pointer select-none ${
-                                  followedPlan === "yes"
-                                    ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs"
-                                    : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10"
-                                }`}
-                              >
-                                Yes
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setFollowedPlan("no")}
-                                className={`py-2 rounded-xl text-[12.5px] font-bold border transition-all cursor-pointer select-none ${
-                                  followedPlan === "no"
-                                    ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs"
-                                    : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10"
-                                }`}
-                              >
-                                No
-                              </button>
-                            </div>
-                          </div>
-
-                          <div>
-                            <div className="flex items-center justify-between mb-1.5">
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                                Account
-                              </label>
-                              <span className="text-[11px] text-slate-400 dark:text-neutral-500 hover:text-slate-800 cursor-pointer">
-                                Manage
-                              </span>
-                            </div>
-                            <select
-                              value={selectedAccount}
-                              onChange={(e) => setSelectedAccount(e.target.value)}
-                              className="w-full px-3.5 py-2 rounded-xl text-[12.5px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 cursor-pointer"
-                            >
-                              {availableAccounts.map((acc) => (
-                                <option key={acc} value={acc}>
-                                  {acc}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 2. Execution Card */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3.5 shadow-2xs">
-                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                          Execution
-                        </h3>
-
-                        {/* Entry Price & Exit Price */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Entry Price
-                            </label>
-                            <input
-                              type="number"
-                              step="any"
-                              value={entryPrice}
-                              onChange={(e) => {
-                                setEntryPrice(e.target.value);
-                                handleAutoCalcPnl(e.target.value, exitPrice, lotSize, direction);
-                              }}
-                              placeholder="0.00"
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Exit Price
-                            </label>
-                            <input
-                              type="number"
-                              step="any"
-                              value={exitPrice}
-                              onChange={(e) => {
-                                setExitPrice(e.target.value);
-                                handleAutoCalcPnl(entryPrice, e.target.value, lotSize, direction);
-                              }}
-                              placeholder="0.00"
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                            />
-                          </div>
-                        </div>
-
-                        {/* P&L and Size / Qty */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              P&amp;L ({currencySymbol})
-                            </label>
-                            <input
-                              type="text"
-                              required
-                              value={profit}
-                              onChange={(e) => setProfit(e.target.value)}
-                              placeholder="+500 or -200"
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-bold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Size / Qty
-                            </label>
-                            <input
-                              type="number"
-                              step="any"
-                              value={lotSize}
-                              onChange={(e) => {
-                                setLotSize(e.target.value);
-                                handleAutoCalcPnl(entryPrice, exitPrice, e.target.value, direction);
-                              }}
-                              placeholder="1"
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Planned R:R & Realized R:R */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Planned R:R
-                            </label>
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={plannedRr}
-                              onChange={(e) => setPlannedRr(e.target.value)}
-                              placeholder="e.g. 2.0"
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                              Realized R:R
-                            </label>
-                            <input
-                              type="number"
-                              step="0.1"
-                              value={realizedRr}
-                              onChange={(e) => setRealizedRr(e.target.value)}
-                              placeholder="e.g. 2.5"
-                              className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Stop Loss & Take Profit in Advanced mode */}
-                        {modeTab === "advanced" && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                                Stop Loss Price
-                              </label>
-                              <input
-                                type="number"
-                                step="any"
-                                value={stopLoss}
-                                onChange={(e) => setStopLoss(e.target.value)}
-                                placeholder="e.g. 19500.25"
-                                className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-1.5">
-                                Take Profit Price
-                              </label>
-                              <input
-                                type="number"
-                                step="any"
-                                value={takeProfit}
-                                onChange={(e) => setTakeProfit(e.target.value)}
-                                placeholder="e.g. 19650.00"
-                                className="w-full px-3.5 py-2 rounded-xl text-[13px] font-semibold bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white font-mono placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40"
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Setups & Mistakes Tags in Advanced mode */}
-                      {modeTab === "advanced" && (
-                        <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3.5 shadow-2xs">
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-2">
-                              Strategy Setups
-                            </label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {POPULAR_SETUPS.map((stp) => {
-                                const active = selectedSetups.includes(stp);
-                                return (
-                                  <button
-                                    key={stp}
-                                    type="button"
-                                    onClick={() =>
-                                      setSelectedSetups((prev) =>
-                                        active ? prev.filter((s) => s !== stp) : [...prev, stp]
-                                      )
-                                    }
-                                    className={`px-3 py-1 rounded-xl text-[11.5px] font-semibold border transition-all cursor-pointer ${
-                                      active
-                                        ? "bg-slate-950 dark:bg-white text-white dark:text-slate-900 border-slate-950 dark:border-white shadow-2xs"
-                                        : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
-                                    }`}
-                                  >
-                                    {stp}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-2">
-                              Trading Mistakes (if any)
-                            </label>
-                            <div className="flex flex-wrap gap-1.5">
-                              {POPULAR_MISTAKES.map((mst) => {
-                                const active = selectedMistakes.includes(mst);
-                                return (
-                                  <button
-                                    key={mst}
-                                    type="button"
-                                    onClick={() =>
-                                      setSelectedMistakes((prev) =>
-                                        active ? prev.filter((m) => m !== mst) : [...prev, mst]
-                                      )
-                                    }
-                                    className={`px-3 py-1 rounded-xl text-[11.5px] font-semibold border transition-all cursor-pointer ${
-                                      active
-                                        ? "bg-rose-500 text-white border-rose-500 shadow-2xs"
-                                        : "bg-slate-100/80 dark:bg-white/[0.04] text-slate-600 dark:text-neutral-300 border-slate-200/70 dark:border-white/10 hover:border-slate-300"
-                                    }`}
-                                  >
-                                    {mst}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 3. Performance Card (Trade Grade - exact match to reference screenshot) */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-3 shadow-2xs">
-                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                          Performance
-                        </h3>
-
-                        <div>
-                          <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block mb-2">
-                            Trade Grade
-                          </label>
-                          <div className="grid grid-cols-5 gap-2">
-                            {(["A+", "A", "B", "C", "F"] as GradeType[]).map((g) => {
-                              const isSelected = grade === g;
-                              return (
-                                <button
-                                  key={g}
-                                  type="button"
-                                  onClick={() => setGrade(g)}
-                                  className={`py-2 rounded-xl text-[13px] font-bold border transition-all cursor-pointer select-none ${
-                                    isSelected
-                                      ? "bg-[#059669] text-white border-[#059669] shadow-[0_2px_8px_rgba(5,150,105,0.35)]"
-                                      : "bg-slate-50/80 dark:bg-white/[0.04] text-slate-700 dark:text-neutral-300 border-slate-200/80 dark:border-white/10 hover:border-slate-300"
-                                  }`}
-                                >
-                                  {g}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 4. Notes Card */}
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 space-y-2 shadow-2xs">
-                        <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                          Notes
-                        </h3>
-                        <textarea
-                          rows={4}
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          placeholder="Explain your trade, entry, and insights. What happened? What did you do well? What would you do differently?"
-                          className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:focus:ring-white/10 focus:border-slate-800 dark:focus:border-white/40 transition-all resize-none"
-                        />
-                      </div>
-
-                      {/* Action Buttons: Save Trade & Delete */}
-                      <div className="flex items-center gap-3 pt-2">
-                        <button
-                          type="submit"
-                          disabled={saving}
-                          className="tactile-black-pill rounded-xl px-7 py-2.5 font-bold text-[13.5px] active:scale-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none shadow-sm"
-                        >
-                          {saving ? (
-                            <>
-                              <RefreshCw size={14} className="animate-spin" />
-                              <span>Saving Trade...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Check size={14} />
-                              <span>Save Trade</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={onClose}
-                          className="tactile-white-pill rounded-xl px-5 py-2.5 text-[13px] font-semibold cursor-pointer select-none active:scale-95 transition-all"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* ── RIGHT COLUMN: PICTURES (col-span-5) ── */}
-                    <div className="lg:col-span-5 space-y-3">
-                      <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/10 flex flex-col shadow-2xs">
-                        {/* Pictures Header */}
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/[0.08]">
-                          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500">
-                            PICTURES
-                          </span>
-
-                          {/* Upload vs Link toggle */}
-                          <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/10">
-                            <button
-                              type="button"
-                              onClick={() => setPictureMode("upload")}
-                              className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer select-none ${
-                                pictureMode === "upload"
-                                  ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
-                                  : "text-slate-500 dark:text-neutral-400"
-                              }`}
-                            >
-                              Upload
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPictureMode("link")}
-                              className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all cursor-pointer select-none ${
-                                pictureMode === "link"
-                                  ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
-                                  : "text-slate-500 dark:text-neutral-400"
-                              }`}
-                            >
-                              Paste a link
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Hidden File Input */}
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handlePictureUpload}
-                          className="hidden"
-                        />
-
-                        {/* Paste a link input row */}
-                        {pictureMode === "link" && (
-                          <div className="pt-3 flex gap-2">
-                            <input
-                              type="url"
-                              placeholder="Paste image or chart URL..."
-                              value={imageUrlInput}
-                              onChange={(e) => setImageUrlInput(e.target.value)}
-                              className="flex-1 px-3 py-1.5 rounded-xl text-[12px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-800"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleAddImageUrl}
-                              className="tactile-black-pill rounded-xl px-3 py-1.5 text-[11.5px] font-bold cursor-pointer"
-                            >
-                              Add
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Drag & Drop Area */}
-                        <div
-                          onClick={() => fileInputRef.current?.click()}
-                          className="mt-3.5 min-h-[340px] flex-1 flex flex-col items-center justify-center border-2 border-dashed border-slate-200/90 dark:border-white/10 hover:border-slate-400 dark:hover:border-white/30 rounded-2xl p-6 text-center transition-colors cursor-pointer group bg-slate-50/40 dark:bg-white/[0.01]"
-                        >
-                          <div className="w-12 h-12 rounded-2xl bg-slate-100/90 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-400 dark:text-neutral-400 group-hover:scale-105 transition-transform mb-3">
-                            <ImageIcon size={22} strokeWidth={1.8} />
-                          </div>
-                          <p className="text-[13px] font-bold text-slate-700 dark:text-neutral-200">
-                            Drop screenshots, or{" "}
-                            <span className="text-slate-900 dark:text-white underline underline-offset-2">
-                              choose files
-                            </span>
-                          </p>
-                          <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1">
-                            ⌘ Cmd+V works here too
-                          </p>
-                        </div>
-
-                        {/* Attached Screenshots Thumbnails */}
-                        {pictures.length > 0 && (
-                          <div className="pt-3">
-                            <div className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mb-2">
-                              Attached Screenshots ({pictures.length})
-                            </div>
-                            <div className="grid grid-cols-3 gap-2">
-                              {pictures.map((pic, idx) => (
-                                <div
-                                  key={idx}
-                                  className="relative aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 group/img bg-slate-100"
-                                >
-                                  <img
-                                    src={pic}
-                                    alt={`Screenshot ${idx + 1}`}
-                                    className="w-full h-full object-cover"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removePicture(idx);
-                                    }}
-                                    className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
-                                    title="Remove image"
-                                  >
-                                    <X size={11} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </form>
               )}
-            </div>
-
-            {/* Bottom Grab Handle & Swipe Bar */}
-            <div
-              onClick={onClose}
-              className="flex items-center justify-center py-3 border-t border-slate-100 dark:border-white/[0.06] hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors cursor-pointer group rounded-b-[28px] mt-auto shrink-0 bg-white dark:bg-[#161619]"
-              title="Drag up or click to close"
-            >
-              <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-white/25 group-hover:bg-slate-400 dark:group-hover:bg-white/40 transition-colors" />
             </div>
           </motion.div>
         </div>
