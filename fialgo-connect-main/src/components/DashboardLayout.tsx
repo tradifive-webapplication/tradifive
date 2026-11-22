@@ -773,10 +773,10 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 <button
                   type="button"
                   onClick={() => navigate('/rewards')}
-                  className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-purple-700 dark:text-purple-400"
+                  className="sm:hidden flex items-center gap-1 px-2 h-[26px] rounded-[8px] bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none active:scale-95 transition-all text-slate-800 dark:text-slate-200"
                   title={`${(totalXP || 0).toLocaleString()} Total XP (Click to view Rewards)`}
                 >
-                  <Star size={11} className="fill-purple-500 text-purple-500 shrink-0" />
+                  <Star size={11} className="fill-amber-400 text-amber-500 shrink-0" />
                   <span className="text-[11px] font-bold tabular-nums tracking-tight leading-none">
                     {(totalXP || 0).toLocaleString()} XP
                   </span>
@@ -840,10 +840,10 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 <button
                   type="button"
                   onClick={() => navigate('/rewards')}
-                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-purple-200/80 dark:border-purple-500/25 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-purple-300 dark:hover:border-purple-500/40 transition-all text-purple-700 dark:text-purple-400"
+                  className="hidden sm:inline-flex items-center gap-1.5 px-2.5 h-[28px] rounded-[8px] bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/10 shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer select-none hover:border-slate-300 dark:hover:border-white/20 transition-all text-slate-800 dark:text-slate-200"
                   title={`${(totalXP || 0).toLocaleString()} Total XP (View Rewards & Vault)`}
                 >
-                  <Star size={13} className="fill-purple-500 text-purple-500 shrink-0" />
+                  <Star size={13} className="fill-amber-400 text-amber-500 shrink-0" />
                   <span className="text-[12px] font-bold tabular-nums tracking-tight leading-none">
                     {(totalXP || 0).toLocaleString()} XP
                   </span>

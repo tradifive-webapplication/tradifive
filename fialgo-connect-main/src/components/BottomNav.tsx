@@ -348,7 +348,7 @@ export default function BottomNav() {
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                        <Trophy size={18} className="text-[#006DFE] dark:text-blue-400 stroke-[2.2]" />
+                        <Trophy size={18} className="text-slate-700 dark:text-neutral-300 stroke-[2.2]" />
                       </div>
                       <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                         Rewards

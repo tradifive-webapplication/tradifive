@@ -2720,7 +2720,7 @@ export default function Rewards() {
                           isClaimed
                             ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/80 dark:border-emerald-500/25 hover:bg-emerald-100/50"
                             : canAfford
-                            ? "bg-[#006DFE] hover:bg-blue-600 text-white shadow-[0_2px_8px_rgba(0,109,254,0.3)] hover:shadow-[0_4px_12px_rgba(0,109,254,0.4)]"
+                            ? "tactile-black-pill text-white shadow-sm"
                             : "bg-slate-100 dark:bg-white/[0.04] text-slate-400 dark:text-neutral-500 border border-slate-200/60 dark:border-white/[0.05] cursor-not-allowed"
                         }`}
                       >
@@ -3038,7 +3038,7 @@ export default function Rewards() {
                   <button
                     type="button"
                     onClick={() => setActiveAuditModal((prev) => ({ ...prev, isOpen: false }))}
-                    className="px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-900 dark:bg-[#006DFE] text-white hover:opacity-90 transition-opacity cursor-pointer"
+                    className="tactile-white-pill px-4 py-1.5 rounded-full text-xs font-bold text-slate-800 dark:text-white cursor-pointer select-none active:scale-95 shadow-xs"
                   >
                     Close Audit View
                   </button>
