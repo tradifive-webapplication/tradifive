@@ -555,9 +555,11 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     // Direct communications routes don't change the active pillar
     if (path.startsWith("/inbox") || path.startsWith("/notifications")) {
-      return currentPillar || "dashboard";
+      const saved = typeof window !== "undefined" ? sessionStorage.getItem("tf_active_pillar") : null;
+      return currentPillar || saved || "dashboard";
     }
 
+    let pillar = "dashboard";
     if (
       path.startsWith("/home") ||
       path.startsWith("/post/") ||
@@ -567,27 +569,24 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       path.startsWith("/learning") ||
       path.startsWith("/courses") ||
       path.startsWith("/channel")
-    ) return "home";
+    ) pillar = "home";
+    else if (path.startsWith("/dashboard")) pillar = "dashboard";
+    else if (path.startsWith("/journal")) pillar = "journal";
+    else if (path.startsWith("/risk-guard")) pillar = "riskGuard";
+    else if (path.startsWith("/ai-coach")) pillar = "aiCoach";
+    else if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) pillar = "autoTrade";
+    else if (path.startsWith("/community")) pillar = "home";
+    else if (path.startsWith("/rewards") || path.startsWith("/referrals")) pillar = "rewards";
+    else if (path.startsWith("/settings") || path.startsWith("/profile") || path.startsWith("/upgrade")) pillar = "settings";
+    else if (path.startsWith("/creator")) pillar = "creatorHub";
 
-    if (path.startsWith("/dashboard")) return "dashboard";
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("tf_active_pillar", pillar);
+      } catch (e) {}
+    }
 
-    if (path.startsWith("/journal")) return "journal";
-
-    if (path.startsWith("/risk-guard")) return "riskGuard";
-
-    if (path.startsWith("/ai-coach")) return "aiCoach";
-
-    if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "autoTrade";
-
-    if (path.startsWith("/community")) return "home";
-
-    if (path.startsWith("/rewards") || path.startsWith("/referrals")) return "rewards";
-
-    if (path.startsWith("/settings") || path.startsWith("/profile") || path.startsWith("/upgrade")) return "settings";
-
-    if (path.startsWith("/creator")) return "creatorHub";
-
-    return currentPillar || "dashboard";
+    return pillar;
   };
 
   const [activePillar, setActivePillar] = useState(() => getInitialPillar());
@@ -598,6 +597,14 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       setActivePillar(nextPillar);
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (activePillar && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("tf_active_pillar", activePillar);
+      } catch (e) {}
+    }
+  }, [activePillar]);
 
 
 

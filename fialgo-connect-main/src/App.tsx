@@ -223,10 +223,10 @@ const App = () => {
                     <Route path="/learning" element={<Discover />} />
                     <Route path="/courses" element={<Discover />} />
                     <Route path="/creator/live" element={<Navigate to="/home" replace />} />
-                    <Route path="/inbox" element={<Inbox />} />
                     <Route path="/channel" element={<Channel />} />
                     <Route path="/channel/:channelId" element={<Channel />} />
                   </Route>
+                  <Route path="/inbox" element={<Inbox />} />
                   <Route path="/post/:postId" element={<PostDetail />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/portfolio" element={<Portfolio />} />

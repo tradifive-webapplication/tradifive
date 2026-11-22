@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useInboxData } from "@/hooks/useInboxData";
 import { usePlan } from "@/hooks/usePlan";
 import { motion, AnimatePresence } from "framer-motion";
-import { CommunityPageWrapper } from "@/components/CommunityShell";
+import DashboardLayout from "@/components/DashboardLayout";
 import { 
   Search, CheckCircle2, MoreVertical, Search as SearchIcon, VolumeX, Volume2, X, ChevronLeft,
   Share2, CornerUpRight, Pin, Gift, Phone, User, Users, Bookmark, Settings as SettingsIcon, 
@@ -538,9 +538,9 @@ function InboxSkeleton() {
 
   if (!authChecked || inboxLoading) {
     return (
-      <CommunityPageWrapper breadcrumbs={[{ label: "Inbox", path: "/inbox" }]} noPadding={true} noScroll={true}>
+      <DashboardLayout breadcrumbs={[{ label: "Inbox", path: "/inbox" }]} noPadding={true} noScroll={true}>
         <InboxSkeleton />
-      </CommunityPageWrapper>
+      </DashboardLayout>
     );
   }
 
@@ -589,7 +589,8 @@ function InboxSkeleton() {
   };
 
   return (
-    <CommunityPageWrapper
+    <DashboardLayout
+      breadcrumbs={[{ label: "Inbox", path: "/inbox" }]}
       noPadding={true}
       noScroll={true}
       hideBottomNav={false}
@@ -1482,6 +1483,6 @@ function InboxSkeleton() {
           />
         </div>
       )}
-    </CommunityPageWrapper>
+    </DashboardLayout>
   );
 }

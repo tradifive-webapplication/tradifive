@@ -715,13 +715,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
             <div className="flex items-center gap-2 sm:gap-3">
               {/* DESKTOP WEB APP (md+): Always show clean page name breadcrumb (no duplicate top-left logo) */}
               <div className="hidden md:flex items-center gap-2 text-[14px] font-semibold text-slate-500 dark:text-slate-400">
-                <button
-                  type="button"
-                  onClick={() => navigate('/dashboard')}
-                  className="hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-                >
+                <span className="text-slate-400 dark:text-neutral-500">
                   {categoryName}
-                </button>
+                </span>
                 <span className="text-slate-300 dark:text-slate-500">/</span>
                 <span className="text-[15px] font-semibold text-slate-900 dark:text-white">
                   {desktopPageName}
