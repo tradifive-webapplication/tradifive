@@ -317,7 +317,7 @@ function JournalContent() {
                   Journal
                 </h1>
                 {isEditMode && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400">
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900">
                     Editing layout
                   </span>
                 )}
@@ -333,7 +333,7 @@ function JournalContent() {
                 <button
                   type="button"
                   onClick={handleResync}
-                  className="inline-flex items-center gap-1 text-[#2563EB] hover:text-blue-700 dark:text-blue-400 font-semibold cursor-pointer"
+                  className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white font-semibold cursor-pointer transition-colors"
                 >
                   <RefreshCw size={11} />
                   <span>Resync</span>
@@ -371,7 +371,7 @@ function JournalContent() {
                         }}
                         className={`w-full flex items-center gap-3 px-3.5 py-2 text-left transition-colors cursor-pointer ${
                           currency.code === c.code
-                            ? "bg-blue-50/70 dark:bg-blue-500/10"
+                            ? "bg-slate-100 dark:bg-white/[0.08]"
                             : "hover:bg-slate-50 dark:hover:bg-white/[0.04]"
                         }`}
                       >
@@ -387,7 +387,7 @@ function JournalContent() {
                           {c.symbol}
                         </span>
                         {currency.code === c.code && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] shrink-0" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-900 dark:bg-white shrink-0" />
                         )}
                       </button>
                     ))}
@@ -409,12 +409,12 @@ function JournalContent() {
                 }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   hideBalance
-                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
                     : ""
                 } ${isStarter ? "opacity-60" : ""}`}
                 title="Hide all P&L values across the journal"
               >
-                {hideBalance ? <Eye size={13} className="text-blue-500" /> : <EyeOff size={13} />}
+                {hideBalance ? <Eye size={13} /> : <EyeOff size={13} />}
                 <span>{hideBalance ? "P&L hidden" : "Hide P&L"}</span>
               </button>
 
@@ -432,12 +432,12 @@ function JournalContent() {
                 }}
                 className={`tactile-white-pill hidden sm:inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   hideOnlyBalance
-                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
                     : ""
                 } ${isStarter ? "opacity-60" : ""}`}
                 title="Hide account balance only while keeping P&L visible"
               >
-                <ShieldCheck size={13} className={hideOnlyBalance ? "text-blue-500" : ""} />
+                <ShieldCheck size={13} />
                 <span>{hideOnlyBalance ? "Balance hidden" : "Hide balance"}</span>
               </button>
 
@@ -455,13 +455,13 @@ function JournalContent() {
                 }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   percentageOnly
-                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
                     : ""
                 } ${isStarter ? "opacity-60" : ""}`}
                 title="Display trade P&L in % return instead of currency"
               >
                 <Percent size={12} strokeWidth={2.4} />
-                <span>{percentageOnly ? "% Mode" : "Percent"}</span>
+                <span>Percent</span>
               </button>
 
               {/* Edit / Reorder Layout */}
@@ -470,7 +470,7 @@ function JournalContent() {
                 onClick={() => setIsEditMode((v) => !v)}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   isEditMode
-                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
                     : ""
                 }`}
                 title={isEditMode ? "Save layout order" : "Drag & reorder journal cards"}
