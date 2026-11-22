@@ -1,16 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
-
-const MOTIVATIONAL_MESSAGES = [
-  "CALM MIND. CLEAR EXECUTION.",
-  "CONSISTENCY BEATS INTENSITY. EVERY SINGLE TIME.",
-  "YOUR EDGE IS DISCIPLINE, NOT PREDICTION.",
-  "THE MARKET REWARDS PATIENCE, NOT IMPULSE.",
-  "RISK MANAGED TODAY IS CAPITAL SAVED FOR TOMORROW.",
-  "DISCIPLINE IS THE REAL ALPHA."
-];
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -19,11 +9,6 @@ export default function AuthCallback() {
   const [isExpoTarget, setIsExpoTarget] = useState(false);
   const [showWebFallback, setShowWebFallback] = useState(false);
   const [isProcessingWeb, setIsProcessingWeb] = useState(false);
-
-  const quote = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length);
-    return MOTIVATIONAL_MESSAGES[randomIndex] || "CALM MIND. CLEAR EXECUTION.";
-  }, []);
 
   useEffect(() => {
     const isAndroid = /Android/i.test(navigator.userAgent);
@@ -117,7 +102,6 @@ export default function AuthCallback() {
               }
             }
 
-            // Quick timeout fallback (1.8s max instead of 4s) so user is never stuck
             setTimeout(() => {
               subscription.unsubscribe();
               resolve(null);
@@ -186,57 +170,35 @@ export default function AuthCallback() {
   };
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-[#0A0A0A] flex flex-col items-center justify-center select-none font-sans w-screen h-screen">
-      <div className="w-full max-w-[320px] flex flex-col items-center justify-center px-4">
-        {/* Up: Motivational Message (Image 2 style) */}
-        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.25em] mb-7 text-center leading-relaxed">
-          {quote}
-        </p>
+    <div className="fixed inset-0 z-[99999] bg-[#0A0A0A] flex flex-col items-center justify-center select-none w-screen h-screen p-4">
+      {/* Clean minimal loader */}
+      <div className="w-8 h-8 border-2 border-white/10 border-t-blue-500 rounded-full animate-spin" />
 
-        {/* Middle: Loading Bar (Image 2 style) */}
-        <div className="relative w-full">
-          <div className="w-full h-2 bg-[#1E1E1E] border border-white/5 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-full"
-              initial={{ width: "10%" }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 1.8, ease: "easeInOut" }}
-            />
-          </div>
-        </div>
-
-        {/* Down: Authenticating Status (Image 2 style) */}
-        <p className="text-[10.5px] text-slate-500 font-semibold tracking-[0.2em] uppercase mt-6 text-center animate-pulse">
-          {deepLinkTarget ? "SIGN IN SUCCESSFUL" : "AUTHENTICATING..."}
-        </p>
-
-        {/* Deep link action buttons if redirecting to mobile native app */}
-        {deepLinkTarget ? (
-          <div className="mt-8 flex flex-col gap-2.5 w-full">
-            <a
-              href={deepLinkTarget}
-              onClick={(e) => {
-                e.preventDefault();
-                handleLaunchNative();
-              }}
-              className="w-full py-3 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-500/20 text-center transition-all active:scale-[0.98]"
+      {/* Optional fallback buttons only if user arrived from mobile native app */}
+      {deepLinkTarget && (
+        <div className="mt-7 flex flex-col gap-2.5 w-full max-w-[260px]">
+          <a
+            href={deepLinkTarget}
+            onClick={(e) => {
+              e.preventDefault();
+              handleLaunchNative();
+            }}
+            className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs text-center transition-all"
+          >
+            {buttonLabel}
+          </a>
+          {showWebFallback && (
+            <button
+              type="button"
+              disabled={isProcessingWeb}
+              onClick={handleManualWebContinue}
+              className="w-full py-2 px-3 bg-white/5 hover:bg-white/10 text-slate-400 rounded-xl font-medium text-xs border border-white/10 text-center transition-all"
             >
-              {buttonLabel}
-            </a>
-
-            {showWebFallback && (
-              <button
-                type="button"
-                disabled={isProcessingWeb}
-                onClick={handleManualWebContinue}
-                className="w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl font-medium text-xs border border-white/10 text-center transition-all"
-              >
-                {isProcessingWeb ? 'Opening...' : 'Continue in Browser'}
-              </button>
-            )}
-          </div>
-        ) : null}
-      </div>
+              {isProcessingWeb ? 'Opening...' : 'Continue in Browser'}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
