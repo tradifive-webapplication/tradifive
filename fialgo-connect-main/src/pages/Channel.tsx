@@ -327,7 +327,6 @@ export default function Channel() {
           created_by: currentUser.id,
           channel_type: newChannelType === 'vip' ? 'private' : newChannelType,
           is_official: false,
-          avatar_url: uploadedAvatarUrl || null,
           rules: JSON.stringify(rules)
       }).select().single();
 
