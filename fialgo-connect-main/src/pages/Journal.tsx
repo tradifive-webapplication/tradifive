@@ -353,17 +353,17 @@ function JournalContent() {
               </div>
             </div>
 
-            {/* Right Controls: Currency, Hide Balance, Hide Only Bal, Show %, Edit Layout, + Log Trade */}
-            <div className="flex items-center gap-1.5 flex-wrap">
+            {/* Right Controls: Currency, Hide P&L, Hide Balance, Show %, Edit Layout, + Log Trade */}
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Currency Selector */}
               <div className="relative" ref={currencyDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setCurrencyOpen((v) => !v)}
-                  className="tactile-white-pill inline-flex items-center gap-1.5 h-[32px] px-2.5 rounded-[10px] text-[11px] font-semibold cursor-pointer"
+                  className="tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95"
                 >
-                  <span className="tabular-nums">{currency.code}</span>
-                  <span className="text-slate-400">{currency.symbol}</span>
+                  <span className="tabular-nums text-slate-800 dark:text-white">{currency.code}</span>
+                  <span className="text-slate-400 dark:text-neutral-500">{currency.symbol}</span>
                   <ChevronDown
                     size={12}
                     className={`text-slate-400 transition-transform duration-200 ${
@@ -407,7 +407,7 @@ function JournalContent() {
                 )}
               </div>
 
-              {/* Hide Balance */}
+              {/* Hide P&L Values */}
               <button
                 type="button"
                 onClick={() => {
@@ -419,16 +419,18 @@ function JournalContent() {
                   }
                   setHideBalance(!hideBalance);
                 }}
-                className={`tactile-white-pill inline-flex items-center gap-1.5 h-[32px] px-2.5 rounded-[10px] text-[11px] font-semibold cursor-pointer ${
-                  hideBalance ? "!text-[#2563EB] dark:!text-blue-400" : ""
+                className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
+                  hideBalance
+                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    : ""
                 } ${isStarter ? "opacity-60" : ""}`}
-                title="Hide all balance and P&L values"
+                title="Hide all P&L values across the journal"
               >
-                {hideBalance ? <Eye size={12.5} /> : <EyeOff size={12.5} />}
-                <span>{hideBalance ? "Hidden" : "Hide"}</span>
+                {hideBalance ? <Eye size={13} className="text-blue-500" /> : <EyeOff size={13} />}
+                <span>{hideBalance ? "P&L hidden" : "Hide P&L"}</span>
               </button>
 
-              {/* Hide Only Balance */}
+              {/* Hide Balance Only */}
               <button
                 type="button"
                 onClick={() => {
@@ -440,15 +442,18 @@ function JournalContent() {
                   }
                   setHideOnlyBalance(!hideOnlyBalance);
                 }}
-                className={`tactile-white-pill hidden sm:inline-flex items-center gap-1.5 h-[32px] px-2.5 rounded-[10px] text-[11px] font-semibold cursor-pointer ${
-                  hideOnlyBalance ? "!text-[#2563EB] dark:!text-blue-400" : ""
+                className={`tactile-white-pill hidden sm:inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
+                  hideOnlyBalance
+                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    : ""
                 } ${isStarter ? "opacity-60" : ""}`}
-                title="Hide only account balance while keeping P&L visible"
+                title="Hide account balance only while keeping P&L visible"
               >
-                <span>{hideOnlyBalance ? "Bal hidden" : "Hide balance"}</span>
+                <ShieldCheck size={13} className={hideOnlyBalance ? "text-blue-500" : ""} />
+                <span>{hideOnlyBalance ? "Balance hidden" : "Hide balance"}</span>
               </button>
 
-              {/* Show % */}
+              {/* Show % Mode */}
               <button
                 type="button"
                 onClick={() => {
@@ -460,31 +465,38 @@ function JournalContent() {
                   }
                   setPercentageOnly(!percentageOnly);
                 }}
-                className={`tactile-white-pill inline-flex items-center gap-1 h-[32px] px-2.5 rounded-[10px] text-[11px] font-semibold cursor-pointer ${
-                  percentageOnly ? "!text-[#2563EB] dark:!text-blue-400" : ""
+                className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
+                  percentageOnly
+                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    : ""
                 } ${isStarter ? "opacity-60" : ""}`}
-                title="Display P&L as percentage of balance"
+                title="Display trade P&L in % return instead of currency"
               >
-                <Percent size={11} strokeWidth={2.5} />
-                <span>{percentageOnly ? "Only %" : "%"}</span>
+                <Percent size={12} strokeWidth={2.4} />
+                <span>{percentageOnly ? "% Mode" : "Percent"}</span>
               </button>
 
               {/* Edit / Reorder Layout */}
               <button
                 type="button"
                 onClick={() => setIsEditMode((v) => !v)}
-                className={`tactile-white-pill inline-flex items-center justify-center gap-1 h-[32px] px-2.5 rounded-[10px] text-[11px] font-semibold cursor-pointer ${
-                  isEditMode ? "!text-[#2563EB] dark:!text-blue-400" : ""
+                className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
+                  isEditMode
+                    ? "!text-blue-600 dark:!text-blue-400 !border-blue-500/40 bg-blue-50/60 dark:bg-blue-500/15"
+                    : ""
                 }`}
                 title={isEditMode ? "Save layout order" : "Drag & reorder journal cards"}
               >
                 {isEditMode ? (
                   <>
-                    <Check size={13} strokeWidth={2.5} />
+                    <Check size={13} strokeWidth={2.8} />
                     <span>Done</span>
                   </>
                 ) : (
-                  <LayoutGrid size={13} />
+                  <>
+                    <LayoutGrid size={13} />
+                    <span className="hidden md:inline">Layout</span>
+                  </>
                 )}
               </button>
 
@@ -493,9 +505,9 @@ function JournalContent() {
                 whileTap={{ scale: 0.96 }}
                 type="button"
                 onClick={() => openLogModal("manual")}
-                className="tactile-black-pill inline-flex items-center gap-1 h-[32px] px-3 rounded-[10px] text-[11.5px] font-semibold cursor-pointer"
+                className="tactile-black-pill inline-flex items-center gap-1.5 h-[34px] px-4 rounded-full text-[12px] font-bold cursor-pointer select-none shadow-sm active:scale-95"
               >
-                <Plus size={13} strokeWidth={2.5} />
+                <Plus size={13} strokeWidth={2.8} />
                 <span>Log trade</span>
               </motion.button>
             </div>
