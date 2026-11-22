@@ -445,7 +445,13 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout
-      breadcrumbs={[{ label: "Dashboard" }]}
+      breadcrumbs={
+        currentTab === "reports"
+          ? [{ label: "Trading Dashboard", path: "/dashboard" }, { label: "Reports & Statements" }]
+          : currentTab === "portfolio"
+          ? [{ label: "Trading Dashboard", path: "/dashboard" }, { label: "Portfolio" }]
+          : [{ label: "Dashboard" }]
+      }
       noScroll={currentTab === "main"}
       noPadding={currentTab === "main"}
     >

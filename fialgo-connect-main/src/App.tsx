@@ -229,9 +229,10 @@ const App = () => {
                   <Route path="/inbox" element={<Inbox />} />
                   <Route path="/post/:postId" element={<PostDetail />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/dashboard/portfolio" element={<Portfolio />} />
+                  <Route path="/dashboard/portfolio" element={<Navigate to="/dashboard?tab=portfolio" replace />} />
                   <Route path="/dashboard/brokers" element={<Navigate to="/settings?tab=trading" replace />} />
-                  <Route path="/dashboard/reports" element={<Reports />} />
+                  <Route path="/dashboard/reports" element={<Navigate to="/dashboard?tab=reports" replace />} />
+                  <Route path="/reports" element={<Navigate to="/dashboard?tab=reports" replace />} />
                   <Route path="/broker-connect" element={<Navigate to="/settings?tab=trading" replace />} />
                   <Route path="/journal" element={<Journal />} />
                   <Route path="/charts" element={<Navigate to="/journal" replace />} />

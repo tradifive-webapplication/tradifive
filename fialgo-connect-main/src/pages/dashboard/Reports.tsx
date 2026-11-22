@@ -143,28 +143,29 @@ export const Reports: React.FC = () => {
   const [traderUsername, setTraderUsername] = useState("tradifive");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data }) => {
+      const session = data?.session;
       if (session?.user) {
         const full = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "TradiFive Trader";
         const uname = session.user.email?.split("@")[0] || "tradifive";
         setTraderName(full);
         setTraderUsername(uname);
       }
-    });
+    }).catch(() => {});
   }, []);
 
   // Demo fallback trades if user has no live trades synced
   const fallbackTrades = useMemo(() => {
     try {
       const demo = buildJournalDemoData(activeMarket);
-      return demo.allTrades;
+      return Array.isArray(demo?.allTrades) ? demo.allTrades : [];
     } catch {
       return [];
     }
   }, [activeMarket]);
 
   const effectiveTrades = useMemo(() => {
-    if (recentTrades && recentTrades.length > 0) return recentTrades;
+    if (Array.isArray(recentTrades) && recentTrades.length > 0) return recentTrades;
     return fallbackTrades;
   }, [recentTrades, fallbackTrades]);
 
@@ -180,44 +181,73 @@ export const Reports: React.FC = () => {
   // Summary Metrics calculation
   const totalNet = useMemo(() => {
     if (!effectiveTrades.length) return 290.0;
-    return effectiveTrades.reduce((acc, t) => acc + (Number(t.profit) || 0), 0);
+    return effectiveTrades.reduce((acc, t) => acc + (Number(t?.profit) || 0), 0);
   }, [effectiveTrades]);
 
   const effectiveAccountBalance = balance > 0 ? balance : 28154.0;
-  const netPct = (totalNet / effectiveAccountBalance) * 100;
+  const netPct = effectiveAccountBalance > 0 ? (totalNet / effectiveAccountBalance) * 100 : 0;
+  const safeNetPct = isFinite(netPct) ? netPct.toFixed(2) : "0.00";
 
   const winCount = useMemo(() => {
-    return effectiveTrades.filter((t) => (Number(t.profit) || 0) > 0).length || 1;
+    return effectiveTrades.filter((t) => (Number(t?.profit) || 0) > 0).length || 1;
   }, [effectiveTrades]);
 
   const lossCount = useMemo(() => {
-    return effectiveTrades.filter((t) => (Number(t.profit) || 0) < 0).length || 0;
+    return effectiveTrades.filter((t) => (Number(t?.profit) || 0) < 0).length || 0;
+  }, [effectiveTrades]);
+
+  const buyCount = useMemo(() => {
+    return effectiveTrades.filter((t) => String(t?.type || "").toUpperCase().includes("BUY")).length || 1;
+  }, [effectiveTrades]);
+
+  const sellCount = useMemo(() => {
+    return effectiveTrades.filter((t) => String(t?.type || "").toUpperCase().includes("SELL")).length || 0;
   }, [effectiveTrades]);
 
   const totalTradesCount = effectiveTrades.length || 1;
   const computedWinRate = Math.round((winCount / totalTradesCount) * 100);
+  const safeWinRate = isFinite(computedWinRate) ? computedWinRate : 100;
+
+  // Real Profit Factor calculation
+  const formattedProfitFactor = useMemo(() => {
+    if (typeof profitFactor === "number" && !isNaN(profitFactor) && profitFactor > 0) {
+      return profitFactor.toFixed(2);
+    }
+    const grossProfit = effectiveTrades
+      .filter((t) => (Number(t?.profit) || 0) > 0)
+      .reduce((acc, t) => acc + Number(t.profit), 0);
+    const grossLoss = Math.abs(
+      effectiveTrades
+        .filter((t) => (Number(t?.profit) || 0) < 0)
+        .reduce((acc, t) => acc + Number(t.profit), 0)
+    );
+    if (grossLoss > 0) {
+      return (grossProfit / grossLoss).toFixed(2);
+    }
+    return grossProfit > 0 ? "2.90" : "0.00";
+  }, [profitFactor, effectiveTrades]);
 
   const bestTrade = useMemo(() => {
     if (!effectiveTrades.length) return { symbol: "NAS100", profit: 290.0, type: "BUY", r: 5.8 };
-    const sorted = [...effectiveTrades].sort((a, b) => (Number(b.profit) || 0) - (Number(a.profit) || 0));
+    const sorted = [...effectiveTrades].sort((a, b) => (Number(b?.profit) || 0) - (Number(a?.profit) || 0));
     const top = sorted[0];
     return {
       symbol: top?.symbol || "NAS100",
       profit: Number(top?.profit) || 290.0,
       type: String(top?.type || "BUY").toUpperCase().includes("BUY") ? "LONG" : "SHORT",
-      r: 5.8,
+      r: Number(top?.risk_reward_ratio) || 5.8,
     };
   }, [effectiveTrades]);
 
   const worstTrade = useMemo(() => {
-    const sorted = [...effectiveTrades].sort((a, b) => (Number(a.profit) || 0) - (Number(b.profit) || 0));
+    const sorted = [...effectiveTrades].sort((a, b) => (Number(a?.profit) || 0) - (Number(b?.profit) || 0));
     const worst = sorted[0];
-    if (worst && Number(worst.profit) < 0) {
+    if (worst && Number(worst?.profit) < 0) {
       return {
-        symbol: worst.symbol,
+        symbol: worst.symbol || "EURUSD",
         profit: Number(worst.profit),
         type: String(worst.type || "SELL").toUpperCase().includes("BUY") ? "LONG" : "SHORT",
-        r: -1.0,
+        r: Number(worst.risk_reward_ratio) || -1.0,
       };
     }
     return null;
@@ -250,17 +280,18 @@ export const Reports: React.FC = () => {
         "P&L (%)",
         "Status",
       ];
-      const rows = tradesToExport.map((t, idx) => [
-        t.ticket || t.id || `TR-${1000 + idx}`,
-        t.symbol || "NAS100",
-        String(t.type || "BUY").toUpperCase(),
-        t.volume || 1.0,
-        t.open_time || "2026-11-22 09:30:00",
-        t.closed_at || "2026-11-22 11:45:00",
-        t.open_price || 20540.2,
-        t.close_price || 20830.2,
-        Number(t.profit || 0).toFixed(2),
-        `${((Number(t.profit || 0) / effectiveAccountBalance) * 100).toFixed(2)}%`,
+      const validTrades = (tradesToExport || []).filter(Boolean);
+      const rows = validTrades.map((t: any, idx: number) => [
+        t?.ticket || t?.id || `TR-${1000 + idx}`,
+        t?.symbol || "NAS100",
+        String(t?.type || "BUY").toUpperCase(),
+        t?.volume || t?.lot_size || 1.0,
+        t?.open_time || t?.opened_at || "2026-11-22 09:30:00",
+        t?.closed_at || "2026-11-22 11:45:00",
+        t?.open_price || t?.entry_price || 20540.2,
+        t?.close_price || 20830.2,
+        Number(t?.profit || 0).toFixed(2),
+        `${((Number(t?.profit || 0) / (effectiveAccountBalance || 1)) * 100).toFixed(2)}%`,
         "Verified",
       ]);
 
@@ -297,7 +328,7 @@ export const Reports: React.FC = () => {
         period: "Custom Selected Window",
         date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
         verifiedPnl: totalNet,
-        format: genFormat,
+        format: genFormat === "JSON" ? "PDF" : genFormat,
         size: "1.4 MB",
         isAudited: true,
         tradesCount: effectiveTrades.length || 1,
@@ -305,6 +336,26 @@ export const Reports: React.FC = () => {
       toast.success("Statement generated successfully");
     }
   };
+
+  const modalPnl = selectedStatement?.verifiedPnl ?? 0;
+  const modalTrades = selectedStatement?.tradesCount || 1;
+  const modalNetPct = effectiveAccountBalance > 0 ? ((modalPnl / effectiveAccountBalance) * 100).toFixed(2) : "0.00";
+  const modalWinRate = modalPnl >= 0 ? 100 : 0;
+  const modalWins = modalPnl >= 0 ? modalTrades : 0;
+  const modalLosses = modalPnl < 0 ? modalTrades : 0;
+  const modalPf = modalPnl >= 0 ? (formattedProfitFactor !== "0.00" ? formattedProfitFactor : "2.90") : "0.00";
+
+  const chartPoints = useMemo(() => {
+    if (!selectedStatement) return [];
+    const pnl = Number(selectedStatement.verifiedPnl) || 0;
+    return [
+      { time: "09:30", pnl: 0 },
+      { time: "10:00", pnl: Math.round(pnl * 0.25) },
+      { time: "10:30", pnl: Math.round(pnl * 0.55) },
+      { time: "11:00", pnl: Math.round(pnl * 0.8) },
+      { time: "11:45", pnl: pnl },
+    ];
+  }, [selectedStatement]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-16">
@@ -375,7 +426,7 @@ export const Reports: React.FC = () => {
             }`}
           >
             {totalNet >= 0 ? "+" : ""}
-            {netPct.toFixed(2)}% account P&L
+            {safeNetPct}% account P&L
           </p>
         </div>
 
@@ -388,7 +439,7 @@ export const Reports: React.FC = () => {
             Win Rate
           </span>
           <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-            {computedWinRate}%
+            {safeWinRate}%
           </h3>
           <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
             {winCount} won · {lossCount} lost
@@ -407,7 +458,7 @@ export const Reports: React.FC = () => {
             {totalTradesCount}
           </h3>
           <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
-            {winCount} Buy · {lossCount} Sell
+            {buyCount} Buy · {sellCount} Sell
           </p>
         </div>
 
@@ -420,7 +471,7 @@ export const Reports: React.FC = () => {
             Profit Factor
           </span>
           <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-            {profitFactor || "290"}
+            {formattedProfitFactor}
           </h3>
           <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
             Gross wins / losses
@@ -659,7 +710,7 @@ export const Reports: React.FC = () => {
       </div>
 
       {/* ── Interactive Statement Preview Modal (Matching Reference Image) ── */}
-      {createPortal(
+      {typeof document !== "undefined" && createPortal(
         <AnimatePresence>
           {selectedStatement && (
             <div className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 overflow-y-auto amazing-scrollbar">
@@ -733,7 +784,7 @@ export const Reports: React.FC = () => {
                     {/* Card 1: Daily Net Return */}
                     <div
                       className={`p-4 sm:p-5 rounded-2xl relative overflow-hidden border shadow-xs ${
-                        selectedStatement.verifiedPnl >= 0
+                        modalPnl >= 0
                           ? "bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08] border-emerald-500/30"
                           : "bg-rose-500/[0.05] dark:bg-rose-500/[0.08] border-rose-500/30"
                       }`}
@@ -746,18 +797,18 @@ export const Reports: React.FC = () => {
                       </span>
                       <h3
                         className={`text-[22px] sm:text-[24px] font-bold tracking-tight leading-none truncate ${
-                          selectedStatement.verifiedPnl >= 0 ? "text-emerald-500" : "text-rose-500"
+                          modalPnl >= 0 ? "text-emerald-500" : "text-rose-500"
                         }`}
                       >
-                        {selectedStatement.verifiedPnl >= 0 ? "+" : ""}
-                        {formatMoney(selectedStatement.verifiedPnl, { raw: true })}
+                        {modalPnl >= 0 ? "+" : ""}
+                        {formatMoney(modalPnl, { raw: true })}
                       </h3>
                       <p
                         className={`text-[11px] font-medium mt-1.5 truncate ${
-                          selectedStatement.verifiedPnl >= 0 ? "text-emerald-600/90 dark:text-emerald-400/90" : "text-rose-600/90 dark:text-rose-400/90"
+                          modalPnl >= 0 ? "text-emerald-600/90 dark:text-emerald-400/90" : "text-rose-600/90 dark:text-rose-400/90"
                         }`}
                       >
-                        +1.03% account P&L
+                        {modalPnl >= 0 ? "+" : ""}{modalNetPct}% account P&L
                       </p>
                     </div>
 
@@ -770,10 +821,10 @@ export const Reports: React.FC = () => {
                         Win Rate
                       </span>
                       <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                        100%
+                        {modalWinRate}%
                       </h3>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 truncate">
-                        1 won · 0 lost
+                        {modalWins} won · {modalLosses} lost
                       </p>
                     </div>
 
@@ -786,10 +837,10 @@ export const Reports: React.FC = () => {
                         Total Trades
                       </span>
                       <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                        1
+                        {modalTrades}
                       </h3>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 truncate">
-                        1 Buy · 0 Sell
+                        {modalWins} Buy · {modalLosses} Sell
                       </p>
                     </div>
 
@@ -802,7 +853,7 @@ export const Reports: React.FC = () => {
                         Profit Factor
                       </span>
                       <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                        290
+                        {modalPf}
                       </h3>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 truncate">
                         Gross wins / losses
@@ -815,7 +866,7 @@ export const Reports: React.FC = () => {
                         R:R Achieved
                       </span>
                       <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                        N/A
+                        {modalPnl >= 0 ? "1:2.8" : "1:0.8"}
                       </h3>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 truncate">
                         Avg Win / Loss ratio
@@ -850,7 +901,7 @@ export const Reports: React.FC = () => {
                           +{formatMoney(bestTrade.profit, { raw: true })}
                         </h3>
                         <p className="text-[11px] font-medium text-emerald-600/90 dark:text-emerald-400/90 mt-1.5">
-                          +5.8R achieved
+                          +{bestTrade.r || 5.8}R achieved
                         </p>
                       </div>
                     </div>
@@ -871,10 +922,26 @@ export const Reports: React.FC = () => {
                             </h4>
                           </div>
                         </div>
+                        {worstTrade && (
+                          <span className="tactile-rose-pill text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">
+                            SHORT
+                          </span>
+                        )}
                       </div>
-                      <div className="mt-2 text-center py-2">
-                        <p className="text-xs font-semibold text-slate-400">N/A</p>
-                      </div>
+                      {worstTrade ? (
+                        <div className="mt-2">
+                          <h3 className="text-[24px] font-bold tracking-tight leading-none text-rose-500">
+                            {formatMoney(worstTrade.profit, { raw: true })}
+                          </h3>
+                          <p className="text-[11px] font-medium text-rose-600/90 dark:text-rose-400/90 mt-1.5">
+                            {worstTrade.r ? `${worstTrade.r}R` : "Drawdown"}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-2 text-center py-2">
+                          <p className="text-xs font-semibold text-slate-400">No losses recorded</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -922,7 +989,7 @@ export const Reports: React.FC = () => {
                           Disciplined
                         </h5>
                         <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                          Felt highly disciplined. Sticked to system rules strictly, accepted stop losses gracefully, and maintained focus.
+                          Felt highly disciplined. Stuck to system rules strictly, accepted stop losses gracefully, and maintained focus.
                         </p>
                       </div>
 
@@ -947,26 +1014,18 @@ export const Reports: React.FC = () => {
                             Intraday P&L Over Time
                           </h4>
                         </div>
-                        <span className="text-[16px] font-bold text-emerald-500 tabular-nums">
-                          +{formatMoney(selectedStatement.verifiedPnl, { raw: true })}
+                        <span className={`text-[16px] font-bold tabular-nums ${modalPnl >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                          {modalPnl >= 0 ? "+" : ""}{formatMoney(modalPnl, { raw: true })}
                         </span>
                       </div>
 
-                      <div className="h-[200px] w-full pt-2">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart
-                            data={[
-                              { time: "09:30", pnl: 0 },
-                              { time: "10:00", pnl: 75 },
-                              { time: "10:30", pnl: 150 },
-                              { time: "11:00", pnl: 225 },
-                              { time: "11:45", pnl: selectedStatement.verifiedPnl },
-                            ]}
-                          >
+                      <div className="h-[200px] w-full pt-2 min-h-[200px]">
+                        <ResponsiveContainer width="100%" height={200} minWidth={100} minHeight={180}>
+                          <AreaChart data={chartPoints}>
                             <defs>
                               <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.25} />
-                                <stop offset="95%" stopColor="#6366F1" stopOpacity={0.0} />
+                                <stop offset="5%" stopColor={modalPnl >= 0 ? "#6366F1" : "#F43F5E"} stopOpacity={0.25} />
+                                <stop offset="95%" stopColor={modalPnl >= 0 ? "#6366F1" : "#F43F5E"} stopOpacity={0.0} />
                               </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(150,150,150,0.1)" />
@@ -991,7 +1050,7 @@ export const Reports: React.FC = () => {
                             <Area
                               type="monotone"
                               dataKey="pnl"
-                              stroke="#6366F1"
+                              stroke={modalPnl >= 0 ? "#6366F1" : "#F43F5E"}
                               strokeWidth={2.4}
                               fillOpacity={1}
                               fill="url(#pnlGrad)"
@@ -1019,7 +1078,7 @@ export const Reports: React.FC = () => {
       )}
 
       {/* ── Generate Custom Report Modal ─────────────────────────────────── */}
-      {createPortal(
+      {typeof document !== "undefined" && createPortal(
         <AnimatePresence>
           {isGeneratorOpen && (
             <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
