@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/integrations/supabase/types';
-
 
 export type ProfileShort = Database['public']['Tables']['profiles']['Row'] & {
   followers_count?: number;
@@ -9,17 +8,69 @@ export type ProfileShort = Database['public']['Tables']['profiles']['Row'] & {
 };
 export type ChannelItem = Database['public']['Tables']['channels']['Row'];
 
+interface DiscoverCacheData {
+  mentors: ProfileShort[];
+  channels: ChannelItem[];
+  traders: ProfileShort[];
+  people: ProfileShort[];
+  timestamp: number;
+}
+
+let memoryDiscoverCache: DiscoverCacheData | null = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes cache
+
+function getCachedDiscoverData(): DiscoverCacheData | null {
+  if (memoryDiscoverCache && Date.now() - memoryDiscoverCache.timestamp < CACHE_TTL_MS) {
+    return memoryDiscoverCache;
+  }
+  try {
+    const raw = sessionStorage.getItem('tradifive_discover_cache_v1');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.timestamp < CACHE_TTL_MS) {
+        memoryDiscoverCache = parsed;
+        return parsed;
+      }
+    }
+  } catch {
+    // Ignore storage errors
+  }
+  return null;
+}
+
+function setCachedDiscoverData(data: Omit<DiscoverCacheData, 'timestamp'>) {
+  const entry: DiscoverCacheData = { ...data, timestamp: Date.now() };
+  memoryDiscoverCache = entry;
+  try {
+    sessionStorage.setItem('tradifive_discover_cache_v1', JSON.stringify(entry));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export function useDiscoverData(userId: string, searchQuery: string) {
-  const [mentors, setMentors] = useState<ProfileShort[]>([]);
-  const [channels, setChannels] = useState<ChannelItem[]>([]);
-  const [traders, setTraders] = useState<ProfileShort[]>([]);
-  const [people, setPeople] = useState<ProfileShort[]>([]);
+  const initialCache = getCachedDiscoverData();
+
+  const [mentors, setMentors] = useState<ProfileShort[]>(initialCache?.mentors ?? []);
+  const [channels, setChannels] = useState<ChannelItem[]>(initialCache?.channels ?? []);
+  const [traders, setTraders] = useState<ProfileShort[]>(initialCache?.traders ?? []);
+  const [people, setPeople] = useState<ProfileShort[]>(initialCache?.people ?? []);
   const [searchResults, setSearchResults] = useState<ProfileShort[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Instant open: if cache exists, loading starts as false immediately!
+  const [loading, setLoading] = useState(initialCache === null);
   const [searching, setSearching] = useState(false);
 
-  const fetchAll = async () => {
-    setLoading(true);
+  const isFetchingRef = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
+
+  const fetchAll = async (isBackground = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    // Only set loading if there is no cached data to display
+    if (!isBackground && !memoryDiscoverCache) {
+      setLoading(true);
+    }
 
     try {
       // 1. Mentors (is_pro = true)
@@ -30,24 +81,13 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         .order('created_at', { ascending: false })
         .limit(12);
       if (userId) mentorQuery = mentorQuery.neq('id', userId);
-      const { data: mentorData, error: mentorErr } = await mentorQuery;
-      if (mentorErr) console.error('Discover mentors fetch error:', mentorErr);
 
       // 2. Channels
-      const { data: chanData, error: chanErr } = await supabase
+      const channelQuery = supabase
         .from('channels')
         .select('*, channel_members(count)')
         .order('created_at', { ascending: false })
         .limit(12);
-
-      if (chanErr) console.error('Discover channels fetch error:', chanErr);
-
-      const channelsWithCount = (chanData ?? []).map(ch => ({
-        ...ch,
-        // @ts-ignore - Supabase returns this as an array with count
-        memberCount: ch.channel_members?.[0]?.count || 0
-      }));
-      setChannels(channelsWithCount as any);
 
       // 3. Top Traders (ordered by win_rate descending, then newest)
       let traderQuery = supabase
@@ -57,25 +97,46 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         .order('created_at', { ascending: false })
         .limit(12);
       if (userId) traderQuery = traderQuery.neq('id', userId);
-      const { data: traderData, error: traderErr } = await traderQuery;
-      if (traderErr) console.error('Discover traders fetch error:', traderErr);
 
-      // 4. People (newest registered users first so new users always appear immediately)
+      // 4. People (newest registered users first)
       let peopleQuery = supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(50);
       if (userId) peopleQuery = peopleQuery.neq('id', userId);
-      const { data: peopleData, error: peopleErr } = await peopleQuery;
-      if (peopleErr) console.error('Discover people fetch error:', peopleErr);
 
-      // 5. Real Followers & Following Counts from social_follows table
-      const { data: allFollows, error: followsErr } = await supabase
+      // 5. Follows
+      const followsQuery = supabase
         .from('social_follows')
         .select('follower_id, following_id');
 
+      // Execute all 5 queries concurrently in parallel!
+      const [
+        { data: mentorData, error: mentorErr },
+        { data: chanData, error: chanErr },
+        { data: traderData, error: traderErr },
+        { data: peopleData, error: peopleErr },
+        { data: allFollows, error: followsErr }
+      ] = await Promise.all([
+        mentorQuery,
+        channelQuery,
+        traderQuery,
+        peopleQuery,
+        followsQuery
+      ]);
+
+      if (mentorErr) console.error('Discover mentors fetch error:', mentorErr);
+      if (chanErr) console.error('Discover channels fetch error:', chanErr);
+      if (traderErr) console.error('Discover traders fetch error:', traderErr);
+      if (peopleErr) console.error('Discover people fetch error:', peopleErr);
       if (followsErr) console.error('Discover social_follows fetch error:', followsErr);
+
+      const channelsWithCount = (chanData ?? []).map(ch => ({
+        ...ch,
+        // @ts-ignore - Supabase returns this as an array with count
+        memberCount: ch.channel_members?.[0]?.count || 0
+      }));
 
       const followerCountMap: Record<string, number> = {};
       const followingCountMap: Record<string, number> = {};
@@ -99,18 +160,37 @@ export function useDiscoverData(userId: string, searchQuery: string) {
         }));
       };
 
-      setMentors(attachCounts(mentorData));
-      setTraders(attachCounts(traderData));
-      setPeople(attachCounts(peopleData));
+      const resolvedMentors = attachCounts(mentorData);
+      const resolvedTraders = attachCounts(traderData);
+      const resolvedPeople = attachCounts(peopleData);
+      const resolvedChannels = channelsWithCount as any;
+
+      setMentors(resolvedMentors);
+      setChannels(resolvedChannels);
+      setTraders(resolvedTraders);
+      setPeople(resolvedPeople);
+
+      // Save to cache for instant future loads
+      setCachedDiscoverData({
+        mentors: resolvedMentors,
+        channels: resolvedChannels,
+        traders: resolvedTraders,
+        people: resolvedPeople,
+      });
     } catch (err) {
       console.error('Discover page loading failed:', err);
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAll();
+    // Only re-fetch if userId changed or no cache
+    if (lastUserIdRef.current !== userId || !memoryDiscoverCache) {
+      lastUserIdRef.current = userId;
+      fetchAll(Boolean(memoryDiscoverCache));
+    }
   }, [userId]);
 
   // Handle Search Input Query changes

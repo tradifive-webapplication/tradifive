@@ -690,43 +690,30 @@ export default function Discover() {
             };
         }), [people, followDeltas]);
 
-    function DiscoverSkeleton() {
+    function DiscoverCardsSkeleton() {
         return (
-            <div className="w-full font-sans pb-32 bg-[#F8FAFC] dark:bg-[#000000] text-slate-800 dark:text-slate-100 h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide select-none animate-pulse">
-                {/* Hero Section Skeleton */}
-                <div className="w-full relative overflow-hidden h-[240px] sm:h-[300px]">
-                     <div className="absolute inset-0 bg-slate-200/60 dark:bg-[#1E1E1E]" />
-                     <div className="relative z-10 pt-16 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto flex flex-col items-center sm:items-start text-center sm:text-left space-y-4">
-                        <div className="h-10 sm:h-12 w-64 sm:w-96 bg-slate-300 dark:bg-slate-700 rounded-xl" />
-                        <div className="h-5 sm:h-6 w-full max-w-2xl bg-slate-300 dark:bg-slate-700/60 rounded-md" />
-                        <div className="h-5 sm:h-6 w-3/4 max-w-xl bg-slate-300 dark:bg-slate-700/60 rounded-md" />
-                     </div>
-                </div>
-                
-                {/* Tabs Skeleton */}
-                <div className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-20 mt-8 mb-6 flex gap-3 overflow-x-auto scrollbar-hide">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-10 w-28 bg-slate-200 dark:bg-[#1E1E1E] rounded-full shrink-0" />
-                    ))}
-                </div>
-
-                {/* Grid Skeleton */}
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 xl:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="space-y-4">
+                <div className="h-6 w-36 bg-slate-200/80 dark:bg-white/[0.08] rounded-md animate-pulse" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                        <div key={i} className="bg-white dark:bg-[#1A1A1A] rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/5 flex flex-col h-[340px] relative">
-                            {/* Cover */}
-                            <div className="h-[143px] w-full bg-slate-200 dark:bg-[#222] relative shrink-0" />
-                            {/* Avatar */}
-                            <div className="absolute left-4 top-[115px] w-12 h-12 rounded-full border-[4px] border-white dark:border-[#1A1A1A] bg-slate-300 dark:bg-slate-700 z-20" />
-                            {/* Body */}
-                            <div className="pt-10 px-4 pb-4 flex flex-col gap-3 flex-grow">
-                                <div className="h-5 w-3/4 bg-slate-200 dark:bg-slate-800/60 rounded" />
-                                <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-800/40 rounded" />
-                                <div className="mt-auto grid grid-cols-2 gap-3">
-                                    <div className="h-10 bg-slate-100 dark:bg-[#1E1E1E] rounded-xl" />
-                                    <div className="h-10 bg-slate-100 dark:bg-[#1E1E1E] rounded-xl" />
+                        <div 
+                            key={i} 
+                            className="bg-white dark:bg-[#1A1A1E] rounded-[20px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between overflow-hidden animate-pulse h-[260px]"
+                        >
+                            {/* Shimmer cover */}
+                            <div className="w-full h-24 sm:h-26 bg-slate-200/70 dark:bg-white/[0.04] relative shrink-0" />
+                            <div className="px-4 pb-4 pt-0 flex-1 flex flex-col justify-between relative z-10">
+                                <div>
+                                    <div className="flex items-end justify-between -mt-6 mb-2.5">
+                                        <div className="w-11 h-11 rounded-full ring-[3px] ring-white dark:ring-[#1A1A1E] bg-slate-300 dark:bg-white/[0.08] shrink-0" />
+                                    </div>
+                                    <div className="h-4 w-3/4 bg-slate-200/80 dark:bg-white/[0.08] rounded-md mb-2" />
+                                    <div className="h-3 w-1/2 bg-slate-200/60 dark:bg-white/[0.05] rounded-md" />
                                 </div>
-                                <div className="h-10 w-full bg-slate-200 dark:bg-slate-800/50 rounded-xl mt-1" />
+                                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.05]">
+                                    <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-white/[0.05] rounded" />
+                                    <div className="h-7 w-20 ml-auto bg-slate-200/80 dark:bg-white/[0.08] rounded-full" />
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -735,15 +722,7 @@ export default function Discover() {
         );
     }
 
-    if (!authChecked || loading) {
-        return (
-            <CommunityPageWrapper breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
-                <div className="h-full overflow-y-auto w-full scrollbar-hide">
-                    <DiscoverSkeleton />
-                </div>
-            </CommunityPageWrapper>
-        );
-    }
+    const isColdLoading = loading && finalPeople.length === 0 && finalMentors.length === 0 && channels.length === 0 && finalTraders.length === 0;
 
     return (
         <CommunityPageWrapper breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
@@ -902,6 +881,13 @@ export default function Discover() {
                     </AnimatePresence>
 
 
+                    {/* Cold Loading Updated Skeleton (Only if data is taking time on very first cold fetch) */}
+                    {isColdLoading && !searchQuery && (
+                        <div className="py-2">
+                            <DiscoverCardsSkeleton />
+                        </div>
+                    )}
+
                     {/* ── LEADERBOARD TAB ──────────────────────────────────────────────── */}
                     {activeTab === "Leaderboard" && !searchQuery && (
                         <motion.div
@@ -914,7 +900,7 @@ export default function Discover() {
                     )}
 
                     {/* People */}
-                    {(activeTab === "All" || activeTab === "People") && !searchQuery && (
+                    {!isColdLoading && (activeTab === "All" || activeTab === "People") && !searchQuery && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div>
