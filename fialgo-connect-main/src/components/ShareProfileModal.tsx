@@ -245,33 +245,33 @@ export default function ShareProfileModal({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
-          className="fixed inset-0 bg-black/85 backdrop-blur-md cursor-pointer"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer"
         />
 
-        {/* Studio Modal Frame */}
+        {/* Studio Modal Frame - White Mode & Consistency Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.94, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.94, y: 16 }}
           transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-[920px] rounded-[28px] sm:rounded-[32px] bg-[#0c0d12] border border-white/10 shadow-[0_30px_90px_-20px_rgba(0,0,0,0.95),0_0_50px_rgba(59,130,246,0.12)] overflow-hidden text-white font-sans z-10 flex flex-col max-h-[92vh]"
+          className="relative w-full max-w-[920px] rounded-[28px] sm:rounded-[32px] bg-white dark:bg-[#121316] border border-slate-200/90 dark:border-white/10 shadow-[0_25px_70px_rgba(0,0,0,0.12)] dark:shadow-[0_30px_90px_-20px_rgba(0,0,0,0.95)] overflow-hidden text-slate-900 dark:text-white font-sans z-10 flex flex-col max-h-[92vh]"
         >
-          {/* Subtle Ambient Radial Glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-40 bg-blue-600/10 blur-[80px] pointer-events-none" />
+          {/* Subtle Ambient Radial Highlight */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-96 h-32 bg-indigo-500/[0.04] dark:bg-blue-600/10 blur-[60px] pointer-events-none" />
 
           {/* ── Top Header ── */}
-          <div className="flex items-start justify-between px-6 pt-5 pb-3 shrink-0 relative z-10 border-b border-white/[0.06]">
+          <div className="flex items-start justify-between px-6 pt-5 pb-3.5 shrink-0 relative z-10 border-b border-slate-100 dark:border-white/[0.08]">
             <div>
-              <h2 className="text-[20px] sm:text-[22px] font-extrabold text-white tracking-tight leading-tight">
+              <h2 className="text-[20px] sm:text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
                 Links & Trading Passport
               </h2>
-              <p className="text-[12.5px] text-zinc-400 mt-0.5">
+              <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 mt-0.5">
                 Your own page for your bio, free on every plan. Anyone who joins through it counts as yours.
               </p>
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+              className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Close"
             >
               <X size={16} />
@@ -281,12 +281,12 @@ export default function ShareProfileModal({
           {/* ── Scrollable Body ── */}
           <div className="flex-1 overflow-y-auto amazing-scrollbar px-6 py-5 space-y-6 relative z-10">
             {/* Top Bar: "Your page" URL + Action Pills */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-inner">
+            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
               <div className="min-w-0 flex-1">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-zinc-500 block">
+                <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block">
                   Your page
                 </span>
-                <span className="text-[17px] sm:text-[19px] font-black text-white font-mono tracking-tight truncate block mt-0.5 select-all">
+                <span className="text-[17px] sm:text-[19px] font-black text-slate-900 dark:text-white font-mono tracking-tight truncate block mt-0.5 select-all">
                   tradifive.in/@{username}
                 </span>
               </div>
@@ -294,15 +294,19 @@ export default function ShareProfileModal({
                 <button
                   type="button"
                   onClick={handleCopy}
-                  className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 text-white text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer border border-white/15 active:scale-95 shadow-sm"
+                  className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95 ${
+                    copied
+                      ? "tactile-emerald-pill text-white"
+                      : "tactile-white-pill text-slate-700 dark:text-slate-200"
+                  }`}
                 >
-                  {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                  {copied ? <Check size={13} className="text-white" /> : <Copy size={13} />}
                   <span>{copied ? "Copied!" : "Copy link"}</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleNativeShare}
-                  className="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/15 text-white text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer border border-white/15 active:scale-95 shadow-sm"
+                  className="tactile-white-pill px-3.5 py-1.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-200 transition-all cursor-pointer shadow-xs active:scale-95"
                 >
                   <Share2 size={13} />
                   <span>Share</span>
@@ -311,7 +315,7 @@ export default function ShareProfileModal({
                   href={`/user/${username}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-[12px] font-bold inline-flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm active:scale-95"
+                  className="tactile-black-pill px-4 py-1.5 rounded-full text-white text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
                 >
                   <ExternalLink size={13} />
                   <span>View live</span>
@@ -322,18 +326,18 @@ export default function ShareProfileModal({
             {/* ── PREVIEW SECTION ── */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] font-bold text-zinc-400">
+                <span className="text-[12px] font-bold text-slate-500 dark:text-zinc-400">
                   What visitors see. Move your cursor over it, then customize below.
                 </span>
                 {/* Desktop / Phone Switcher */}
-                <div className="inline-flex items-center p-1 rounded-xl bg-white/[0.05] border border-white/[0.08]">
+                <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/[0.08]">
                   <button
                     type="button"
                     onClick={() => setDeviceMode("desktop")}
                     className={`px-3 py-1 rounded-lg text-[11.5px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                       deviceMode === "desktop"
-                        ? "bg-white text-black shadow-sm"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-white dark:bg-[#242428] text-slate-900 dark:text-white shadow-xs"
+                        : "text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
                     }`}
                   >
                     <Monitor size={13} />
@@ -344,8 +348,8 @@ export default function ShareProfileModal({
                     onClick={() => setDeviceMode("phone")}
                     className={`px-3 py-1 rounded-lg text-[11.5px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                       deviceMode === "phone"
-                        ? "bg-white text-black shadow-sm"
-                        : "text-zinc-400 hover:text-white"
+                        ? "bg-white dark:bg-[#242428] text-slate-900 dark:text-white shadow-xs"
+                        : "text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white"
                     }`}
                   >
                     <Smartphone size={13} />
@@ -356,22 +360,22 @@ export default function ShareProfileModal({
 
               {/* Simulated Device Frame */}
               <div
-                className={`relative mx-auto rounded-[24px] border border-white/15 overflow-hidden shadow-2xl transition-all duration-300 ${
+                className={`relative mx-auto rounded-[24px] border border-slate-200/90 dark:border-white/15 overflow-hidden shadow-xl transition-all duration-300 ${
                   deviceMode === "desktop"
                     ? "w-full max-w-[840px] aspect-[16/10] max-h-[420px]"
-                    : "w-[300px] aspect-[9/18] max-h-[520px] rounded-[36px] border-4 border-zinc-800"
+                    : "w-[300px] aspect-[9/18] max-h-[520px] rounded-[36px] border-4 border-slate-800 dark:border-zinc-800"
                 }`}
               >
                 {/* Desktop Browser Bar */}
                 {deviceMode === "desktop" && (
-                  <div className="h-9 px-4 bg-[#14151b] border-b border-white/[0.08] flex items-center justify-between z-20 relative select-none">
+                  <div className="h-9 px-4 bg-slate-100 dark:bg-[#14151b] border-b border-slate-200/80 dark:border-white/[0.08] flex items-center justify-between z-20 relative select-none">
                     <div className="flex items-center gap-1.5">
-                      <span className="w-2.5 h-2.5 rounded-full bg-red-500/80 inline-block" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 inline-block" />
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-400/90 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400/90 inline-block" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/90 inline-block" />
                     </div>
-                    <div className="px-4 py-0.5 rounded-full bg-black/50 border border-white/10 text-[11px] text-zinc-400 font-mono flex items-center gap-1.5 max-w-[260px] truncate">
-                      <LinkIcon size={10} className="text-zinc-500" />
+                    <div className="px-4 py-0.5 rounded-full bg-white dark:bg-black/50 border border-slate-200 dark:border-white/10 text-[11px] text-slate-600 dark:text-zinc-400 font-mono flex items-center gap-1.5 max-w-[260px] truncate shadow-xs">
+                      <LinkIcon size={10} className="text-slate-400 dark:text-zinc-500" />
                       <span>tradifive.in/@{username}</span>
                     </div>
                     <div className="w-12" />
@@ -537,16 +541,16 @@ export default function ShareProfileModal({
                 </div>
               </div>
 
-              {/* ── FLOATING TOOLBAR DOCK (Exact Photo 2 & 3 Dock) ── */}
+              {/* ── FLOATING TOOLBAR DOCK ── */}
               <div className="flex justify-center pt-2">
-                <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-white/10 dark:bg-white/[0.08] backdrop-blur-xl border border-white/15 shadow-xl">
+                <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-white/95 dark:bg-[#1c1d22]/95 backdrop-blur-xl border border-slate-200/90 dark:border-white/15 shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
                   <button
                     type="button"
                     onClick={() => setActiveTab("profile")}
                     className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                       activeTab === "profile"
-                        ? "bg-white text-black shadow-md"
-                        : "text-zinc-300 hover:text-white"
+                        ? "tactile-black-pill text-white shadow-xs"
+                        : "text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
                     }`}
                   >
                     <User size={13} />
@@ -558,8 +562,8 @@ export default function ShareProfileModal({
                     onClick={() => setActiveTab("background")}
                     className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                       activeTab === "background"
-                        ? "bg-white text-black shadow-md"
-                        : "text-zinc-300 hover:text-white"
+                        ? "tactile-black-pill text-white shadow-xs"
+                        : "text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
                     }`}
                   >
                     <ImageIcon size={13} />
@@ -571,8 +575,8 @@ export default function ShareProfileModal({
                     onClick={() => setActiveTab("stats")}
                     className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                       activeTab === "stats"
-                        ? "bg-white text-black shadow-md"
-                        : "text-zinc-300 hover:text-white"
+                        ? "tactile-black-pill text-white shadow-xs"
+                        : "text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
                     }`}
                   >
                     <Sliders size={13} />
@@ -584,8 +588,8 @@ export default function ShareProfileModal({
                     onClick={() => setActiveTab("share")}
                     className={`px-3.5 py-1.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer ${
                       activeTab === "share"
-                        ? "bg-white text-black shadow-md"
-                        : "text-zinc-300 hover:text-white"
+                        ? "tactile-black-pill text-white shadow-xs"
+                        : "text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5"
                     }`}
                   >
                     <Share2 size={13} />
@@ -595,7 +599,7 @@ export default function ShareProfileModal({
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-md active:scale-95 ml-1"
+                    className="tactile-emerald-pill px-4 py-1.5 rounded-full text-white text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95 ml-1"
                   >
                     <Check size={13} strokeWidth={3} />
                     <span>Save</span>
@@ -606,14 +610,14 @@ export default function ShareProfileModal({
 
             {/* ── CUSTOMIZER EDITOR ACCORDION / PANELS ── */}
             <div className="pt-2">
-              {/* Tab 1: YOUR PROFILE (Exact Photo 3) */}
+              {/* Tab 1: YOUR PROFILE */}
               {activeTab === "profile" && (
-                <div className="p-5 sm:p-6 rounded-[24px] bg-white/[0.03] border border-white/[0.08] space-y-6">
+                <div className="p-5 sm:p-6 rounded-[24px] bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/[0.08] space-y-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                   <div>
-                    <h3 className="text-[17px] font-extrabold text-white tracking-tight">
+                    <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white tracking-tight">
                       Your profile
                     </h3>
-                    <p className="text-[12px] text-zinc-400 mt-0.5">
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-0.5">
                       Your picture, the line under your name, your bio and the numbers you show.
                     </p>
                   </div>
@@ -622,10 +626,10 @@ export default function ShareProfileModal({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {/* Picture */}
                     <div>
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-400 block mb-1">
+                      <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-400 block mb-1">
                         PICTURE
                       </span>
-                      <p className="text-[12px] text-zinc-500 mb-3">
+                      <p className="text-[12px] text-slate-500 dark:text-zinc-500 mb-3">
                         Your profile picture shows on your page.
                       </p>
                       <input
@@ -638,7 +642,7 @@ export default function ShareProfileModal({
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-white text-[12.5px] font-bold inline-flex items-center gap-2 transition-colors cursor-pointer border border-white/15"
+                        className="tactile-white-pill px-4 py-2 rounded-xl text-slate-700 dark:text-slate-200 text-[12.5px] font-bold inline-flex items-center gap-2 cursor-pointer shadow-xs active:scale-95"
                       >
                         <ImageIcon size={14} />
                         <span>Change picture</span>
@@ -648,10 +652,10 @@ export default function ShareProfileModal({
                     {/* Bio */}
                     <div>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-400">
+                        <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-400">
                           BIO
                         </span>
-                        <span className="text-[11px] font-mono text-zinc-500">
+                        <span className="text-[11px] font-mono text-slate-400 dark:text-zinc-500">
                           {settings.bio.length}/280
                         </span>
                       </div>
@@ -662,18 +666,18 @@ export default function ShareProfileModal({
                         }
                         placeholder="Write a brief intro..."
                         rows={3}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-[13px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500 transition-colors resize-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 transition-all resize-none shadow-xs"
                       />
                     </div>
                   </div>
 
                   {/* Tagline & Type it out */}
-                  <div className="space-y-2 pt-2 border-t border-white/[0.06]">
+                  <div className="space-y-2 pt-2 border-t border-slate-200/60 dark:border-white/[0.06]">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-400">
+                      <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-400">
                         TAGLINE
                       </span>
-                      <span className="text-[11px] font-mono text-zinc-500">
+                      <span className="text-[11px] font-mono text-slate-400 dark:text-zinc-500">
                         {settings.tagline.length}/60
                       </span>
                     </div>
@@ -684,16 +688,16 @@ export default function ShareProfileModal({
                         setSettings((prev) => ({ ...prev, tagline: e.target.value.slice(0, 60) }))
                       }
                       placeholder="NQ scalper. Funded since March."
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-[13px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500 transition-colors"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 transition-all shadow-xs"
                     />
 
                     {/* Type it out Toggle */}
-                    <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] shadow-xs mt-2">
                       <div>
-                        <span className="text-[13px] font-bold text-white block">
+                        <span className="text-[13px] font-bold text-slate-900 dark:text-white block">
                           Type it out
                         </span>
-                        <span className="text-[11.5px] text-zinc-400 block">
+                        <span className="text-[11.5px] text-slate-500 dark:text-zinc-400 block">
                           The line writes itself when someone opens your page.
                         </span>
                       </div>
@@ -706,26 +710,26 @@ export default function ShareProfileModal({
                           }
                           className="sr-only peer"
                         />
-                        <div className="w-11 h-6 bg-white/15 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500" />
+                        <div className="w-11 h-6 bg-slate-200 dark:bg-white/15 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:peer-checked:after:bg-slate-900 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900 dark:peer-checked:bg-white" />
                       </label>
                     </div>
                   </div>
 
                   {/* Numbers on your page */}
-                  <div className="space-y-3 pt-3 border-t border-white/[0.06]">
+                  <div className="space-y-3 pt-3 border-t border-slate-200/60 dark:border-white/[0.06]">
                     <div>
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-400 block">
+                      <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-400 block">
                         NUMBERS ON YOUR PAGE
                       </span>
-                      <p className="text-[12px] text-zinc-500">
+                      <p className="text-[12px] text-slate-500 dark:text-zinc-500">
                         All off until you turn them on. Your profile card shows the same.
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       {/* Win rate */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                        <span className="text-[13px] font-semibold text-white">Win rate</span>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] shadow-xs">
+                        <span className="text-[13px] font-semibold text-slate-900 dark:text-white">Win rate</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
@@ -735,13 +739,13 @@ export default function ShareProfileModal({
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-10 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500" />
+                          <div className="w-10 h-5 bg-slate-200 dark:bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:peer-checked:after:bg-slate-900 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900 dark:peer-checked:bg-white" />
                         </label>
                       </div>
 
                       {/* P&L */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                        <span className="text-[13px] font-semibold text-white">P&L</span>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] shadow-xs">
+                        <span className="text-[13px] font-semibold text-slate-900 dark:text-white">P&L</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
@@ -751,13 +755,13 @@ export default function ShareProfileModal({
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-10 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500" />
+                          <div className="w-10 h-5 bg-slate-200 dark:bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:peer-checked:after:bg-slate-900 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900 dark:peer-checked:bg-white" />
                         </label>
                       </div>
 
                       {/* Trades */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                        <span className="text-[13px] font-semibold text-white">Trades</span>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] shadow-xs">
+                        <span className="text-[13px] font-semibold text-slate-900 dark:text-white">Trades</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
@@ -767,13 +771,13 @@ export default function ShareProfileModal({
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-10 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500" />
+                          <div className="w-10 h-5 bg-slate-200 dark:bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:peer-checked:after:bg-slate-900 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900 dark:peer-checked:bg-white" />
                         </label>
                       </div>
 
                       {/* Followers */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06]">
-                        <span className="text-[13px] font-semibold text-white">Followers</span>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] shadow-xs">
+                        <span className="text-[13px] font-semibold text-slate-900 dark:text-white">Followers</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
@@ -783,13 +787,13 @@ export default function ShareProfileModal({
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-10 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500" />
+                          <div className="w-10 h-5 bg-slate-200 dark:bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:peer-checked:after:bg-slate-900 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900 dark:peer-checked:bg-white" />
                         </label>
                       </div>
 
                       {/* Funded accounts */}
-                      <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.06] sm:col-span-2">
-                        <span className="text-[13px] font-semibold text-white">Funded accounts</span>
+                      <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.06] shadow-xs sm:col-span-2">
+                        <span className="text-[13px] font-semibold text-slate-900 dark:text-white">Funded accounts</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                           <input
                             type="checkbox"
@@ -802,26 +806,26 @@ export default function ShareProfileModal({
                             }
                             className="sr-only peer"
                           />
-                          <div className="w-10 h-5 bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyan-500" />
+                          <div className="w-10 h-5 bg-slate-200 dark:bg-white/15 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white dark:peer-checked:after:bg-slate-900 after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-slate-900 dark:peer-checked:bg-white" />
                         </label>
                       </div>
                     </div>
                   </div>
 
                   {/* Socials Grid */}
-                  <div className="space-y-3 pt-3 border-t border-white/[0.06]">
+                  <div className="space-y-3 pt-3 border-t border-slate-200/60 dark:border-white/[0.06]">
                     <div>
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-400 block">
+                      <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-400 block">
                         SOCIALS
                       </span>
-                      <p className="text-[12px] text-zinc-500">
+                      <p className="text-[12px] text-slate-500 dark:text-zinc-500">
                         Round buttons under your name. Your username or full address.
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       <div>
-                        <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1">
                           Instagram
                         </label>
                         <input
@@ -834,12 +838,12 @@ export default function ShareProfileModal({
                             }))
                           }
                           placeholder="@handle"
-                          className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-[12.5px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[12.5px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 shadow-xs"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1">
                           X (Twitter)
                         </label>
                         <input
@@ -852,12 +856,12 @@ export default function ShareProfileModal({
                             }))
                           }
                           placeholder="@handle"
-                          className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-[12.5px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[12.5px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 shadow-xs"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1">
                           TradingView
                         </label>
                         <input
@@ -870,12 +874,12 @@ export default function ShareProfileModal({
                             }))
                           }
                           placeholder="username"
-                          className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-[12.5px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[12.5px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 shadow-xs"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1">
                           Discord
                         </label>
                         <input
@@ -888,12 +892,12 @@ export default function ShareProfileModal({
                             }))
                           }
                           placeholder="invite code or username"
-                          className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-[12.5px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[12.5px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 shadow-xs"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1">
                           YouTube
                         </label>
                         <input
@@ -906,12 +910,12 @@ export default function ShareProfileModal({
                             }))
                           }
                           placeholder="@channel"
-                          className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-[12.5px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[12.5px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 shadow-xs"
                         />
                       </div>
 
                       <div>
-                        <label className="text-[11px] font-semibold text-zinc-400 block mb-1">
+                        <label className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 block mb-1">
                           TikTok
                         </label>
                         <input
@@ -924,7 +928,7 @@ export default function ShareProfileModal({
                             }))
                           }
                           placeholder="@handle"
-                          className="w-full px-3 py-2 rounded-xl bg-black/40 border border-white/10 text-[12.5px] text-white placeholder:text-zinc-600 outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[12.5px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 shadow-xs"
                         />
                       </div>
                     </div>
@@ -934,12 +938,12 @@ export default function ShareProfileModal({
 
               {/* Tab 2: 3D BACKGROUND THEMES */}
               {activeTab === "background" && (
-                <div className="p-5 sm:p-6 rounded-[24px] bg-white/[0.03] border border-white/[0.08] space-y-4">
+                <div className="p-5 sm:p-6 rounded-[24px] bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/[0.08] space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                   <div>
-                    <h3 className="text-[17px] font-extrabold text-white tracking-tight">
+                    <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white tracking-tight">
                       Background Theme
                     </h3>
-                    <p className="text-[12px] text-zinc-400 mt-0.5">
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-0.5">
                       Choose the 3D aesthetic backdrop that appears behind your link-in-bio card.
                     </p>
                   </div>
@@ -960,14 +964,18 @@ export default function ShareProfileModal({
                         }
                         className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between h-24 ${
                           settings.backgroundTheme === bg.id
-                            ? "bg-white/10 border-blue-500 shadow-md ring-1 ring-blue-500"
-                            : "bg-white/[0.02] border-white/10 hover:bg-white/[0.05]"
+                            ? "bg-white dark:bg-white/10 border-slate-900 dark:border-white shadow-md ring-2 ring-slate-900/10 dark:ring-white/20"
+                            : "bg-white/70 dark:bg-white/[0.02] border-slate-200/90 dark:border-white/10 hover:bg-white dark:hover:bg-white/[0.05]"
                         }`}
                       >
-                        <span className="text-[12px] font-bold text-white block">
+                        <span className={`text-[12px] font-bold block ${
+                          settings.backgroundTheme === bg.id ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-zinc-300"
+                        }`}>
                           {bg.name}
                         </span>
-                        <span className="text-[10px] text-zinc-500 block">
+                        <span className={`text-[10px] block ${
+                          settings.backgroundTheme === bg.id ? "text-slate-600 dark:text-zinc-400" : "text-slate-400 dark:text-zinc-500"
+                        }`}>
                           {bg.desc}
                         </span>
                       </button>
@@ -978,18 +986,18 @@ export default function ShareProfileModal({
 
               {/* Tab 3: CARD & BUTTON SETTINGS */}
               {activeTab === "stats" && (
-                <div className="p-5 sm:p-6 rounded-[24px] bg-white/[0.03] border border-white/[0.08] space-y-4">
+                <div className="p-5 sm:p-6 rounded-[24px] bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/[0.08] space-y-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                   <div>
-                    <h3 className="text-[17px] font-extrabold text-white tracking-tight">
+                    <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white tracking-tight">
                       Call to Action & Card Styling
                     </h3>
-                    <p className="text-[12px] text-zinc-400 mt-0.5">
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-0.5">
                       Customize the primary button on your bio page to convert visitors into followers or copy-traders.
                     </p>
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-bold tracking-wider uppercase text-zinc-400 block mb-1">
+                    <label className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-400 block mb-1">
                       BUTTON TEXT
                     </label>
                     <input
@@ -999,7 +1007,7 @@ export default function ShareProfileModal({
                         setSettings((prev) => ({ ...prev, ctaText: e.target.value }))
                       }
                       placeholder="Journal with me on TradiFive"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-black/40 border border-white/10 text-[13px] text-white outline-none focus:border-blue-500"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-black/40 border border-slate-200/90 dark:border-white/10 text-[13px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-600 outline-none focus:border-slate-400 dark:focus:border-white/30 shadow-xs"
                     />
                   </div>
                 </div>
@@ -1007,32 +1015,32 @@ export default function ShareProfileModal({
 
               {/* Tab 4: SHARE & QR */}
               {activeTab === "share" && (
-                <div className="p-5 sm:p-6 rounded-[24px] bg-white/[0.03] border border-white/[0.08] space-y-6">
+                <div className="p-5 sm:p-6 rounded-[24px] bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/[0.08] space-y-6 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
                   <div>
-                    <h3 className="text-[17px] font-extrabold text-white tracking-tight">
+                    <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white tracking-tight">
                       Share & QR Code
                     </h3>
-                    <p className="text-[12px] text-zinc-400 mt-0.5">
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-0.5">
                       Share your bio passport link directly across platforms or download your print-ready QR code.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                     {/* QR Code */}
-                    <div className="flex flex-col items-center p-4 rounded-2xl bg-black/50 border border-white/10 text-center">
+                    <div className="flex flex-col items-center p-4 rounded-2xl bg-white dark:bg-black/50 border border-slate-200/90 dark:border-white/10 text-center shadow-xs">
                       <img
                         src={qrCodeUrl}
                         alt="QR Code"
-                        className="w-40 h-40 rounded-xl bg-[#0a0b10] p-2 border border-white/15 shadow-lg"
+                        className="w-40 h-40 rounded-xl bg-white p-2.5 border border-slate-200/80 dark:border-white/15 shadow-sm"
                       />
-                      <p className="text-[11px] text-zinc-400 font-medium mt-2.5">
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 font-medium mt-2.5">
                         Scan to visit verified trading passport
                       </p>
                     </div>
 
                     {/* Direct Social Share Buttons */}
                     <div className="space-y-2.5">
-                      <span className="text-[11px] font-bold tracking-wider uppercase text-zinc-400 block mb-2">
+                      <span className="text-[11px] font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-400 block mb-2">
                         SHARE DIRECTLY TO
                       </span>
 
@@ -1044,7 +1052,7 @@ export default function ShareProfileModal({
                           );
                           window.open(`https://wa.me/?text=${text}`, "_blank");
                         }}
-                        className="w-full py-2.5 px-4 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[12.5px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                        className="tactile-white-pill w-full py-2.5 px-4 rounded-xl text-emerald-600 dark:text-emerald-400 border border-emerald-500/25 bg-emerald-50/50 dark:bg-emerald-500/10 text-[12.5px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98"
                       >
                         <span>Share on WhatsApp</span>
                       </button>
@@ -1057,7 +1065,7 @@ export default function ShareProfileModal({
                           );
                           window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
                         }}
-                        className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-[12.5px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                        className="tactile-white-pill w-full py-2.5 px-4 rounded-xl text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/15 bg-white dark:bg-white/10 text-[12.5px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98"
                       >
                         <span>Share on X (Twitter)</span>
                       </button>
@@ -1073,7 +1081,7 @@ export default function ShareProfileModal({
                             "_blank"
                           );
                         }}
-                        className="w-full py-2.5 px-4 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 text-[12.5px] font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                        className="tactile-white-pill w-full py-2.5 px-4 rounded-xl text-sky-600 dark:text-sky-400 border border-sky-500/25 bg-sky-50/50 dark:bg-sky-500/10 text-[12.5px] font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs active:scale-98"
                       >
                         <span>Share on Telegram</span>
                       </button>
