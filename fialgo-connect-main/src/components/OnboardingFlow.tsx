@@ -9,6 +9,7 @@ import {
   CheckCircle2, X
 } from "lucide-react";
 import { toast } from "sonner";
+import { validateUsername } from "@/utils/usernameValidation";
 
 interface OnboardingFlowProps {
   user: User;
@@ -74,6 +75,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
     if (clean.length < 3) {
       setHandleAvailable(false);
       setHandleError("Handle must be at least 3 characters.");
+      return;
+    }
+
+    // Check policy restrictions (deities/gods, prime ministers, heads of state, reserved keywords)
+    const policyResult = validateUsername(clean);
+    if (!policyResult.isValid) {
+      setHandleAvailable(false);
+      setHandleError(policyResult.message || "This handle is not allowed.");
       return;
     }
 
@@ -143,6 +152,15 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
     setIsSaving(true);
 
     try {
+      if (handle) {
+        const policyResult = validateUsername(handle);
+        if (!policyResult.isValid) {
+          toast.error(policyResult.message || "This handle is not allowed.");
+          setIsSaving(false);
+          return;
+        }
+      }
+
       const finalUsername = handle || `trader_${user.id.slice(0, 6)}`;
       const finalName = name.trim() || user.email?.split('@')[0] || "Trader";
 

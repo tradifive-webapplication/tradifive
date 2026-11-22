@@ -4,6 +4,7 @@ import { useMarket } from '@/contexts/MarketContext';
 import { supabase } from '@/lib/supabase';
 import { Globe, TrendingUp, Sparkles, User, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { validateUsername } from '@/utils/usernameValidation';
 
 export const MarketSelectorModal = () => {
   const { setActiveMarket } = useMarket();
@@ -56,6 +57,13 @@ export const MarketSelectorModal = () => {
       setUsernameError("Username must be at least 3 characters");
       return;
     }
+
+    const validation = validateUsername(username);
+    if (!validation.isValid) {
+      setUsernameError(validation.message || "This username is not allowed.");
+      return;
+    }
+
     setIsSavingUsername(true);
     setUsernameError("");
 
