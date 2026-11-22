@@ -37,67 +37,81 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
   };
 
   return (
-    <div className="w-full flex flex-col rounded-[14px] overflow-hidden bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-[1.5px] border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none transition-all focus-within:ring-2 focus-within:ring-emerald-500/20 focus-within:border-emerald-500/30">
+    <div className="w-full flex flex-col rounded-2xl overflow-hidden bg-white dark:bg-[#15171C] border border-slate-200/80 dark:border-white/[0.08] shadow-xs transition-all focus-within:border-emerald-500/50 focus-within:ring-2 focus-within:ring-emerald-500/10">
       
       {/* Toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-slate-50 dark:bg-[#1A1A1A] border-b border-slate-200 dark:border-white/5">
+      <div className="flex items-center justify-between px-3.5 py-2.5 bg-slate-50/80 dark:bg-white/[0.03] border-b border-slate-200/70 dark:border-white/[0.06]">
         <div className="flex items-center gap-1">
           <button 
+            type="button"
             title="Bold"
             onClick={() => insertText("**", "**")}
             disabled={isPreview}
-            className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors disabled:opacity-40"
           >
-            <Bold size={14} />
+            <Bold size={14} strokeWidth={2.5} />
           </button>
           <button 
+            type="button"
             title="Italic"
             onClick={() => insertText("_", "_")}
             disabled={isPreview}
-            className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors disabled:opacity-40"
           >
-            <Italic size={14} />
+            <Italic size={14} strokeWidth={2.5} />
           </button>
           <button 
+            type="button"
             title="Bullet List"
             onClick={() => insertText("- ")}
             disabled={isPreview}
-            className="p-1.5 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-md hover:bg-slate-200 dark:hover:bg-white/10 transition-colors disabled:opacity-50"
+            className="p-1.5 text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white rounded-lg hover:bg-slate-200/60 dark:hover:bg-white/10 transition-colors disabled:opacity-40"
           >
-            <List size={14} />
+            <List size={14} strokeWidth={2.5} />
           </button>
-          <div className="w-[1px] h-4 bg-slate-300 dark:bg-white/10 mx-1" />
+          <div className="w-[1px] h-4 bg-slate-200 dark:bg-white/10 mx-1.5" />
           <button 
+            type="button"
             title="Insert Image URL"
             onClick={addImage}
             disabled={isPreview}
-            className="p-1.5 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-50 flex items-center gap-1.5"
+            className="px-2.5 py-1 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors disabled:opacity-40 flex items-center gap-1.5"
           >
-            <ImageIcon size={14} />
+            <ImageIcon size={13} strokeWidth={2.5} />
             <span className="text-[10px] font-bold uppercase tracking-wider">Image</span>
           </button>
         </div>
 
         {/* Toggle Mode */}
-        <div className="flex items-center gap-1 bg-white dark:bg-[#2C2C2E] p-0.5 rounded-lg border border-slate-200 dark:border-white/10 shadow-sm">
+        <div className="flex items-center gap-1 bg-white dark:bg-white/[0.06] p-0.5 rounded-xl border border-slate-200/80 dark:border-white/10 shadow-2xs">
           <button
+            type="button"
             onClick={() => setIsPreview(false)}
-            className={`px-3 py-1 rounded-md flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${!isPreview ? "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
+            className={`px-3 py-1 rounded-lg flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
+              !isPreview 
+                ? "bg-slate-100 dark:bg-white/15 text-slate-900 dark:text-white shadow-2xs" 
+                : "text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+            }`}
           >
-            <Edit3 size={12} /> Edit
+            <Edit3 size={11} strokeWidth={2.5} /> Edit
           </button>
           <button
+            type="button"
             onClick={() => setIsPreview(true)}
-            className={`px-3 py-1 rounded-md flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${isPreview ? "bg-emerald-50 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 shadow-sm" : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"}`}
+            className={`px-3 py-1 rounded-lg flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all ${
+              isPreview 
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold shadow-2xs" 
+                : "text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+            }`}
           >
-            <Eye size={12} /> Preview
+            <Eye size={11} strokeWidth={2.5} /> Preview
           </button>
         </div>
       </div>
 
       {/* Editor Area */}
       {isPreview ? (
-        <div className="p-4 min-h-[160px] text-[13px] text-slate-700 dark:text-slate-300 prose prose-sm dark:prose-invert prose-emerald max-w-none overflow-y-auto amazing-scrollbar bg-white dark:bg-transparent">
+        <div className="p-4 min-h-[140px] text-[13px] text-slate-700 dark:text-slate-300 prose prose-sm dark:prose-invert prose-emerald max-w-none overflow-y-auto amazing-scrollbar bg-white dark:bg-transparent">
           {value ? (
             <ReactMarkdown
               components={{
@@ -109,7 +123,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
               {value}
             </ReactMarkdown>
           ) : (
-            <p className="text-slate-400 italic">Nothing to preview...</p>
+            <p className="text-slate-400 dark:text-zinc-500 italic text-[12px]">No notes written yet. Click 'Edit' to document your trade thoughts.</p>
           )}
         </div>
       ) : (
@@ -117,9 +131,9 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           id="rich-text-editor"
           value={value}
           onChange={e => onChange(e.target.value)}
-          rows={6}
+          rows={5}
           placeholder={placeholder || "Describe your psychological state, rationale, and any observations... Use Markdown!"}
-          className="w-full px-4 py-3.5 bg-transparent border-none text-[13px] font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-0 resize-none leading-relaxed amazing-scrollbar"
+          className="w-full px-4 py-3.5 bg-transparent border-none text-[13px] font-medium text-slate-800 dark:text-slate-200 placeholder:text-slate-400 focus:outline-none focus:ring-0 resize-none leading-relaxed amazing-scrollbar"
         />
       )}
     </div>

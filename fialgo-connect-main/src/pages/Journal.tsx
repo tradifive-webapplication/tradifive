@@ -89,20 +89,19 @@ function JournalContent() {
   const [selectedTrade, setSelectedTrade] = useState<any>(null);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [demoMode, setDemoMode] = useState(true);
+  const [demoMode, setDemoMode] = useState(false);
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [logModalTab, setLogModalTab] = useState<"manual" | "import">("manual");
   const [tableRefreshKey, setTableRefreshKey] = useState(0);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
 
-  const demoData = useMemo(
-    () => (demoMode ? buildJournalDemoData(activeMarket) : null),
-    [demoMode, activeMarket]
-  );
+  // Real user data strictly used. Demo data is disabled so that manual trade logs
+  // and connected broker accounts populate seamlessly across all cards and metrics.
+  const demoData = null;
 
-  const effectiveTrades = demoData ? demoData.allTrades : recentTrades || [];
-  const effectiveLastImport = demoData ? demoData.lastImportTime : lastImportTime;
+  const effectiveTrades = recentTrades || [];
+  const effectiveLastImport = lastImportTime;
 
   // SEBI Indian Market Daily Login State
   const [dailyTokenActive, setDailyTokenActive] = useState(() => {

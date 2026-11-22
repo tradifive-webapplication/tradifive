@@ -756,7 +756,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                     </div>
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">Profit Factor</span>
                     <h3 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                      {stats.profitFactor || "N/A"}
+                      {stats.profitFactor > 0 ? (stats.losers === 0 ? "10.0+ (Max)" : stats.profitFactor.toFixed(2)) : "N/A"}
                     </h3>
                     <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
                       Gross wins / losses
@@ -767,7 +767,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                   <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.01]">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">R:R Achieved</span>
                     <h3 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                      {stats.calculatedRR ? `1:${stats.calculatedRR}` : "N/A"}
+                      {stats.calculatedRR > 0 ? `1:${stats.calculatedRR}` : (bestR && Number(bestR) > 0 ? `1:${bestR}` : "N/A")}
                     </h3>
                     <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
                       Avg Win / Loss ratio
@@ -843,7 +843,14 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                         </p>
                       </div>
                     ) : (
-                      <p className="text-[11px] text-slate-400 font-medium py-4 text-center">{stats.total > 0 ? "N/A" : "No trades logged"}</p>
+                      <div className="py-2">
+                        <h4 className="text-[14px] font-bold text-slate-800 dark:text-slate-200">
+                          {stats.total > 0 ? "No Losing Trades Today 🎉" : "No trades logged"}
+                        </h4>
+                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                          {stats.total > 0 ? "100% win rate · Zero downside breach" : "Take a trade or log a disciplined day"}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1178,10 +1185,18 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
 
                 {/* 5. Complete Trade History for the Day */}
                 <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300">
-                  <div className="px-6 py-4 border-b border-slate-200/80 dark:border-white/[0.08] flex justify-between items-center bg-slate-50/50 dark:bg-white/[0.01]">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                      <Activity size={12} className="text-indigo-500" /> Today's Executed Trades ({trades.length})
-                    </h4>
+                  <div className="px-6 py-4 border-b border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50/50 dark:bg-white/[0.01]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                        <Activity size={13} />
+                      </div>
+                      <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-800 dark:text-white">
+                        Today's Executed Trades ({trades.length})
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-400">
+                      💡 Click any trade row to view full execution dossier &amp; chart photos
+                    </span>
                   </div>
                   {trades.length > 0 ? (
                     <>
@@ -1200,6 +1215,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Swaps</th>
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Gross P&L</th>
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Net P&L</th>
+                              <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center">Action</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
@@ -1222,16 +1238,16 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                       exitPrice: Number(t.close_price || 0),
                                       stopLoss: (t as any).stop_loss ? Number((t as any).stop_loss) : undefined,
                                       takeProfit: (t as any).take_profit ? Number((t as any).take_profit) : undefined,
-                                      setups: [],
-                                      mistakes: [],
-                                      notes: "",
+                                      setups: Array.isArray((t as any).tags) ? (t as any).tags : ((t as any).setup ? [(t as any).setup] : []),
+                                      mistakes: Array.isArray((t as any).mistakes) ? (t as any).mistakes : [],
+                                      notes: (t as any).notes || "",
                                       holdDuration: formatHoldDuration(t.open_time || t.opened_at || new Date().toISOString(), t.closed_at),
                                       rawTrade: t
                                     };
                                     setSelectedTrade(mapped);
                                     setIsSlideOverOpen(true);
                                   }}
-                                  className="hover:bg-slate-50/80 dark:hover:bg-white/5 transition-all cursor-pointer"
+                                  className="hover:bg-slate-50/90 dark:hover:bg-white/[0.04] transition-all cursor-pointer group"
                                 >
                                   <td className="py-3 px-5 text-[11px] text-slate-400 font-sans font-medium">
                                     {t.ticket || t.id.slice(0, 8)}
@@ -1275,6 +1291,11 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                     isWin ? "text-emerald-500" : "text-rose-500"
                                   }`}>
                                     {fmtDailyValue(t.profit, { showSign: true })}
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <span className="tactile-white-pill px-2.5 py-1 rounded-full text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform inline-flex items-center gap-1">
+                                      View <ChevronRight size={11} />
+                                    </span>
                                   </td>
                                 </tr>
                               );

@@ -143,11 +143,34 @@ export default function JournalTradesTable({
           return;
         }
 
-        const { data: accountData } = await supabase
-          .from("mt5_accounts")
-          .select("balance, equity, broker_server, account_number")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        let accountData: any = null;
+        if (activeMarket === "indian") {
+          const { data: indAcc } = await supabase
+            .from("indian_broker_accounts")
+            .select("balance, equity, broker_name, client_id, account_number")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (indAcc) {
+            accountData = {
+              balance: indAcc.balance || 0,
+              equity: indAcc.equity || 0,
+              broker_server: `${indAcc.broker_name?.toUpperCase() || "INDIAN"} API`,
+              account_number: indAcc.client_id || indAcc.account_number || "Connected",
+            };
+          }
+        }
+
+        if (!accountData) {
+          const { data: mt5Acc } = await supabase
+            .from("mt5_accounts")
+            .select("balance, equity, broker_server, account_number")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (mt5Acc) {
+            accountData = mt5Acc;
+          }
+        }
 
         if (accountData && isMounted) {
           setMetrics(accountData);

@@ -436,7 +436,7 @@ export default function JournalMetrics({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const closedTrades = recentTrades.filter((t: any) => !!t.closed_at && !t.is_pending);
+  const closedTrades = recentTrades.filter((t: any) => (!!t.closed_at || !!t.opened_at || !!t.created_at) && !t.is_pending);
   const winningTrades = closedTrades.filter((t: any) => Number(t.profit || 0) > 0);
   const losingTrades = closedTrades.filter((t: any) => Number(t.profit || 0) < 0);
   const evenTrades = closedTrades.filter((t: any) => Number(t.profit || 0) === 0);

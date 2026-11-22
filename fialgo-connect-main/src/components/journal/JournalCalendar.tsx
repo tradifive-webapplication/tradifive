@@ -40,8 +40,9 @@ export default function JournalCalendar({
 
       const map = new Map<number, { pnl: number; trades: number }>();
       recentTrades.forEach((t: any) => {
-        if (!t.closed_at || t.is_pending) return;
-        const d = new Date(t.closed_at);
+        const tradeDateStr = t.closed_at || t.opened_at || t.created_at;
+        if (!tradeDateStr || t.is_pending) return;
+        const d = new Date(tradeDateStr);
         if (d.getFullYear() === year && d.getMonth() === month) {
           const day = d.getDate();
           const current = map.get(day) || { pnl: 0, trades: 0 };
@@ -99,8 +100,9 @@ export default function JournalCalendar({
     const targetMonth = selectedDateObj.getMonth();
     const targetDay = selectedDateObj.getDate();
     return recentTrades.filter((t: any) => {
-      if (!t.closed_at || t.is_pending) return false;
-      const d = new Date(t.closed_at);
+      const tradeDateStr = t.closed_at || t.opened_at || t.created_at;
+      if (!tradeDateStr || t.is_pending) return false;
+      const d = new Date(tradeDateStr);
       return (
         d.getFullYear() === targetYear &&
         d.getMonth() === targetMonth &&
@@ -318,21 +320,21 @@ export default function JournalCalendar({
                     })}
 
                     {/* Desktop Weekly Summary Tile */}
-                    <div className="hidden sm:flex flex-col items-center justify-center text-center px-2 py-2 rounded-[12px] bg-gradient-to-b from-white to-[#F4F6FA] dark:from-[#1E1E22] dark:to-[#18181B] border border-slate-200/80 dark:border-white/[0.07] shadow-[0_2px_0_rgba(148,163,184,0.22),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none">
-                      <span className="text-[9.5px] font-semibold text-slate-400 uppercase tracking-wider">
+                    <div className="hidden sm:flex flex-col items-center justify-center text-center px-2 py-2 rounded-[14px] sm:rounded-[16px] bg-slate-50/80 dark:bg-[#18181B] border border-slate-200/80 dark:border-white/[0.07] shadow-[0_2px_6px_rgba(15,23,42,0.02)]">
+                      <span className="text-[9.5px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider">
                         Week {wIdx + 1}
                       </span>
                       <span
-                        className={`text-[12px] font-bold tracking-tight tabular-nums mt-0.5 ${ws.pnl < 0
+                        className={`text-[12.5px] font-black tracking-tight tabular-nums mt-1 ${ws.pnl < 0
                             ? "text-rose-600 dark:text-rose-400"
                             : ws.pnl > 0
-                              ? "text-[#2563EB] dark:text-blue-400"
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : "text-slate-400"
                           }`}
                       >
                         {ws.pnl !== 0 ? formatPnl(ws.pnl) : formatPnl(0)}
                       </span>
-                      <span className="text-[9px] font-medium text-slate-400 mt-0.5">
+                      <span className="text-[9.5px] font-semibold text-slate-400 mt-0.5">
                         {ws.active} {ws.active === 1 ? "day" : "days"}
                       </span>
                     </div>
@@ -505,7 +507,7 @@ function TactileCalendarCell({
 
   if (!day) {
     return (
-      <div className="min-h-[54px] sm:min-h-[86px] rounded-[12px] pointer-events-none" />
+      <div className="min-h-[54px] sm:min-h-[86px] rounded-[14px] sm:rounded-[16px] pointer-events-none" />
     );
   }
 
@@ -513,49 +515,45 @@ function TactileCalendarCell({
   const isLoss = pnl !== undefined && pnl < 0;
 
   const winBg =
-    tradingTheme.id === "classic"
-      ? "bg-gradient-to-b from-[#F5FDF8] to-[#E6F7EE] dark:from-emerald-500/15 dark:to-emerald-500/5 border-emerald-200/80 dark:border-emerald-500/25 shadow-[0_2px_0_rgba(16,185,129,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none"
-      : tradingTheme.id === "monochrome"
-      ? "bg-gradient-to-b from-slate-100 to-slate-200/80 dark:from-white/15 dark:to-white/5 border-slate-300 dark:border-white/20 shadow-[0_2px_0_rgba(15,23,42,0.15)] dark:shadow-none"
-      : "bg-gradient-to-b from-[#EFF6FF] to-[#DBEAFE]/80 dark:from-blue-500/15 dark:to-blue-500/5 border-blue-200/80 dark:border-blue-500/25 shadow-[0_2px_0_rgba(37,99,235,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none";
+    "bg-gradient-to-b from-emerald-500/[0.07] to-emerald-500/[0.13] dark:from-emerald-500/15 dark:to-emerald-500/5 border border-emerald-500/25 dark:border-emerald-500/30 shadow-[0_2px_6px_rgba(16,185,129,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none hover:border-emerald-500/50 hover:shadow-md hover:scale-[1.01] transition-all";
 
   const lossBg =
-    tradingTheme.id === "monochrome"
-      ? "bg-gradient-to-b from-slate-50 to-slate-100 dark:from-white/5 dark:to-white/[0.02] border-slate-200 dark:border-white/10 shadow-[0_2px_0_rgba(100,116,139,0.15)] dark:shadow-none"
-      : "bg-gradient-to-b from-[#FFF1F2] to-[#FFE4E6]/80 dark:from-rose-500/15 dark:to-rose-500/5 border-rose-200/80 dark:border-rose-500/25 shadow-[0_2px_0_rgba(225,29,72,0.16),inset_0_1px_0_rgba(255,255,255,0.85)] dark:shadow-none";
+    "bg-gradient-to-b from-rose-500/[0.06] to-rose-500/[0.12] dark:from-rose-500/15 dark:to-rose-500/5 border border-rose-500/25 dark:border-rose-500/30 shadow-[0_2px_6px_rgba(244,63,94,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] dark:shadow-none hover:border-rose-500/50 hover:shadow-md hover:scale-[1.01] transition-all";
 
-  const tileClasses = isWin
-    ? winBg
-    : isLoss
-      ? lossBg
-      : "bg-gradient-to-b from-white to-[#F4F6FA] dark:from-[#1F1F23] dark:to-[#18181B] border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_0_rgba(148,163,184,0.22),inset_0_1px_0_rgba(255,255,255,0.95)] dark:shadow-none";
+  const emptyBg =
+    "bg-white dark:bg-[#18181B] border border-slate-200/80 dark:border-white/[0.07] shadow-[0_2px_6px_rgba(15,23,42,0.02)] hover:border-slate-300 dark:hover:border-white/15 hover:shadow-sm hover:scale-[1.01] transition-all";
+
+  const tileClasses = isWin ? winBg : isLoss ? lossBg : emptyBg;
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-[54px] sm:min-h-[86px] p-1.5 sm:p-2.5 rounded-[12px] border text-left flex flex-col justify-between transition-all duration-150 cursor-pointer active:translate-y-[1px] active:shadow-none hover:brightness-[0.98] ${tileClasses} ${isToday
-          ? "ring-[1.5px] ring-slate-900 dark:ring-white/80"
+      className={`min-h-[54px] sm:min-h-[86px] p-2 sm:p-2.5 rounded-[14px] sm:rounded-[16px] text-left flex flex-col justify-between transition-all duration-150 cursor-pointer active:scale-95 ${tileClasses} ${
+        isToday
+          ? "ring-2 ring-slate-900 dark:ring-white shadow-sm"
           : ""
-        }`}
+      }`}
     >
       <div className="flex items-start justify-between gap-1 w-full">
         <span
-          className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] sm:text-[11px] font-bold shrink-0 tabular-nums ${isToday
-              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-              : "text-slate-600 dark:text-neutral-300"
-            }`}
+          className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] sm:text-[11px] font-bold shrink-0 tabular-nums ${
+            isToday
+              ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
+              : "text-slate-700 dark:text-neutral-200"
+          }`}
         >
           {day}
         </span>
         {trades !== undefined && trades > 0 && (
           <span
-            className={`text-[8px] sm:text-[9px] font-semibold px-1 py-0.5 rounded leading-none shrink-0 tabular-nums ${isWin
-                ? `${tradingTheme.profitBg} ${tradingTheme.profitText}`
+            className={`text-[8.5px] sm:text-[9.5px] font-bold px-1.5 py-0.5 rounded-md leading-none shrink-0 tabular-nums ${
+              isWin
+                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25"
                 : isLoss
-                  ? "bg-rose-500/12 text-rose-600 dark:text-rose-400"
-                  : "bg-slate-200/70 text-slate-500 dark:bg-white/10 dark:text-neutral-400"
-              }`}
+                  ? "bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/25"
+                  : "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-neutral-300 border border-slate-200/60 dark:border-white/10"
+            }`}
           >
             {trades}t
           </span>
@@ -564,10 +562,11 @@ function TactileCalendarCell({
       {pnl !== undefined && (
         <div className="mt-auto pt-1 w-full">
           <p
-            className={`text-[9.5px] sm:text-[12px] font-bold tracking-tight leading-none tabular-nums truncate ${pnl < 0
-                ? tradingTheme.lossText
-                : tradingTheme.profitText
-              }`}
+            className={`text-[10px] sm:text-[12.5px] font-black tracking-tight leading-none tabular-nums truncate ${
+              pnl < 0
+                ? "text-rose-600 dark:text-rose-400"
+                : "text-emerald-600 dark:text-emerald-400"
+            }`}
           >
             {formattedPnl}
           </p>
