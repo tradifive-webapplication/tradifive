@@ -257,6 +257,8 @@ const App = () => {
                   <Route path="/fialgo/strategy" element={<FiAlgoWorkspace defaultTab="strategy" />} />
                   <Route path="/fialgo/bots" element={<FiAlgoWorkspace defaultTab="bots" />} />
                   <Route path="/fialgo/logs" element={<FiAlgoWorkspace defaultTab="logs" />} />
+                  <Route path="/autotrade" element={<Navigate to="/auto-trade/dashboard" replace />} />
+                  <Route path="/auto-trade" element={<Navigate to="/auto-trade/dashboard" replace />} />
                   <Route path="/auto-trade/setup" element={<AITrading />} />
                   <Route path="/auto-trade/dashboard" element={<AutoTradeDashboardPage />} />
                   <Route path="/auto-trade/active-bots" element={<MyRobots />} />

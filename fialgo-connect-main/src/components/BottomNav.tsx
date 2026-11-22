@@ -320,10 +320,7 @@ export default function BottomNav() {
                   {/* AutoTrade */}
                   <button
                     type="button"
-                    onClick={() => {
-                      setIsMoreOpen(false);
-                      window.dispatchEvent(new CustomEvent("open-autotrade-confirm"));
-                    }}
+                    onClick={() => handleNavigate(autoTradePath)}
                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                   >
                     <div className="flex items-center gap-3">

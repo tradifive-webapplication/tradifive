@@ -424,16 +424,16 @@ export default function AITrading() {
     <DashboardLayout>
       <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#0E0E0E] text-slate-800 dark:text-slate-100 font-sans pb-16">
         {/* ─── TOP HEADER BAR ────────────────────────────────────────────── */}
-        <header className="border-b border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md sticky top-0 z-30 px-4 sm:px-8 py-3.5">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <header className="border-b border-slate-200/80 dark:border-white/5 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-md sticky top-0 z-30 px-3.5 sm:px-8 py-3">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
             {/* Title & Live Status Beacon */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
-                <Cpu size={22} className="animate-pulse" />
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs">
+                <Cpu size={20} className="animate-pulse" />
               </div>
               <div>
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                     AutoTrade Engine
                   </h1>
                   <span
@@ -451,14 +451,14 @@ export default function AITrading() {
                     {isAgentRunning ? "Engine Running" : "Engine Standby"}
                   </span>
                 </div>
-                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 font-medium">
+                <p className="text-[12px] text-slate-500 dark:text-slate-400 font-medium">
                   FiAlgo V1.4 High-Frequency Execution · {latencyMs}ms Latency (London LD4)
                 </p>
               </div>
             </div>
 
-            {/* ACTION BUTTONS (Matching Reference Image 2 Pill Design) */}
-            <div className="flex items-center gap-2.5 flex-wrap">
+            {/* ACTION BUTTONS (Tactile Pills with mobile horizontal scroll) */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 -mx-3.5 px-3.5 sm:mx-0 sm:px-0 sm:flex-wrap no-scrollbar">
               {/* White Pill 1: Connect Account */}
               <button
                 type="button"
@@ -466,9 +466,9 @@ export default function AITrading() {
                   playSound('modalOpen');
                   setIsConnectModalOpen(true);
                 }}
-                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-slate-50 dark:hover:bg-[#252525] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                className="tactile-white-pill !h-[36px] !px-3.5 !text-[12.5px] whitespace-nowrap flex items-center gap-1.5 cursor-pointer shrink-0"
               >
-                <Wallet size={15} className="text-slate-500 dark:text-slate-400" />
+                <Wallet size={14} className="text-slate-500 dark:text-slate-400" />
                 <span>+ Connect MT5</span>
               </button>
 
@@ -479,37 +479,37 @@ export default function AITrading() {
                   playSound('modalOpen');
                   setIsLicenseModalOpen(true);
                 }}
-                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-slate-50 dark:hover:bg-[#252525] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                className="tactile-white-pill !h-[36px] !px-3.5 !text-[12.5px] whitespace-nowrap flex items-center gap-1.5 cursor-pointer shrink-0"
               >
-                <ShieldCheck size={15} className="text-blue-500" />
-                <span>Activate License Key</span>
+                <ShieldCheck size={14} className="text-emerald-500" />
+                <span>Activate Key</span>
               </button>
 
               {/* White Pill 3: Pause / Resume Toggle */}
               <button
                 type="button"
                 onClick={toggleAgent}
-                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-[0_1px_3px_rgba(0,0,0,0.06)] hover:bg-slate-50 dark:hover:bg-[#252525] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                className="tactile-white-pill !h-[36px] !px-3.5 !text-[12.5px] whitespace-nowrap flex items-center gap-1.5 cursor-pointer shrink-0"
               >
                 {isAgentRunning ? (
                   <>
-                    <Pause size={14} className="text-amber-500" />
+                    <Pause size={13} className="text-amber-500" />
                     <span>Pause Agent</span>
                   </>
                 ) : (
                   <>
-                    <Play size={14} className="text-emerald-500" />
+                    <Play size={13} className="text-emerald-500" />
                     <span>Run Agent</span>
                   </>
                 )}
               </button>
 
-              {/* Dark Solid Pill (Image 2 right button style): Status Indicator */}
+              {/* Dark Solid Pill: Status Indicator */}
               <div
-                className={`px-5 py-2 rounded-full font-semibold text-[13.5px] shadow-[0_2px_6px_rgba(0,0,0,0.18)] transition-all flex items-center gap-2 select-none ${
+                className={`h-[36px] px-3.5 rounded-full font-semibold text-[12.5px] border transition-all flex items-center gap-2 select-none whitespace-nowrap shrink-0 ${
                   isAgentRunning
-                    ? "bg-[#111] dark:bg-white text-white dark:text-[#111]"
-                    : "bg-slate-700 text-slate-300"
+                    ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-transparent shadow-xs"
+                    : "bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-neutral-300 border-slate-200/80 dark:border-white/10"
                 }`}
               >
                 <span
@@ -517,47 +517,47 @@ export default function AITrading() {
                     isAgentRunning ? "bg-emerald-400 animate-pulse" : "bg-amber-400"
                   }`}
                 />
-                <span>{isAgentRunning ? "Agent Active" : "Standby"}</span>
+                <span>{isAgentRunning ? "Active" : "Standby"}</span>
               </div>
             </div>
           </div>
         </header>
 
         {/* ─── MAIN DASHBOARD CONTENT ────────────────────────────────────── */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-8 pt-6 space-y-6">
+        <main className="max-w-7xl mx-auto px-3.5 sm:px-8 pt-5 sm:pt-6 space-y-5 sm:space-y-6">
           {/* Quick Account Connection Banner */}
-          <div className="bg-gradient-to-r from-blue-600/10 via-indigo-600/5 to-transparent border border-blue-500/20 rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/30">
-                <Activity size={22} />
+          <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-neutral-200 flex items-center justify-center shrink-0">
+                <Activity size={20} />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-900 dark:text-white text-[15px]">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-slate-900 dark:text-white text-[14.5px]">
                     MT5 Account #{connectedAccount}
                   </span>
-                  <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
+                  <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-300">
                     Exness Real-5
                   </span>
                 </div>
-                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-0.5">
                   Partner ID: <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">27863221</span> · 0% Profit Share Pass Active
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setIsConnectModalOpen(true)}
-                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-3.5 py-1.5 rounded-full font-medium text-[12.5px] shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-all cursor-pointer flex items-center gap-1.5"
+                className="tactile-white-pill !h-[34px] !px-3 !text-[12px] whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
               >
                 Change Broker
               </button>
               <button
                 type="button"
                 onClick={handleCopyPartnerMessage}
-                className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-3.5 py-1.5 rounded-full font-medium text-[12.5px] shadow-sm hover:bg-slate-50 dark:hover:bg-[#252525] transition-all cursor-pointer flex items-center gap-1.5"
+                className="tactile-white-pill !h-[34px] !px-3 !text-[12px] whitespace-nowrap flex items-center gap-1.5 cursor-pointer"
               >
                 {copiedMsg ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
                 <span>{copiedMsg ? "Copied!" : "Copy IB Message"}</span>
@@ -566,24 +566,24 @@ export default function AITrading() {
           </div>
 
           {/* ─── 4 TOP SUMMARY METRIC CARDS ──────────────────────────────── */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {/* Metric 1: Daily Profit & Loss */}
-            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                <span className="text-[13px] font-semibold">Today's P&L</span>
-                <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                  <TrendingUp size={12} />
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-3.5 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1.5">
+                <span className="text-[12px] sm:text-[13px] font-semibold">Today's P&L</span>
+                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-1.5 sm:px-2 py-0.5 rounded-full">
+                  <TrendingUp size={11} />
                   +2.41%
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight font-sans">
+                <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight font-sans">
                   +$482.50
                 </span>
               </div>
-              <div className="mt-3 flex items-center justify-between text-[11.5px] text-slate-500 dark:text-slate-400">
-                <span>Daily Target: $500.00</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-200">96.5% achieved</span>
+              <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                <span>Target: $500</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">96.5%</span>
               </div>
               <div className="w-full bg-slate-100 dark:bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1.5">
                 <div className="bg-emerald-500 h-full rounded-full w-[96.5%]" />
@@ -591,84 +591,84 @@ export default function AITrading() {
             </div>
 
             {/* Metric 2: Total Net Profit */}
-            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                <span className="text-[13px] font-semibold">Net Profit (All-Time)</span>
-                <span className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                  <DollarSign size={14} />
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-3.5 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1.5">
+                <span className="text-[12px] sm:text-[13px] font-semibold">Net Profit</span>
+                <span className="p-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <DollarSign size={13} />
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight font-sans">
+                <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
                   +$3,155.00
                 </span>
               </div>
-              <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-3 flex items-center gap-1">
-                Account Balance: <span className="font-semibold text-slate-800 dark:text-slate-200">$28,155.00</span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2.5 truncate">
+                Balance: <span className="font-semibold text-slate-800 dark:text-slate-200">$28,155</span>
               </p>
             </div>
 
             {/* Metric 3: Agent Live Status & Telemetry */}
-            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                <span className="text-[13px] font-semibold">Agent Telemetry</span>
-                <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                  Live Socket
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-3.5 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1.5">
+                <span className="text-[12px] sm:text-[13px] font-semibold">Telemetry</span>
+                <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  Live
                 </span>
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+                <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
                   {isAgentRunning ? "RUNNING" : "PAUSED"}
                 </span>
               </div>
-              <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-3 flex items-center gap-1">
-                <Clock size={12} />
-                Last check: <span className="font-semibold text-slate-700 dark:text-slate-200">{lastUpdateSecs}s ago</span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2.5 flex items-center gap-1 truncate">
+                <Clock size={11} />
+                <span>{lastUpdateSecs}s ago</span>
               </p>
             </div>
 
             {/* Metric 4: Win Rate & Risk Guard */}
-            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                <span className="text-[13px] font-semibold">Algo Win Rate</span>
-                <span className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                  <ShieldCheck size={14} />
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-3.5 sm:p-5 shadow-xs">
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1.5">
+                <span className="text-[12px] sm:text-[13px] font-semibold">Win Rate</span>
+                <span className="p-1 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <ShieldCheck size={13} />
                 </span>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight font-sans">
                   63.0%
                 </span>
-                <span className="text-[13px] font-semibold text-slate-500">16 Closed Trades</span>
+                <span className="text-[11px] font-semibold text-slate-400 truncate">16 trades</span>
               </div>
-              <p className="text-[12px] text-slate-500 dark:text-slate-400 mt-3">
-                Max DD: <span className="font-semibold text-slate-800 dark:text-slate-200">2.1%</span> · Profit Factor: <span className="font-semibold text-slate-800 dark:text-slate-200">3.42</span>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2.5 truncate">
+                Max DD: <span className="font-semibold text-slate-800 dark:text-slate-200">2.1%</span>
               </p>
             </div>
           </div>
 
-          {/* ─── TWO PREMIUM GRAPH CARDS WITH SHADES (MATCHING USER IMAGE) ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 1. LEFT CARD: CUMULATIVE P&L (WITH BLUE GRADIENT SHADES & DASHED $0 BASELINE) */}
-            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+          {/* ─── TWO PREMIUM GRAPH CARDS WITH SHADES ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            {/* 1. LEFT CARD: CUMULATIVE P&L (WITH EMERALD GRADIENT SHADES & DASHED $0 BASELINE) */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between">
               <div>
                 {/* Header Row */}
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
+                    <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                       <TrendingUp size={18} strokeWidth={2.4} />
-                      <h3 className="font-bold text-[16.5px] text-slate-900 dark:text-white">
+                      <h3 className="font-bold text-[15.5px] sm:text-[16.5px] text-slate-900 dark:text-white">
                         Cumulative P&L
                       </h3>
                     </div>
-                    <p className="text-[12.5px] text-slate-400 dark:text-slate-500 mt-0.5">
+                    <p className="text-[12px] text-slate-400 dark:text-slate-500 mt-0.5">
                       Closed trade equity curve · All time
                     </p>
                   </div>
 
                   <div className="text-right">
-                    <span className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400 tracking-tight font-sans">
+                    <span className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight font-sans">
                       +$3,155
                     </span>
                     <span className="block text-[10px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -678,18 +678,18 @@ export default function AITrading() {
                 </div>
 
                 {/* The Shaded Area Chart with Dashed Baseline */}
-                <div className="h-[250px] w-full mt-4">
+                <div className="h-[210px] sm:h-[250px] w-full mt-3 sm:mt-4 overflow-hidden">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                       data={CUMULATIVE_PNL_DATA}
                       margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
                     >
                       <defs>
-                        {/* High-end smooth gradient shade fading into pure background */}
+                        {/* Smooth emerald gradient shade */}
                         <linearGradient id="pnlShadeGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#2563EB" stopOpacity={0.22} />
-                          <stop offset="65%" stopColor="#2563EB" stopOpacity={0.06} />
-                          <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
+                          <stop offset="0%" stopColor="#10B981" stopOpacity={0.22} />
+                          <stop offset="65%" stopColor="#10B981" stopOpacity={0.06} />
+                          <stop offset="100%" stopColor="#10B981" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
@@ -701,12 +701,12 @@ export default function AITrading() {
                         dataKey="date"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                        tick={{ fill: "#94A3B8", fontSize: 11, fontWeight: 500 }}
                       />
                       <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                        tick={{ fill: "#94A3B8", fontSize: 11, fontWeight: 500 }}
                         tickFormatter={(val) => `$${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`}
                         domain={[-100, 4000]}
                       />
@@ -717,7 +717,7 @@ export default function AITrading() {
                             return (
                               <div className="bg-white dark:bg-[#1E1E1E] p-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 shadow-lg text-[12px] font-sans">
                                 <p className="font-bold text-slate-800 dark:text-white mb-0.5">{data.date}</p>
-                                <p className="text-blue-600 font-bold">
+                                <p className="text-emerald-600 dark:text-emerald-400 font-bold">
                                   Cumulative P&L: +${data.pnl.toLocaleString()}
                                 </p>
                               </div>
@@ -731,19 +731,19 @@ export default function AITrading() {
                       <Area
                         type="monotone"
                         dataKey="pnl"
-                        stroke="#2563EB"
+                        stroke="#10B981"
                         strokeWidth={2.4}
                         fillOpacity={1}
                         fill="url(#pnlShadeGradient)"
-                        activeDot={{ r: 5, fill: "#2563EB", stroke: "#fff", strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: "#10B981", stroke: "#fff", strokeWidth: 2 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Footer Row (Matching Image 1:1) */}
-              <div className="pt-4 mt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12.5px] text-slate-500 dark:text-slate-400">
+              {/* Footer Row */}
+              <div className="pt-3.5 mt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px] text-slate-500 dark:text-slate-400">
                 <span>
                   Win rate <strong className="text-slate-800 dark:text-white font-bold">63%</strong>
                 </span>
@@ -751,28 +751,28 @@ export default function AITrading() {
               </div>
             </div>
 
-            {/* 2. RIGHT CARD: ACCOUNT BALANCE (WITH TIME SELECTOR, BLUE SHADES & BASELINE) */}
-            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] flex flex-col justify-between">
+            {/* 2. RIGHT CARD: ACCOUNT BALANCE */}
+            <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl p-4 sm:p-6 shadow-xs flex flex-col justify-between">
               <div>
                 {/* Header Row */}
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="font-bold text-[16.5px] text-slate-900 dark:text-white">
+                    <h3 className="font-bold text-[15.5px] sm:text-[16.5px] text-slate-900 dark:text-white">
                       Account Balance
                     </h3>
-                    <div className="flex items-center gap-3 mt-1.5 text-[12px] text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-3 mt-1.5 text-[11.5px] text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1.5 font-medium">
-                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+                        <span className="w-2 h-2 rounded-full bg-slate-900 dark:bg-white" />
                         Balance
                       </span>
                       <span className="flex items-center gap-1.5 font-medium">
-                        <span className="w-2.5 h-2.5 rounded-full bg-slate-400" />
+                        <span className="w-2 h-2 rounded-full bg-slate-400" />
                         Deposits
                       </span>
                     </div>
                   </div>
 
-                  {/* Timeframe pill selector (Image 1 style) */}
+                  {/* Timeframe pill selector */}
                   <div className="inline-flex p-0.5 rounded-lg bg-slate-100 dark:bg-neutral-800/80 border border-slate-200/60 dark:border-white/5">
                     {(["1W", "1M", "All"] as const).map((tf) => (
                       <button
@@ -782,7 +782,7 @@ export default function AITrading() {
                           playSound('tab');
                           setBalanceTimeframe(tf);
                         }}
-                        className={`px-3 py-1 rounded-md text-[11.5px] font-bold transition-all cursor-pointer ${
+                        className={`px-2.5 sm:px-3 py-1 rounded-md text-[11px] sm:text-[11.5px] font-bold transition-all cursor-pointer ${
                           balanceTimeframe === tf
                             ? "bg-white dark:bg-[#262626] text-slate-900 dark:text-white shadow-xs"
                             : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
@@ -795,7 +795,7 @@ export default function AITrading() {
                 </div>
 
                 {/* The Shaded Area Chart with Dashed Starting Deposit Baseline */}
-                <div className="h-[250px] w-full mt-4">
+                <div className="h-[210px] sm:h-[250px] w-full mt-3 sm:mt-4 overflow-hidden">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
                       data={activeBalanceData}
@@ -803,9 +803,9 @@ export default function AITrading() {
                     >
                       <defs>
                         <linearGradient id="balanceShadeGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#2563EB" stopOpacity={0.24} />
-                          <stop offset="65%" stopColor="#2563EB" stopOpacity={0.06} />
-                          <stop offset="100%" stopColor="#2563EB" stopOpacity={0.0} />
+                          <stop offset="0%" stopColor="#0F172A" stopOpacity={0.16} />
+                          <stop offset="65%" stopColor="#0F172A" stopOpacity={0.04} />
+                          <stop offset="100%" stopColor="#0F172A" stopOpacity={0.0} />
                         </linearGradient>
                       </defs>
                       <CartesianGrid
@@ -817,12 +817,12 @@ export default function AITrading() {
                         dataKey="date"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                        tick={{ fill: "#94A3B8", fontSize: 11, fontWeight: 500 }}
                       />
                       <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#94A3B8", fontSize: 11.5, fontWeight: 500 }}
+                        tick={{ fill: "#94A3B8", fontSize: 11, fontWeight: 500 }}
                         tickFormatter={(val) => `$${(val / 1000).toFixed(1).replace(/\.0$/, "")}k`}
                         domain={[23500, 30000]}
                       />
@@ -833,7 +833,7 @@ export default function AITrading() {
                             return (
                               <div className="bg-white dark:bg-[#1E1E1E] p-2.5 rounded-xl border border-slate-200/80 dark:border-white/10 shadow-lg text-[12px] font-sans">
                                 <p className="font-bold text-slate-800 dark:text-white mb-0.5">{data.date}</p>
-                                <p className="text-blue-600 font-bold">
+                                <p className="text-slate-900 dark:text-white font-bold">
                                   Current Balance: ${data.balance.toLocaleString()}
                                 </p>
                                 <p className="text-slate-400 text-[11px]">
@@ -855,23 +855,23 @@ export default function AITrading() {
                       <Area
                         type="monotone"
                         dataKey="balance"
-                        stroke="#2563EB"
-                        strokeWidth={2.4}
+                        stroke="#0F172A"
+                        strokeWidth={2.2}
                         fillOpacity={1}
                         fill="url(#balanceShadeGradient)"
-                        activeDot={{ r: 5, fill: "#2563EB", stroke: "#fff", strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: "#0F172A", stroke: "#fff", strokeWidth: 2 }}
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
 
-              {/* Footer Row (Matching Image 1:1) */}
-              <div className="pt-4 mt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12.5px]">
+              {/* Footer Row */}
+              <div className="pt-3.5 mt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[12px]">
                 <span className="text-slate-500 dark:text-slate-400">
                   Start <strong className="text-slate-700 dark:text-slate-200 font-bold">$25,000.00</strong>
                 </span>
-                <span className="text-blue-600 dark:text-blue-400 font-bold">
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                   $28,155.00 (+12.6%)
                 </span>
               </div>
@@ -879,30 +879,30 @@ export default function AITrading() {
           </div>
 
           {/* ─── LIVE TRADE POSITIONS & EXECUTED HISTORY ──────────────────── */}
-          <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-white dark:bg-[#161616] border border-slate-200/80 dark:border-white/5 rounded-2xl overflow-hidden shadow-xs">
             {/* Table Header & Tab Switcher */}
-            <div className="p-5 border-b border-slate-200/80 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="p-4 sm:p-5 border-b border-slate-200/80 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <div>
-                <h3 className="font-bold text-slate-900 dark:text-white text-[16px]">
+                <h3 className="font-bold text-slate-900 dark:text-white text-[15px] sm:text-[16px]">
                   Trade Execution & Order Stream
                 </h3>
-                <p className="text-[12.5px] text-slate-500 dark:text-slate-400">
+                <p className="text-[12px] text-slate-500 dark:text-slate-400">
                   Real-time MT5 algorithmic order flow, positions and historical audit
                 </p>
               </div>
 
-              {/* Tabs with Image 2 pill styling */}
-              <div className="flex items-center gap-2">
+              {/* Tabs with tactile pill styling */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 dark:bg-white/5 rounded-full border border-slate-200/60 dark:border-white/5 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => {
                     playSound('tab');
                     setActiveTab("positions");
                   }}
-                  className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all cursor-pointer ${
+                  className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[12px] sm:text-[13px] font-semibold transition-all cursor-pointer ${
                     activeTab === "positions"
-                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
-                      : "bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 hover:bg-slate-50"
+                      ? "tactile-pill-active"
+                      : "tactile-pill"
                   }`}
                 >
                   Live Positions ({openPositions.length})
@@ -913,10 +913,10 @@ export default function AITrading() {
                     playSound('tab');
                     setActiveTab("history");
                   }}
-                  className={`px-4 py-1.5 rounded-full text-[13px] font-semibold transition-all cursor-pointer ${
+                  className={`px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[12px] sm:text-[13px] font-semibold transition-all cursor-pointer ${
                     activeTab === "history"
-                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-sm"
-                      : "bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10 hover:bg-slate-50"
+                      ? "tactile-pill-active"
+                      : "tactile-pill"
                   }`}
                 >
                   Closed History ({closedTrades.length})
@@ -1091,20 +1091,20 @@ export default function AITrading() {
         {/* ─── MODAL 1: CONNECT MT5 ACCOUNT ──────────────────────────────── */}
         <AnimatePresence>
           {isConnectModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-[#161616] border border-slate-200/90 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden relative"
+                className="bg-white dark:bg-[#161616] border border-slate-200/90 dark:border-white/10 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl overflow-hidden relative max-h-[92vh] overflow-y-auto"
               >
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
                       <Wallet size={18} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-[16px]">
+                      <h3 className="font-bold text-slate-900 dark:text-white text-[15px] sm:text-[16px]">
                         Connect MetaTrader 5 Account
                       </h3>
                       <p className="text-[12px] text-slate-500 dark:text-slate-400">
@@ -1133,7 +1133,7 @@ export default function AITrading() {
                     <select
                       value={selectedBroker}
                       onChange={(e) => setSelectedBroker(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-slate-800 dark:text-slate-100 outline-hidden focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-slate-800 dark:text-slate-100 outline-hidden focus:border-emerald-500"
                     >
                       {BROKERS.map((b) => (
                         <option key={b.id} value={b.id}>
@@ -1144,20 +1144,20 @@ export default function AITrading() {
                   </div>
 
                   {/* Partner IB Details with 1-click copy */}
-                  <div className="p-3.5 bg-blue-50/70 dark:bg-blue-950/20 border border-blue-200/70 dark:border-blue-500/20 rounded-xl">
+                  <div className="p-3.5 bg-slate-50 dark:bg-neutral-800/40 border border-slate-200/80 dark:border-white/10 rounded-xl">
                     <div className="flex items-center justify-between">
-                      <span className="text-[12px] font-bold text-blue-700 dark:text-blue-300 uppercase">
+                      <span className="text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                         Official Partner IB: 27863221
                       </span>
                       <button
                         type="button"
                         onClick={handleCopyPartnerMessage}
-                        className="text-[11.5px] font-bold text-blue-600 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-[11.5px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         {copiedMsg ? "Copied!" : "Copy Support Message"}
                       </button>
                     </div>
-                    <p className="text-[11.5px] text-blue-600/80 dark:text-blue-300/80 mt-1">
+                    <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-1">
                       Existing traders: Transfer your account under Partner ID 27863221 to activate institutional 0% profit share.
                     </p>
                   </div>
@@ -1172,7 +1172,7 @@ export default function AITrading() {
                       placeholder="e.g. 38491820"
                       value={mt5InputAccount}
                       onChange={(e) => setMt5InputAccount(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-slate-800 dark:text-slate-100 outline-hidden focus:border-blue-500"
+                      className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium text-slate-800 dark:text-slate-100 outline-hidden focus:border-emerald-500"
                       required
                     />
                   </div>
@@ -1183,26 +1183,26 @@ export default function AITrading() {
                       type="checkbox"
                       checked={hasConfirmedBalance}
                       onChange={(e) => setHasConfirmedBalance(e.target.checked)}
-                      className="mt-1 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="mt-1 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                     />
                     <span className="text-[12px] text-slate-600 dark:text-slate-400">
                       I confirm this MT5 account has a minimum balance of $500 USD for proper algorithmic risk management.
                     </span>
                   </label>
 
-                  {/* Modal Footer Buttons (Image 2 style) */}
+                  {/* Modal Footer Buttons */}
                   <div className="pt-2 flex items-center justify-end gap-2.5">
                     <button
                       type="button"
                       onClick={() => setIsConnectModalOpen(false)}
-                      className="bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-4 py-2 rounded-full font-medium text-[13.5px] shadow-sm hover:bg-slate-50 transition-all cursor-pointer"
+                      className="tactile-white-pill !h-[36px] !px-4 !text-[13px] cursor-pointer"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={!hasConfirmedBalance}
-                      className="bg-[#111] dark:bg-white text-white dark:text-[#111] hover:bg-black dark:hover:bg-slate-100 px-5 py-2 rounded-full font-medium text-[13.5px] shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                      className="tactile-emerald-pill !h-[36px] !px-5 !text-[13px] cursor-pointer disabled:opacity-50"
                     >
                       Save & Link MT5
                     </button>
@@ -1216,20 +1216,20 @@ export default function AITrading() {
         {/* ─── MODAL 2: ACTIVATE LICENSE KEY ─────────────────────────────── */}
         <AnimatePresence>
           {isLicenseModalOpen && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-[#161616] border border-slate-200/90 dark:border-white/10 rounded-3xl max-w-lg w-full p-6 shadow-2xl overflow-hidden relative"
+                className="bg-white dark:bg-[#161616] border border-slate-200/90 dark:border-white/10 rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-2xl overflow-hidden relative max-h-[92vh] overflow-y-auto"
               >
                 <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
                       <ShieldCheck size={18} />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-[16px]">
+                      <h3 className="font-bold text-slate-900 dark:text-white text-[15px] sm:text-[16px]">
                         EA License Key & Activation
                       </h3>
                       <p className="text-[12px] text-slate-500 dark:text-slate-400">
@@ -1271,7 +1271,7 @@ export default function AITrading() {
                   </div>
 
                   {/* EA Binary Download */}
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/5 flex items-center justify-between">
+                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/5 flex items-center justify-between gap-3">
                     <div>
                       <span className="font-bold text-[13.5px] text-slate-900 dark:text-white block">
                         FiAlgo_V1_MT5.ex5
@@ -1287,7 +1287,7 @@ export default function AITrading() {
                         e.preventDefault();
                         toast.success("Downloading FiAlgo_V1_MT5.ex5 Expert Advisor binary!");
                       }}
-                      className="bg-white dark:bg-[#2A2A2A] text-slate-800 dark:text-white border border-slate-200/90 dark:border-white/10 px-3.5 py-1.5 rounded-full font-semibold text-[12.5px] shadow-2xs hover:bg-slate-50 transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="tactile-white-pill !h-[34px] !px-3.5 !text-[12px] whitespace-nowrap flex items-center gap-1.5 cursor-pointer shrink-0"
                     >
                       <Download size={13} />
                       Download EA
@@ -1304,12 +1304,12 @@ export default function AITrading() {
                     </ol>
                   </div>
 
-                  {/* Footer Button (Image 2 style) */}
+                  {/* Footer Button */}
                   <div className="pt-2 flex justify-end">
                     <button
                       type="button"
                       onClick={() => setIsLicenseModalOpen(false)}
-                      className="bg-[#111] dark:bg-white text-white dark:text-[#111] hover:bg-black dark:hover:bg-slate-100 px-6 py-2 rounded-full font-medium text-[13.5px] shadow-sm transition-all active:scale-95 cursor-pointer"
+                      className="tactile-black-pill !h-[36px] !px-6 !text-[13px] cursor-pointer"
                     >
                       Done
                     </button>

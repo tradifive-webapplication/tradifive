@@ -124,9 +124,9 @@ interface Props {
 
 
 // ── Consistent Card Box & KPI Box Styles (Shared with Dashboard & Journal) ──
-const kpiBoxStyle = "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none min-h-[126px] p-4 sm:p-5 flex flex-col justify-between transition-all";
+const kpiBoxStyle = "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none min-h-[112px] sm:min-h-[126px] p-3.5 sm:p-5 flex flex-col justify-between transition-all";
 
-const cardBoxStyle = "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none p-5 sm:p-6 transition-all";
+const cardBoxStyle = "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none p-4 sm:p-6 transition-all";
 
 
 
@@ -2273,15 +2273,41 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
     <div className="w-full text-slate-800 pb-16 font-sans">
 
-      {/* ── TOP ACTION & TELEMETRY TOOLBAR (Matches AI Journal & RiskGuard Header) ── */}
+      {/* ── TOP ACTION & TELEMETRY TOOLBAR (Responsive Mobile & Desktop) ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        {/* Left: Plan & Account Status */}
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          {isLifetimePlan ? (
+            <div className="h-[36px] px-3 shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs flex items-center gap-2 select-none">
+              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                ₹1,00,000 Lifetime · 0% Share
+              </span>
+              <span className="text-[10px] font-mono font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-400/30">
+                100% Kept
+              </span>
+              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden md:inline">
+                ID: {tradifiveId}
+              </span>
+            </div>
+          ) : (
+            <div className="h-[36px] px-3 shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs flex items-center gap-2 select-none">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
+                Weekly 50/50% Split
+              </span>
+              <span className="text-[10px] font-mono font-extrabold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-white/10 px-2 py-0.5 rounded-full border border-slate-200/60 dark:border-white/10">
+                Every {settlementDay}
+              </span>
+              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden md:inline">
+                ID: {tradifiveId}
+              </span>
+            </div>
+          )}
+        </div>
 
-      <div className="flex items-center justify-end gap-2 mb-4">
-        <div className="flex items-center gap-2 shrink-0 flex-wrap">
-
-
-
-
-
+        {/* Right: Currency Toggle + Refresh + Quick Action */}
+        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-between sm:justify-end">
           {/* Telemetry Refresh Button - 36px Fixed */}
           <button
             onClick={handleManualRefresh}
@@ -2289,7 +2315,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             className="w-[36px] h-[36px] shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs text-slate-500 dark:text-slate-400 flex items-center justify-center hover:text-slate-900 dark:hover:text-white transition-all disabled:opacity-50 cursor-pointer"
             title="Refresh Telemetry"
           >
-            <RefreshCw size={13} className={isRefreshing ? "animate-spin text-sky-600" : ""} />
+            <RefreshCw size={13} className={isRefreshing ? "animate-spin text-emerald-600" : ""} />
           </button>
 
           {/* USC ⇄ INR Currency Converter Toggle (1 USC = ₹0.9368) */}
@@ -2326,64 +2352,23 @@ Kindly review and process our weekly 50/50 profit clearance.`;
             >
               <span>₹ INR</span>
             </button>
+          </div>
+
+          {/* Quick Action Button - Tactile Emerald Pill */}
+          {!isLifetimePlan && (
             <button
               type="button"
-              onClick={() => setShowConverterModal(true)}
-              className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-500/20 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-colors cursor-pointer hidden md:flex items-center gap-1"
-              title="Click to open Live USC ⇄ INR Calculator"
+              onClick={() => setShowWithdrawalModal(true)}
+              className="tactile-emerald-pill !h-[36px] !px-3.5 !text-xs whitespace-nowrap cursor-pointer flex items-center gap-1.5"
             >
-              <span>1 USC = ₹0.9368</span>
+              <ArrowUpRight size={13} className="shrink-0" />
+              <span>Withdrawal</span>
+              {isTargetHit && (
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse ml-0.5 shrink-0" />
+              )}
             </button>
-          </div>
-
-          {/* Plan Badge: Adapts to ₹1,00,000 Lifetime Plan vs Weekly 50/50% Split */}
-          {isLifetimePlan ? (
-            <div className="h-[36px] px-3 shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs flex items-center gap-2 select-none">
-              <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
-              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                ₹1,00,000 Lifetime Plan · 0% Profit Share
-              </span>
-              <span className="text-[10px] font-mono font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-400/30">
-                100% Profits Kept
-              </span>
-              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden sm:inline">
-                ID: {tradifiveId}
-              </span>
-            </div>
-          ) : (
-            <div className="h-[36px] px-3 shrink-0 rounded-[12px] border border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#17171A] shadow-xs flex items-center gap-2 select-none">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                Weekly 50/50% Profit Share
-              </span>
-              <span className="text-[10px] font-mono font-extrabold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-200/60 dark:border-blue-400/30">
-                Every {settlementDay}
-              </span>
-              <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 hidden sm:inline">
-                ID: {tradifiveId}
-              </span>
-            </div>
           )}
-
-          {/* Quick Action / Status Box */}
-          <div className="flex items-center gap-2 shrink-0">
-            {!isLifetimePlan && (
-              <button
-                type="button"
-                onClick={() => setShowWithdrawalModal(true)}
-                className="h-[36px] px-4 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] text-xs font-bold tracking-tight cursor-pointer transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-1.5 whitespace-nowrap border-none"
-              >
-                <ArrowUpRight size={13} className="text-white shrink-0" />
-                <span>Weekly Withdrawal</span>
-                {isTargetHit && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse ml-0.5 shrink-0" />
-                )}
-              </button>
-            )}
-          </div>
-
         </div>
-
       </div>
 
 
@@ -2450,7 +2435,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
       {/* ── CORE 5 METRIC BOXES (Consistent with AI Journal & RiskGuard) ── */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-2.5 sm:gap-4 mb-6">
 
         {/* 1. Account Balance */}
 
@@ -2764,7 +2749,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
         {/* 5. Total Withdrawals */}
 
-        <div className={kpiBoxStyle}>
+        <div className={`${kpiBoxStyle} col-span-2 sm:col-span-1`}>
 
           <div className="flex items-center justify-between">
 
@@ -3232,7 +3217,7 @@ Kindly review and process our weekly 50/50 profit clearance.`;
               <button
                 type="button"
                 onClick={() => setShowWithdrawalModal(true)}
-                className="w-full h-[38px] px-5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer border-none"
+                className="w-full h-[38px] px-5 rounded-full tactile-emerald-pill text-xs font-bold transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ArrowUpRight size={14} />
                 <span>Request Weekly Withdrawal / Settle</span>
@@ -3240,9 +3225,9 @@ Kindly review and process our weekly 50/50 profit clearance.`;
               <button
                 type="button"
                 onClick={() => setShowSettlementModal(true)}
-                className="w-full h-[38px] px-5 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-[#1E2330] dark:hover:bg-[#252C3D] text-slate-800 dark:text-white text-xs font-semibold border border-slate-200/80 dark:border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_5px_rgba(0,0,0,0.2)] transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full h-[38px] px-5 rounded-full tactile-white-pill text-xs font-semibold transition-all duration-150 active:scale-[0.985] flex items-center justify-center gap-2 cursor-pointer"
               >
-                <QrCode size={13} className="text-blue-500 dark:text-blue-400" />
+                <QrCode size={13} className="text-slate-600 dark:text-neutral-300" />
                 <span>Remit Platform Share (Crypto / UPI)</span>
               </button>
             </div>
@@ -3329,9 +3314,9 @@ Kindly review and process our weekly 50/50 profit clearance.`;
 
             <button
               onClick={() => setShowSettlementModal(true)}
-              className="inline-flex items-center gap-1.5 h-[36px] px-4 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-[11.5px] font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] self-start sm:self-auto transition-all duration-150 active:scale-[0.985] cursor-pointer border-none"
+              className="tactile-black-pill inline-flex items-center gap-1.5 !h-[36px] !px-4 text-[11.5px] font-bold self-start sm:self-auto cursor-pointer"
             >
-              <Upload size={13} className="text-white" />
+              <Upload size={13} />
               <span>Upload Settlement Proof</span>
             </button>
           </div>
