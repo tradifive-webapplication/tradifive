@@ -371,6 +371,9 @@ const creatorHubMenu = [
 
 const rewardsMenu = [
   { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
+];
+
+const referralsMenu = [
   { path: "/referrals", icon: WrappedIconly(AddUser), label: "Referral Program" },
 ];
 
@@ -576,7 +579,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     else if (path.startsWith("/ai-coach")) pillar = "aiCoach";
     else if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) pillar = "autoTrade";
     else if (path.startsWith("/community")) pillar = "home";
-    else if (path.startsWith("/rewards") || path.startsWith("/referrals")) pillar = "rewards";
+    else if (path.startsWith("/rewards")) pillar = "rewards";
+    else if (path.startsWith("/referrals")) pillar = "referrals";
     else if (path.startsWith("/settings") || path.startsWith("/profile") || path.startsWith("/upgrade")) pillar = "settings";
     else if (path.startsWith("/creator")) pillar = "creatorHub";
 
@@ -1479,6 +1483,12 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
           { path: "/creator/store", icon: WrappedIconly(Bag), label: "My Store" },
         ];
 
+      case "rewards":
+        return rewardsMenu;
+
+      case "referrals":
+        return referralsMenu;
+
       default:
 
         return [
@@ -1858,13 +1868,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                           if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
                         }} 
                         className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${
-                          location.pathname.startsWith('/rewards') 
+                          (activePillar === "rewards" || location.pathname.startsWith('/rewards')) 
                             ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' 
                             : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
                         }`}
                       >
                         <TicketStar size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
-                        {location.pathname.startsWith('/rewards') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
+                        {(activePillar === "rewards" || location.pathname.startsWith('/rewards')) && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub</TooltipContent>
@@ -1874,18 +1884,18 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                     <TooltipTrigger asChild>
                       <div 
                         onClick={() => {
-                          setActivePillar("rewards");
+                          setActivePillar("referrals");
                           React.startTransition(() => navigate('/referrals'));
                           if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
                         }} 
                         className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${
-                          location.pathname.startsWith('/referrals') 
+                          (activePillar === "referrals" || location.pathname.startsWith('/referrals')) 
                             ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' 
                             : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
                         }`}
                       >
                         <AddUser size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
-                        {location.pathname.startsWith('/referrals') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
+                        {(activePillar === "referrals" || location.pathname.startsWith('/referrals')) && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Referral Program</TooltipContent>
@@ -2338,7 +2348,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                     <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
 
-                      {activePillar === "autoTrade" ? "FIALGO AUTOTRADE" : activePillar === "rewards" ? "REWARDS & REFERRALS" : (getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu")}
+                      {activePillar === "autoTrade" ? "FIALGO AUTOTRADE" : activePillar === "rewards" ? "REWARDS HUB" : activePillar === "referrals" ? "REFERRAL PROGRAM" : (getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu")}
 
                     </h3>
 
@@ -2349,6 +2359,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                     {
                       activePillar === "autoTrade" ? getAutoTradeMenu(isLifetimePlan).filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
                       activePillar === "rewards" ? rewardsMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                      activePillar === "referrals" ? referralsMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
                       activePillar === "home" ? homeMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                         activePillar === "dashboard" ? dashboardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
