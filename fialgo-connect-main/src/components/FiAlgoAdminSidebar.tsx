@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
+import { performAppLogout } from "@/utils/logout";
 import { useWorkspace } from "@/contexts/WorkspaceContext";
 import FiAlgoLogo from "./FiAlgoLogo";
 import { checkUserAutoTradeAccess } from "@/utils/autoTradeAccess";
@@ -335,8 +336,7 @@ export default function FiAlgoAdminSidebar({ mobileOpen = false, onClose }: FiAl
             <button
               onClick={async () => {
                 setShowProfileMenu(false);
-                await supabase.auth.signOut();
-                navigate("/login");
+                await performAppLogout("/login?logout=true");
               }}
               className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-semibold text-neutral-400 hover:text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
             >

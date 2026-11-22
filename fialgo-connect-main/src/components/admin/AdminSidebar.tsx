@@ -2,6 +2,7 @@ import { LayoutDashboard, Users, UserX, CreditCard, Activity, LifeBuoy, Terminal
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { performAppLogout } from "@/utils/logout";
 import fialgoLogo from "@/assets/fialgo-logo.png";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -32,9 +33,7 @@ export default function AdminSidebar() {
   const handleLogout = async () => {
     setShowLogoutConfirm(false);
     setIsLoggingOut(true);
-    await supabase.auth.signOut();
-    setIsLoggingOut(false);
-    navigate("/");
+    await performAppLogout("/login?logout=true");
   };
 
   return (

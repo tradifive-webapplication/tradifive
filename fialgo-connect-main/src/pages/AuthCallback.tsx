@@ -1,20 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
+
+const MOTIVATIONAL_MESSAGES = [
+  "CALM MIND. CLEAR EXECUTION.",
+  "CONSISTENCY BEATS INTENSITY. EVERY SINGLE TIME.",
+  "YOUR EDGE IS DISCIPLINE, NOT PREDICTION.",
+  "THE MARKET REWARDS PATIENCE, NOT IMPULSE.",
+  "RISK MANAGED TODAY IS CAPITAL SAVED FOR TOMORROW.",
+  "DISCIPLINE IS THE REAL ALPHA."
+];
 
 export default function AuthCallback() {
   const navigate = useNavigate();
-  const [status, setStatus] = useState('Verifying...');
-  const [subText, setSubText] = useState('Please wait while we complete your authentication.');
   const [deepLinkTarget, setDeepLinkTarget] = useState('');
   const [buttonLabel, setButtonLabel] = useState('Open TradiFive App');
   const [isExpoTarget, setIsExpoTarget] = useState(false);
   const [showWebFallback, setShowWebFallback] = useState(false);
   const [isProcessingWeb, setIsProcessingWeb] = useState(false);
 
+  const quote = useMemo(() => {
+    const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length);
+    return MOTIVATIONAL_MESSAGES[randomIndex] || "CALM MIND. CLEAR EXECUTION.";
+  }, []);
+
   useEffect(() => {
     const isAndroid = /Android/i.test(navigator.userAgent);
-
     const search = window.location.search || '';
     const hash = window.location.hash || '';
     const urlParams = new URLSearchParams(search);
@@ -22,8 +34,6 @@ export default function AuthCallback() {
 
     // ─────────────────────────────────────────────────────────────
     // 0. PASSWORD RECOVERY REDIRECT
-    //    If the callback contains type=recovery, user came from a reset password email.
-    //    Direct them straight to /reset-password with all auth tokens.
     // ─────────────────────────────────────────────────────────────
     const isRecovery = search.includes('type=recovery') || hash.includes('type=recovery');
     if (isRecovery) {
@@ -33,7 +43,6 @@ export default function AuthCallback() {
 
     // ─────────────────────────────────────────────────────────────
     // 1. MOBILE NATIVE APP BRIDGE (Expo Go or Standalone APK)
-    //    Triggered when mobile app sends source=mobileapp or return_to=exp://...
     // ─────────────────────────────────────────────────────────────
     const isNativeSource = search.includes('source=mobileapp') || search.includes('mobileapp=true') || !!returnTo;
 
@@ -41,7 +50,6 @@ export default function AuthCallback() {
       const code = urlParams.get('code');
       const error = urlParams.get('error') || urlParams.get('error_description');
 
-      // Build the native deep link URL with auth params appended
       let targetUrl = returnTo || 'mobileapp://auth-callback';
       const delimiter = targetUrl.includes('?') ? '&' : '?';
       const params: string[] = [];
@@ -54,15 +62,8 @@ export default function AuthCallback() {
       setIsExpoTarget(isExpo);
       setDeepLinkTarget(targetUrl);
       setButtonLabel(isExpo ? 'Open in Expo Go' : 'Open TradiFive App');
-      setStatus('Sign in Successful!');
-      setSubText(isExpo
-        ? 'Returning to Expo Go. Tap the button below if it does not open automatically.'
-        : 'Returning to TradiFive. Tap the button below if it does not open automatically.');
       setShowWebFallback(true);
 
-      // Immediately redirect to the native URL.
-      // On iOS, WebBrowser.openAuthSessionAsync intercepts this redirect and
-      // automatically closes the browser sheet, returning control to the app.
       try {
         if (isExpo) {
           window.location.replace(targetUrl);
@@ -77,9 +78,6 @@ export default function AuthCallback() {
       } catch (e) {
         console.warn('[AuthCallback Native Redirect Error]:', e);
       }
-
-      // CRITICAL: Stop here — do NOT exchange the PKCE code on the web.
-      // The mobile app will exchange it natively after receiving the exp:// deep link.
       return;
     }
 
@@ -119,10 +117,11 @@ export default function AuthCallback() {
               }
             }
 
+            // Quick timeout fallback (1.8s max instead of 4s) so user is never stuck
             setTimeout(() => {
               subscription.unsubscribe();
               resolve(null);
-            }, 4000);
+            }, 1800);
           });
         }
 
@@ -156,7 +155,6 @@ export default function AuthCallback() {
 
   const handleManualWebContinue = async () => {
     setIsProcessingWeb(true);
-    setStatus('Logging into browser session...');
     try {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
@@ -188,82 +186,57 @@ export default function AuthCallback() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      width: '100vw',
-      backgroundColor: '#0a0a0c',
-      color: '#ffffff',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: 'Inter, system-ui, sans-serif',
-      padding: '24px',
-      textAlign: 'center'
-    }}>
-      <div style={{
-        width: 48,
-        height: 48,
-        border: '3px solid rgba(59, 130, 246, 0.2)',
-        borderTopColor: '#3b82f6',
-        borderRadius: '50%',
-        animation: 'spin 0.8s linear infinite',
-        marginBottom: 20
-      }} />
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      
-      <h3 style={{ fontSize: 20, fontWeight: 700, margin: '0 0 8px 0', letterSpacing: '-0.02em', color: '#f8fafc' }}>
-        {status}
-      </h3>
-      <p style={{ fontSize: 14, color: '#94a3b8', margin: '0 0 24px 0', maxWidth: 340, lineHeight: 1.5 }}>
-        {subText}
-      </p>
+    <div className="fixed inset-0 z-[99999] bg-[#0A0A0A] flex flex-col items-center justify-center select-none font-sans w-screen h-screen">
+      <div className="w-full max-w-[320px] flex flex-col items-center justify-center px-4">
+        {/* Up: Motivational Message (Image 2 style) */}
+        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.25em] mb-7 text-center leading-relaxed">
+          {quote}
+        </p>
 
-      {deepLinkTarget ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 280 }}>
-          <a
-            href={deepLinkTarget}
-            onClick={(e) => {
-              e.preventDefault();
-              handleLaunchNative();
-            }}
-            style={{
-              padding: '14px 24px',
-              backgroundColor: '#3b82f6',
-              color: '#ffffff',
-              borderRadius: 14,
-              fontWeight: 600,
-              fontSize: 15,
-              textDecoration: 'none',
-              boxShadow: '0 4px 14px rgba(59, 130, 246, 0.4)',
-              cursor: 'pointer',
-              display: 'inline-block'
-            }}
-          >
-            {buttonLabel}
-          </a>
-
-          {showWebFallback ? (
-            <button
-              type="button"
-              disabled={isProcessingWeb}
-              onClick={handleManualWebContinue}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                color: '#cbd5e1',
-                borderRadius: 14,
-                fontWeight: 500,
-                fontSize: 14,
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                cursor: 'pointer'
-              }}
-            >
-              {isProcessingWeb ? 'Opening...' : 'Continue in Browser'}
-            </button>
-          ) : null}
+        {/* Middle: Loading Bar (Image 2 style) */}
+        <div className="relative w-full">
+          <div className="w-full h-2 bg-[#1E1E1E] border border-white/5 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 rounded-full"
+              initial={{ width: "10%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 1.8, ease: "easeInOut" }}
+            />
+          </div>
         </div>
-      ) : null}
+
+        {/* Down: Authenticating Status (Image 2 style) */}
+        <p className="text-[10.5px] text-slate-500 font-semibold tracking-[0.2em] uppercase mt-6 text-center animate-pulse">
+          {deepLinkTarget ? "SIGN IN SUCCESSFUL" : "AUTHENTICATING..."}
+        </p>
+
+        {/* Deep link action buttons if redirecting to mobile native app */}
+        {deepLinkTarget ? (
+          <div className="mt-8 flex flex-col gap-2.5 w-full">
+            <a
+              href={deepLinkTarget}
+              onClick={(e) => {
+                e.preventDefault();
+                handleLaunchNative();
+              }}
+              className="w-full py-3 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-blue-500/20 text-center transition-all active:scale-[0.98]"
+            >
+              {buttonLabel}
+            </a>
+
+            {showWebFallback && (
+              <button
+                type="button"
+                disabled={isProcessingWeb}
+                onClick={handleManualWebContinue}
+                className="w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl font-medium text-xs border border-white/10 text-center transition-all"
+              >
+                {isProcessingWeb ? 'Opening...' : 'Continue in Browser'}
+              </button>
+            )}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

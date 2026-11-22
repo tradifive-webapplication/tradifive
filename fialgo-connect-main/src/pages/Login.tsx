@@ -112,48 +112,48 @@ export default function Login() {
   }, []);
 
   useEffect(() => {
-    if (location.state?.mode) {
-      setIsLogin(location.state.mode !== 'signup');
+    const modeParam = searchParams.get('mode');
+    if (location.state?.mode === 'signup' || modeParam === 'signup') {
+      setIsLogin(false);
+    } else if (location.state?.mode === 'login' || modeParam === 'login') {
+      setIsLogin(true);
     }
 
-    // Check if user already has an active session on mount
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('has_chosen_username')
-          .eq('id', session.user.id)
-          .maybeSingle();
+    // If returning from an explicit logout or logout param is present, ensure local session is purged
+    const isLogoutIntent = searchParams.get('logout') === 'true' || sessionStorage.getItem('fialgo_logged_out') === 'true';
+    if (isLogoutIntent) {
+      supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+      try {
+        sessionStorage.removeItem('fialgo_logged_out');
+      } catch (_) {}
+    }
 
-        if (!prof || prof.has_chosen_username === false || prof.has_chosen_username === null) {
-          navigate("/onboarding", { replace: true });
-        } else {
-          navigate("/home", { replace: true });
+    // Only auto-finalize if an explicit OAuth callback code or access_token is present in URL hash/params
+    const hash = window.location.hash || '';
+    const hasOAuthReturn = hash.includes('access_token=') || searchParams.has('code');
+
+    if (hasOAuthReturn) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user && event === 'SIGNED_IN') {
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('has_chosen_username')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (!prof || prof.has_chosen_username === false || prof.has_chosen_username === null) {
+            navigate("/onboarding", { replace: true });
+          } else {
+            navigate("/home", { replace: true });
+          }
         }
-      }
-    });
+      });
 
-    // Handle authentication state changes (e.g. returning from OAuth redirect)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user && (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION')) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('has_chosen_username')
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        if (!prof || prof.has_chosen_username === false || prof.has_chosen_username === null) {
-          navigate("/onboarding", { replace: true });
-        } else {
-          navigate("/home", { replace: true });
-        }
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [location.state, navigate]);
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
+  }, [location.state, searchParams, navigate]);
 
   const finalizeLogin = async (user: any, loginMethod = "Email & Password") => {
     // Reset the login rate limiter on successful auth

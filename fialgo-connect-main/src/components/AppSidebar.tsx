@@ -48,6 +48,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { playSound } from "@/utils/soundEffects";
+import { performAppLogout } from "@/utils/logout";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -1269,33 +1270,12 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
   const handleLogout = async () => {
-
     setShowLogoutConfirm(false);
-
     const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length);
-
     setSelectedQuote(MOTIVATIONAL_MESSAGES[randomIndex]);
-
     setIsLoggingOut(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 4000));
-
-    Object.keys(localStorage).forEach((k) => {
-
-      if (k.startsWith("tradifive_")) {
-
-        localStorage.removeItem(k);
-
-      }
-
-    });
-
-    await supabase.auth.signOut();
-
-    setIsLoggingOut(false);
-
-    navigate("/login");
-
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await performAppLogout("/login?logout=true");
   };
 
 
