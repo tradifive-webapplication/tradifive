@@ -1259,6 +1259,109 @@ html, body, * {
   background: #2C2C31;
 }
 
+/* ══════ TACTILE COLORED PILL VARIANTS (Matching Bevelled Button Feel) ══════ */
+.tactile-emerald-pill {
+  background: linear-gradient(180deg, #10B981 0%, #059669 50%, #047857 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(16, 185, 129, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(4, 120, 87, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-emerald-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-emerald-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-rose-pill {
+  background: linear-gradient(180deg, #F43F5E 0%, #E11D48 50%, #BE123C 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(244, 63, 94, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(190, 18, 60, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-rose-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-rose-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-amber-pill {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(245, 158, 11, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(180, 83, 9, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-amber-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-amber-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-blue-pill {
+  background: linear-gradient(180deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(59, 130, 246, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(29, 78, 216, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-blue-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-blue-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-purple-pill {
+  background: linear-gradient(180deg, #A855F7 0%, #9333EA 50%, #7E22CE 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(168, 85, 247, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(126, 34, 206, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-purple-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-purple-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-indigo-pill {
+  background: linear-gradient(180deg, #6366F1 0%, #4F46E5 50%, #4338CA 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(99, 102, 241, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(67, 56, 202, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-indigo-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-indigo-pill:active {
+  transform: scale(0.965);
+}
+
 
 
 /* ══════ GLOBAL BUTTON UNIFIED CLICK FEEL ══════ */

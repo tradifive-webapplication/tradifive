@@ -14,7 +14,6 @@ import {
   Calendar,
   Clock,
   Link2,
-  Quote,
   TrendingUp,
   AlertCircle,
   Plus,
@@ -41,45 +40,6 @@ type GradeType = "A+" | "A" | "B" | "C" | "F";
 type AssetClassType = "Forex" | "Futures" | "Crypto" | "Stocks" | "Indices" | "Commodities";
 type TradeCategoryType = "Day Trade" | "Swing" | "Scalp" | "Position";
 type LogModeType = "basic" | "advanced" | "notrade";
-
-interface TradingQuote {
-  quote: string;
-  author: string;
-  principle: string;
-}
-
-const TRADING_QUOTES: TradingQuote[] = [
-  {
-    quote: "The goal of a successful trader is to make the best trades. Money is secondary.",
-    author: "Alexander Elder",
-    principle: "Process Over Profit",
-  },
-  {
-    quote: "Amateurs focus on how much they can make. Professionals focus on how much they could lose.",
-    author: "Mark Douglas",
-    principle: "Risk First Mindset",
-  },
-  {
-    quote: "Plan your trade, trade your plan. Execute without hesitation and without emotion.",
-    author: "Trading Axiom",
-    principle: "Disciplined Execution",
-  },
-  {
-    quote: "The elements of good trading are: 1. Cutting losses, 2. Cutting losses, and 3. Cutting losses.",
-    author: "Ed Seykota",
-    principle: "Capital Preservation",
-  },
-  {
-    quote: "Discipline is choosing between what you want right now and what you want most.",
-    author: "Trading Psychology",
-    principle: "Long-term Consistency",
-  },
-  {
-    quote: "Losses are simply the business expenses of trading. Accept them gracefully and move on.",
-    author: "Tom Hougaard",
-    principle: "Psychological Reset",
-  },
-];
 
 export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   isOpen,
@@ -175,9 +135,6 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   const [pictureTab, setPictureTab] = useState<"upload" | "link">("upload");
   const [imageUrlInput, setImageUrlInput] = useState("");
 
-  // Quotes rotation
-  const [quoteIndex, setQuoteIndex] = useState(0);
-
   const [saving, setSaving] = useState(false);
   const csvFileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -191,11 +148,6 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen, onClose]);
-
-  // Rotate quote every 15s or on manual trigger
-  const nextQuote = () => {
-    setQuoteIndex((prev) => (prev + 1) % TRADING_QUOTES.length);
-  };
 
   // Auto calculate P&L when prices and lot change
   const handleAutoCalcPnl = (entryStr: string, exitStr: string, sizeStr: string, dir: DirectionType) => {
@@ -410,8 +362,6 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
     }
   };
 
-  const currentQuote = TRADING_QUOTES[quoteIndex];
-
   return (
     <AnimatePresence>
       {isModalOpen && (
@@ -481,15 +431,15 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
 
             {/* Mode Switcher Tabs for Log Trade: Basic | Advanced Logs | No Trade Today */}
             {activeTab === "manual" && (
-              <div className="px-6 pt-3 pb-2 flex items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-white/[0.01]">
-                <div className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] border border-slate-200/80 dark:border-white/10">
+              <div className="px-6 pt-3 pb-2.5 flex items-center justify-between border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/50 dark:bg-white/[0.01]">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setLogMode("basic")}
-                    className={`px-3.5 py-1 rounded-full text-[11.5px] font-bold transition-all cursor-pointer select-none ${
+                    className={`rounded-full px-4 py-1.5 text-[12px] transition-all cursor-pointer select-none active:scale-95 ${
                       logMode === "basic"
-                        ? "bg-white dark:bg-[#222226] text-slate-900 dark:text-white shadow-xs"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                        ? "tactile-black-pill font-bold text-white shadow-xs"
+                        : "tactile-white-pill font-semibold text-slate-700 dark:text-neutral-300"
                     }`}
                   >
                     Basic
@@ -497,25 +447,25 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setLogMode("advanced")}
-                    className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11.5px] font-bold transition-all cursor-pointer select-none ${
+                    className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] transition-all cursor-pointer select-none active:scale-95 ${
                       logMode === "advanced"
-                        ? "bg-white dark:bg-[#222226] text-slate-900 dark:text-white shadow-xs"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                        ? "tactile-black-pill font-bold text-white shadow-xs ring-1 ring-amber-400/40"
+                        : "tactile-white-pill font-semibold text-slate-700 dark:text-neutral-300"
                     }`}
                   >
-                    <Sparkles size={12} className="text-amber-500" />
+                    <Sparkles size={12} className={logMode === "advanced" ? "text-amber-400" : "text-amber-500"} />
                     <span>Advanced Logs</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setLogMode("notrade")}
-                    className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-[11.5px] font-bold transition-all cursor-pointer select-none ${
+                    className={`flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] transition-all cursor-pointer select-none active:scale-95 ${
                       logMode === "notrade"
-                        ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 font-bold border border-amber-500/30"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                        ? "tactile-amber-pill font-bold text-white shadow-xs"
+                        : "tactile-white-pill font-semibold text-slate-700 dark:text-neutral-300"
                     }`}
                   >
-                    <ShieldCheck size={12} className="text-amber-600" />
+                    <ShieldCheck size={12} className={logMode === "notrade" ? "text-white" : "text-amber-600"} />
                     <span>No Trade Today</span>
                   </button>
                 </div>
@@ -531,7 +481,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
             {/* Scrollable Body Content */}
             <div
               onPointerDownCapture={(e) => e.stopPropagation()}
-              className="overflow-y-auto max-h-[calc(92vh-125px)] px-6 py-4 select-text"
+              className="overflow-y-auto max-h-[calc(92vh-125px)] px-6 py-4 select-text bg-[#F8F9FA] dark:bg-[#121214]"
             >
               {activeTab === "import" ? (
                 /* ── SLEEK IMPORT CSV VIEW (Kokonut Style File Upload) ── */
@@ -656,15 +606,15 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
               ) : (
                 /* ── 2-COLUMN LOG TRADE LAYOUT (Basic & Advanced Logs) ── */
                 <form onSubmit={handleManualSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
                     {/* LEFT COLUMN: All Inputs & Advanced Modules (7 Cols) */}
                     <div className="lg:col-span-7 space-y-3.5">
                       {/* CARD 1: Trade Info */}
-                      <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+                      <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3.5">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                          <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">
                             Trade Info
-                          </span>
+                          </h4>
                           <span className="text-[11px] text-slate-400 dark:text-neutral-500 font-medium">
                             {currencySymbol} USD Denominated
                           </span>
@@ -736,21 +686,26 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                           </div>
                         </div>
 
-                        {/* Long vs Short Consistent Buttons */}
+                        {/* Long vs Short Tactile Pill Buttons */}
                         <div>
-                          <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
-                            Direction
-                          </label>
-                          <div className="grid grid-cols-2 gap-2 h-[38px]">
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block">
+                              Direction
+                            </label>
+                            <span className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 cursor-pointer select-none">
+                              Closed on another day?
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2.5 h-[38px]">
                             <button
                               type="button"
                               onClick={() => {
                                 setDirection("BUY");
                                 handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "BUY");
                               }}
-                              className={`rounded-xl text-[12.5px] font-bold transition-all cursor-pointer select-none flex items-center justify-center gap-1.5 ${
+                              className={`rounded-full text-[12.5px] font-bold transition-all cursor-pointer select-none flex items-center justify-center gap-1.5 active:scale-95 ${
                                 direction === "BUY"
-                                  ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-xs border border-slate-950 dark:border-white"
+                                  ? "tactile-emerald-pill"
                                   : "tactile-white-pill text-slate-700 dark:text-neutral-300"
                               }`}
                             >
@@ -762,9 +717,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                 setDirection("SELL");
                                 handleAutoCalcPnl(entryPrice, exitPrice, lotSize, "SELL");
                               }}
-                              className={`rounded-xl text-[12.5px] font-bold transition-all cursor-pointer select-none flex items-center justify-center gap-1.5 ${
+                              className={`rounded-full text-[12.5px] font-bold transition-all cursor-pointer select-none flex items-center justify-center gap-1.5 active:scale-95 ${
                                 direction === "SELL"
-                                  ? "bg-slate-950 text-white dark:bg-white dark:text-slate-950 shadow-xs border border-slate-950 dark:border-white"
+                                  ? "tactile-rose-pill"
                                   : "tactile-white-pill text-slate-700 dark:text-neutral-300"
                               }`}
                             >
@@ -781,7 +736,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                           <div className="p-2.5 rounded-xl bg-slate-100/70 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06] flex items-center gap-2.5 text-[11px] text-slate-500 dark:text-neutral-400">
                             <Clock size={14} className="shrink-0 text-slate-400" />
                             <span className="flex-1 leading-snug">
-                              Add when you got filled, or pick the session, so this trade lands in the right part of your day.
+                              No entry time yet. Add when you got filled, or pick the session, so this trade lands in the right part of your day.
                             </span>
                             <input
                               type="text"
@@ -791,38 +746,41 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               className="w-16 h-7 px-2 text-center rounded-lg text-[11px] font-mono font-bold bg-white dark:bg-[#1a1a1d] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
                             />
                           </div>
-                          <div className="grid grid-cols-5 gap-1 pt-0.5">
+                          <div className="grid grid-cols-5 gap-1.5 pt-0.5">
                             {(["Asia", "London", "NY AM", "NY PM", "No session"] as SessionType[]).map((sess) => (
                               <button
                                 key={sess}
                                 type="button"
                                 onClick={() => setSession(sess)}
-                                className={`py-1.5 rounded-lg text-[10.5px] font-bold transition-all cursor-pointer select-none ${
+                                className={`py-1.5 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                   session === sess
-                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs"
-                                    : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                    ? "tactile-black-pill text-white shadow-xs"
+                                    : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                 }`}
                               >
                                 {sess}
                               </button>
                             ))}
                           </div>
+                          <div className="pt-0.5 text-[10.5px] text-slate-400 dark:text-neutral-500 flex items-center gap-1.5">
+                            <span>Lands in {tradeDate ? new Date(tradeDate).toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short" }) : "today"} under {session}. Counts in the daily P&L.</span>
+                          </div>
                         </div>
 
                         {/* Followed Plan & Account */}
-                        <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div className="space-y-3 pt-1">
                           <div>
                             <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
                               Followed My Plan?
                             </label>
-                            <div className="grid grid-cols-2 gap-1.5 h-[34px]">
+                            <div className="grid grid-cols-2 gap-2 h-[34px]">
                               <button
                                 type="button"
                                 onClick={() => setFollowedPlan("yes")}
-                                className={`rounded-xl text-[11.5px] font-bold transition-all cursor-pointer select-none ${
+                                className={`rounded-full text-[11.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                   followedPlan === "yes"
-                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs"
-                                    : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300"
+                                    ? "tactile-emerald-pill text-white shadow-xs"
+                                    : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                 }`}
                               >
                                 Yes
@@ -830,10 +788,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               <button
                                 type="button"
                                 onClick={() => setFollowedPlan("no")}
-                                className={`rounded-xl text-[11.5px] font-bold transition-all cursor-pointer select-none ${
+                                className={`rounded-full text-[11.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                   followedPlan === "no"
-                                    ? "bg-rose-600 text-white shadow-2xs"
-                                    : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300"
+                                    ? "tactile-rose-pill text-white shadow-xs"
+                                    : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                 }`}
                               >
                                 No
@@ -842,25 +800,50 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                           </div>
 
                           <div>
-                            <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center justify-between mb-1.5">
                               <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block">
                                 Account
                               </label>
-                              <span className="text-[9.5px] text-slate-400 dark:text-neutral-500">Auto-Linked</span>
+                              <span className="text-[10px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-neutral-300 cursor-pointer">
+                                Manage
+                              </span>
                             </div>
-                            <div className="h-[34px] px-3 rounded-xl text-[11px] font-bold bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center gap-1.5 truncate">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                              <span className="truncate">{accountType}</span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setAccountType("None")}
+                                className={`px-3 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                                  accountType === "None"
+                                    ? "tactile-black-pill text-white shadow-xs"
+                                    : "tactile-white-pill text-slate-600 dark:text-neutral-300"
+                                }`}
+                              >
+                                None
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setAccountType("MT5 Vantage")}
+                                className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer select-none flex items-center gap-2 active:scale-95 ${
+                                  accountType !== "None"
+                                    ? "tactile-black-pill text-white shadow-xs"
+                                    : "tactile-white-pill text-slate-600 dark:text-neutral-300"
+                                }`}
+                              >
+                                <span className="w-4 h-4 rounded bg-white/20 text-[9px] font-mono font-bold flex items-center justify-center text-white">
+                                  M5
+                                </span>
+                                <span>MetaTrader 5 Vantage Markets (Pty) Ltd #</span>
+                              </button>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       {/* CARD 2: Execution */}
-                      <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-3">
-                        <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block">
-                          Execution
-                        </span>
+                      <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3.5">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                          <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Execution</h4>
+                        </div>
 
                         {/* Entry Price & Exit Price */}
                         <div className="grid grid-cols-2 gap-3">
@@ -876,7 +859,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                 handleAutoCalcPnl(e.target.value, exitPrice, lotSize, direction);
                               }}
                               placeholder="0.00"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12.5px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 font-bold"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12.5px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 font-bold"
                             />
                           </div>
 
@@ -892,7 +875,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                 handleAutoCalcPnl(entryPrice, e.target.value, lotSize, direction);
                               }}
                               placeholder="0.00"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12.5px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 font-bold"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12.5px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 font-bold"
                             />
                           </div>
                         </div>
@@ -908,7 +891,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               value={profit}
                               onChange={(e) => setProfit(e.target.value)}
                               placeholder="+500 or -200"
-                              className={`w-full h-[36px] px-3 rounded-xl text-[13px] font-bold bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 font-mono transition-all ${
+                              className={`w-full h-[36px] px-3 rounded-xl text-[13px] font-bold bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 font-mono transition-all ${
                                 profit.startsWith("+")
                                   ? "text-emerald-600 dark:text-emerald-400"
                                   : profit.startsWith("-")
@@ -931,7 +914,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                 handleAutoCalcPnl(entryPrice, exitPrice, e.target.value, direction);
                               }}
                               placeholder="1"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12.5px] font-semibold font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12.5px] font-semibold font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950"
                             />
                           </div>
                         </div>
@@ -947,7 +930,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               value={plannedRR}
                               onChange={(e) => setPlannedRR(e.target.value)}
                               placeholder="e.g. 2.0"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
                             />
                           </div>
 
@@ -963,7 +946,36 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                 setRMultiple(e.target.value);
                               }}
                               placeholder="e.g. 2.5"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Entry Time & Exit / Close Time */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                              Entry Time
+                            </label>
+                            <input
+                              type="text"
+                              value={entryTime}
+                              onChange={(e) => setEntryTime(e.target.value)}
+                              placeholder="HH:MM:SS"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 font-bold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                              Exit / Close Time
+                            </label>
+                            <input
+                              type="text"
+                              value={exitTime}
+                              onChange={(e) => setExitTime(e.target.value)}
+                              placeholder="HH:MM:SS"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-950 font-bold"
                             />
                           </div>
                         </div>
@@ -979,7 +991,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               value={stopLoss}
                               onChange={(e) => setStopLoss(e.target.value)}
                               placeholder="0.00"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
                             />
                           </div>
 
@@ -992,8 +1004,34 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               value={targetPrice}
                               onChange={(e) => setTargetPrice(e.target.value)}
                               placeholder="0.00"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
                             />
+                          </div>
+                        </div>
+
+                        {/* Partials & Add-ons */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                              Partials
+                            </label>
+                            <button
+                              type="button"
+                              className="text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 py-1"
+                            >
+                              <span>+ Add partial</span>
+                            </button>
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
+                              Add-ons
+                            </label>
+                            <button
+                              type="button"
+                              className="text-[11.5px] font-semibold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 py-1"
+                            >
+                              <span>+ Add add-on</span>
+                            </button>
                           </div>
                         </div>
 
@@ -1008,7 +1046,7 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               value={mae}
                               onChange={(e) => setMae(e.target.value)}
                               placeholder="Against you, in $"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
                             />
                           </div>
 
@@ -1021,9 +1059,37 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               value={mfe}
                               onChange={(e) => setMfe(e.target.value)}
                               placeholder="In your favour, in $"
-                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
+                              className="w-full h-[36px] px-3 rounded-xl text-[12px] font-mono bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white focus:outline-none"
                             />
                           </div>
+                        </div>
+
+                        {/* Exit Reason */}
+                        <div className="space-y-1.5 pt-1">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block">
+                            Exit Reason
+                          </label>
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={exitReason}
+                              onChange={(e) => setExitReason(e.target.value)}
+                              placeholder="Add your own exit reason..."
+                              className="flex-1 h-[36px] px-3 rounded-xl text-[12px] bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-zinc-950 font-medium"
+                            />
+                            {exitReason && (
+                              <button
+                                type="button"
+                                onClick={() => setExitReason("")}
+                                className="tactile-white-pill rounded-full px-3 text-[11px] font-bold cursor-pointer"
+                              >
+                                Clear
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 italic">
+                            Nothing here yet. Write the reasons you actually exit for and they stay for every trade.
+                          </p>
                         </div>
                       </div>
 
@@ -1031,11 +1097,21 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                       {logMode === "advanced" && (
                         <div className="space-y-3.5">
                           {/* Playbook Card */}
-                          <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-2.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                                Playbook <span className="text-[9px] bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded font-bold">ADVANCED</span>
-                              </span>
+                          <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3">
+                            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Playbook</h4>
+                                <span className="text-[9px] font-bold bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-neutral-400 px-1.5 py-0.5 rounded tracking-wider">
+                                  ADVANCED
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedPlaybook("")}
+                                className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
+                              >
+                                Remove
+                              </button>
                             </div>
                             <div className="flex flex-wrap gap-1.5">
                               {playbookOptions.map((pb) => (
@@ -1043,26 +1119,64 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                   key={pb}
                                   type="button"
                                   onClick={() => setSelectedPlaybook(pb)}
-                                  className={`px-3 py-1 rounded-xl text-[11.5px] font-bold transition-all cursor-pointer ${
+                                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                     selectedPlaybook === pb
-                                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                                      : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                      ? "tactile-black-pill text-white shadow-xs"
+                                      : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                   }`}
                                 >
                                   {pb}
                                 </button>
                               ))}
                             </div>
+                            <div className="flex gap-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Add your own playbook..."
+                                value={customPlaybookInput}
+                                onChange={(e) => setCustomPlaybookInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && customPlaybookInput.trim()) {
+                                    e.preventDefault();
+                                    if (!playbookOptions.includes(customPlaybookInput.trim())) {
+                                      setPlaybookOptions((prev) => [...prev, customPlaybookInput.trim()]);
+                                    }
+                                    setSelectedPlaybook(customPlaybookInput.trim());
+                                    setCustomPlaybookInput("");
+                                  }
+                                }}
+                                className="flex-1 h-[34px] px-3 rounded-xl text-[11.5px] bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-zinc-950 font-medium"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (customPlaybookInput.trim()) {
+                                    if (!playbookOptions.includes(customPlaybookInput.trim())) {
+                                      setPlaybookOptions((prev) => [...prev, customPlaybookInput.trim()]);
+                                    }
+                                    setSelectedPlaybook(customPlaybookInput.trim());
+                                    setCustomPlaybookInput("");
+                                  }
+                                }}
+                                className="text-[11px] font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white px-2 cursor-pointer"
+                              >
+                                Add
+                              </button>
+                            </div>
                           </div>
 
                           {/* Liquidity Target Card */}
-                          <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-2.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                                Liquidity Target <span className="text-[9px] bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded font-bold">ADVANCED</span>
-                              </span>
+                          <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3">
+                            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Liquidity Target</h4>
+                                <span className="text-[9px] font-bold bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-neutral-400 px-1.5 py-0.5 rounded tracking-wider">
+                                  ADVANCED
+                                </span>
+                              </div>
+                              <span className="text-[11px] font-semibold text-slate-400 cursor-pointer">Edit</span>
                             </div>
-                            <p className="text-[11px] text-slate-500 dark:text-neutral-400">
+                            <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-snug">
                               What were you targeting? The magnet this trade was built to reach.
                             </p>
                             <div className="flex flex-wrap gap-1.5">
@@ -1071,23 +1185,63 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                   key={lt}
                                   type="button"
                                   onClick={() => setSelectedLiquidity(lt)}
-                                  className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                     selectedLiquidity === lt
-                                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                                      : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                      ? "tactile-indigo-pill text-white shadow-xs"
+                                      : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                   }`}
                                 >
                                   {lt}
                                 </button>
                               ))}
                             </div>
+                            <div className="flex gap-2 pt-1">
+                              <input
+                                type="text"
+                                placeholder="Add a target..."
+                                value={customLiquidityInput}
+                                onChange={(e) => setCustomLiquidityInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter" && customLiquidityInput.trim()) {
+                                    e.preventDefault();
+                                    if (!liquidityOptions.includes(customLiquidityInput.trim())) {
+                                      setLiquidityOptions((prev) => [...prev, customLiquidityInput.trim()]);
+                                    }
+                                    setSelectedLiquidity(customLiquidityInput.trim());
+                                    setCustomLiquidityInput("");
+                                  }
+                                }}
+                                className="flex-1 h-[34px] px-3 rounded-xl text-[11.5px] bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-zinc-950 font-medium"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (customLiquidityInput.trim()) {
+                                    if (!liquidityOptions.includes(customLiquidityInput.trim())) {
+                                      setLiquidityOptions((prev) => [...prev, customLiquidityInput.trim()]);
+                                    }
+                                    setSelectedLiquidity(customLiquidityInput.trim());
+                                    setCustomLiquidityInput("");
+                                  }
+                                }}
+                                className="text-[11px] font-bold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white px-2 cursor-pointer"
+                              >
+                                Add
+                              </button>
+                            </div>
                           </div>
 
                           {/* Breakdown (Confluences, Confirmations, Bonus) */}
-                          <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-3">
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                              Breakdown <span className="text-[9px] bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded font-bold">ADVANCED</span>
-                            </span>
+                          <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3.5">
+                            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Breakdown</h4>
+                                <span className="text-[9px] font-bold bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-neutral-400 px-1.5 py-0.5 rounded tracking-wider">
+                                  ADVANCED
+                                </span>
+                              </div>
+                              <span className="text-[11px] font-semibold text-slate-400 cursor-pointer">Edit</span>
+                            </div>
 
                             {/* Confluences */}
                             <div>
@@ -1100,10 +1254,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                     key={item}
                                     type="button"
                                     onClick={() => togglePill(item, selectedConfluences, setSelectedConfluences)}
-                                    className={`px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                       selectedConfluences.includes(item)
-                                        ? "bg-purple-600 text-white shadow-xs"
-                                        : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                        ? "tactile-purple-pill text-white shadow-xs"
+                                        : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                     }`}
                                   >
                                     {item}
@@ -1123,10 +1277,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                     key={item}
                                     type="button"
                                     onClick={() => togglePill(item, selectedConfirmations, setSelectedConfirmations)}
-                                    className={`px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                       selectedConfirmations.includes(item)
-                                        ? "bg-blue-600 text-white shadow-xs"
-                                        : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                        ? "tactile-blue-pill text-white shadow-xs"
+                                        : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                     }`}
                                   >
                                     {item}
@@ -1146,10 +1300,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                     key={item}
                                     type="button"
                                     onClick={() => togglePill(item, selectedBonus, setSelectedBonus)}
-                                    className={`px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                       selectedBonus.includes(item)
-                                        ? "bg-amber-600 text-white shadow-xs"
-                                        : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                        ? "tactile-amber-pill text-white shadow-xs"
+                                        : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                     }`}
                                   >
                                     {item}
@@ -1160,18 +1314,26 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                           </div>
 
                           {/* Post-loss Entry (Revenge Trade Protection) */}
-                          <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-2">
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                              Post-loss Entry <span className="text-[9px] bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded font-bold">ADVANCED</span>
-                            </span>
+                          <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3">
+                            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Post-loss Entry</h4>
+                                <span className="text-[9px] font-bold bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-neutral-400 px-1.5 py-0.5 rounded tracking-wider">
+                                  ADVANCED
+                                </span>
+                              </div>
+                            </div>
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block">
+                              Post-loss Entry (Revenge Trade?)
+                            </label>
                             <div className="flex items-center gap-2">
                               <button
                                 type="button"
                                 onClick={() => setIsRevengeTrade(false)}
-                                className={`px-4 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                                className={`px-4 py-2 rounded-full text-[11.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                   !isRevengeTrade
-                                    ? "bg-emerald-600 text-white shadow-xs"
-                                    : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300"
+                                    ? "tactile-emerald-pill text-white shadow-xs"
+                                    : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                 }`}
                               >
                                 No revenge trade
@@ -1179,10 +1341,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                               <button
                                 type="button"
                                 onClick={() => setIsRevengeTrade(true)}
-                                className={`px-4 py-1.5 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                                className={`px-4 py-2 rounded-full text-[11.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                   isRevengeTrade
-                                    ? "bg-rose-600 text-white shadow-xs"
-                                    : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300"
+                                    ? "tactile-rose-pill text-white shadow-xs"
+                                    : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                 }`}
                               >
                                 Potential Revenge Trade
@@ -1191,10 +1353,16 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                           </div>
 
                           {/* Emotions & Psychology */}
-                          <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-3">
-                            <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-                              Emotions & Psychology <span className="text-[9px] bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded font-bold">ADVANCED</span>
-                            </span>
+                          <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3.5">
+                            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Emotions & Psychology</h4>
+                                <span className="text-[9px] font-bold bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-neutral-400 px-1.5 py-0.5 rounded tracking-wider">
+                                  ADVANCED
+                                </span>
+                              </div>
+                              <span className="text-[11px] font-semibold text-slate-400 cursor-pointer">Edit</span>
+                            </div>
 
                             {/* Positive What Kept You Disciplined */}
                             <div>
@@ -1207,10 +1375,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                     key={emo}
                                     type="button"
                                     onClick={() => togglePill(emo, positiveEmotions, setPositiveEmotions)}
-                                    className={`px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                       positiveEmotions.includes(emo)
-                                        ? "bg-emerald-600 text-white shadow-xs"
-                                        : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                        ? "tactile-emerald-pill text-white shadow-xs"
+                                        : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                     }`}
                                   >
                                     {emo}
@@ -1230,10 +1398,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                     key={emo}
                                     type="button"
                                     onClick={() => togglePill(emo, negativeEmotions, setNegativeEmotions)}
-                                    className={`px-2.5 py-1 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer ${
+                                    className={`px-3 py-1.5 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                       negativeEmotions.includes(emo)
-                                        ? "bg-rose-600 text-white shadow-xs"
-                                        : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
+                                        ? "tactile-rose-pill text-white shadow-xs"
+                                        : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                                     }`}
                                   >
                                     {emo}
@@ -1246,67 +1414,69 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                       )}
 
                       {/* Performance: Trade Grade */}
-                      <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-2">
-                        <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block">
-                          Performance Grade
-                        </label>
-                        <div className="grid grid-cols-5 gap-1.5">
-                          {(["A+", "A", "B", "C", "F"] as GradeType[]).map((g) => (
-                            <button
-                              key={g}
-                              type="button"
-                              onClick={() => setGrade(g)}
-                              className={`py-2 rounded-xl text-[12px] font-bold transition-all cursor-pointer ${
-                                grade === g
-                                  ? g === "A+" || g === "A"
-                                    ? "bg-emerald-600 text-white shadow-xs"
-                                    : g === "B"
-                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                                    : g === "C"
-                                    ? "bg-amber-500 text-white shadow-xs"
-                                    : "bg-rose-600 text-white shadow-xs"
-                                  : "bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-neutral-300 hover:bg-slate-50"
-                              }`}
-                            >
-                              {g}
-                            </button>
-                          ))}
+                      <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-3">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                          <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Performance Grade</h4>
+                        </div>
+                        <div className="grid grid-cols-5 gap-2">
+                          {(["A+", "A", "B", "C", "F"] as GradeType[]).map((g) => {
+                            let activeClass = "tactile-black-pill text-white";
+                            if (g === "A+" || g === "A") activeClass = "tactile-emerald-pill text-white";
+                            else if (g === "B") activeClass = "tactile-blue-pill text-white";
+                            else if (g === "C") activeClass = "tactile-amber-pill text-white";
+                            else if (g === "F") activeClass = "tactile-rose-pill text-white";
+
+                            return (
+                              <button
+                                key={g}
+                                type="button"
+                                onClick={() => setGrade(g)}
+                                className={`py-2 rounded-full text-[12px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                                  grade === g
+                                    ? `${activeClass} shadow-xs`
+                                    : "tactile-white-pill text-slate-700 dark:text-neutral-300"
+                                }`}
+                              >
+                                {g}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
 
                       {/* Notes / Reflections */}
-                      <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs space-y-1.5">
-                        <label className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block">
-                          Notes & Insights
-                        </label>
+                      <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] space-y-2.5">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                          <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">Notes & Insights</h4>
+                        </div>
                         <textarea
                           value={notes}
                           onChange={(e) => setNotes(e.target.value)}
                           placeholder="Explain your trade entry and insights. What happened? What did you do well? What would you do differently?"
                           rows={3}
-                          className="w-full px-3.5 py-2.5 rounded-xl text-[12.5px] bg-white dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white resize-none transition-all font-medium"
+                          className="w-full px-3.5 py-2.5 rounded-xl text-[12.5px] bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-950 dark:focus:ring-white resize-none transition-all font-medium"
                         />
                       </div>
                     </div>
 
-                    {/* RIGHT COLUMN: Screenshots (Upload or Link) + Inspiring Trading Quotes Card (5 Cols) */}
-                    <div className="lg:col-span-5 flex flex-col space-y-3.5">
+                    {/* RIGHT COLUMN: Screenshots (Upload or Link) + Inspiring Trading Quotes Card (5 Cols) - STICKY PINNED */}
+                    <div className="lg:col-span-5 lg:sticky lg:top-0 self-start flex flex-col space-y-3.5">
                       {/* Screenshots Card with Upload vs Paste Link */}
-                      <div className="bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4 shadow-2xs flex flex-col">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+                      <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 sm:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col space-y-3">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-white/[0.05]">
+                          <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">
                             Screenshots ({pictures.length})
-                          </span>
+                          </h4>
 
-                          {/* Upload vs Link toggle */}
-                          <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-200/70 dark:bg-white/[0.06] border border-slate-300/40 dark:border-white/10">
+                          {/* Upload vs Link tactile buttons */}
+                          <div className="flex items-center gap-1.5">
                             <button
                               type="button"
                               onClick={() => setPictureTab("upload")}
-                              className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer select-none ${
+                              className={`rounded-full px-3 py-1 text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                 pictureTab === "upload"
-                                  ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
-                                  : "text-slate-500 dark:text-neutral-400"
+                                  ? "tactile-black-pill text-white shadow-xs"
+                                  : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                               }`}
                             >
                               Upload
@@ -1314,10 +1484,10 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                             <button
                               type="button"
                               onClick={() => setPictureTab("link")}
-                              className={`px-2.5 py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer select-none ${
+                              className={`rounded-full px-3 py-1 text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
                                 pictureTab === "link"
-                                  ? "bg-white dark:bg-[#1f1f23] text-slate-900 dark:text-white shadow-2xs"
-                                  : "text-slate-500 dark:text-neutral-400"
+                                  ? "tactile-black-pill text-white shadow-xs"
+                                  : "tactile-white-pill text-slate-600 dark:text-neutral-300"
                               }`}
                             >
                               Paste link
@@ -1346,12 +1516,12 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                                 placeholder="Paste image or TradingView chart URL..."
                                 value={imageUrlInput}
                                 onChange={(e) => setImageUrlInput(e.target.value)}
-                                className="flex-1 px-3 py-1.5 rounded-xl text-[12px] bg-white dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-zinc-950"
+                                className="flex-1 px-3 py-1.5 rounded-xl text-[12px] bg-slate-50/70 dark:bg-white/[0.04] border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-zinc-950"
                               />
                               <button
                                 type="button"
                                 onClick={handleAddImageUrl}
-                                className="tactile-black-pill rounded-xl px-3 py-1.5 text-[11px] font-bold cursor-pointer"
+                                className="tactile-black-pill rounded-full px-3.5 py-1.5 text-[11px] font-bold cursor-pointer select-none active:scale-95"
                               >
                                 Add
                               </button>
@@ -1391,44 +1561,6 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
                             )}
                           </div>
                         )}
-                      </div>
-
-                      {/* ELEGANT TRADING QUOTES CARD (Eliminates vertical gap) */}
-                      <div className="bg-gradient-to-br from-slate-50 via-slate-100/60 to-slate-50 dark:from-white/[0.03] dark:via-white/[0.01] dark:to-white/[0.04] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl p-4.5 shadow-2xs relative overflow-hidden flex flex-col justify-between">
-                        {/* Decorative background quotation icon */}
-                        <div className="absolute right-2 -bottom-2 text-slate-900/[0.04] dark:text-white/[0.03] pointer-events-none select-none">
-                          <Quote size={88} strokeWidth={1.5} />
-                        </div>
-
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="text-[10px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
-                              <Sparkles size={11} className="text-amber-500" />
-                              <span>{currentQuote.principle}</span>
-                            </span>
-                            <button
-                              type="button"
-                              onClick={nextQuote}
-                              className="w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/10 transition-all cursor-pointer"
-                              title="Shuffle Quote"
-                            >
-                              <RefreshCw size={11} />
-                            </button>
-                          </div>
-
-                          <p className="text-[12.5px] font-medium text-slate-700 dark:text-neutral-200 leading-relaxed italic pr-2">
-                            "{currentQuote.quote}"
-                          </p>
-                        </div>
-
-                        <div className="mt-4 pt-2.5 border-t border-slate-200/60 dark:border-white/[0.06] flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-900 dark:text-white">
-                            — {currentQuote.author}
-                          </span>
-                          <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-mono">
-                            Mindset #{quoteIndex + 1}
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>

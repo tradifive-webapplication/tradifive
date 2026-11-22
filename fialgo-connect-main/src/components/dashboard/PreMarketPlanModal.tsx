@@ -129,6 +129,8 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
   const isBullish = bias === "bullish";
   const isNeutral = bias === "neutral";
   const isBearish = bias === "bearish";
+  const profitColor = tradingTheme?.profitHex || "#10B981";
+  const lossColor = tradingTheme?.lossHex || "#EF4444";
 
   return createPortal(
     <AnimatePresence>
@@ -172,7 +174,10 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
           </button>
 
           {/* 2-Column Responsive Layout matching Report & Suggest Dialogs */}
-          <div className="p-6 sm:p-8 pt-3 sm:pt-4">
+          <div
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            className="p-6 sm:p-8 pt-3 sm:pt-4"
+          >
             <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6 md:gap-8 items-start">
               {/* Left Column: Heading, Subtitle & Readiness Status */}
               <div className="space-y-4">
@@ -216,7 +221,7 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
                       className="h-full transition-all duration-300 rounded-full"
                       style={{
                         width: `${(completedChecks / CHECKLIST_ITEMS.length) * 100}%`,
-                        backgroundColor: tradingTheme.win,
+                        backgroundColor: profitColor,
                       }}
                     />
                   </div>
@@ -234,14 +239,13 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setBias("bullish")}
-                      style={isBullish ? { backgroundColor: tradingTheme.win, color: "#fff" } : undefined}
                       className={`h-9 px-3 rounded-full text-[12px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
                         isBullish
-                          ? "text-white shadow-[0_2px_10px_-2px_rgba(0,0,0,0.3)]"
+                          ? "tactile-emerald-pill text-white shadow-xs"
                           : "tactile-white-pill text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
-                      <TrendingUp size={13} strokeWidth={2.4} style={{ color: isBullish ? "#fff" : tradingTheme.win }} />
+                      <TrendingUp size={13} strokeWidth={2.4} />
                       <span>Bullish</span>
                     </button>
 
@@ -261,14 +265,13 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
                     <button
                       type="button"
                       onClick={() => setBias("bearish")}
-                      style={isBearish ? { backgroundColor: tradingTheme.loss, color: "#fff" } : undefined}
                       className={`h-9 px-3 rounded-full text-[12px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
                         isBearish
-                          ? "text-white shadow-[0_2px_10px_-2px_rgba(0,0,0,0.3)]"
+                          ? "tactile-rose-pill text-white shadow-xs"
                           : "tactile-white-pill text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
-                      <TrendingDown size={13} strokeWidth={2.4} style={{ color: isBearish ? "#fff" : tradingTheme.loss }} />
+                      <TrendingDown size={13} strokeWidth={2.4} />
                       <span>Bearish</span>
                     </button>
                   </div>
@@ -343,7 +346,7 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
                       {completedChecks}/{CHECKLIST_ITEMS.length} done
                     </span>
                   </div>
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {CHECKLIST_ITEMS.map((item) => {
                       const checked = !!checklist[item.id];
                       return (
@@ -351,23 +354,22 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
                           key={item.id}
                           type="button"
                           onClick={() => toggleCheck(item.id)}
-                          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl border text-left transition-all cursor-pointer select-none active:scale-[0.99] ${
+                          className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border text-left transition-all cursor-pointer select-none active:scale-[0.98] ${
                             checked
-                              ? "bg-slate-50/90 dark:bg-white/[0.04] border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white"
-                              : "bg-[#f4f5f7]/50 dark:bg-[#1a1b20]/50 border-transparent dark:border-white/5 text-slate-600 dark:text-zinc-400 hover:bg-[#f4f5f7] dark:hover:bg-[#1a1b20]"
+                              ? "bg-emerald-500/[0.08] dark:bg-emerald-500/[0.14] border-emerald-500/30 text-slate-900 dark:text-white"
+                              : "bg-white dark:bg-white/[0.03] border-slate-200/90 dark:border-white/10 text-slate-600 dark:text-zinc-400 hover:border-slate-300 dark:hover:border-white/20"
                           }`}
                         >
                           <span
-                            className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                            className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${
                               checked
-                                ? "text-white shadow-sm"
-                                : "border border-slate-300 dark:border-white/20"
+                                ? "tactile-emerald-pill text-white shadow-xs"
+                                : "border-2 border-slate-300 dark:border-white/25 bg-white dark:bg-white/5"
                             }`}
-                            style={checked ? { backgroundColor: tradingTheme.win } : undefined}
                           >
-                            {checked && <Check size={10} strokeWidth={3} />}
+                            {checked && <Check size={12} strokeWidth={3} className="text-white" />}
                           </span>
-                          <span className={`text-[12px] font-medium leading-tight ${checked ? "font-semibold" : ""}`}>
+                          <span className={`text-[12px] leading-tight ${checked ? "font-bold text-slate-900 dark:text-white" : "font-medium"}`}>
                             {item.label}
                           </span>
                         </button>
@@ -395,14 +397,14 @@ export const PreMarketPlanModal: React.FC<PreMarketPlanModalProps> = ({
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+                    className="tactile-white-pill rounded-full px-5 py-2 text-[12px] font-semibold cursor-pointer select-none transition-all active:scale-95"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="h-9 px-5 rounded-full tactile-black-pill font-semibold text-[12.5px] inline-flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-95"
+                    className="tactile-black-pill rounded-full px-5 py-2 text-[12.5px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-95"
                   >
                     <span>Save Plan</span>
                     <ArrowRight size={13.5} strokeWidth={2.2} />
