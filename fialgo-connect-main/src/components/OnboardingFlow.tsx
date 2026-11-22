@@ -224,7 +224,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
   };
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-[#08080A] text-white flex flex-col overflow-y-auto selection:bg-blue-600/30">
+    <div className="fixed inset-0 z-[99999] bg-[#08080A] text-white flex flex-col overflow-y-auto selection:bg-white/20 selection:text-white">
       {/* ── TOP HEADER BAR ── */}
       <header className="w-full h-14 sm:h-16 px-5 sm:px-10 flex items-center justify-between shrink-0 bg-[#08080A]/90 backdrop-blur-md sticky top-0 z-50 border-b border-white/[0.05] md:border-b-0">
         <div className="flex items-center gap-2.5 sm:gap-3">
@@ -255,10 +255,11 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
       </header>
 
       {/* ── MAIN CONTENT WORKSPACE ── */}
-      <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-[200px_1fr_200px] lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[260px_1fr_260px] items-center px-4 sm:px-8 md:px-10 lg:px-14 xl:px-20 py-4 md:py-6 min-h-0">
-        {/* ── DESKTOP LEFT SIDEBAR (md+) ── */}
-        <aside className="hidden md:flex flex-col justify-center pr-4 lg:pr-6 my-auto select-none">
-          <div className="flex flex-col">
+      <div className="flex-1 w-full flex items-center justify-center px-4 sm:px-8 md:px-10 lg:px-16 py-4 md:py-6 min-h-0">
+        <div className="w-full max-w-4xl lg:max-w-5xl flex flex-col md:flex-row items-center md:items-center justify-center gap-10 md:gap-14 lg:gap-20">
+          {/* ── DESKTOP LEFT SIDEBAR (md+) ── */}
+          <aside className="hidden md:flex flex-col justify-center w-[260px] lg:w-[280px] shrink-0 select-none pr-4 lg:pr-6 my-auto">
+            <div className="flex flex-col">
             {/* Dynamic Steps */}
             {STEPS_ORDER.map((s, idx) => {
               const isCurrent = idx === currentStepIndex;
@@ -279,10 +280,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 <div 
                   key={s} 
                   onClick={() => isPassed && setCurrentStepIndex(idx)}
-                  className={`h-[48px] lg:h-[54px] flex flex-col justify-center border-b border-white/[0.08] transition-all duration-200 ${isPassed ? 'cursor-pointer hover:opacity-80' : ''}`}
+                  className={`h-[62px] lg:h-[66px] flex flex-col justify-center border-b border-white/[0.08] transition-all duration-200 ${isPassed ? 'cursor-pointer hover:opacity-80' : ''}`}
                 >
                   <div className="flex items-center">
-                    <span className={`text-[10.5px] lg:text-[11px] font-sans font-bold tracking-[0.16em] uppercase transition-colors ${
+                    <span className={`text-[11.5px] lg:text-[12px] font-sans font-bold tracking-[0.15em] uppercase transition-colors ${
                       isCurrent 
                         ? 'text-white' 
                         : isPassed 
@@ -293,17 +294,17 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                     </span>
                   </div>
 
-                  <div className="h-4 flex items-center mt-0.5">
+                  <div className="h-5 flex items-center mt-1">
                     {valDisplay ? (
-                      <span className={`text-[11.5px] lg:text-xs font-medium truncate max-w-[170px] lg:max-w-[210px] ${
+                      <span className={`text-[13px] lg:text-[13.5px] font-medium truncate max-w-[220px] lg:max-w-[245px] ${
                         isCurrent ? 'text-white' : 'text-zinc-400'
                       }`}>
                         {valDisplay}
                       </span>
                     ) : isCurrent ? (
-                      <div className="w-6 h-[2px] bg-white rounded-full" />
+                      <div className="w-7 h-[2px] bg-white rounded-full" />
                     ) : (
-                      <div className="w-6 h-[1.5px] bg-zinc-800 rounded-full" />
+                      <div className="w-7 h-[1.5px] bg-zinc-800 rounded-full" />
                     )}
                   </div>
                 </div>
@@ -313,7 +314,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
         </aside>
 
         {/* ── CENTER QUESTION CANVAS (True dead center of the screen) ── */}
-        <div className="w-full flex flex-col items-center justify-center my-auto px-2 sm:px-4">
+        <div className="w-full flex-1 max-w-lg lg:max-w-xl flex flex-col items-center md:items-start justify-center my-auto px-2 sm:px-4">
           {/* ── MOBILE SYSTEMIC STEP PROGRESS BAR (< md) ── */}
           <div className="md:hidden w-full max-w-lg space-y-2.5 mb-6 shrink-0">
             <div className="flex items-center justify-between text-[11px]">
@@ -337,7 +338,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                     aria-label={s}
                     className={`h-[3.5px] rounded-full transition-all duration-300 ${
                       isCurrent
-                        ? "bg-[#2563EB] shadow-[0_0_8px_rgba(37,99,235,0.7)]"
+                        ? "bg-white shadow-[0_0_8px_rgba(255,255,255,0.7)]"
                         : isPassed
                         ? "bg-white/75 cursor-pointer"
                         : "bg-white/12"
@@ -364,7 +365,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
             </div>
 
             {/* Current Step Label */}
-            <div className="text-[11px] font-sans font-bold tracking-[0.18em] text-[#60A5FA] md:text-zinc-400 uppercase mb-2.5 md:mb-3">
+            <div className="text-[11px] font-sans font-bold tracking-[0.18em] text-zinc-400 uppercase mb-2.5 md:mb-3">
               {currentStep}
             </div>
 
@@ -391,7 +392,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                       onChange={(e) => setName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
                       placeholder="Your name"
-                      className="w-full bg-transparent border-b border-zinc-800 focus:border-[#2563EB] text-[22px] sm:text-3xl text-white placeholder-zinc-600 py-2.5 sm:py-3 outline-none transition-colors"
+                      className="w-full bg-transparent border-b border-zinc-800 focus:border-white text-[22px] sm:text-3xl text-white placeholder-zinc-600 py-2.5 sm:py-3 outline-none transition-colors"
                     />
                   </div>
                   <p className="text-[12.5px] sm:text-sm text-zinc-500 leading-relaxed mb-7 sm:mb-8">
@@ -414,7 +415,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                     Claim your handle.
                   </h1>
 
-                  <div className="mb-2 relative flex items-center border-b border-zinc-800 focus-within:border-[#2563EB] transition-colors">
+                  <div className="mb-2 relative flex items-center border-b border-zinc-800 focus-within:border-white transition-colors">
                     <span className="text-[22px] sm:text-3xl text-zinc-600 font-bold mr-1">@</span>
                     <input
                       type="text"
@@ -480,13 +481,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setStyle(item.label)}
-                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                            ? "bg-white text-zinc-950 border-white shadow-[0_2px_8px_rgba(255,255,255,0.18)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-zinc-950" : "text-zinc-500"} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -525,13 +526,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => setMarket(item.label)}
-                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                            ? "bg-white text-zinc-950 border-white shadow-[0_2px_8px_rgba(255,255,255,0.18)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-zinc-950" : "text-zinc-500"} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -572,13 +573,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedEdges, setSelectedEdges)}
-                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                            ? "bg-white text-zinc-950 border-white shadow-[0_2px_8px_rgba(255,255,255,0.18)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-zinc-950" : "text-zinc-500"} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -619,13 +620,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item.label}
                         type="button"
                         onClick={() => toggleMultiSelect(item.label, selectedHereTo, setSelectedHereTo)}
-                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
+                        className={`inline-flex items-center gap-2 h-8 px-3.5 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                            ? "bg-white text-zinc-950 border-white shadow-[0_2px_8px_rgba(255,255,255,0.18)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
-                        <Icon size={14} className={isSelected ? "text-[#60a5fa]" : "text-zinc-500"} />
+                        <Icon size={14} className={isSelected ? "text-zinc-950" : "text-zinc-500"} />
                         <span>{item.label}</span>
                       </button>
                     );
@@ -659,9 +660,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                         key={item}
                         type="button"
                         onClick={() => setFoundUs(item)}
-                        className={`inline-flex items-center h-8 px-3.5 rounded-full text-xs font-medium transition-all duration-150 cursor-pointer select-none border ${
+                        className={`inline-flex items-center h-8 px-3.5 rounded-full text-xs font-semibold transition-all duration-150 cursor-pointer select-none border ${
                           isSelected
-                            ? "bg-gradient-to-r from-[#1e293b] to-[#0f172a] text-[#60a5fa] border-[#3b82f6]/50 shadow-[0_0_12px_rgba(59,130,246,0.15)]"
+                            ? "bg-white text-zinc-950 border-white shadow-[0_2px_8px_rgba(255,255,255,0.18)]"
                             : "bg-[#171717] text-zinc-300 hover:text-white border-white/[0.08] hover:border-white/[0.18] hover:bg-[#1f2026]"
                         }`}
                       >
@@ -693,7 +694,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 <div className="bg-[#121316] rounded-2xl p-6 mb-8 space-y-4">
                   <div className="flex items-center justify-between pb-1">
                     <span className="text-xs font-mono text-zinc-500">TRADER IDENTITY</span>
-                    <span className="text-sm font-bold text-white">{name} <span className="text-blue-400">(@{handle})</span></span>
+                    <span className="text-sm font-bold text-white">{name} <span className="text-zinc-400">(@{handle})</span></span>
                   </div>
                   <div className="flex items-center justify-between pb-1">
                     <span className="text-xs font-mono text-zinc-500">STYLE & MARKET</span>
@@ -758,10 +759,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           </div>
         </main>
         </div>
-
-        {/* ── RIGHT BALANCER (Ensures Center Question is 100% centered in Grid) ── */}
-        <div className="hidden md:block pointer-events-none" aria-hidden="true" />
       </div>
     </div>
-  );
+  </div>
+);
 };
