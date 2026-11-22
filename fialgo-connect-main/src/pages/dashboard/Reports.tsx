@@ -41,7 +41,6 @@ import { toast } from "sonner";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useJournalSettings, JournalSettingsProvider } from "@/contexts/JournalSettingsContext";
 import { useMarket } from "@/contexts/MarketContext";
-import { buildJournalDemoData } from "@/utils/journalDemoData";
 import { supabase } from "@/lib/supabase";
 import tradifiveLogo from "@/assets/tradifive-logo.png";
 
@@ -57,81 +56,6 @@ interface StatementDoc {
   isAudited?: boolean;
   tradesCount: number;
 }
-
-const DEFAULT_STATEMENTS: StatementDoc[] = [
-  {
-    id: "stmt-audit-w47",
-    name: "Automated Monday Audit Statement — W47",
-    category: "Audit Statements",
-    period: "Nov 17 – Nov 22, 2026",
-    date: "Nov 22, 2026",
-    verifiedPnl: 290.0,
-    format: "PDF",
-    size: "1.4 MB",
-    isAudited: true,
-    tradesCount: 1,
-  },
-  {
-    id: "stmt-oct-2026",
-    name: "October 2026 Monthly P&L Statement",
-    category: "Monthly Statements",
-    period: "Oct 01 – Oct 31, 2026",
-    date: "Nov 01, 2026",
-    verifiedPnl: 3450.0,
-    format: "PDF",
-    size: "2.1 MB",
-    isAudited: true,
-    tradesCount: 28,
-  },
-  {
-    id: "stmt-tax-fy26",
-    name: "Comprehensive Prop Firm & Tax Report FY26",
-    category: "Tax & Fiscal",
-    period: "Apr 01 – Nov 22, 2026",
-    date: "Nov 15, 2026",
-    verifiedPnl: 14820.0,
-    format: "PDF",
-    size: "3.6 MB",
-    isAudited: true,
-    tradesCount: 94,
-  },
-  {
-    id: "stmt-csv-oct",
-    name: "October 2026 Raw Execution Trade Log",
-    category: "Trade Logs",
-    period: "Oct 01 – Oct 31, 2026",
-    date: "Nov 01, 2026",
-    verifiedPnl: 3450.0,
-    format: "CSV",
-    size: "640 KB",
-    isAudited: true,
-    tradesCount: 28,
-  },
-  {
-    id: "stmt-audit-w46",
-    name: "Automated Monday Audit Statement — W46",
-    category: "Audit Statements",
-    period: "Nov 10 – Nov 16, 2026",
-    date: "Nov 16, 2026",
-    verifiedPnl: 840.5,
-    format: "PDF",
-    size: "1.2 MB",
-    isAudited: true,
-    tradesCount: 8,
-  },
-  {
-    id: "stmt-full-csv",
-    name: "Full Account Lifetime Execution History",
-    category: "Trade Logs",
-    period: "Jan 01 – Nov 22, 2026",
-    date: "Nov 22, 2026",
-    verifiedPnl: 18560.0,
-    format: "CSV",
-    size: "1.8 MB",
-    isAudited: true,
-    tradesCount: 132,
-  },
-];
 
 export const Reports: React.FC = () => {
   const { recentTrades, balance, winRate, profitFactor, avgDisciplineScore } = useDashboardData();
@@ -246,16 +170,110 @@ export const Reports: React.FC = () => {
     return null;
   }, [effectiveTrades]);
 
+  // Latest trade date calculation
+  const latestTradeDate = useMemo(() => {
+    if (!effectiveTrades.length) return null;
+    const latest = effectiveTrades[0];
+    const raw = latest?.closed_at || latest?.open_time || latest?.created_at;
+    if (!raw) return null;
+    return new Date(raw).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }, [effectiveTrades]);
+
+  // Dynamically generate statement documents from real trades
+  const realStatements = useMemo<StatementDoc[]>(() => {
+    if (!effectiveTrades || effectiveTrades.length === 0) {
+      return [];
+    }
+
+    const docs: StatementDoc[] = [];
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthName = now.toLocaleString("en-US", { month: "long" });
+
+    // 1. Full Lifetime Execution History
+    docs.push({
+      id: "stmt-lifetime-real",
+      name: "Full Account Lifetime Execution History",
+      category: "Trade Logs",
+      period: `Lifetime (${effectiveTrades.length} Trades)`,
+      date: now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      verifiedPnl: totalNet,
+      format: "CSV",
+      size: `${Math.max(1, Math.round(effectiveTrades.length * 0.4))} KB`,
+      isAudited: true,
+      tradesCount: effectiveTrades.length,
+    });
+
+    // 2. Weekly Audit Statement (trades in the last 7 days)
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const weeklyTrades = effectiveTrades.filter((t: any) => {
+      const d = t?.closed_at || t?.open_time || t?.created_at;
+      return d ? new Date(d) >= sevenDaysAgo : true;
+    });
+    const weeklyPnl = weeklyTrades.reduce((acc, t) => acc + (Number(t?.profit) || 0), 0);
+
+    docs.push({
+      id: "stmt-weekly-real",
+      name: `Automated Weekly Audit Statement — ${now.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`,
+      category: "Audit Statements",
+      period: "Last 7 Days Rolling Window",
+      date: now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      verifiedPnl: weeklyPnl,
+      format: "PDF",
+      size: "1.2 MB",
+      isAudited: true,
+      tradesCount: weeklyTrades.length,
+    });
+
+    // 3. Current Monthly Statement
+    const currentMonthTrades = effectiveTrades.filter((t: any) => {
+      const d = t?.closed_at || t?.open_time || t?.created_at;
+      if (!d) return true;
+      const tradeDate = new Date(d);
+      return tradeDate.getMonth() === now.getMonth() && tradeDate.getFullYear() === currentYear;
+    });
+    const monthlyPnl = currentMonthTrades.reduce((acc, t) => acc + (Number(t?.profit) || 0), 0);
+
+    docs.push({
+      id: "stmt-month-real",
+      name: `${currentMonthName} ${currentYear} Monthly P&L Statement`,
+      category: "Monthly Statements",
+      period: `${currentMonthName} 01 – ${now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`,
+      date: now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      verifiedPnl: monthlyPnl,
+      format: "PDF",
+      size: "1.8 MB",
+      isAudited: true,
+      tradesCount: currentMonthTrades.length,
+    });
+
+    // 4. Comprehensive Prop Firm & Tax Report
+    docs.push({
+      id: "stmt-tax-real",
+      name: `Comprehensive Prop Firm & Tax Report FY${currentYear}`,
+      category: "Tax & Fiscal",
+      period: `Year-to-Date FY${currentYear}`,
+      date: now.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+      verifiedPnl: totalNet,
+      format: "PDF",
+      size: "2.8 MB",
+      isAudited: true,
+      tradesCount: effectiveTrades.length,
+    });
+
+    return docs;
+  }, [effectiveTrades, totalNet]);
+
   // Filtered statements list
   const filteredStatements = useMemo(() => {
-    return DEFAULT_STATEMENTS.filter((doc) => {
+    return realStatements.filter((doc) => {
       const matchCat = activeCategory === "All" || doc.category === activeCategory;
       const matchSearch =
         doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         doc.period.toLowerCase().includes(searchQuery.toLowerCase());
       return matchCat && matchSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [realStatements, activeCategory, searchQuery]);
 
   // Instant real CSV download generator
   const handleDownloadCsv = (docName: string, tradesToExport = effectiveTrades) => {
@@ -324,31 +342,56 @@ export const Reports: React.FC = () => {
         format: genFormat === "JSON" ? "PDF" : genFormat,
         size: "1.4 MB",
         isAudited: true,
-        tradesCount: effectiveTrades.length || 1,
+        tradesCount: effectiveTrades.length || 0,
       });
       toast.success("Statement generated successfully");
     }
   };
 
   const modalPnl = selectedStatement?.verifiedPnl ?? 0;
-  const modalTrades = selectedStatement?.tradesCount || 1;
+  const modalTrades = selectedStatement?.tradesCount ?? totalTradesCount;
   const modalNetPct = effectiveAccountBalance > 0 ? ((modalPnl / effectiveAccountBalance) * 100).toFixed(2) : "0.00";
-  const modalWinRate = modalPnl >= 0 ? 100 : 0;
-  const modalWins = modalPnl >= 0 ? modalTrades : 0;
-  const modalLosses = modalPnl < 0 ? modalTrades : 0;
-  const modalPf = modalPnl >= 0 ? (formattedProfitFactor !== "0.00" ? formattedProfitFactor : "2.90") : "0.00";
+  const modalWinRate = totalTradesCount > 0 ? safeWinRate : (modalPnl >= 0 ? 100 : 0);
+  const modalWins = winCount;
+  const modalLosses = lossCount;
+  const modalPf = formattedProfitFactor;
+
+  const grossProfit = useMemo(() => {
+    return effectiveTrades
+      .filter((t) => (Number(t?.profit) || 0) > 0)
+      .reduce((acc, t) => acc + Number(t.profit), 0);
+  }, [effectiveTrades]);
+
+  const grossLoss = useMemo(() => {
+    return Math.abs(
+      effectiveTrades
+        .filter((t) => (Number(t?.profit) || 0) < 0)
+        .reduce((acc, t) => acc + Number(t.profit), 0)
+    );
+  }, [effectiveTrades]);
+
+  const avgWin = winCount > 0 ? grossProfit / winCount : 0;
+  const avgLoss = lossCount > 0 ? grossLoss / lossCount : 0;
+  const modalRR = avgLoss > 0 ? `1:${(avgWin / avgLoss).toFixed(1)}` : (avgWin > 0 ? "1:3.0+" : (totalTradesCount > 0 ? "1:1.0" : "N/A"));
 
   const chartPoints = useMemo(() => {
     if (!selectedStatement) return [];
-    const pnl = Number(selectedStatement.verifiedPnl) || 0;
-    return [
-      { time: "09:30", pnl: 0 },
-      { time: "10:00", pnl: Math.round(pnl * 0.25) },
-      { time: "10:30", pnl: Math.round(pnl * 0.55) },
-      { time: "11:00", pnl: Math.round(pnl * 0.8) },
-      { time: "11:45", pnl: pnl },
-    ];
-  }, [selectedStatement]);
+    if (effectiveTrades.length === 0) {
+      const pnl = Number(selectedStatement.verifiedPnl) || 0;
+      return [
+        { time: "09:30", pnl: 0 },
+        { time: "16:00", pnl: pnl },
+      ];
+    }
+    let running = 0;
+    const sortedTrades = [...effectiveTrades].reverse();
+    return sortedTrades.map((t: any, idx: number) => {
+      running += Number(t?.profit) || 0;
+      const d = t?.closed_at || t?.open_time;
+      const timeStr = d ? new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : `T#${idx + 1}`;
+      return { time: timeStr, pnl: Math.round(running * 100) / 100 };
+    });
+  }, [selectedStatement, effectiveTrades]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300 pb-16">
@@ -480,10 +523,10 @@ export const Reports: React.FC = () => {
             Consistency Score
           </span>
           <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-indigo-600 dark:text-indigo-400 truncate">
-            {avgDisciplineScore || 94}%
+            {avgDisciplineScore ? `${avgDisciplineScore}%` : (totalTradesCount > 0 ? "95%" : "100%")}
           </h3>
           <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
-            Disciplined · Rule Compliant
+            {totalTradesCount > 0 ? "Disciplined · Rule Compliant" : "Standing Active · No Violations"}
           </p>
         </div>
       </div>
@@ -509,10 +552,19 @@ export const Reports: React.FC = () => {
             </p>
           </div>
           <div className="pt-4 mt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400">Latest: Nov 22, 2026</span>
+            <span className="text-[11px] font-semibold text-slate-400">
+              {latestTradeDate ? `Latest: ${latestTradeDate}` : "Awaiting live trades"}
+            </span>
             <button
               type="button"
-              onClick={() => setSelectedStatement(DEFAULT_STATEMENTS[0])}
+              onClick={() => {
+                const weeklyStmt = realStatements.find((s) => s.category === "Audit Statements") || realStatements[0];
+                if (weeklyStmt) {
+                  setSelectedStatement(weeklyStmt);
+                } else {
+                  toast.info("No trading activity recorded yet. Connect an MT5 account to generate audit statements.");
+                }
+              }}
               className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
             >
               View Audit <ChevronRight size={13} />
@@ -539,10 +591,19 @@ export const Reports: React.FC = () => {
             </p>
           </div>
           <div className="pt-4 mt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400">FY 2025–2026</span>
+            <span className="text-[11px] font-semibold text-slate-400">
+              FY {new Date().getFullYear() - 1}–{new Date().getFullYear()}
+            </span>
             <button
               type="button"
-              onClick={() => setSelectedStatement(DEFAULT_STATEMENTS[2])}
+              onClick={() => {
+                const taxStmt = realStatements.find((s) => s.category === "Tax & Fiscal") || realStatements[0];
+                if (taxStmt) {
+                  setSelectedStatement(taxStmt);
+                } else {
+                  toast.info("No trades to generate tax report. Connect an account to start.");
+                }
+              }}
               className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
             >
               View Report <ChevronRight size={13} />
@@ -569,10 +630,18 @@ export const Reports: React.FC = () => {
             </p>
           </div>
           <div className="pt-4 mt-3 border-t border-slate-100 dark:border-white/5 flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-slate-400">132 Trades logged</span>
+            <span className="text-[11px] font-semibold text-slate-400">
+              {totalTradesCount} {totalTradesCount === 1 ? "Trade" : "Trades"} logged
+            </span>
             <button
               type="button"
-              onClick={() => handleDownloadCsv("Tradifive_Lifetime_Execution_History")}
+              onClick={() => {
+                if (totalTradesCount > 0) {
+                  handleDownloadCsv("Tradifive_Lifetime_Execution_History");
+                } else {
+                  toast.info("No trade records to export yet.");
+                }
+              }}
               className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
             >
               Export CSV <Download size={13} />
@@ -692,8 +761,18 @@ export const Reports: React.FC = () => {
 
               {filteredStatements.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-slate-400 text-xs">
-                    No statements matching your filter.
+                  <td colSpan={6} className="px-5 py-16 text-center">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/10 flex items-center justify-center mx-auto text-slate-400 mb-3">
+                      <FileText size={22} />
+                    </div>
+                    <h4 className="text-[14.5px] font-bold text-slate-800 dark:text-white mb-1">
+                      {totalTradesCount === 0 ? "No Statements Generated Yet" : "No statements matching filter"}
+                    </h4>
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 max-w-sm mx-auto leading-relaxed">
+                      {totalTradesCount === 0
+                        ? "Statements and audited trade logs will generate automatically as trades execute on your connected MT5 or broker accounts."
+                        : "Try searching with a different keyword or selecting 'All' categories."}
+                    </p>
                   </td>
                 </tr>
               )}
@@ -833,7 +912,7 @@ export const Reports: React.FC = () => {
                         {modalTrades}
                       </h3>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 truncate">
-                        {modalWins} Buy · {modalLosses} Sell
+                        {buyCount} Buy · {sellCount} Sell
                       </p>
                     </div>
 
@@ -859,7 +938,7 @@ export const Reports: React.FC = () => {
                         R:R Achieved
                       </span>
                       <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                        {modalPnl >= 0 ? "1:2.8" : "1:0.8"}
+                        {modalRR}
                       </h3>
                       <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-1.5 truncate">
                         Avg Win / Loss ratio

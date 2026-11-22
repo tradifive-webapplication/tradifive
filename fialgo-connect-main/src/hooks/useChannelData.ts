@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 
 export type ChannelType = Database['public']['Tables']['channels']['Row'];
@@ -80,20 +81,43 @@ export function useChannelData(userId: string, activeChannelId: string) {
 
       const { data, error } = await supabase
         .from('channel_messages')
-        .select('*, profiles(full_name, avatar_url, username)')
+        .select('*')
         .eq('channel_id', activeChannelId)
         .order('created_at', { ascending: true });
 
       if (error) console.error('Channel messages load error:', error);
       
-      // Filter out both soft-deleted and locally-deleted messages
-      const validMessages = (data ?? []).filter(m => 
-        !isDeleted(m.id) && !isSoftDeleted(m.content)
-      );
-      
-      let finalMessages = validMessages;
+      const rawMessages = data ?? [];
+      const userIds = [...new Set(rawMessages.map(m => m.user_id).filter(Boolean))];
+      let profilesMap: Record<string, any> = {};
 
-      setMessages(finalMessages);
+      if (userIds.length > 0) {
+        try {
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url, username')
+            .in('id', userIds);
+
+          if (profilesData) {
+            profilesMap = profilesData.reduce((acc: any, p: any) => {
+              acc[p.id] = p;
+              return acc;
+            }, {});
+          }
+        } catch (pe) {
+          console.warn('Profiles load error in channel:', pe);
+        }
+      }
+
+      // Filter out both soft-deleted and locally-deleted messages
+      const validMessages: MessageType[] = rawMessages
+        .filter(m => !isDeleted(m.id) && !isSoftDeleted(m.content))
+        .map(m => ({
+          ...m,
+          profiles: profilesMap[m.user_id] ?? null
+        }));
+      
+      setMessages(validMessages);
       
       // Check if current user is member
       const { data: memberData } = await supabase
@@ -179,27 +203,45 @@ export function useChannelData(userId: string, activeChannelId: string) {
           user_id: userId,
           content: content.trim()
         })
-        .select('*, profiles(full_name, avatar_url, username)')
+        .select('*')
         .single();
 
       if (error) {
         console.error('Send message error details:', JSON.stringify(error, null, 2));
-        alert('Database Error: ' + error.message);
+        toast.error('Failed to send message: ' + (error.message || 'Database error'));
         return null;
       }
+
+      // Fetch author profile
+      let authorProfile = null;
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url, username')
+          .eq('id', userId)
+          .maybeSingle();
+        authorProfile = prof;
+      } catch (e) {
+        console.warn('Profile fetch warning:', e);
+      }
+
+      const fullMsg: MessageType = {
+        ...(data as any),
+        profiles: authorProfile
+      };
       
       // Optimistic state update in case realtime is slow
       if (data) {
         setMessages(prev => {
           if (prev.some(m => m.id === data.id)) return prev;
-          return [...prev, data];
+          return [...prev, fullMsg];
         });
       }
       
-      return data;
+      return fullMsg;
     } catch (err: any) {
       console.error('Send message failed:', err);
-      alert('Network Error: ' + (err.message || 'Failed to send message'));
+      toast.error('Network Error: ' + (err.message || 'Failed to send message'));
       return null;
     }
   };
