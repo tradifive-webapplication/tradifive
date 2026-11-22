@@ -939,14 +939,25 @@ function ChannelSkeleton() {
               return (
                 <>
                   <div className="flex-1 overflow-y-auto amazing-scrollbar bg-white dark:bg-[#121212] min-h-0 px-3.5 sm:px-4 pt-4 pb-24 space-y-5">
-                    {/* Title & Subtitle */}
-                    <div>
-                      <h1 className="text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                        Channels
-                      </h1>
-                      <p className="text-[13.5px] text-slate-500 dark:text-zinc-400 mt-1 leading-relaxed">
-                        Small groups of traders. Join channels to share setups and discuss markets.
-                      </p>
+                    {/* Title & Subtitle + New Button */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div>
+                        <h1 className="text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+                          Channels
+                        </h1>
+                        <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                          Broadcasting rooms for live setups, signals & trade ideas.
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="h-9 px-3.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-[12px] hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer"
+                        title="Create a Channel"
+                      >
+                        <Plus size={14} strokeWidth={2.6} />
+                        <span>New</span>
+                      </button>
                     </div>
 
                     {/* Rounded Search Pill */}
@@ -1024,105 +1035,131 @@ function ChannelSkeleton() {
                       </div>
                     )}
 
-                    {/* ALL CHANNELS Feed */}
-                    {filteredChannels.length > 0 && (
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between px-1">
-                          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400">
-                            CHANNELS ({filteredChannels.length})
-                          </p>
-                        </div>
+                    {/* CHANNELS Feed (Filters out user's pinned channel if already shown above) */}
+                    {(() => {
+                      const displayChannels = myChannel && !searchQuery
+                        ? filteredChannels.filter(c => c.id !== myChannel.id)
+                        : filteredChannels;
 
-                        <div className="space-y-1.5">
-                          {filteredChannels.map((ch, idx) => {
-                            const isActive = ch.id === activeChannelId;
-                            const isCreator = ch.created_by === user?.id;
-                            const isJoined = isActive || isCreator;
-                            const tag = getChannelTag(ch.name);
-                            const rank = idx + 1;
+                      if (displayChannels.length === 0) {
+                        return (
+                          <div className="p-4 rounded-2xl border border-dashed border-slate-200 dark:border-white/10 text-center bg-slate-50/50 dark:bg-white/[0.01]">
+                            <p className="text-[12.5px] font-semibold text-slate-600 dark:text-zinc-300">
+                              No other public channels found
+                            </p>
+                            <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">
+                              Explore verified channels and signal providers in Discover.
+                            </p>
+                            <Link
+                              to="/discover"
+                              className="mt-3 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[11.5px] font-bold hover:opacity-90 active:scale-95 transition-all"
+                            >
+                              <IconlyDiscovery set="curved" primaryColor="currentColor" size={13} />
+                              <span>Explore Discover</span>
+                            </Link>
+                          </div>
+                        );
+                      }
 
-                            return (
-                              <div
-                                key={ch.id}
-                                onClick={() => openChannelRoom(ch.id)}
-                                className={`group rounded-2xl p-2.5 flex items-center gap-3 cursor-pointer transition-all border ${
-                                  isActive
-                                    ? "bg-slate-100/90 dark:bg-white/[0.08] border-slate-300 dark:border-white/20 shadow-xs"
-                                    : "bg-white dark:bg-white/[0.02] hover:bg-slate-50/90 dark:hover:bg-white/[0.04] border-slate-200/70 dark:border-white/5"
-                                }`}
-                              >
-                                {/* Rank badge */}
-                                <span
-                                  className={`w-5 text-center text-[12px] font-extrabold shrink-0 tabular-nums ${
-                                    rank === 1
-                                      ? "text-amber-500"
-                                      : rank === 2
-                                      ? "text-slate-400"
-                                      : rank === 3
-                                      ? "text-amber-700 dark:text-amber-600"
-                                      : "text-slate-400/80 dark:text-zinc-600"
+                      return (
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between px-1">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400">
+                              {myChannel && !searchQuery ? `COMMUNITY CHANNELS (${displayChannels.length})` : `CHANNELS (${displayChannels.length})`}
+                            </p>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {displayChannels.map((ch, idx) => {
+                              const isActive = ch.id === activeChannelId;
+                              const isCreator = ch.created_by === user?.id;
+                              const isJoined = isActive || isCreator;
+                              const tag = getChannelTag(ch.name);
+                              const rank = idx + 1;
+
+                              return (
+                                <div
+                                  key={ch.id}
+                                  onClick={() => openChannelRoom(ch.id)}
+                                  className={`group rounded-2xl p-2.5 flex items-center gap-3 cursor-pointer transition-all border ${
+                                    isActive
+                                      ? "bg-slate-100/90 dark:bg-white/[0.08] border-slate-300 dark:border-white/20 shadow-xs"
+                                      : "bg-white dark:bg-white/[0.02] hover:bg-slate-50/90 dark:hover:bg-white/[0.04] border-slate-200/70 dark:border-white/5"
                                   }`}
                                 >
-                                  #{rank}
-                                </span>
+                                  {/* Rank badge */}
+                                  <span
+                                    className={`w-5 text-center text-[12px] font-extrabold shrink-0 tabular-nums ${
+                                      rank === 1
+                                        ? "text-amber-500"
+                                        : rank === 2
+                                        ? "text-slate-400"
+                                        : rank === 3
+                                        ? "text-amber-700 dark:text-amber-600"
+                                        : "text-slate-400/80 dark:text-zinc-600"
+                                    }`}
+                                  >
+                                    #{rank}
+                                  </span>
 
-                                {/* Avatar */}
-                                {renderChannelAvatar(ch, "w-11 h-11 text-xs", "rounded-xl")}
+                                  {/* Avatar */}
+                                  {renderChannelAvatar(ch, "w-11 h-11 text-xs", "rounded-xl")}
 
-                                {/* Info */}
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
-                                      {ch.name}
-                                    </h3>
-                                    {ch.verified && (
-                                      <CheckCircle2
-                                        size={12}
-                                        className="text-blue-500 fill-blue-500/20 shrink-0"
-                                      />
-                                    )}
-                                    <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-[9.5px] font-extrabold text-slate-600 dark:text-zinc-300 shrink-0">
-                                      {tag}
-                                    </span>
-                                    {isCreator && (
-                                      <Crown
-                                        size={12}
-                                        className="text-amber-500 fill-amber-500/20 shrink-0"
-                                        title="Your Channel"
-                                      />
+                                  {/* Info */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
+                                        {ch.name}
+                                      </h3>
+                                      {ch.verified && (
+                                        <CheckCircle2
+                                          size={12}
+                                          className="text-blue-500 fill-blue-500/20 shrink-0"
+                                        />
+                                      )}
+                                      <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-[9.5px] font-extrabold text-slate-600 dark:text-zinc-300 shrink-0">
+                                        {tag}
+                                      </span>
+                                      {isCreator && (
+                                        <Crown
+                                          size={12}
+                                          className="text-amber-500 fill-amber-500/20 shrink-0"
+                                          title="Your Channel"
+                                        />
+                                      )}
+                                    </div>
+                                    <p className="text-[11.5px] text-slate-500 dark:text-zinc-400 truncate mt-0.5">
+                                      {ch.subscribers}
+                                    </p>
+                                  </div>
+
+                                  {/* Action pill */}
+                                  <div className="shrink-0">
+                                    {isJoined ? (
+                                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10">
+                                        <Check size={11} strokeWidth={2.6} />
+                                        <span>Joined</span>
+                                      </span>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          openChannelRoom(ch.id);
+                                        }}
+                                        className="px-3.5 py-1 rounded-full text-[11px] font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 transition-all cursor-pointer shadow-2xs"
+                                      >
+                                        Join
+                                      </button>
                                     )}
                                   </div>
-                                  <p className="text-[11.5px] text-slate-500 dark:text-zinc-400 truncate mt-0.5">
-                                    {ch.subscribers}
-                                  </p>
                                 </div>
-
-                                {/* Action pill */}
-                                <div className="shrink-0">
-                                  {isJoined ? (
-                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10">
-                                      <Check size={11} strokeWidth={2.6} />
-                                      <span>Joined</span>
-                                    </span>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        openChannelRoom(ch.id);
-                                      }}
-                                      className="px-3.5 py-1 rounded-full text-[11px] font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 transition-all cursor-pointer shadow-2xs"
-                                    >
-                                      Join
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
 
                     {/* Empty State */}
                     {filteredChannels.length === 0 && (
@@ -1135,21 +1172,21 @@ function ChannelSkeleton() {
                       </div>
                     )}
 
-                    {/* Dashed "Start a channel" Card */}
+                    {/* Tactile "Start a channel" Action Card */}
                     <button
                       type="button"
                       onClick={() => setIsCreateModalOpen(true)}
-                      className="w-full text-left rounded-[22px] border-2 border-dashed border-slate-200 dark:border-white/15 hover:border-slate-300 dark:hover:border-white/25 p-4 flex items-center gap-3.5 transition-colors cursor-pointer group"
+                      className="w-full text-left rounded-[20px] border border-slate-200/90 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50/70 hover:bg-slate-100/90 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] p-3.5 flex items-center gap-3 transition-all cursor-pointer group active:scale-[0.99]"
                     >
-                      <div className="w-11 h-11 rounded-xl border border-dashed border-slate-300 dark:border-white/20 bg-slate-50 dark:bg-white/[0.04] flex items-center justify-center text-slate-600 dark:text-slate-300 group-hover:bg-slate-100 dark:group-hover:bg-white/10 shrink-0 transition-colors">
-                        <Plus size={20} strokeWidth={2.2} />
+                      <div className="w-10 h-10 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                        <Plus size={18} strokeWidth={2.6} />
                       </div>
-                      <div className="min-w-0">
-                        <h4 className="text-[14.5px] font-bold text-slate-900 dark:text-white leading-tight">
-                          Start a channel
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-tight">
+                          Create a channel
                         </h4>
-                        <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 mt-0.5 leading-snug">
-                          Create your own trading channel with a picture, name, and live community chat.
+                        <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-0.5 leading-snug">
+                          Broadcast live setups, charts, and signals to subscribers.
                         </p>
                       </div>
                     </button>
@@ -1183,62 +1220,80 @@ function ChannelSkeleton() {
               <button
                 type="button"
                 onClick={() => setMobileView('list')}
-                className="flex md:hidden items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 shrink-0 active:scale-95"
+                className="flex md:hidden items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-slate-200 shrink-0 active:scale-95 cursor-pointer"
                 title="Back to Channels"
               >
                 <ChevronLeft size={18} />
               </button>
-              <div className="cursor-pointer flex-1 flex items-center gap-2.5 sm:gap-3 min-w-0" onClick={() => setShowDetails(!showDetails)}>
-                {renderChannelAvatar(activeChannel, "w-9 h-9 sm:w-10 sm:h-10 text-xs", "rounded-full")}
+              <div 
+                className="cursor-pointer flex-1 flex items-center gap-2.5 sm:gap-3 min-w-0 group" 
+                onClick={() => setShowDetails(!showDetails)}
+                title="Click to view channel details"
+              >
+                {renderChannelAvatar(activeChannel, "w-9 h-9 sm:w-10 sm:h-10 text-xs", "rounded-xl shadow-2xs")}
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none mb-1 truncate">
+                  <h2 className="text-[14px] sm:text-[15.5px] font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none mb-1 truncate group-hover:text-blue-500 transition-colors">
                     <span className="truncate">{activeChannel.name}</span>
                     {isChannelAdmin && <Crown size={14} className="text-amber-500 fill-amber-500/20 shrink-0 ml-0.5" title="You created this channel" />}
                     {activeChannel.verified && <CheckCircle2 size={13} className="text-blue-500 fill-blue-500/20 dark:text-blue-400 dark:fill-blue-400/20 shrink-0" />}
                   </h2>
-                  <p className="text-[10.5px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-none truncate">
+                  <p className="text-[11px] sm:text-[11.5px] font-semibold text-slate-500 dark:text-slate-400 leading-none truncate">
                     {activeChannel.id === "saved" ? "Personal saved notes" : activeChannel.subscribers || "Conversation"}
                   </p>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setShowDetails(!showDetails)}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95 ${showDetails ? 'bg-slate-100 dark:bg-slate-800 text-blue-500 dark:text-blue-400' : ''}`}
-                title="Channel Details"
-              >
-                <IconlyUser set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} />
-              </button>
-              
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <button 
                 onClick={handleToggleMute}
-                className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95"
-                title={isMuted ? "Unmute" : "Mute"}
+                className="w-9 h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 cursor-pointer"
+                title={isMuted ? "Unmute Notifications" : "Mute Notifications"}
               >
-                {isMuted ? <IconlyVolumeOff set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} /> : <IconlyVolumeUp set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} />}
+                {isMuted ? <VolumeX size={18} className="text-slate-400" /> : <Volume2 size={18} />}
               </button>
-              <button className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 active:scale-95">
-                <Search size={18} strokeWidth={2} />
+
+              <button 
+                onClick={() => setShowDetails(!showDetails)}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
+                  showDetails 
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs' 
+                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10'
+                }`}
+                title="Channel Info"
+              >
+                <Info size={18} />
               </button>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 outline-none active:scale-95">
+                  <button className="w-9 h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 outline-none active:scale-95 cursor-pointer">
                     <MoreVertical size={18} />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[260px] mt-2 rounded-2xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none p-1.5 z-[100] outline-none">
+                <DropdownMenuContent align="end" className="w-[230px] mt-2 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#18181b] shadow-xl p-1.5 z-[100] outline-none">
 
                   <DropdownMenuItem
-                    onClick={() => toast.info("Channel Info")}
-                    className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer outline-none"
+                    onClick={() => setShowDetails(true)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer outline-none"
                   >
-                    <IconlyInfoCircle set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <span>View channel info</span>
+                    <Info size={16} className="text-slate-400 shrink-0" />
+                    <span>Channel Details</span>
                   </DropdownMenuItem>
 
-                  {activeChannel?.created_by === user?.id && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const inviteUrl = `${window.location.origin}/channel/${activeChannel.handle || activeChannel.id}`;
+                      navigator.clipboard.writeText(inviteUrl);
+                      toast.success("Channel link copied!");
+                    }}
+                    className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer outline-none"
+                  >
+                    <Share2 size={16} className="text-slate-400 shrink-0" />
+                    <span>Copy Invite Link</span>
+                  </DropdownMenuItem>
+
+                  {isChannelAdmin && (
                     <DropdownMenuItem
                       onClick={() => {
                         const rules = typeof activeChannel.rules === 'string' ? JSON.parse(activeChannel.rules || '{}') : (activeChannel.rules || {});
@@ -1249,60 +1304,38 @@ function ChannelSkeleton() {
                         setManageAvatar(rules.avatar || "");
                         setIsManageModalOpen(true);
                       }}
-                      className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer outline-none"
+                      className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer outline-none"
                     >
-                      <IconlySetting set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 dark:text-slate-400 shrink-0" />
+                      <Settings size={16} className="text-slate-400 shrink-0" />
                       <span>Manage Channel</span>
                     </DropdownMenuItem>
                   )}
 
                   <DropdownMenuItem
-                    onClick={() => toast.info("Story Archive")}
-                    className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer outline-none"
+                    onClick={() => setIsPollModalOpen(true)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer outline-none"
                   >
-                    <IconlyFolder set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <span>Story Archive</span>
+                    <BarChart2 size={16} className="text-slate-400 shrink-0" />
+                    <span>Create Poll</span>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem
-                    onClick={() => toast.info("Boost Channel")}
-                    className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer outline-none"
-                  >
-                    <IconlyArrowUp set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 dark:text-slate-400 shrink-0 rotate-45" />
-                    <span>Boost Channel</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onClick={() => toast.info("Create Poll")}
-                    className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer outline-none"
-                  >
-                    <IconlyGraph set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <span>Create poll</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onClick={() => toast.info("Export chat history")}
-                    className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer outline-none"
-                  >
-                    <IconlyUpload set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <span>Export chat history</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onClick={() => setShowClearHistoryModal(true)}
-                    className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white rounded-xl transition-all cursor-pointer outline-none"
-                  >
-                    <IconlyDelete set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 dark:text-slate-400 shrink-0" />
-                    <span>Clear history</span>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem
-                    onClick={() => toast.error("Left channel")}
-                    className="flex items-center gap-3 px-3.5 py-2.5 text-[14px] font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all cursor-pointer outline-none mt-1 border-t border-slate-100 dark:border-white/5 pt-2.5"
-                  >
-                    <IconlyLogout set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-red-500 dark:text-red-400 shrink-0" />
-                    <span>Leave channel</span>
-                  </DropdownMenuItem>
+                  {isChannelAdmin ? (
+                    <DropdownMenuItem
+                      onClick={() => setShowClearHistoryModal(true)}
+                      className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer outline-none"
+                    >
+                      <Trash size={16} className="text-slate-400 shrink-0" />
+                      <span>Clear History</span>
+                    </DropdownMenuItem>
+                  ) : isMember ? (
+                    <DropdownMenuItem
+                      onClick={handleLeaveChannel}
+                      className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer outline-none mt-1 border-t border-slate-100 dark:border-white/5"
+                    >
+                      <LogOut size={16} className="text-rose-500 shrink-0" />
+                      <span>Leave Channel</span>
+                    </DropdownMenuItem>
+                  ) : null}
 
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -1473,18 +1506,47 @@ function ChannelSkeleton() {
 
             {finalMessages.length === 0 && !dbLoading && (
               isEffectiveMember ? (
-                <div className="text-center py-16 px-6 max-w-md mx-auto my-auto rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02] shadow-xs">
-                  <div className="w-14 h-14 rounded-2xl bg-white dark:bg-white/10 flex items-center justify-center mx-auto text-slate-700 dark:text-white mb-4 border border-slate-200/80 dark:border-white/15 shadow-xs">
-                    <Radio size={24} className="text-blue-500 animate-pulse" />
+                <div className="text-center py-12 px-6 max-w-md mx-auto my-auto rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02] shadow-xs">
+                  <div className="flex justify-center mb-3.5">
+                    {renderChannelAvatar(activeChannel, "w-16 h-16 text-xl", "rounded-2xl shadow-sm")}
                   </div>
-                  <h4 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">
-                    Welcome to #{activeChannel.name}
-                  </h4>
-                  <p className="text-[13px] text-slate-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                  <div className="flex items-center justify-center gap-1.5 mb-1">
+                    <h4 className="text-[17px] font-bold text-slate-900 dark:text-white">
+                      Welcome to #{activeChannel.name}
+                    </h4>
+                    {isChannelAdmin && <Crown size={15} className="text-amber-500 fill-amber-500/20 shrink-0" />}
+                  </div>
+                  <p className="text-[13px] text-slate-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed mb-5">
                     {isChannelAdmin
-                      ? "You are the creator of this channel. Use the composer below to broadcast signals, charts, or updates to your subscribers."
-                      : "No signals or messages posted yet. Live updates, execution alerts, and broadcasts from the host will appear here in real time."}
+                      ? "Your broadcast channel is live. Post trading setups, signals, charts, or announcements below."
+                      : "No signals or broadcasts posted yet. Live execution alerts and analysis will appear here in real time."}
                   </p>
+
+                  {isChannelAdmin && (
+                    <div className="flex items-center justify-center gap-2 flex-wrap pt-3 border-t border-slate-200/60 dark:border-white/5">
+                      <button
+                        type="button"
+                        onClick={() => setInputText("📢 Market Update: ")}
+                        className="px-3 py-1.5 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[12px] font-semibold text-slate-700 dark:text-zinc-300 hover:border-slate-400 dark:hover:border-white/20 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                      >
+                        📢 Update
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setInputText("⚡ Setup: ")}
+                        className="px-3 py-1.5 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[12px] font-semibold text-slate-700 dark:text-zinc-300 hover:border-slate-400 dark:hover:border-white/20 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                      >
+                        ⚡ Signal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsPollModalOpen(true)}
+                        className="px-3 py-1.5 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[12px] font-semibold text-slate-700 dark:text-zinc-300 hover:border-slate-400 dark:hover:border-white/20 active:scale-95 transition-all cursor-pointer shadow-2xs"
+                      >
+                        📊 Poll
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-16 px-6 max-w-md mx-auto my-auto rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02] shadow-xs">
@@ -1547,11 +1609,11 @@ function ChannelSkeleton() {
                 }
 
                 return activeChannel?.id === "saved" || dbChannels.length > 0 ? (
-                  <div className="w-full relative flex flex-col gap-2">
+                  <div className="w-full max-w-4xl mx-auto relative flex flex-col gap-2">
                     {attachmentPreview && (
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                      <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
                          <img src={attachmentPreview} alt="Attachment preview" className="w-full h-full object-cover" />
-                         <button onClick={removeAttachment} className="absolute top-1 right-1 bg-black/50 rounded-full p-1 text-white hover:bg-black/70">
+                         <button onClick={removeAttachment} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 text-white hover:bg-black/80 transition-colors cursor-pointer">
                            <X size={12} />
                          </button>
                       </div>
@@ -1561,53 +1623,75 @@ function ChannelSkeleton() {
                         <EmojiPicker onEmojiClick={onEmojiClick} theme={themeMode as any} />
                       </div>
                     )}
-                    <form onSubmit={handleSendMessage} className="w-full flex items-end gap-2">
-                      
-                      <div className="flex items-center gap-1 shrink-0 pb-1">
-                        <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="w-10 h-10 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800 outline-none active:scale-95">
-                          <Smile size={20} />
-                        </button>
-                        <button type="button" onClick={() => fileInputRef.current?.click()} className="w-10 h-10 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800 outline-none active:scale-95">
-                          <Paperclip size={20} />
-                        </button>
-                      </div>
-
-                      <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} className="hidden" accept="image/*,video/*" />
-                      
-                      <div className="flex-1 bg-slate-100/80 dark:bg-[#1E1F22] border border-slate-200/50 dark:border-white/5 shadow-inner rounded-[24px] flex items-center px-4 py-3 transition-all relative">
-                        {editingMessageId && (
-                          <div className="absolute -top-10 left-0 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[11px] px-3 py-1 rounded-full flex items-center gap-2 font-bold uppercase tracking-wider shadow-sm">
-                            <span>Editing Message</span>
-                            <button onClick={handleCancelEdit} type="button" className="hover:text-blue-800 dark:hover:text-blue-200 bg-white/50 dark:bg-black/20 rounded-full p-0.5">
-                              <X size={12} />
-                            </button>
-                          </div>
-                        )}
-                        <textarea 
-                          value={inputText}
-                          onChange={(e) => setInputText(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          placeholder={isUploading ? "Uploading attachment..." : "Write a message..."}
-                          className="w-full bg-transparent outline-none text-[14px] font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none min-h-[22px] max-h-[120px] py-0 custom-scrollbar"
-                          disabled={isUploading}
-                          rows={1}
-                        />
-                      </div>
-                      
-                      <div className="flex items-center gap-1 shrink-0 pb-1">
-                        {!inputText.trim() && !attachment && !isUploading ? (
-                          <button type="button" onClick={() => setIsPollModalOpen(true)} className="w-10 h-10 rounded-full flex items-center justify-center transition-all text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-300 dark:hover:bg-slate-800 outline-none active:scale-95">
-                            <IconlyActivity set="curved" primaryColor="currentColor" size={22} stroke="bold" strokeWidth={2} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" />
+                    <form onSubmit={handleSendMessage} className="w-full">
+                      <div className="bg-slate-100/90 dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 focus-within:border-slate-400 dark:focus-within:border-white/25 rounded-2xl p-1.5 sm:p-2 flex items-end gap-2 shadow-xs transition-all">
+                        
+                        {/* Left Action Cluster */}
+                        <div className="flex items-center gap-0.5 shrink-0 pb-0.5">
+                          <button 
+                            type="button" 
+                            onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 cursor-pointer"
+                            title="Insert Emoji"
+                          >
+                            <Smile size={18} />
                           </button>
-                        ) : (
+                          <button 
+                            type="button" 
+                            onClick={() => fileInputRef.current?.click()} 
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 cursor-pointer"
+                            title="Attach Image or Chart"
+                          >
+                            <Paperclip size={18} />
+                          </button>
+                          <button 
+                            type="button" 
+                            onClick={() => setIsPollModalOpen(true)} 
+                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 cursor-pointer"
+                            title="Create Poll"
+                          >
+                            <BarChart2 size={18} />
+                          </button>
+                        </div>
+
+                        <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} className="hidden" accept="image/*,video/*" />
+                        
+                        {/* Text Input */}
+                        <div className="flex-1 relative pb-0.5">
+                          {editingMessageId && (
+                            <div className="absolute -top-9 left-0 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider shadow-xs">
+                              <span>Editing Message</span>
+                              <button onClick={handleCancelEdit} type="button" className="hover:text-blue-900 dark:hover:text-white rounded-full p-0.5">
+                                <X size={11} />
+                              </button>
+                            </div>
+                          )}
+                          <textarea 
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder={isUploading ? "Uploading attachment..." : "Broadcast a setup, signal, or message..."}
+                            className="w-full bg-transparent outline-none text-[14px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 resize-none min-h-[24px] max-h-[140px] py-1.5 leading-relaxed custom-scrollbar"
+                            disabled={isUploading}
+                            rows={1}
+                          />
+                        </div>
+                        
+                        {/* High-contrast Send Button */}
+                        <div className="shrink-0 pb-0.5">
                           <button 
                             type="submit"
                             disabled={(!inputText.trim() && !attachment) || isUploading}
-                            className="w-10 h-10 rounded-full bg-blue-500 hover:bg-blue-600 shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center transition-all text-white outline-none active:scale-95"
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 shadow-xs disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all outline-none active:scale-95 cursor-pointer"
+                            title="Send Broadcast"
                           >
-                            {isUploading ? <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : <IconlySend set="curved" primaryColor="currentColor" size={20} stroke="bold" strokeWidth={2} className="ml-[1px]" />}
+                            {isUploading ? (
+                              <div className="w-4 h-4 rounded-full border-2 border-slate-400 border-t-white animate-spin" />
+                            ) : (
+                              <SendHorizonal size={17} strokeWidth={2.4} className="ml-0.5" />
+                            )}
                           </button>
-                        )}
+                        </div>
                       </div>
                     </form>
                   </div>
@@ -1620,14 +1704,35 @@ function ChannelSkeleton() {
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-[#000000]">
-              <div className="text-center py-16 rounded-[24px] p-6 max-w-md w-full mx-auto flex-shrink-0 border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none">
-                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#121212] flex items-center justify-center mx-auto text-slate-400 dark:text-slate-300 mb-6 border border-slate-200/30 dark:border-white/5">
-                  <Megaphone size={24} />
+              <div className="text-center py-12 px-6 max-w-md w-full mx-auto rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02] shadow-xs">
+                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-white/10 flex items-center justify-center mx-auto text-slate-700 dark:text-white mb-4 border border-slate-200/80 dark:border-white/15 shadow-xs">
+                  <Radio size={24} className="text-blue-500 animate-pulse" />
                 </div>
-                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">No Channels Yet</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-                  Explore and join official broadcasting channels from the Discover page to keep up with news and signal flows.
+                <h4 className="text-[17px] font-bold text-slate-900 dark:text-white mb-1.5">
+                  {filteredChannels.length > 0 ? "Select a Channel" : "No Channels Yet"}
+                </h4>
+                <p className="text-[13px] text-slate-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed mb-6">
+                  {filteredChannels.length > 0
+                    ? "Choose a channel from the left sidebar to view signals, live analysis, and announcements."
+                    : "Create your own broadcasting channel to share signals and analysis, or explore active community channels."}
                 </p>
+                <div className="flex items-center justify-center gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="px-5 py-2.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-[13px] hover:opacity-90 active:scale-95 shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                  >
+                    <Plus size={15} />
+                    <span>Create Channel</span>
+                  </button>
+                  <Link
+                    to="/discover"
+                    className="px-5 py-2.5 rounded-full border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-white/5 font-bold text-[13px] active:scale-95 transition-all flex items-center gap-2"
+                  >
+                    <IconlyDiscovery set="curved" primaryColor="currentColor" size={16} />
+                    <span>Explore Discover</span>
+                  </Link>
+                </div>
               </div>
             </div>
           )}
@@ -1657,162 +1762,235 @@ function ChannelSkeleton() {
             
             <div className="text-center space-y-2">
               <div className="flex justify-center">
-                {renderChannelAvatar(activeChannel, "w-[90px] h-[90px] text-2xl", "rounded-full")}
+                {renderChannelAvatar(activeChannel, "w-[88px] h-[88px] text-2xl", "rounded-2xl shadow-sm")}
               </div>
-              <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-1 mt-3 leading-tight">
+              <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-1.5 mt-3 leading-tight">
                 {activeChannel.name}
+                {isChannelAdmin && <Crown size={15} className="text-amber-500 fill-amber-500/20 shrink-0" title="You are the creator" />}
                 {activeChannel.verified && <CheckCircle2 size={15} className="text-blue-500 fill-blue-500/20 shrink-0" />}
               </h3>
-              <p className="text-[12.5px] text-slate-500 dark:text-slate-400 font-semibold leading-none">
+              <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 font-semibold leading-none">
                 {activeDetails.subscribers}
               </p>
               
-              <Link to={`/user/${activeChannel.name.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`} className="mt-4 inline-flex items-center justify-center gap-1.5 w-full py-2 rounded-xl border border-slate-200 dark:border-white/5 text-[12px] font-bold uppercase tracking-wider text-slate-700 hover:text-blue-500 hover:border-blue-500 dark:text-slate-355 dark:hover:text-blue-400 dark:hover:border-blue-500/40 transition-colors shadow-3xs bg-slate-50/5 dark:bg-slate-900/20">
-                View Creator Profile
-              </Link>
+              {isChannelAdmin ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const rules = typeof activeChannel.rules === 'string' ? JSON.parse(activeChannel.rules || '{}') : (activeChannel.rules || {});
+                    setManageType(rules.is_vip ? 'vip' : (activeChannel.channel_type || 'public'));
+                    setManageMessages(rules.allow_messages !== false);
+                    setManageVipPrice(rules.vip_price || "");
+                    setManageBrokerLink(rules.broker_link || "");
+                    setManageAvatar(rules.avatar || "");
+                    setIsManageModalOpen(true);
+                  }}
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-[12px] font-bold text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all shadow-2xs cursor-pointer"
+                >
+                  <Settings size={14} />
+                  <span>Manage Channel Settings</span>
+                </button>
+              ) : (
+                <Link
+                  to={`/user/${activeChannel.name.replace(/\s+/g, '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase()}`}
+                  className="mt-3 inline-flex items-center justify-center gap-1.5 w-full py-2.5 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-[12px] font-bold text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all shadow-2xs cursor-pointer"
+                >
+                  <User size={14} />
+                  <span>View Creator Profile</span>
+                </Link>
+              )}
             </div>
 
+            {/* Action Grid (3 buttons) */}
             <div className="grid grid-cols-3 gap-2 px-1">
               <button 
                 onClick={handleToggleMute}
-                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none transition-all group active:scale-95"
+                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] transition-all group active:scale-95 cursor-pointer shadow-2xs"
               >
                 {isMuted ? (
-                  <VolumeX size={18} className="text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white mb-1 transition-colors" />
+                  <VolumeX size={18} className="text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white mb-1 transition-colors" />
                 ) : (
-                  <Volume2 size={18} className="text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white mb-1 transition-colors" />
+                  <Volume2 size={18} className="text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white mb-1 transition-colors" />
                 )}
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">Mute</span>
+                <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 mt-1">{isMuted ? "Unmute" : "Mute"}</span>
               </button>
 
               <button 
-                onClick={() => toast.success("Gift feature panel coming soon!")}
-                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none transition-all group active:scale-95"
+                onClick={() => {
+                  const inviteUrl = `${window.location.origin}/channel/${activeChannel.handle || activeChannel.id}`;
+                  navigator.clipboard.writeText(inviteUrl);
+                  toast.success("Channel link copied!");
+                }}
+                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] transition-all group active:scale-95 cursor-pointer shadow-2xs"
               >
-                <Gift size={18} className="text-slate-400 group-hover:text-slate-800 dark:group-hover:text-white mb-1 transition-colors" />
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">Gift</span>
+                <Share2 size={18} className="text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white mb-1 transition-colors" />
+                <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 mt-1">Share</span>
               </button>
 
-              <button 
-                onClick={() => toast.warning("Confirmation: Are you sure you want to leave?")}
-                className="flex flex-col items-center justify-center py-2.5 rounded-2xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none transition-all group active:scale-95"
-              >
-                <LogOut size={18} className="text-slate-400 group-hover:text-rose-500 mb-1 transition-colors" />
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 mt-1">Leave</span>
-              </button>
+              {isChannelAdmin ? (
+                <button 
+                  onClick={() => {
+                    const rules = typeof activeChannel.rules === 'string' ? JSON.parse(activeChannel.rules || '{}') : (activeChannel.rules || {});
+                    setManageType(rules.is_vip ? 'vip' : (activeChannel.channel_type || 'public'));
+                    setManageMessages(rules.allow_messages !== false);
+                    setManageVipPrice(rules.vip_price || "");
+                    setManageBrokerLink(rules.broker_link || "");
+                    setManageAvatar(rules.avatar || "");
+                    setIsManageModalOpen(true);
+                  }}
+                  className="flex flex-col items-center justify-center py-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] transition-all group active:scale-95 cursor-pointer shadow-2xs"
+                >
+                  <Settings size={18} className="text-slate-500 group-hover:text-slate-900 dark:group-hover:text-white mb-1 transition-colors" />
+                  <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 mt-1">Settings</span>
+                </button>
+              ) : (
+                <button 
+                  onClick={handleLeaveChannel}
+                  className="flex flex-col items-center justify-center py-2.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 hover:bg-slate-100 dark:bg-white/[0.03] dark:hover:bg-white/[0.06] transition-all group active:scale-95 cursor-pointer shadow-2xs"
+                >
+                  <LogOut size={18} className="text-slate-500 group-hover:text-rose-500 mb-1 transition-colors" />
+                  <span className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 mt-1">Leave</span>
+                </button>
+              )}
             </div>
 
             <hr className="border-slate-100 dark:border-white/5" />
 
-            <div className="space-y-4 text-[13px]">
-              <div className="flex items-start justify-between gap-3 p-3 rounded-xl border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none">
-                <div 
-                  className="space-y-1 cursor-pointer group"
+            {/* Link & Description */}
+            <div className="space-y-3">
+              {/* Link Box */}
+              <div className="p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02]">
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                    Channel Link
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowQrModal(true)}
+                    className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer"
+                    title="Show QR Code"
+                  >
+                    <IconlyScan set="curved" primaryColor="currentColor" size={17} stroke="bold" strokeWidth={2} />
+                  </button>
+                </div>
+                <div
+                  className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200/70 dark:border-white/5 cursor-pointer group"
                   onClick={() => {
-                    navigator.clipboard.writeText(`https://${activeDetails.link}`);
-                    toast.success("Link copied to clipboard!");
+                    const inviteUrl = `${window.location.origin}/channel/${activeChannel.handle || activeChannel.id}`;
+                    navigator.clipboard.writeText(inviteUrl);
+                    toast.success("Link copied!");
                   }}
                 >
-                  <span 
-                    className="text-slate-700 dark:text-slate-350 group-hover:text-blue-500 font-bold text-[13.5px] leading-tight block transition-colors"
-                  >
-                    {activeDetails.link}
+                  <span className="text-[13px] font-semibold text-slate-800 dark:text-zinc-200 truncate group-hover:text-blue-500 transition-colors">
+                    {window.location.host}/channel/{activeChannel.handle || activeChannel.id}
                   </span>
-                  <span className="text-[11px] text-slate-400 font-bold block uppercase tracking-wider group-hover:text-blue-400 transition-colors">Link</span>
+                  <Copy size={14} className="text-slate-400 group-hover:text-blue-500 shrink-0 transition-colors" />
                 </div>
-                <button 
-                  onClick={() => setShowQrModal(true)}
-                  className="p-2 rounded-lg border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-400 hover:text-slate-700 dark:hover:text-white transition-all active:scale-95"
-                >
-                  <IconlyScan set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 hover:text-slate-700 dark:hover:text-white" />
-                </button>
               </div>
 
-              <div className="space-y-1 p-3 text-left">
-                <p className="text-slate-800 dark:text-slate-200 font-medium whitespace-pre-line leading-relaxed text-[13.5px]">
-                  {activeDetails.description}
-                </p>
-                <span className="text-[11px] text-slate-400 font-bold block uppercase tracking-wider pt-1.5">Description</span>
+              {/* Description Box */}
+              {activeChannel.content && (
+                <div className="p-3.5 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02]">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block mb-1">
+                    About Channel
+                  </span>
+                  <p className="text-[13px] font-medium text-slate-800 dark:text-zinc-200 leading-relaxed whitespace-pre-line">
+                    {activeChannel.content}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <hr className="border-slate-100 dark:border-white/5" />
+
+            {/* Shared Content Stats Grid */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 px-1 block">
+                Channel Content
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <ImageIcon size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-extrabold text-slate-900 dark:text-white leading-none">
+                      {photosCount + videosCount}
+                    </p>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 truncate">Media & Charts</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <Link2 size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-extrabold text-slate-900 dark:text-white leading-none">
+                      {linksCount}
+                    </p>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 truncate">Links Shared</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <BarChart2 size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-extrabold text-slate-900 dark:text-white leading-none">
+                      {pollsCount}
+                    </p>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 truncate">Polls</p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                    <Users size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-extrabold text-slate-900 dark:text-white leading-none">
+                      {activeChannel.memberCount || 1}
+                    </p>
+                    <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 truncate">Subscribers</p>
+                  </div>
+                </div>
               </div>
             </div>
 
             <hr className="border-slate-100 dark:border-white/5" />
 
-            <div className="space-y-4 font-semibold text-slate-750 dark:text-slate-350 text-[13px]">
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyTicketStar set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.giftsCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyImage set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.photosCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyVideo set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.videosCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyFolder set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.filesCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyPaper set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.linksCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyGraph set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.pollsCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyVoice set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.voicesCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyBookmark set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.gifsCount}</span>
-              </div>
-
-              <div className="flex items-center gap-3.5 px-1 py-0.5 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer">
-                <IconlyNotification set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                <span className="text-[13.5px]">{activeDetails.similarCount}</span>
-              </div>
-            </div>
-
-            <hr className="border-slate-100 dark:border-white/5" />
-
-            <div className="space-y-4 font-bold text-[13.5px]">
+            {/* Actions / Danger Zone */}
+            <div className="space-y-1.5 font-bold text-[13px]">
               {isChannelAdmin ? (
                 <button 
                   onClick={handleDeleteChannel}
-                  className="flex items-center gap-3.5 px-1 py-1 text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-500 transition-colors text-left w-full outline-none"
+                  className="flex items-center gap-2.5 px-3 py-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all text-left w-full outline-none cursor-pointer"
                 >
-                  <Trash size={21} strokeWidth={2.2} className="text-rose-500 dark:text-rose-400 shrink-0" />
-                  <span>Delete channel</span>
+                  <Trash2 size={16} strokeWidth={2.2} className="text-rose-500 shrink-0" />
+                  <span>Delete Channel</span>
                 </button>
-              ) : isMember ? (
-                <button 
-                  onClick={handleLeaveChannel}
-                  className="flex items-center gap-3.5 px-1 py-1 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors text-left w-full outline-none"
-                >
-                  <IconlyLogout set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-slate-400 shrink-0" />
-                  <span>Leave channel</span>
-                </button>
-              ) : null}
-
-              <button 
-                onClick={() => toast.error("Report dialog opened")}
-                className="flex items-center gap-3.5 px-1 py-1 text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-500 transition-colors text-left w-full outline-none"
-              >
-                <IconlyDanger set="curved" primaryColor="currentColor" size={21} stroke="bold" strokeWidth={2} className="text-rose-500 dark:text-rose-400 shrink-0" />
-                <span>Report</span>
-              </button>
+              ) : (
+                <>
+                  {isMember && (
+                    <button 
+                      onClick={handleLeaveChannel}
+                      className="flex items-center gap-2.5 px-3 py-2 text-slate-600 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all text-left w-full outline-none cursor-pointer"
+                    >
+                      <LogOut size={16} className="shrink-0" />
+                      <span>Leave Channel</span>
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => toast.info("Report submitted. Our moderation team will review this channel.")}
+                    className="flex items-center gap-2.5 px-3 py-2 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all text-left w-full outline-none cursor-pointer"
+                  >
+                    <ShieldAlert size={16} className="shrink-0" />
+                    <span>Report Channel</span>
+                  </button>
+                </>
+              )}
             </div>
               </>
             )}
