@@ -122,6 +122,23 @@ export const AuthGuard = ({ children }: { children: React.ReactNode }) => {
             }
 
             if (!existingProfile) {
+              // Verify if the user actually exists in auth.users
+              const { data: authUserData, error: authUserErr } = await supabase.auth.getUser();
+              if (authUserErr || !authUserData?.user) {
+                // Ghost session from deleted user: purge stale caches and redirect
+                sessionStorage.clear();
+                try {
+                  localStorage.removeItem("fialgo_local_posts");
+                  localStorage.removeItem("tradifive_discover_cache_v1");
+                  localStorage.removeItem("home_cache_feeds");
+                } catch (_) {}
+                await supabase.auth.signOut();
+                if (isMounted.current) {
+                  navigate("/login");
+                }
+                return;
+              }
+
               // First-time OAuth user — create a profile from auth metadata with has_chosen_username = false
               const meta = user.user_metadata || {};
               const emailUsername = user.email?.split('@')[0]?.toLowerCase().replace(/[^a-z0-9]/g, '') || "trader";
