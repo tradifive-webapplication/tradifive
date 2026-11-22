@@ -14,6 +14,7 @@ import { NetworkNotifier } from "@/components/NetworkNotifier";
 import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 import { AdminRoute } from "./components/AdminRoute";
 import FloatingHelpButton from "./components/FloatingHelpButton";
+import GlobalPushNotificationListener from "@/components/notifications/GlobalPushNotificationListener";
 
 // ── All pages are lazy-loaded to split the bundle into per-route chunks.
 // Helper to automatically recover if a chunk fails to load due to a new deployment:
@@ -170,6 +171,7 @@ const App = () => {
         <TradingProvider>
           <PresenceProvider>
           <AppRouter>
+            <GlobalPushNotificationListener />
             <WorkspaceProvider>
             <CustomCursor />
             <Suspense fallback={<div style={{ minHeight: '100vh', width: '100%', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>}>

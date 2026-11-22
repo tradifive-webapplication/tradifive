@@ -90,7 +90,7 @@ export default function Notifications() {
           for (const n of data ?? []) {
             const isFollowNotif = n.type === 'FOLLOW' || n.title?.toLowerCase().includes('follow');
             if (isFollowNotif) {
-              const tId = n.sender_id || n.actor_id || n.from_user_id;
+              const tId = n.sender_id || n.actor_id || n.from_user_id || n.metadata?.sender_id;
               if (tId) {
                 targetIdsToLoad.add(tId);
               } else if (n.message) {
@@ -288,8 +288,8 @@ export default function Notifications() {
   const handleFollowBack = async (notif: any, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    let targetId = notif.sender_id || notif.actor_id || notif.from_user_id;
-    let targetUsername = notif.sender_username || notif.actor_username || notif.from_username;
+    let targetId = notif.sender_id || notif.actor_id || notif.from_user_id || notif.metadata?.sender_id;
+    let targetUsername = notif.sender_username || notif.actor_username || notif.from_username || notif.metadata?.sender_username;
 
     if (!targetId && !targetUsername && (notif.type === 'FOLLOW' || notif.title?.toLowerCase().includes('follow'))) {
       const match = notif.message?.match(/^(.*?)\s+started following you!/i);
@@ -537,9 +537,9 @@ export default function Notifications() {
     const isExpanded = expandedId === n.id;
     const cfg = getTypeConfig(n.type);
     const IconComp = cfg.icon;
-    const hasActor = !!(n.sender_username || n.actor_username || n.from_username || n.sender_id || n.actor_id || n.from_user_id);
-    const actorName = n.sender_name || n.actor_name || n.from_name || n.sender_username || n.actor_username || n.from_username || null;
-    const actorAvatar = n.sender_avatar || n.actor_avatar || n.avatar || null;
+    const hasActor = !!(n.sender_username || n.actor_username || n.from_username || n.sender_id || n.actor_id || n.from_user_id || n.metadata?.sender_username || n.metadata?.sender_id);
+    const actorName = n.sender_name || n.actor_name || n.from_name || n.metadata?.sender_name || n.sender_username || n.actor_username || n.from_username || n.metadata?.sender_username || null;
+    const actorAvatar = n.sender_avatar || n.actor_avatar || n.avatar || n.metadata?.sender_avatar || null;
 
     const isFollowNotif = n.type === 'FOLLOW' || n.title?.toLowerCase().includes('follow');
     const isCommentNotif = n.type === 'SOCIAL' && (n.title?.toLowerCase().includes('comment') || n.title?.toLowerCase().includes('replied'));
@@ -666,8 +666,8 @@ export default function Notifications() {
             )}
 
             {/* Bottom Controls / Inline Actions */}
-            <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.05]">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.05] flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 {isFollowNotif && hasFollowTarget && (
                   <FollowButton
                     isFollowing={isFollowedBack}
@@ -836,20 +836,20 @@ export default function Notifications() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5">
             <button
               type="button"
               onClick={markAllRead}
-              className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="flex-1 sm:flex-initial h-9 px-3 sm:px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
             >
               <CheckCheck size={14} className="text-blue-600 dark:text-blue-400" />
-              <span>Mark All as Read</span>
+              <span>Mark All Read</span>
             </button>
 
             <button
               type="button"
               onClick={clearAllNotifications}
-              className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-slate-200/80 dark:border-rose-500/20 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="flex-1 sm:flex-initial h-9 px-3 sm:px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-slate-200/80 dark:border-rose-500/20 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
             >
               <Trash2 size={13} />
               <span>Clear All</span>
@@ -859,7 +859,7 @@ export default function Notifications() {
               type="button"
               onClick={fetchNotifications}
               disabled={loading}
-              className="h-9 px-3 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center justify-center cursor-pointer"
+              className="h-9 w-9 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center justify-center cursor-pointer shrink-0 active:scale-95"
               title="Refresh notifications"
             >
               <RefreshCw size={13} className={loading ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400 dark:text-neutral-400"} />
@@ -924,7 +924,7 @@ export default function Notifications() {
 
         {/* ── Sub Navigation Tabs & Search ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 -mx-3 px-3 sm:mx-0 sm:px-0 touch-pan-x">
             {FILTER_TABS.map(t => {
               const active = filter === t.id;
               return (

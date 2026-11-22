@@ -523,6 +523,26 @@ export default function Discover() {
                 console.error("Follow error:", error);
             } else {
                 toast.success("Following trader");
+                // Trigger real-time follower notification
+                const myName = user.user_metadata?.full_name || user.user_metadata?.username || user.email?.split('@')[0] || 'A trader';
+                const myUsername = user.user_metadata?.username || user.email?.split('@')[0];
+                const myAvatar = user.user_metadata?.avatar_url || null;
+
+                supabase.from('notifications').insert([{
+                    user_id: id,
+                    type: 'FOLLOW',
+                    title: 'New Follower',
+                    message: `${myName} started following you!`,
+                    priority: 'normal',
+                    is_read: false,
+                    metadata: {
+                        sender_id: user.id,
+                        sender_username: myUsername,
+                        sender_name: myName,
+                        sender_avatar: myAvatar,
+                        action: 'follow_back'
+                    }
+                }]).then(() => {});
             }
         }
     };

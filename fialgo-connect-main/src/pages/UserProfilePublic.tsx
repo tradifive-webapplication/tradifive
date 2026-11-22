@@ -740,6 +740,23 @@ export default function UserProfilePublic() {
             .insert([{ requester_id: currentUser.id, target_id: targetUserId }]);
           if (error) throw error;
           toast.success("Follow request sent");
+
+          // Notify target user
+          const myName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'A trader';
+          supabase.from('notifications').insert([{
+            user_id: targetUserId,
+            type: 'FOLLOW_REQUEST',
+            title: 'Follow Request',
+            message: `${myName} requested to follow you.`,
+            priority: 'normal',
+            is_read: false,
+            metadata: {
+              sender_id: currentUser.id,
+              sender_name: myName,
+              sender_username: currentUser.user_metadata?.username || currentUser.email?.split('@')[0],
+              sender_avatar: currentUser.user_metadata?.avatar_url || null
+            }
+          }]).then(() => {});
         } else {
           // Direct follow
           setFollowedUsers(prev => ({ ...prev, [targetUserId]: true }));
@@ -751,6 +768,27 @@ export default function UserProfilePublic() {
             .insert([{ follower_id: currentUser.id, following_id: targetUserId }]);
           if (error) throw error;
           toast.success(`Followed ${targetName}`);
+
+          // Trigger instant real-time notification
+          const myName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'A trader';
+          const myUsername = currentUser.user_metadata?.username || currentUser.email?.split('@')[0];
+          const myAvatar = currentUser.user_metadata?.avatar_url || null;
+
+          supabase.from('notifications').insert([{
+            user_id: targetUserId,
+            type: 'FOLLOW',
+            title: 'New Follower',
+            message: `${myName} started following you!`,
+            priority: 'normal',
+            is_read: false,
+            metadata: {
+              sender_id: currentUser.id,
+              sender_username: myUsername,
+              sender_name: myName,
+              sender_avatar: myAvatar,
+              action: 'follow_back'
+            }
+          }]).then(() => {});
         }
       }
     } catch (err: any) {

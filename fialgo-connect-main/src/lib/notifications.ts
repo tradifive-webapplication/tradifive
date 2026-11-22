@@ -1,6 +1,21 @@
 import { supabase } from "./supabase";
 
-export type NotificationType = 'SECURITY' | 'SYSTEM' | 'PAYMENT' | 'TRADE' | 'ACCOUNT';
+export type NotificationType =
+  | 'SECURITY'
+  | 'SYSTEM'
+  | 'PAYMENT'
+  | 'TRADE'
+  | 'ACCOUNT'
+  | 'FOLLOW'
+  | 'FOLLOW_REQUEST'
+  | 'FOLLOW_ACCEPTED'
+  | 'MESSAGE'
+  | 'CHANNEL_MESSAGE'
+  | 'SOCIAL'
+  | 'MENTION'
+  | 'ACHIEVEMENT'
+  | 'RISK_GUARD'
+  | 'PROFILE_VIEW';
 
 interface NotificationOptions {
   userId: string;
