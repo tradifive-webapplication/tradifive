@@ -10,12 +10,12 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 
-// ── Consistent Card Box & KPI Box Styles (Shared with Dashboard, AI Journal, & RiskGuard) ──
-const kpiBoxStyle = "min-h-[126px] p-4 sm:px-5 sm:py-4 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] flex flex-col justify-between transition-all duration-300 dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none overflow-hidden";
+// ── Consistent Card Box & KPI Box Styles (Shared with Dashboard, AI Journal, & Reports) ──
+const SURFACE_CARD =
+  "bg-white dark:bg-[#17171A] rounded-[20px] p-5 sm:p-6 border border-slate-200/80 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.03),0_8px_20px_-8px_rgba(15,23,42,0.06)] dark:shadow-none transition-all";
 
-const cardBoxStyle = "p-5 sm:p-6 rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] dark:shadow-none transition-all";
-
-const innerBoxStyle = "p-3.5 sm:p-4 rounded-[16px] bg-[#F4F6F9]/80 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/5";
+const INNER_CARD =
+  "p-3.5 sm:p-4 rounded-[16px] bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06]";
 
 // ─── PARTNERSHIP TIERS CONFIGURATION ──────────────────────────────────────────
 const AFFILIATE_TIERS = [
@@ -278,7 +278,7 @@ Please verify and process my remittance. Thank you!`;
       <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 pb-12 space-y-5 select-none font-sans min-h-screen">
         
         {/* ── 1. SIGNATURE HEADER & PARTNER NETWORK STRIP ── */}
-        <div className={cardBoxStyle}>
+        <div className={SURFACE_CARD}>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
@@ -292,10 +292,7 @@ Please verify and process my remittance. Thank you!`;
                 </span>
               </div>
 
-              <h1
-                className="text-[24px] sm:text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight"
-                
-              >
+              <h1 className="text-[24px] sm:text-[26px] font-extrabold text-slate-900 dark:text-white tracking-tight">
                 Partner &amp; Referral Program
               </h1>
               <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed">
@@ -303,171 +300,123 @@ Please verify and process my remittance. Thank you!`;
               </p>
             </div>
 
-            <div className="flex items-center gap-2.5 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <button
                 type="button"
                 onClick={handleRequestPayout}
-                className="h-[38px] px-4 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-[0_4px_7px_-5px_rgba(16,185,129,0.4),0_0_0_2px_#059669] text-xs font-bold tracking-tight cursor-pointer hover:shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 whitespace-nowrap"
+                className="tactile-emerald-pill h-[36px] px-4 rounded-full text-xs font-bold text-white flex items-center justify-center gap-1.5 cursor-pointer select-none active:scale-95 shadow-sm whitespace-nowrap"
               >
-                <Wallet size={15} />
+                <Wallet size={14} />
                 <span>Withdraw Commissions</span>
               </button>
               <button
                 type="button"
                 onClick={() => setShowQrModal(true)}
-                className="h-[38px] w-[38px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors cursor-pointer"
+                className="tactile-white-pill h-[36px] w-[36px] rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white cursor-pointer select-none active:scale-95 shadow-xs"
                 title="Show QR Code for mobile scanning"
               >
-                <QrCode size={16} />
+                <QrCode size={15} />
               </button>
             </div>
           </div>
         </div>
 
-        {/* ── 2. METRICS ROW (CORE 4 KPI BOXES MATCHING DASHBOARD) ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+        {/* ── 2. METRICS ROW (5 CONSISTENCY CARDS MATCHING REPORTS) ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           
-          {/* 1. Settled Earnings */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Settled Earnings
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <DollarSign className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
+          {/* Card 1: Settled Earnings */}
+          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border-emerald-500/25">
+            <div className="absolute top-4 right-4 text-emerald-600/30 group-hover:text-emerald-600/60 transition-colors">
+              <DollarSign size={18} />
             </div>
-            <div>
-              <h3
-                className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap mb-1"
-                
-              >
-                ₹{earnedCash.toLocaleString()}
-              </h3>
-              <div className="flex items-center justify-between mt-1 pt-0.5">
-                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 truncate">
-                  {activeBrokers > 0 ? `${activeBrokers} Active FiAlgo bot${activeBrokers > 1 ? 's' : ''}` : "100% direct cash payout"}
-                </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 shrink-0">
-                  Cleared
-                </span>
-              </div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
+              Settled Cash
+            </span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none truncate">
+              ₹{earnedCash.toLocaleString()}
+            </h3>
+            <p className="text-[11px] font-semibold mt-2 text-emerald-600/90 dark:text-emerald-400/90 truncate">
+              {activeBrokers > 0 ? `${activeBrokers} Active bot${activeBrokers > 1 ? "s" : ""}` : "100% direct payout"} · Cleared
+            </p>
+          </div>
+
+          {/* Card 2: Pipeline Commissions */}
+          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border-amber-500/25">
+            <div className="absolute top-4 right-4 text-amber-600/30 group-hover:text-amber-600/60 transition-colors">
+              <Clock size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
+              In Pipeline
+            </span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-amber-600 dark:text-amber-400 tracking-tight leading-none truncate">
+              ₹{pendingCash.toLocaleString()}
+            </h3>
+            <p className="text-[11px] font-semibold mt-2 text-amber-600/90 dark:text-amber-400/90 truncate">
+              {totalReferred - activeBrokers} in queue · Pending setup
+            </p>
+          </div>
+
+          {/* Card 3: Active Traders */}
+          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border-sky-500/25">
+            <div className="absolute top-4 right-4 text-sky-600/30 group-hover:text-sky-600/60 transition-colors">
+              <Users size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
+              Active Traders
+            </span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate">
+              {activeBrokers} <span className="text-xs font-semibold text-slate-400">/ {totalReferred}</span>
+            </h3>
+            <p className="text-[11px] font-semibold mt-2 text-sky-600/90 dark:text-sky-400/90 truncate">
+              Verified MT5 Engine · Live
+            </p>
+          </div>
+
+          {/* Card 4: Current Affiliate Tier */}
+          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-violet-500/[0.04] dark:bg-violet-500/[0.08] border-violet-500/25">
+            <div className="absolute top-4 right-4 text-violet-600/30 group-hover:text-violet-600/60 transition-colors">
+              <Trophy size={18} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
+              Affiliate Tier
+            </span>
+            <h3 className="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate">
+              {currentTier.name}
+            </h3>
+            <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-violet-600/90 dark:text-violet-400/90 truncate">
+              <span>{currentTier.profitOverride} Override</span>
+              <span className="font-mono text-[10px] opacity-75">{progressToNext}%</span>
             </div>
           </div>
 
-          {/* 2. Pipeline Commissions */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Pipeline Commissions
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center shrink-0">
-                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              </div>
+          {/* Card 5: Consistency & Conversion */}
+          <div className="col-span-2 sm:col-span-1 p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-indigo-500/[0.04] dark:bg-indigo-500/[0.08] border-indigo-500/25">
+            <div className="absolute top-4 right-4 text-indigo-600/30 group-hover:text-indigo-600/60 transition-colors">
+              <Award size={18} />
             </div>
-            <div>
-              <h3
-                className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap mb-1"
-                
-              >
-                ₹{pendingCash.toLocaleString()}
-              </h3>
-              <div className="flex items-center justify-between mt-1 pt-0.5">
-                <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400 truncate">
-                  {totalReferred - activeBrokers} registered · Pending setup
-                </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400 shrink-0">
-                  In Queue
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 3. Active Traders */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Active Traders
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-500/10 flex items-center justify-center shrink-0">
-                <Users className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-baseline gap-1.5 mb-1">
-                <h3
-                  className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap"
-                  
-                >
-                  {activeBrokers}
-                </h3>
-                <span className="text-xs font-semibold text-slate-400">
-                  / {totalReferred} Total
-                </span>
-              </div>
-              <div className="flex items-center justify-between mt-1 pt-0.5">
-                <span className="text-[11px] font-medium text-sky-600 dark:text-sky-400 truncate">
-                  Verified MT5 Engine
-                </span>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-400 shrink-0">
-                  Live
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* 4. Current Affiliate Tier */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between">
-              <p className="text-[10.5px] sm:text-[11px] font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                Affiliate Tier
-              </p>
-              <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center shrink-0">
-                <Trophy className="w-4 h-4 text-violet-600 dark:text-violet-400" />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-1">
-                <h3
-                  className="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap truncate"
-                  
-                >
-                  {currentTier.name}
-                </h3>
-                <span className="text-[10px] font-mono font-extrabold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-full border border-violet-200/60 dark:border-violet-500/20 shrink-0">
-                  {currentTier.profitOverride}
-                </span>
-              </div>
-              <div className="mt-2 space-y-1">
-                <div className="w-full h-1.5 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-blue-600 to-violet-600 rounded-full transition-all duration-500"
-                    style={{ width: `${progressToNext}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-[10px] text-slate-400 font-medium">
-                  <span>{nextTier ? `${activeBrokers} / ${nextTier.minTraders} for ${nextTier.name}` : "Max VIP Level"}</span>
-                  <span className="font-bold">{progressToNext}%</span>
-                </div>
-              </div>
-            </div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
+              Network Consistency
+            </span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-indigo-600 dark:text-indigo-400 tracking-tight leading-none truncate">
+              {totalReferred > 0 ? Math.round((activeBrokers / totalReferred) * 100) : 100}%
+            </h3>
+            <p className="text-[11px] font-semibold mt-2 text-indigo-600/90 dark:text-indigo-400/90 truncate">
+              Partner Consistency Grade A+
+            </p>
           </div>
 
         </div>
 
         {/* ── 3. INVITE WORKSTATION & VIRAL 1-CLICK SHARING ── */}
-        <div className={cardBoxStyle}>
+        <div className={SURFACE_CARD}>
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
                     <Share2 size={15} />
                   </div>
-                  <h2
-                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
-                    
-                  >
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                     Your Unique Referral Workstation
                   </h2>
                 </div>
@@ -476,15 +425,15 @@ Please verify and process my remittance. Thank you!`;
                 </p>
               </div>
 
-              {/* Toggle Link / Code */}
-              <div className="flex items-center p-1 rounded-[12px] bg-[#F4F6F9] dark:bg-white/5 border border-slate-200/80 dark:border-white/5 self-start sm:self-center shrink-0">
+              {/* Segmented Control Pill */}
+              <div className="inline-flex p-1 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/5 self-start sm:self-center shrink-0">
                 <button
                   type="button"
                   onClick={() => setActiveTab("link")}
-                  className={`px-3 py-1.5 rounded-[9px] text-xs font-bold transition-all cursor-pointer ${
+                  className={`h-[28px] px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     activeTab === "link"
-                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                      ? "bg-white dark:bg-[#242428] text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white"
                   }`}
                 >
                   Referral Link
@@ -492,10 +441,10 @@ Please verify and process my remittance. Thank you!`;
                 <button
                   type="button"
                   onClick={() => setActiveTab("code")}
-                  className={`px-3 py-1.5 rounded-[9px] text-xs font-bold transition-all cursor-pointer ${
+                  className={`h-[28px] px-3.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     activeTab === "code"
-                      ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                      ? "bg-white dark:bg-[#242428] text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white"
                   }`}
                 >
                   Partner Code
@@ -512,17 +461,15 @@ Please verify and process my remittance. Thank you!`;
                   readOnly
                   value={loading ? "Generating..." : displayValue}
                   onClick={() => inputRef.current?.select()}
-                  className="w-full h-11 px-4 rounded-[14px] bg-slate-50 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all select-all shadow-inner"
+                  className="w-full h-11 px-4 rounded-[14px] bg-slate-50 dark:bg-white/[0.03] border border-slate-200/90 dark:border-white/10 text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all select-all shadow-inner"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={() => handleCopy()}
-                className={`h-11 px-6 rounded-[14px] text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#2563EB] active:scale-95 ${
-                  copied
-                    ? "bg-emerald-600 text-white"
-                    : "bg-gradient-to-b from-blue-600 to-blue-700 text-white hover:from-blue-500 hover:to-blue-600"
+                className={`h-11 px-6 rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer select-none shrink-0 shadow-sm active:scale-95 ${
+                  copied ? "tactile-emerald-pill text-white" : "tactile-black-pill text-white"
                 }`}
               >
                 {copied ? <CheckCircle2 size={16} /> : <Copy size={16} />}
@@ -530,60 +477,55 @@ Please verify and process my remittance. Thank you!`;
               </button>
             </div>
 
-            {/* Social Share Buttons (WhatsApp, Telegram, X, Native) */}
+            {/* Social Share Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-white/5">
               <span className="text-[10.5px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
                 1-Click Instant Share:
               </span>
 
               <div className="flex flex-wrap items-center gap-2">
-                {/* WhatsApp */}
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#128C7E] dark:text-[#25D366] border border-[#25D366]/30 transition-all cursor-pointer"
+                  className="tactile-white-pill h-[34px] px-3.5 rounded-full text-xs font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 cursor-pointer select-none active:scale-95 shadow-xs"
                 >
-                  <MessageCircle size={14} />
+                  <MessageCircle size={14} className="text-emerald-500" />
                   <span>WhatsApp</span>
                 </a>
 
-                {/* Telegram */}
                 <a
                   href={`https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent("Join TradiFive Automated Gold AI Trading")}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-[#0088cc]/15 hover:bg-[#0088cc]/25 text-[#0088cc] border border-[#0088cc]/30 transition-all cursor-pointer"
+                  className="tactile-white-pill h-[34px] px-3.5 rounded-full text-xs font-bold text-sky-700 dark:text-sky-400 flex items-center gap-1.5 cursor-pointer select-none active:scale-95 shadow-xs"
                 >
-                  <Send size={14} />
+                  <Send size={14} className="text-sky-500" />
                   <span>Telegram</span>
                 </a>
 
-                {/* Twitter / X */}
                 <a
                   href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-black/10 dark:bg-white/10 hover:bg-black/20 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 transition-all cursor-pointer"
+                  className="tactile-white-pill h-[34px] px-3.5 rounded-full text-xs font-bold text-slate-800 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer select-none active:scale-95 shadow-xs"
                 >
                   <span>𝕏 Post</span>
                 </a>
 
-                {/* Mobile Native Share Sheet */}
                 <button
                   type="button"
                   onClick={handleNativeShare}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-[12px] text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all cursor-pointer border border-slate-200/80 dark:border-white/10"
+                  className="tactile-white-pill h-[34px] px-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5 cursor-pointer select-none active:scale-95 shadow-xs"
                 >
                   <Share2 size={13} />
                   <span>More</span>
                 </button>
 
-                {/* QR Code */}
                 <button
                   type="button"
                   onClick={() => setShowQrModal(true)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 transition-all cursor-pointer border border-slate-200/80 dark:border-white/10"
+                  className="tactile-white-pill h-[34px] px-3.5 rounded-full text-xs font-bold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5 cursor-pointer select-none active:scale-95 shadow-xs"
                 >
                   <QrCode size={13} />
                   <span>QR Code</span>
@@ -600,14 +542,11 @@ Please verify and process my remittance. Thank you!`;
           <div className="lg:col-span-8 space-y-5">
             
             {/* 3 Affiliate Partnership Tiers */}
-            <div className={cardBoxStyle}>
+            <div className={SURFACE_CARD}>
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <h3
-                      className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2"
-                      
-                    >
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                       <Trophy size={18} className="text-amber-500" />
                       <span>Affiliate Commission Tiers</span>
                     </h3>
@@ -615,7 +554,7 @@ Please verify and process my remittance. Thank you!`;
                       Your commissions automatically elevate as your referred network of traders scales.
                     </p>
                   </div>
-                  <span className="text-[10px] font-mono font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 rounded-full border border-blue-200/60 dark:border-blue-500/20">
+                  <span className="text-[10px] font-mono font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-200/60 dark:border-indigo-500/20">
                     {activeBrokers} Active Traders
                   </span>
                 </div>
@@ -626,10 +565,10 @@ Please verify and process my remittance. Thank you!`;
                     return (
                       <div
                         key={tier.name}
-                        className={`relative p-4 sm:p-5 rounded-[18px] border-2 transition-all space-y-3 flex flex-col justify-between ${
+                        className={`relative p-4 sm:p-5 rounded-[18px] border transition-all space-y-3 flex flex-col justify-between ${
                           isCurrent
-                            ? "bg-white dark:bg-[#1A1A1E] border-blue-500 ring-2 ring-blue-500/20 shadow-md"
-                            : "bg-[#F8F9FC]/80 dark:bg-white/[0.02] border-white dark:border-white/5 shadow-xs"
+                            ? "bg-white dark:bg-[#1A1A1E] border-indigo-500/70 shadow-[0_4px_14px_rgba(99,102,241,0.12)] ring-1 ring-indigo-500/30"
+                            : "bg-slate-50/60 dark:bg-white/[0.02] border-slate-200/70 dark:border-white/5 shadow-2xs"
                         }`}
                       >
                         <div className="space-y-2">
@@ -638,28 +577,22 @@ Please verify and process my remittance. Thank you!`;
                               {tier.tier} · {tier.milestone}
                             </span>
                             {isCurrent && (
-                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-blue-500 text-white shadow-2xs">
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-500 text-white shadow-2xs">
                                 Your Tier
                               </span>
                             )}
                           </div>
 
-                          <h4
-                            className="text-base font-bold text-slate-900 dark:text-white"
-                            
-                          >
+                          <h4 className="text-base font-bold text-slate-900 dark:text-white">
                             {tier.name}
                           </h4>
 
                           <div className="pt-1 pb-1">
-                            <div
-                              className="text-[22px] sm:text-[24px] font-bold text-emerald-600 dark:text-emerald-400"
-                              
-                            >
+                            <div className="text-[22px] sm:text-[24px] font-bold text-emerald-600 dark:text-emerald-400">
                               {tier.upfrontBonus}
                               <span className="text-xs font-semibold text-slate-400 ml-1">/ Trader</span>
                             </div>
-                            <div className="text-xs font-bold text-blue-600 dark:text-blue-400 mt-0.5">
+                            <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
                               + {tier.profitOverride} Weekly Override
                             </div>
                           </div>
@@ -681,13 +614,10 @@ Please verify and process my remittance. Thank you!`;
             </div>
 
             {/* Systematic 3-Step Process */}
-            <div className={cardBoxStyle}>
+            <div className={SURFACE_CARD}>
               <div className="space-y-4">
                 <div className="space-y-0.5">
-                  <h3
-                    className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight"
-                    
-                  >
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
                     How The Referral Program Works
                   </h3>
                   <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
@@ -696,8 +626,8 @@ Please verify and process my remittance. Thank you!`;
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                  <div className={innerBoxStyle}>
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold text-sm flex items-center justify-center mb-2">
+                  <div className={INNER_CARD}>
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-sm flex items-center justify-center mb-2">
                       1
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1">
@@ -708,7 +638,7 @@ Please verify and process my remittance. Thank you!`;
                     </p>
                   </div>
 
-                  <div className={innerBoxStyle}>
+                  <div className={INNER_CARD}>
                     <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 font-bold text-sm flex items-center justify-center mb-2">
                       2
                     </div>
@@ -720,7 +650,7 @@ Please verify and process my remittance. Thank you!`;
                     </p>
                   </div>
 
-                  <div className={innerBoxStyle}>
+                  <div className={INNER_CARD}>
                     <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-sm flex items-center justify-center mb-2">
                       3
                     </div>
@@ -736,22 +666,19 @@ Please verify and process my remittance. Thank you!`;
             </div>
 
             {/* Referred Friends Real Table */}
-            <div className={cardBoxStyle}>
+            <div className={SURFACE_CARD}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3
-                      className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2"
-                      
-                    >
-                      <Users size={17} className="text-blue-500" />
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                      <Users size={17} className="text-indigo-500" />
                       <span>Your Referred Traders Log</span>
                     </h3>
                     <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
                       Live ledger of traders registered under your partner code.
                     </p>
                   </div>
-                  <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 bg-[#F4F6F9] dark:bg-white/5 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-white/5">
+                  <span className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-white/5">
                     {referredList.length} Total Registered
                   </span>
                 </div>
@@ -763,8 +690,8 @@ Please verify and process my remittance. Thank you!`;
                     ))}
                   </div>
                 ) : referredList.length === 0 ? (
-                  <div className="py-10 text-center space-y-3 bg-[#F8F9FC]/60 dark:bg-white/[0.01] rounded-[18px] border border-dashed border-slate-200 dark:border-white/10">
-                    <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-500/10 text-blue-500 flex items-center justify-center mx-auto">
+                  <div className="py-10 text-center space-y-3 bg-slate-50/60 dark:bg-white/[0.01] rounded-[18px] border border-dashed border-slate-200 dark:border-white/10">
+                    <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-500/10 text-indigo-500 flex items-center justify-center mx-auto">
                       <UserPlus size={22} />
                     </div>
                     <div className="space-y-1">
@@ -778,7 +705,7 @@ Please verify and process my remittance. Thank you!`;
                     <button
                       type="button"
                       onClick={() => handleCopy()}
-                      className="h-9 px-4 rounded-[12px] text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs hover:opacity-90 transition-all cursor-pointer inline-flex items-center gap-1.5"
+                      className="tactile-black-pill h-[36px] px-4 rounded-full text-xs font-bold text-white cursor-pointer select-none active:scale-95 shadow-sm inline-flex items-center gap-1.5"
                     >
                       <Copy size={13} />
                       <span>Copy Your Referral Link</span>
@@ -841,7 +768,7 @@ Please verify and process my remittance. Thank you!`;
           <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-6">
             
             {/* Payout & Withdrawal Action Card */}
-            <div className={cardBoxStyle}>
+            <div className={SURFACE_CARD}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-[10.5px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
@@ -854,15 +781,12 @@ Please verify and process my remittance. Thank you!`;
 
                 <div>
                   <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Available For Withdrawal:</span>
-                  <div
-                    className="text-[26px] sm:text-[28px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 leading-none"
-                    
-                  >
+                  <div className="text-[26px] sm:text-[28px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 leading-none">
                     ₹{earnedCash.toLocaleString()}
                   </div>
                 </div>
 
-                <div className={innerBoxStyle + " space-y-2 text-xs"}>
+                <div className={INNER_CARD + " space-y-2 text-xs"}>
                   <div className="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Settlement Schedule:</span>
                     <strong className="text-slate-900 dark:text-white font-bold">Every {settlementDay}</strong>
@@ -880,7 +804,7 @@ Please verify and process my remittance. Thank you!`;
                 <button
                   type="button"
                   onClick={handleRequestPayout}
-                  className="w-full h-11 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 flex items-center justify-center gap-2 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.2),0_0_0_2px_#334155] text-xs sm:text-sm font-bold transition-all cursor-pointer active:scale-95"
+                  className="tactile-emerald-pill w-full h-11 rounded-full text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-2 cursor-pointer select-none active:scale-95 shadow-sm"
                 >
                   <Landmark size={15} />
                   <span>Request Payout Transfer →</span>
@@ -893,23 +817,23 @@ Please verify and process my remittance. Thank you!`;
             </div>
 
             {/* Quick Pitch Bullet Points for Traders */}
-            <div className={cardBoxStyle}>
+            <div className={SURFACE_CARD}>
               <div className="space-y-3 text-xs">
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles size={14} className="text-blue-500" />
+                  <Sparkles size={14} className="text-indigo-500" />
                   <span>How to Pitch FiAlgo V1</span>
                 </h4>
 
                 <div className="space-y-2 text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                  <div className={innerBoxStyle}>
+                  <div className={INNER_CARD}>
                     <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">1. Zero Manual Work:</strong>
                     FiAlgo V1 executes M1 gold trades automatically with hardware stop-loss protection.
                   </div>
-                  <div className={innerBoxStyle}>
+                  <div className={INNER_CARD}>
                     <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">2. Aligned Interests:</strong>
                     Only a ₹9,999 setup fee with weekly 50/50 profit share. Zero commission on red days.
                   </div>
-                  <div className={innerBoxStyle}>
+                  <div className={INNER_CARD}>
                     <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">3. Capital Safety:</strong>
                     100% of user capital stays locked in their own verified broker account.
                   </div>
@@ -918,7 +842,7 @@ Please verify and process my remittance. Thank you!`;
             </div>
 
             {/* Partner Program FAQ */}
-            <div className={cardBoxStyle}>
+            <div className={SURFACE_CARD}>
               <div className="space-y-3 text-xs">
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                   <HelpCircle size={14} className="text-violet-500" />
@@ -954,7 +878,7 @@ Please verify and process my remittance. Thank you!`;
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full max-w-sm rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-2xl dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 p-6 space-y-5 relative text-center"
+                className="w-full max-w-sm rounded-[20px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-2xl p-6 space-y-5 relative text-center"
               >
                 <button
                   type="button"
@@ -965,10 +889,7 @@ Please verify and process my remittance. Thank you!`;
                 </button>
 
                 <div className="space-y-1 pt-2">
-                  <h3
-                    className="text-base font-bold text-slate-900 dark:text-white"
-                    
-                  >
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
                     Scan to Join TradiFive
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
@@ -994,7 +915,7 @@ Please verify and process my remittance. Thank you!`;
                       handleCopy();
                       setShowQrModal(false);
                     }}
-                    className="w-full h-10 rounded-[12px] text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 cursor-pointer shadow-xs active:scale-95 transition-all"
+                    className="tactile-black-pill w-full h-10 rounded-full text-xs font-bold text-white cursor-pointer select-none active:scale-95 transition-all shadow-sm"
                   >
                     Copy Link Instead
                   </button>
@@ -1012,7 +933,7 @@ Please verify and process my remittance. Thank you!`;
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="w-full max-w-md rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] shadow-2xl dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/10 p-6 space-y-5 relative"
+                className="w-full max-w-md rounded-[20px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-2xl p-6 space-y-5 relative"
               >
                 <button
                   type="button"
@@ -1027,10 +948,7 @@ Please verify and process my remittance. Thank you!`;
                     <Wallet size={18} />
                     <span className="text-[10.5px] font-extrabold uppercase tracking-wider">Fast-Track Payout</span>
                   </div>
-                  <h3
-                    className="text-lg font-bold text-slate-900 dark:text-white"
-                    
-                  >
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                     Withdraw Referral Commissions
                   </h3>
                   <p className="text-xs text-slate-500 font-medium">
@@ -1040,10 +958,7 @@ Please verify and process my remittance. Thank you!`;
 
                 <div className="p-3.5 rounded-[16px] bg-emerald-50/80 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Withdrawable Balance:</span>
-                  <span
-                    className="text-xl font-bold text-emerald-600"
-                    
-                  >
+                  <span className="text-xl font-bold text-emerald-600">
                     ₹{earnedCash.toLocaleString()}
                   </span>
                 </div>
@@ -1068,7 +983,7 @@ Please verify and process my remittance. Thank you!`;
                   <button
                     type="button"
                     onClick={() => setShowPayoutModal(false)}
-                    className="flex-1 h-11 rounded-[14px] text-xs font-bold border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
+                    className="tactile-white-pill flex-1 h-11 rounded-full text-xs font-bold text-slate-700 dark:text-neutral-200 cursor-pointer select-none active:scale-95 shadow-xs"
                   >
                     Cancel
                   </button>
@@ -1076,7 +991,7 @@ Please verify and process my remittance. Thank you!`;
                     type="button"
                     onClick={handleConfirmPayout}
                     disabled={isSubmittingPayout}
-                    className="flex-1 h-11 rounded-[14px] text-xs font-bold bg-gradient-to-b from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white shadow-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                    className="tactile-emerald-pill flex-1 h-11 rounded-full text-xs font-bold text-white shadow-sm flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none active:scale-95"
                   >
                     <MessageCircle size={14} />
                     <span>Confirm via WhatsApp →</span>
