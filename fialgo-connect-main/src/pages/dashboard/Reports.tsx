@@ -39,7 +39,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { useJournalSettings } from "@/contexts/JournalSettingsContext";
+import { useJournalSettings, JournalSettingsProvider } from "@/contexts/JournalSettingsContext";
 import { useMarket } from "@/contexts/MarketContext";
 import { buildJournalDemoData } from "@/utils/journalDemoData";
 import { supabase } from "@/lib/supabase";
@@ -154,20 +154,11 @@ export const Reports: React.FC = () => {
     }).catch(() => {});
   }, []);
 
-  // Demo fallback trades if user has no live trades synced
-  const fallbackTrades = useMemo(() => {
-    try {
-      const demo = buildJournalDemoData(activeMarket);
-      return Array.isArray(demo?.allTrades) ? demo.allTrades : [];
-    } catch {
-      return [];
-    }
-  }, [activeMarket]);
-
+  // Live trades data directly from user accounts and logs
   const effectiveTrades = useMemo(() => {
     if (Array.isArray(recentTrades) && recentTrades.length > 0) return recentTrades;
-    return fallbackTrades;
-  }, [recentTrades, fallbackTrades]);
+    return [];
+  }, [recentTrades]);
 
   // Filters & State
   const [activeCategory, setActiveCategory] = useState<string>("All");
@@ -180,33 +171,33 @@ export const Reports: React.FC = () => {
 
   // Summary Metrics calculation
   const totalNet = useMemo(() => {
-    if (!effectiveTrades.length) return 290.0;
+    if (!effectiveTrades.length) return 0;
     return effectiveTrades.reduce((acc, t) => acc + (Number(t?.profit) || 0), 0);
   }, [effectiveTrades]);
 
-  const effectiveAccountBalance = balance > 0 ? balance : 28154.0;
+  const effectiveAccountBalance = balance > 0 ? balance : 0;
   const netPct = effectiveAccountBalance > 0 ? (totalNet / effectiveAccountBalance) * 100 : 0;
   const safeNetPct = isFinite(netPct) ? netPct.toFixed(2) : "0.00";
 
   const winCount = useMemo(() => {
-    return effectiveTrades.filter((t) => (Number(t?.profit) || 0) > 0).length || 1;
+    return effectiveTrades.filter((t) => (Number(t?.profit) || 0) > 0).length;
   }, [effectiveTrades]);
 
   const lossCount = useMemo(() => {
-    return effectiveTrades.filter((t) => (Number(t?.profit) || 0) < 0).length || 0;
+    return effectiveTrades.filter((t) => (Number(t?.profit) || 0) < 0).length;
   }, [effectiveTrades]);
 
   const buyCount = useMemo(() => {
-    return effectiveTrades.filter((t) => String(t?.type || "").toUpperCase().includes("BUY")).length || 1;
+    return effectiveTrades.filter((t) => String(t?.type || "").toUpperCase().includes("BUY")).length;
   }, [effectiveTrades]);
 
   const sellCount = useMemo(() => {
-    return effectiveTrades.filter((t) => String(t?.type || "").toUpperCase().includes("SELL")).length || 0;
+    return effectiveTrades.filter((t) => String(t?.type || "").toUpperCase().includes("SELL")).length;
   }, [effectiveTrades]);
 
-  const totalTradesCount = effectiveTrades.length || 1;
-  const computedWinRate = Math.round((winCount / totalTradesCount) * 100);
-  const safeWinRate = isFinite(computedWinRate) ? computedWinRate : 100;
+  const totalTradesCount = effectiveTrades.length;
+  const computedWinRate = totalTradesCount > 0 ? Math.round((winCount / totalTradesCount) * 100) : 0;
+  const safeWinRate = isFinite(computedWinRate) ? computedWinRate : 0;
 
   // Real Profit Factor calculation
   const formattedProfitFactor = useMemo(() => {
@@ -224,29 +215,31 @@ export const Reports: React.FC = () => {
     if (grossLoss > 0) {
       return (grossProfit / grossLoss).toFixed(2);
     }
-    return grossProfit > 0 ? "2.90" : "0.00";
+    return grossProfit > 0 ? "10.0+ (Max)" : "0.00";
   }, [profitFactor, effectiveTrades]);
 
   const bestTrade = useMemo(() => {
-    if (!effectiveTrades.length) return { symbol: "NAS100", profit: 290.0, type: "BUY", r: 5.8 };
+    if (!effectiveTrades.length) return null;
     const sorted = [...effectiveTrades].sort((a, b) => (Number(b?.profit) || 0) - (Number(a?.profit) || 0));
     const top = sorted[0];
+    if (!top || (Number(top?.profit) || 0) <= 0) return null;
     return {
-      symbol: top?.symbol || "NAS100",
-      profit: Number(top?.profit) || 290.0,
-      type: String(top?.type || "BUY").toUpperCase().includes("BUY") ? "LONG" : "SHORT",
-      r: Number(top?.risk_reward_ratio) || 5.8,
+      symbol: top?.symbol || top?.asset || "TRADE",
+      profit: Number(top?.profit) || 0,
+      type: String(top?.type || top?.direction || "BUY").toUpperCase().includes("BUY") ? "LONG" : "SHORT",
+      r: Number(top?.risk_reward_ratio) || 2.0,
     };
   }, [effectiveTrades]);
 
   const worstTrade = useMemo(() => {
+    if (!effectiveTrades.length) return null;
     const sorted = [...effectiveTrades].sort((a, b) => (Number(a?.profit) || 0) - (Number(b?.profit) || 0));
     const worst = sorted[0];
     if (worst && Number(worst?.profit) < 0) {
       return {
-        symbol: worst.symbol || "EURUSD",
+        symbol: worst.symbol || worst.asset || "TRADE",
         profit: Number(worst.profit),
-        type: String(worst.type || "SELL").toUpperCase().includes("BUY") ? "LONG" : "SHORT",
+        type: String(worst.type || worst.direction || "SELL").toUpperCase().includes("BUY") ? "LONG" : "SHORT",
         r: Number(worst.risk_reward_ratio) || -1.0,
       };
     }
@@ -888,20 +881,22 @@ export const Reports: React.FC = () => {
                               Best Trade
                             </span>
                             <h4 className="text-[16px] font-bold text-slate-900 dark:text-white uppercase leading-none mt-1">
-                              {bestTrade.symbol}
+                              {bestTrade ? bestTrade.symbol : "No Winning Trades"}
                             </h4>
                           </div>
                         </div>
-                        <span className="tactile-emerald-pill text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">
-                          LONG
-                        </span>
+                        {bestTrade && (
+                          <span className="tactile-emerald-pill text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider">
+                            {bestTrade.type}
+                          </span>
+                        )}
                       </div>
                       <div className="mt-2">
                         <h3 className="text-[24px] font-bold tracking-tight leading-none text-emerald-500">
-                          +{formatMoney(bestTrade.profit, { raw: true })}
+                          {bestTrade ? `+${formatMoney(bestTrade.profit, { raw: true })}` : "$0.00"}
                         </h3>
                         <p className="text-[11px] font-medium text-emerald-600/90 dark:text-emerald-400/90 mt-1.5">
-                          +{bestTrade.r || 5.8}R achieved
+                          {bestTrade ? `+${bestTrade.r || 2.0}R achieved` : "Awaiting winning trades"}
                         </p>
                       </div>
                     </div>
@@ -1191,4 +1186,10 @@ export const Reports: React.FC = () => {
   );
 };
 
-export default Reports;
+export default function ReportsPage() {
+  return (
+    <JournalSettingsProvider>
+      <Reports />
+    </JournalSettingsProvider>
+  );
+}

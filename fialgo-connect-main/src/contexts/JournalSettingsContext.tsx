@@ -134,6 +134,23 @@ export function JournalSettingsProvider({ children }: { children: React.ReactNod
 
 export function useJournalSettings() {
   const ctx = useContext(JournalSettingsContext);
-  if (!ctx) throw new Error("useJournalSettings must be used inside JournalSettingsProvider");
+  if (!ctx) {
+    return {
+      currency: CURRENCIES[0],
+      setCurrency: () => {},
+      hideBalance: false,
+      setHideBalance: () => {},
+      hideOnlyBalance: false,
+      setHideOnlyBalance: () => {},
+      percentageOnly: false,
+      setPercentageOnly: () => {},
+      formatMoney: (usdAmount: number, opts?: { showSign?: boolean; raw?: boolean }) => {
+        const absVal = Math.abs(usdAmount);
+        const sign = opts?.showSign ? (usdAmount >= 0 ? "+" : "-") : (usdAmount < 0 ? "-" : "");
+        return `${sign}$${absVal.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      },
+      isSettingsLoading: false,
+    };
+  }
   return ctx;
 }
