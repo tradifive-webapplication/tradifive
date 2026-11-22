@@ -33,7 +33,8 @@ import {
     Pin, Gift, Phone, User, Users, Bookmark, Settings as SettingsIcon, 
     Send, Plus, Eye, MessageSquare, Menu, LogOut, AlertTriangle, Info,
     Image as ImageIcon, Film, Folder, Link2, BarChart2, Mic, QrCode, Trash, Paperclip, Smile, Edit2, Copy, Crown, Video, GraduationCap, CreditCard, Cpu, LineChart, BookOpen, MessageCircle,
-    Megaphone, CheckCircle2, VolumeX, Volume2, X, CornerUpRight, SendHorizonal, Search as SearchIcon, Globe, Lock, ArrowRight, Bell, ShieldAlert, Settings, CornerUpLeft, EyeOff, ChevronLeft, Download, PenLine, ExternalLink, Trash2, Shield, Check
+    Megaphone, CheckCircle2, VolumeX, Volume2, X, CornerUpRight, SendHorizonal, Search as SearchIcon, Globe, Lock, ArrowRight, Bell, ShieldAlert, Settings, CornerUpLeft, EyeOff, ChevronLeft, Download, PenLine, ExternalLink, Trash2, Shield, Check,
+    UserPlus, Radio, Camera, ChevronDown, ChevronUp
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -49,6 +50,78 @@ import EmojiPicker from 'emoji-picker-react';
 import { supabase } from "@/lib/supabase";
 import { useChannelData, MessageType } from "@/hooks/useChannelData";
 import { usePlan } from "@/hooks/usePlan";
+
+const getChannelGradient = (name: string) => {
+  const gradients = [
+    'from-blue-600 to-indigo-700',
+    'from-emerald-600 to-teal-700',
+    'from-violet-600 to-purple-800',
+    'from-amber-600 to-orange-700',
+    'from-rose-600 to-pink-700',
+    'from-sky-600 to-cyan-700',
+    'from-slate-700 to-zinc-900',
+  ];
+  let sum = 0;
+  for (let i = 0; i < (name || '').length; i++) {
+    sum += name.charCodeAt(i);
+  }
+  return gradients[sum % gradients.length];
+};
+
+const getChannelInitials = (name: string) => {
+  const words = (name || "CH").trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    return (words[0][0] + words[1][0]).toUpperCase();
+  }
+  return (words[0] || "CH").slice(0, 2).toUpperCase();
+};
+
+const renderChannelAvatar = (
+  channel: { name: string; avatar?: string | null },
+  sizeClass: string = "w-11 h-11 text-xs",
+  roundedClass: string = "rounded-2xl"
+) => {
+  if (channel.avatar) {
+    return (
+      <img
+        src={channel.avatar}
+        alt={channel.name}
+        className={`${sizeClass} ${roundedClass} object-cover bg-slate-100 dark:bg-zinc-800 border border-slate-200/60 dark:border-white/10 shrink-0 shadow-xs`}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.display = 'none';
+        }}
+      />
+    );
+  }
+  const gradient = getChannelGradient(channel.name);
+  const initials = getChannelInitials(channel.name);
+  return (
+    <div
+      className={`${sizeClass} ${roundedClass} bg-gradient-to-br ${gradient} text-white font-extrabold flex items-center justify-center shrink-0 shadow-xs tracking-wider border border-white/20 select-none`}
+    >
+      {initials}
+    </div>
+  );
+};
+
+const MARKET_CATEGORIES = [
+  "Forex / Gold",
+  "Crypto",
+  "Indices",
+  "Stocks",
+  "Commodities",
+  "Options",
+  "Multi-Asset"
+];
+
+const STRATEGY_STYLES = [
+  "Scalping",
+  "Day Trading",
+  "Swing Trading",
+  "Smart Money (SMC)",
+  "Price Action",
+  "Algorithmic"
+];
 
 export default function Channel() {
   const navigate = useNavigate();
@@ -110,11 +183,31 @@ export default function Channel() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [newChannelName, setNewChannelName] = useState("");
   const [newChannelDesc, setNewChannelDesc] = useState("");
-  const [newChannelType, setNewChannelType] = useState("public");
+  const [newChannelType, setNewChannelType] = useState<"public" | "vip" | "private">("public");
+  const [newChannelMarket, setNewChannelMarket] = useState("Forex / Gold");
+  const [newChannelStyle, setNewChannelStyle] = useState("Scalping");
+  const [newAllowMessages, setNewAllowMessages] = useState(false);
   const [newVipPrice, setNewVipPrice] = useState("");
+  const [newBrokerLink, setNewBrokerLink] = useState("");
+  const [newAvatarFile, setNewAvatarFile] = useState<File | null>(null);
+  const [newAvatarPreview, setNewAvatarPreview] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [followedUsers, setFollowedUsers] = useState<any[]>([]);
   const [selectedInvites, setSelectedInvites] = useState<Record<string, boolean>>({});
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const channelAvatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Avatar image must be under 5MB");
+      return;
+    }
+    setNewAvatarFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setNewAvatarPreview(previewUrl);
+  };
   
   const userAccountType = localStorage.getItem('tradifive_cached_account_type') || 'personal';
 
@@ -147,6 +240,7 @@ export default function Channel() {
   }, []);
 
   const isChannelAdmin = dbChannels.find(c => c.id === activeChannelId)?.created_by === user?.id;
+  const isEffectiveMember = isMember || isChannelAdmin;
 
   useEffect(() => {
     if (isCreateModalOpen && user?.id) {
@@ -166,7 +260,14 @@ export default function Channel() {
         setNewChannelName("");
         setNewChannelDesc("");
         setNewChannelType("public");
+        setNewChannelMarket("Forex / Gold");
+        setNewChannelStyle("Scalping");
+        setNewAllowMessages(false);
         setNewVipPrice("");
+        setNewBrokerLink("");
+        setNewAvatarFile(null);
+        setNewAvatarPreview(null);
+        setShowAdvanced(false);
     }
   }, [isCreateModalOpen, user?.id]);
 
@@ -177,8 +278,10 @@ export default function Channel() {
             toast.error('Channel name is required');
             return;
         }
-        setCreateStep(2);
-        return;
+        if (followedUsers.length > 0) {
+            setCreateStep(2);
+            return;
+        }
     }
 
     setIsCreating(true);
@@ -190,16 +293,42 @@ export default function Channel() {
         return;
       }
 
+      let uploadedAvatarUrl: string | null = null;
+      if (newAvatarFile) {
+        try {
+          const fileExt = newAvatarFile.name.split('.').pop() || 'png';
+          const filePath = `channel-avatars/${currentUser.id}-${Date.now()}.${fileExt}`;
+          const { error: uploadErr } = await supabase.storage.from('attachments').upload(filePath, newAvatarFile, { upsert: true });
+          if (!uploadErr) {
+            const { data: pubData } = supabase.storage.from('attachments').getPublicUrl(filePath);
+            uploadedAvatarUrl = pubData.publicUrl;
+          }
+        } catch (uploadErr) {
+          console.warn("Avatar upload fallback:", uploadErr);
+        }
+      }
+
       const slug = newChannelName.toLowerCase().replace(/[^a-z0-9]+/g, '-') + '-' + Math.floor(Math.random() * 1000);
       
+      const rules = {
+        is_vip: newChannelType === 'vip',
+        vip_price: newVipPrice || null,
+        category: newChannelMarket,
+        trading_style: newChannelStyle,
+        allow_messages: newAllowMessages,
+        broker_link: newBrokerLink || null,
+        avatar: uploadedAvatarUrl || null
+      };
+
       const { data, error } = await supabase.from('channels').insert({
-          name: newChannelName,
-          description: newChannelDesc,
+          name: newChannelName.trim(),
+          description: newChannelDesc.trim() || `${newChannelMarket} trading signals and setups`,
           slug: slug,
           created_by: currentUser.id,
           channel_type: newChannelType === 'vip' ? 'private' : newChannelType,
           is_official: false,
-          rules: newChannelType === 'vip' ? JSON.stringify({ is_vip: true, vip_price: newVipPrice }) : null
+          avatar_url: uploadedAvatarUrl || null,
+          rules: JSON.stringify(rules)
       }).select().single();
 
       if (error) throw error;
@@ -224,7 +353,10 @@ export default function Channel() {
       toast.success("Channel created successfully!");
       setIsCreateModalOpen(false);
       refetchChannels();
-      if (data?.id) setActiveChannelId(data.id);
+      if (data?.id) {
+        setActiveChannelId(data.id);
+        setMobileView('chat');
+      }
     } catch (err: any) {
         toast.error(`Failed to create channel: ${err.message || JSON.stringify(err)}`);
         console.error("Channel creation error details:", err);
@@ -456,7 +588,16 @@ function ChannelSkeleton() {
       rulesObj = typeof ch.rules === 'string' ? JSON.parse(ch.rules || '{}') : (ch.rules || {});
     } catch(e){}
 
-    const charCodeSum = ch.name?.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0;
+    const memberCount = typeof ch.member_count === 'number'
+      ? ch.member_count
+      : (ch.member_count ? parseInt(ch.member_count, 10) : 1);
+    const subText = `${memberCount} ${memberCount === 1 ? 'subscriber' : 'subscribers'}`;
+
+    const rawAvatar = ch.avatar_url || rulesObj.avatar;
+    const cleanAvatar = (rawAvatar && typeof rawAvatar === 'string' && !rawAvatar.includes('pravatar.cc')) 
+      ? rawAvatar 
+      : null;
+
     return {
       id: ch.id,
       name: ch.name,
@@ -464,9 +605,10 @@ function ChannelSkeleton() {
       unread: 0,
       time: new Date(ch.created_at || "").toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
       content: ch.description || "Welcome to the channel!",
-      avatar: ch.avatar_url || rulesObj.avatar || `https://i.pravatar.cc/150?img=${charCodeSum % 70}`,
+      avatar: cleanAvatar,
       verified: ch.is_official || false,
-      subscribers: ch.member_count !== null ? `${ch.member_count} subscribers` : "250 subscribers",
+      subscribers: subText,
+      memberCount: memberCount,
       isBroadcast: ch.channel_type === "public",
       created_by: ch.created_by,
       channel_type: ch.channel_type,
@@ -532,7 +674,7 @@ function ChannelSkeleton() {
 
   const activeDetails = activeChannel ? {
     handle: activeChannel.handle,
-    link: `t.me/${activeChannel.handle}`,
+    link: `${window.location.host}/channel/${activeChannel.handle || activeChannel.id}`,
     description: activeChannel.content || "Official Tradifive communication channel.",
     giftsCount: "0 gifts",
     photosCount: `${photosCount} ${photosCount === 1 ? 'photo' : 'photos'}`,
@@ -542,7 +684,7 @@ function ChannelSkeleton() {
     pollsCount: `${pollsCount} ${pollsCount === 1 ? 'poll' : 'polls'}`,
     voicesCount: "0 voice messages",
     gifsCount: "0 GIFs",
-    similarCount: "4 similar channels",
+    similarCount: `${Math.max(0, dbChannels.length - 1)} other ${Math.max(0, dbChannels.length - 1) === 1 ? 'channel' : 'channels'}`,
     subscribers: activeChannel.subscribers
   } : {
     handle: "",
@@ -556,7 +698,7 @@ function ChannelSkeleton() {
     pollsCount: "0 polls",
     voicesCount: "0 voice messages",
     gifsCount: "0 GIFs",
-    similarCount: "0 similar channels",
+    similarCount: "0 channels",
     subscribers: "0 subscribers"
   };
 
@@ -788,14 +930,7 @@ function ChannelSkeleton() {
                 return (words[0] || "CH").slice(0, 4).toUpperCase();
               };
 
-              const featuredChannel =
-                filteredChannels.find((c) => c.id === activeChannelId) ||
-                filteredChannels.find((c) => c.created_by === user?.id) ||
-                filteredChannels[0] ||
-                null;
-
-              const topThreeChannels = filteredChannels.slice(0, 3);
-              const remainingChannels = filteredChannels.slice(3);
+              const myChannel = filteredChannels.find((c) => c.created_by === user?.id);
 
               const openChannelRoom = (channelId: string) => {
                 setActiveChannelId(channelId);
@@ -840,32 +975,28 @@ function ChannelSkeleton() {
                       )}
                     </div>
 
-                    {/* Featured Dark Card: YOUR CHANNEL */}
-                    {featuredChannel && !searchQuery && (
-                      <div className="rounded-[24px] bg-gradient-to-br from-[#18181B] via-[#0B0B0D] to-[#1E1E24] text-white p-4 border border-white/10 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.45)]">
+                    {/* Featured Dark Card: YOUR CHANNEL (only if user actually created a channel) */}
+                    {myChannel && !searchQuery && (
+                      <div className="rounded-[22px] bg-gradient-to-br from-[#18181B] via-[#0B0B0D] to-[#1E1E24] text-white p-4 border border-white/10 shadow-[0_12px_30px_-10px_rgba(0,0,0,0.45)]">
                         <div className="flex items-start gap-3.5">
-                          <img
-                            src={featuredChannel.avatar}
-                            alt={featuredChannel.name}
-                            className="w-16 h-16 rounded-2xl object-cover bg-black/50 border border-white/15 shrink-0"
-                            onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
-                            }}
-                          />
+                          {renderChannelAvatar(myChannel, "w-14 h-14 text-base", "rounded-2xl")}
                           <div className="flex-1 min-w-0">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400 block">
-                              YOUR CHANNEL
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400 block">
+                                YOUR CHANNEL
+                              </span>
+                              <Crown size={12} className="text-amber-400 fill-amber-400/20" />
+                            </div>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                               <h2 className="text-[17px] font-bold text-white leading-tight truncate">
-                                {featuredChannel.name}
+                                {myChannel.name}
                               </h2>
                               <span className="px-1.5 py-0.5 rounded-md bg-white/12 border border-white/15 text-[10px] font-extrabold text-zinc-200 tracking-wide shrink-0">
-                                {getChannelTag(featuredChannel.name)}
+                                {getChannelTag(myChannel.name)}
                               </span>
                             </div>
                             <p className="text-[12px] text-zinc-400 mt-1 truncate">
-                              {featuredChannel.subscribers || "Active community"}
+                              {myChannel.subscribers}
                             </p>
                           </div>
                         </div>
@@ -873,7 +1004,7 @@ function ChannelSkeleton() {
                         <div className="flex items-center gap-2.5 mt-4">
                           <button
                             type="button"
-                            onClick={() => openChannelRoom(featuredChannel.id)}
+                            onClick={() => openChannelRoom(myChannel.id)}
                             className="px-5 py-2 rounded-full bg-white hover:bg-slate-100 text-slate-900 text-[13px] font-bold transition-all active:scale-95 cursor-pointer"
                           >
                             Open
@@ -881,7 +1012,7 @@ function ChannelSkeleton() {
                           <button
                             type="button"
                             onClick={() => {
-                              const inviteUrl = `${window.location.origin}/channel/${featuredChannel.id}`;
+                              const inviteUrl = `${window.location.origin}/channel/${myChannel.id}`;
                               navigator.clipboard.writeText(inviteUrl);
                               toast.success("Channel invite link copied!");
                             }}
@@ -894,138 +1025,103 @@ function ChannelSkeleton() {
                       </div>
                     )}
 
-                    {/* TOP CHANNELS Podium (1, 2, 3) */}
-                    {topThreeChannels.length > 0 && (
-                      <div className="space-y-3">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400">
-                          TOP CHANNELS
-                        </p>
+                    {/* ALL CHANNELS Feed */}
+                    {filteredChannels.length > 0 && (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center justify-between px-1">
+                          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-zinc-400">
+                            CHANNELS ({filteredChannels.length})
+                          </p>
+                        </div>
 
-                        <div className="grid grid-cols-3 gap-2.5">
-                          {topThreeChannels.map((ch, idx) => {
-                            const isJoined = ch.id === activeChannelId || ch.created_by === user?.id;
+                        <div className="space-y-1.5">
+                          {filteredChannels.map((ch, idx) => {
+                            const isActive = ch.id === activeChannelId;
+                            const isCreator = ch.created_by === user?.id;
+                            const isJoined = isActive || isCreator;
                             const tag = getChannelTag(ch.name);
-                            const topGradient =
-                              idx === 0
-                                ? "from-slate-300/65 via-slate-100/70 to-slate-50 dark:from-white/[0.12] dark:via-white/[0.05] dark:to-white/[0.02]"
-                                : idx === 1
-                                  ? "from-zinc-200/75 via-slate-100/60 to-slate-50 dark:from-white/[0.09] dark:via-white/[0.04] dark:to-white/[0.02]"
-                                  : "from-amber-100/60 via-slate-100/60 to-slate-50 dark:from-amber-500/10 dark:via-white/[0.04] dark:to-white/[0.02]";
+                            const rank = idx + 1;
 
                             return (
                               <div
                                 key={ch.id}
                                 onClick={() => openChannelRoom(ch.id)}
-                                className={`rounded-[22px] bg-gradient-to-b ${topGradient} border border-slate-200/75 dark:border-white/10 p-2.5 pt-3 flex flex-col items-center text-center relative cursor-pointer transition-all hover:shadow-sm`}
+                                className={`group rounded-2xl p-2.5 flex items-center gap-3 cursor-pointer transition-all border ${
+                                  isActive
+                                    ? "bg-slate-100/90 dark:bg-white/[0.08] border-slate-300 dark:border-white/20 shadow-xs"
+                                    : "bg-white dark:bg-white/[0.02] hover:bg-slate-50/90 dark:hover:bg-white/[0.04] border-slate-200/70 dark:border-white/5"
+                                }`}
                               >
-                                <span className="absolute top-2.5 left-3 text-[17px] font-black text-slate-900 dark:text-white leading-none">
-                                  {idx + 1}
-                                </span>
-
-                                <img
-                                  src={ch.avatar}
-                                  alt={ch.name}
-                                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover bg-white dark:bg-black/40 border border-white/80 dark:border-white/10 shadow-xs mt-1"
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
-                                  }}
-                                />
-
-                                <h3 className="text-[12.5px] font-bold text-slate-900 dark:text-white leading-tight line-clamp-2 mt-2 min-h-[30px]">
-                                  {ch.name}
-                                </h3>
-
-                                <p className="text-[10.5px] text-slate-500 dark:text-zinc-400 truncate max-w-full mt-0.5">
-                                  <span className="font-bold text-slate-700 dark:text-zinc-300">{tag}</span>
-                                  {ch.subscribers ? ` · ${ch.subscribers.split(" ")[0]}` : ""}
-                                </p>
-
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openChannelRoom(ch.id);
-                                  }}
-                                  className={`mt-2.5 w-full py-1.5 rounded-full text-[11.5px] font-bold flex items-center justify-center gap-1 transition-all cursor-pointer ${
-                                    isJoined
-                                      ? "tactile-white-pill"
-                                      : "tactile-black-pill"
+                                {/* Rank badge */}
+                                <span
+                                  className={`w-5 text-center text-[12px] font-extrabold shrink-0 tabular-nums ${
+                                    rank === 1
+                                      ? "text-amber-500"
+                                      : rank === 2
+                                      ? "text-slate-400"
+                                      : rank === 3
+                                      ? "text-amber-700 dark:text-amber-600"
+                                      : "text-slate-400/80 dark:text-zinc-600"
                                   }`}
                                 >
+                                  #{rank}
+                                </span>
+
+                                {/* Avatar */}
+                                {renderChannelAvatar(ch, "w-11 h-11 text-xs", "rounded-xl")}
+
+                                {/* Info */}
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
+                                      {ch.name}
+                                    </h3>
+                                    {ch.verified && (
+                                      <CheckCircle2
+                                        size={12}
+                                        className="text-blue-500 fill-blue-500/20 shrink-0"
+                                      />
+                                    )}
+                                    <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-[9.5px] font-extrabold text-slate-600 dark:text-zinc-300 shrink-0">
+                                      {tag}
+                                    </span>
+                                    {isCreator && (
+                                      <Crown
+                                        size={12}
+                                        className="text-amber-500 fill-amber-500/20 shrink-0"
+                                        title="Your Channel"
+                                      />
+                                    )}
+                                  </div>
+                                  <p className="text-[11.5px] text-slate-500 dark:text-zinc-400 truncate mt-0.5">
+                                    {ch.subscribers}
+                                  </p>
+                                </div>
+
+                                {/* Action pill */}
+                                <div className="shrink-0">
                                   {isJoined ? (
-                                    <>
-                                      <Check size={12} strokeWidth={2.6} /> Joined
-                                    </>
+                                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-white/10 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-white/10">
+                                      <Check size={11} strokeWidth={2.6} />
+                                      <span>Joined</span>
+                                    </span>
                                   ) : (
-                                    "Join"
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openChannelRoom(ch.id);
+                                      }}
+                                      className="px-3.5 py-1 rounded-full text-[11px] font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 transition-all cursor-pointer shadow-2xs"
+                                    >
+                                      Join
+                                    </button>
                                   )}
-                                </button>
+                                </div>
                               </div>
                             );
                           })}
                         </div>
-                      </div>
-                    )}
-
-                    {/* Ranked Channels List (#4+) */}
-                    {remainingChannels.length > 0 && (
-                      <div className="divide-y divide-slate-100 dark:divide-white/10">
-                        {remainingChannels.map((ch, idx) => {
-                          const rank = idx + 4;
-                          const tag = getChannelTag(ch.name);
-                          const isLocked = ch.type === "private" || ch.type === "vip";
-                          return (
-                            <div
-                              key={ch.id}
-                              onClick={() => openChannelRoom(ch.id)}
-                              className="py-3 flex items-center gap-3 cursor-pointer hover:bg-slate-50/70 dark:hover:bg-white/[0.03] -mx-1 px-1 rounded-xl transition-colors"
-                            >
-                              <span className="w-5 text-center text-[13px] font-bold text-slate-400 dark:text-zinc-500 shrink-0 tabular-nums">
-                                {rank}
-                              </span>
-
-                              <img
-                                src={ch.avatar}
-                                alt={ch.name}
-                                className="w-10 h-10 rounded-xl object-cover bg-slate-100 dark:bg-white/10 border border-slate-200/70 dark:border-white/10 shrink-0"
-                                onError={(e) => {
-                                  (e.currentTarget as HTMLImageElement).src = "/default-avatar.svg";
-                                }}
-                              />
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 min-w-0">
-                                  <h4 className="text-[14px] font-bold text-slate-900 dark:text-white truncate">
-                                    {ch.name}
-                                  </h4>
-                                  <span className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/10 text-[10px] font-extrabold text-slate-600 dark:text-zinc-300 shrink-0">
-                                    {tag}
-                                  </span>
-                                </div>
-                                <p className="text-[12px] text-slate-500 dark:text-zinc-400 truncate mt-0.5">
-                                  {ch.subscribers || ch.content || "Trading community"}
-                                </p>
-                              </div>
-
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openChannelRoom(ch.id);
-                                }}
-                                className="px-3.5 py-1.5 rounded-full border border-slate-200 dark:border-white/15 bg-white dark:bg-white/[0.05] hover:bg-slate-50 dark:hover:bg-white/10 text-slate-800 dark:text-slate-100 text-[12px] font-bold flex items-center gap-1 shrink-0 transition-colors cursor-pointer"
-                              >
-                                {isLocked ? (
-                                  <>
-                                    <Lock size={11} /> Invite only
-                                  </>
-                                ) : (
-                                  "Join"
-                                )}
-                              </button>
-                            </div>
-                          );
-                        })}
                       </div>
                     )}
 
@@ -1094,7 +1190,7 @@ function ChannelSkeleton() {
                 <ChevronLeft size={18} />
               </button>
               <div className="cursor-pointer flex-1 flex items-center gap-2.5 sm:gap-3 min-w-0" onClick={() => setShowDetails(!showDetails)}>
-                <img src={activeChannel.avatar} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-200/50 dark:border-white/10 shadow-sm shrink-0" alt="Channel avatar" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
+                {renderChannelAvatar(activeChannel, "w-9 h-9 sm:w-10 sm:h-10 text-xs", "rounded-full")}
                 <div className="min-w-0 flex-1">
                   <h2 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none mb-1 truncate">
                     <span className="truncate">{activeChannel.name}</span>
@@ -1377,26 +1473,71 @@ function ChannelSkeleton() {
             )}
 
             {finalMessages.length === 0 && !dbLoading && (
-              <div className="text-center py-20 rounded-2xl p-6 max-w-sm mx-auto flex-shrink-0 border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none">
-                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#121212] flex items-center justify-center mx-auto text-slate-400 dark:text-slate-300 mb-4 border border-slate-200/30 dark:border-white/5">
-                  <MessageSquare size={24} />
+              isEffectiveMember ? (
+                <div className="text-center py-16 px-6 max-w-md mx-auto my-auto rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02] shadow-xs">
+                  <div className="w-14 h-14 rounded-2xl bg-white dark:bg-white/10 flex items-center justify-center mx-auto text-slate-700 dark:text-white mb-4 border border-slate-200/80 dark:border-white/15 shadow-xs">
+                    <Radio size={24} className="text-blue-500 animate-pulse" />
+                  </div>
+                  <h4 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">
+                    Welcome to #{activeChannel.name}
+                  </h4>
+                  <p className="text-[13px] text-slate-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                    {isChannelAdmin
+                      ? "You are the creator of this channel. Use the composer below to broadcast signals, charts, or updates to your subscribers."
+                      : "No signals or messages posted yet. Live updates, execution alerts, and broadcasts from the host will appear here in real time."}
+                  </p>
                 </div>
-                <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-1">No Broadcasts Yet</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                  You have successfully joined 📣 {activeChannel.name}. Live execution alerts and signal broadcasts will appear here in real-time.
-                </p>
-              </div>
+              ) : (
+                <div className="text-center py-16 px-6 max-w-md mx-auto my-auto rounded-[24px] border border-slate-200/80 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02] shadow-xs">
+                  <div className="flex justify-center mb-4">
+                    {renderChannelAvatar(activeChannel, "w-16 h-16 text-lg", "rounded-2xl")}
+                  </div>
+                  <h3 className="text-[18px] font-bold text-slate-900 dark:text-white">
+                    {activeChannel.name}
+                  </h3>
+                  <p className="text-[12px] font-semibold text-slate-500 dark:text-zinc-400 mt-0.5">
+                    {activeChannel.subscribers}
+                  </p>
+                  <p className="text-[13px] text-slate-600 dark:text-zinc-300 mt-3 leading-relaxed max-w-xs mx-auto">
+                    {activeChannel.content || "Join this channel to receive real-time signals, analysis, and community broadcasts."}
+                  </p>
+                  <div className="mt-6 flex justify-center">
+                    <button
+                      onClick={joinChannel}
+                      type="button"
+                      className="px-6 py-2.5 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-[13px] hover:opacity-90 active:scale-95 shadow-sm transition-all flex items-center gap-2 cursor-pointer"
+                    >
+                      <UserPlus size={16} />
+                      <span>Join Channel</span>
+                    </button>
+                  </div>
+                </div>
+              )
             )}
 
             <div ref={messageEndRef} />
           </div>
 
           {/* --- RIGHT CHAT FOOTER PANEL --- */}
-          <div className="p-4 px-6 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-center z-10 shadow-xs shrink-0 w-full">
-            {!isMember && activeChannel?.id !== "saved" ? (
-                <button onClick={joinChannel} className="px-8 py-2.5 rounded-full text-[13px] font-bold transition-all border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:shadow-none shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white active:scale-95">
+          <div className="p-3 sm:p-4 px-4 sm:px-6 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212] flex items-center justify-center z-10 shadow-xs shrink-0 w-full">
+            {!isEffectiveMember && activeChannel?.id !== "saved" ? (
+                <div className="w-full max-w-2xl flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
+                      Previewing {activeChannel.name}
+                    </p>
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 truncate">
+                      Join this channel to participate in discussions and get live broadcasts
+                    </p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={joinChannel} 
+                    className="px-6 py-2 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-bold text-[13px] hover:opacity-90 active:scale-95 shrink-0 transition-all cursor-pointer shadow-xs"
+                  >
                     Join Channel
-                </button>
+                  </button>
+                </div>
             ) : (() => {
                 const rules = typeof activeChannel?.rules === 'string' ? JSON.parse(activeChannel.rules || '{}') : (activeChannel?.rules || {});
                 const allowMessages = rules.allow_messages !== false;
@@ -1502,7 +1643,7 @@ function ChannelSkeleton() {
           }`}
         >
           <div className="p-4 px-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between shrink-0 h-[60px]">
-            <span className="text-[14px] font-bold text-slate-800 dark:text-white">User Info</span>
+            <span className="text-[14px] font-bold text-slate-800 dark:text-white">Channel Info</span>
             <button 
               onClick={() => setShowDetails(false)}
               className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center transition-colors text-slate-400 hover:text-slate-800 dark:hover:text-white outline-none"
@@ -1516,19 +1657,14 @@ function ChannelSkeleton() {
               <>
             
             <div className="text-center space-y-2">
-              <div className="w-[100px] h-[100px] rounded-full overflow-hidden mx-auto border-2 border-slate-100 dark:border-white/5 shadow-sm relative group bg-slate-50">
-                <img 
-                  src={activeChannel.avatar} 
-                  alt={activeChannel.name} 
-                  className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }}
-                />
+              <div className="flex justify-center">
+                {renderChannelAvatar(activeChannel, "w-[90px] h-[90px] text-2xl", "rounded-full")}
               </div>
               <h3 className="text-[17px] font-extrabold text-slate-900 dark:text-white flex items-center justify-center gap-1 mt-3 leading-tight">
                 {activeChannel.name}
-                {activeChannel.verified && <CheckCircle2 size={15} className="text-slate-400 fill-slate-450 dark:text-slate-400 dark:fill-slate-550 text-white shrink-0" />}
+                {activeChannel.verified && <CheckCircle2 size={15} className="text-blue-500 fill-blue-500/20 shrink-0" />}
               </h3>
-              <p className="text-[12.5px] text-slate-400 dark:text-slate-400 font-semibold leading-none">
+              <p className="text-[12.5px] text-slate-500 dark:text-slate-400 font-semibold leading-none">
                 {activeDetails.subscribers}
               </p>
               
@@ -1690,145 +1826,307 @@ function ChannelSkeleton() {
 
       {/* Create Channel Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent showCloseButton={false} className="sm:max-w-[400px] bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] dark:shadow-none border-2 border-white dark:border-white/5 rounded-[24px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none p-0 overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-indigo-50 to-transparent dark:from-indigo-500/10 dark:to-transparent pointer-events-none" />
-          
-          <button 
-            onClick={() => setIsCreateModalOpen(false)}
-            className="absolute top-6 right-6 w-8 h-8 rounded-full bg-slate-100/80 hover:bg-slate-200 dark:bg-[#1E1E1E]/80 dark:hover:bg-[#252528] flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors z-10"
-          >
-            <X size={16} />
-          </button>
-          
-          <div className="p-6 relative pt-6">
-            <DialogHeader className="mb-5 space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-indigo-600/10 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-600/20 dark:ring-indigo-500/30">
-                <Megaphone size={18} className="fill-indigo-600/20" />
-              </div>
-              <div>
-                <DialogTitle className="text-[18px] font-extrabold text-slate-900 dark:text-white tracking-tight">
-                    {createStep === 1 ? "Create a Channel" : "Invite Members"}
-                </DialogTitle>
-                <p className="text-[12.5px] text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                  {createStep === 1 ? "Set up a dedicated space for your signals, updates, and community broadcasts." : "Select followers to invite to your new channel."}
-                </p>
-              </div>
-            </DialogHeader>
-
-            <form onSubmit={handleCreateChannel} className="space-y-4">
-              {createStep === 1 ? (
-                  <>
-                      <div className="space-y-2">
-                        <label className="text-[13px] font-bold text-slate-800 dark:text-slate-200 ml-1">Channel Name</label>
-                        <input 
-                          type="text" 
-                          required
-                          value={newChannelName}
-                          onChange={(e) => setNewChannelName(e.target.value)}
-                          placeholder="e.g. VIP Forex Signals"
-                          className="w-full bg-white dark:bg-[#1E1E1E] border-2 border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-[13px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:bg-white dark:focus:bg-[#1A1A1A] focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[13px] font-bold text-slate-800 dark:text-slate-200 ml-1">Description</label>
-                        <textarea 
-                          value={newChannelDesc}
-                          onChange={(e) => setNewChannelDesc(e.target.value)}
-                          placeholder="What kind of alerts will you broadcast here?"
-                          rows={2}
-                          className="w-full bg-white dark:bg-[#1E1E1E] border-2 border-slate-200 dark:border-white/5 rounded-xl px-4 py-2.5 text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:bg-white dark:focus:bg-[#1A1A1A] focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all resize-none shadow-sm"
-                        />
-                      </div>
-                      {userAccountType === 'creator' && (
-                          <>
-                              <div className="space-y-3 pt-2">
-                                  <label className="text-[13px] font-bold text-slate-800 dark:text-slate-200 ml-1">Privacy Mode</label>
-                                  <div className="grid grid-cols-2 gap-3">
-                                      <button 
-                                        type="button"
-                                        onClick={() => setNewChannelType("public")}
-                                        className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${newChannelType === "public" ? "border-indigo-500 bg-indigo-50/50 dark:bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 ring-2 ring-indigo-500/20" : "border-slate-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] text-slate-500 hover:border-slate-300 dark:hover:border-[#444]"}`}
-                                      >
-                                          <div className={`w-6 h-6 rounded-full mb-1.5 flex items-center justify-center ${newChannelType === "public" ? "bg-indigo-100 dark:bg-indigo-500/20" : "bg-slate-100 dark:bg-[#1E1E1E]"}`}>
-                                              <Globe size={12} />
-                                          </div>
-                                          <span className="text-[11px] font-bold">Public</span>
-                                      </button>
-                                      <button 
-                                        type="button"
-                                        onClick={() => {
-                                           if (!canAccess('private_channels')) {
-                                              toast.error(
-                                                 <div className="flex flex-col gap-1">
-                                                   <div className="flex items-center gap-2">
-                                                     <Crown size={16} className="text-amber-500" />
-                                                     <span className="font-bold text-slate-900 dark:text-white">Pro Feature</span>
-                                                   </div>
-                                                   <span className="text-slate-600 dark:text-slate-300">Upgrade to Pro to create private channels.</span>
-                                                 </div>
-                                              );
-                                              return;
-                                           }
-                                           setNewChannelType("private");
-                                        }}
-                                        className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 transition-all ${newChannelType === "private" ? "border-rose-500 bg-rose-50/50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-2 ring-rose-500/20" : "border-slate-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] text-slate-500 hover:border-slate-300 dark:hover:border-[#444]"}`}
-                                      >
-                                          <div className={`w-6 h-6 rounded-full mb-1.5 flex items-center justify-center ${newChannelType === "private" ? "bg-rose-100 dark:bg-rose-500/20" : "bg-slate-100 dark:bg-[#1E1E1E]"}`}>
-                                              <Lock size={12} />
-                                          </div>
-                                          <span className="text-[11px] font-bold">Private</span>
-                                      </button>
-                                  </div>
-                              </div>
-                        </>
-                    )}
-                </>
-            ) : (
-                <div className="max-h-[300px] overflow-y-auto amazing-scrollbar space-y-2 pr-2">
-                    {followedUsers.length > 0 ? followedUsers.map(fUser => (
-                        <div key={fUser.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer" onClick={() => toggleInvite(fUser.id)}>
-                            <div className="flex items-center gap-3">
-                                <img src={fUser.avatar_url || "/default-avatar.svg"} alt={fUser.username} className="w-10 h-10 rounded-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
-                                <div>
-                                    <p className="text-[13px] font-bold text-slate-800 dark:text-white">{fUser.display_name || fUser.username}</p>
-                                    <p className="text-[11px] text-slate-500">@{fUser.username}</p>
-                                </div>
-                            </div>
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${selectedInvites[fUser.id] ? "bg-blue-600 border-blue-600" : "border-slate-300 dark:border-white/5"}`}>
-                                {selectedInvites[fUser.id] && <CheckCircle2 size={12} className="text-white" />}
-                            </div>
-                        </div>
-                    )) : (
-                        <p className="text-center text-[13px] text-slate-400 py-6">You aren't following anyone yet.</p>
-                    )}
-                </div>
-            )}
-            
-              <div className="pt-6 flex items-center justify-end gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => createStep === 2 ? setCreateStep(1) : setIsCreateModalOpen(false)}
-                  className="px-6 py-3 rounded-2xl text-[14px] font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-white/5 transition-all outline-none"
-                >
-                  {createStep === 2 ? "Back" : "Cancel"}
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isCreating || (createStep === 1 && !newChannelName.trim())}
-                  className="px-8 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-[14px] font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_20px_-4px_rgba(79,70,229,0.5)] outline-none flex items-center gap-2 group"
-                >
-                  {isCreating ? (
-                    <div className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-                  ) : (
-                    <>
-                      {createStep === 1 ? "Continue" : "Create Channel"}
-                      <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
+        <DialogContent
+          showCloseButton={false}
+          className="sm:max-w-[460px] max-h-[90vh] flex flex-col bg-white dark:bg-[#121212] border border-slate-200 dark:border-white/10 rounded-[28px] shadow-[0_24px_60px_-15px_rgba(0,0,0,0.3)] p-0 overflow-hidden"
+        >
+          {/* Header */}
+          <div className="p-5 px-6 border-b border-slate-100 dark:border-white/10 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-white/[0.02]">
+            <div>
+              <DialogTitle className="text-[17px] font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight">
+                {createStep === 1 ? "Create a Channel" : "Invite Members"}
+              </DialogTitle>
+              <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-0.5 font-medium leading-normal">
+                {createStep === 1
+                  ? "Share trading setups, alerts, and analysis with your community."
+                  : "Invite your followers to your new broadcast room."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsCreateModalOpen(false)}
+              className="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer shrink-0"
+            >
+              <X size={15} />
+            </button>
           </div>
+
+          {/* Form Content */}
+          <form onSubmit={handleCreateChannel} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {createStep === 1 ? (
+              <div className="flex-1 overflow-y-auto amazing-scrollbar p-6 space-y-4">
+                {/* 1. Channel Picture + Channel Name Row */}
+                <div className="flex items-center gap-3.5">
+                  <input
+                    ref={channelAvatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarSelect}
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => channelAvatarInputRef.current?.click()}
+                    className="group relative w-14 h-14 rounded-2xl cursor-pointer overflow-hidden border-2 border-dashed border-slate-300 dark:border-white/20 hover:border-slate-400 dark:hover:border-white/40 transition-colors shrink-0 flex items-center justify-center bg-slate-50 dark:bg-white/5"
+                    title="Upload Channel Picture"
+                  >
+                    {newAvatarPreview ? (
+                      <img
+                        src={newAvatarPreview}
+                        alt="Avatar preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      renderChannelAvatar(
+                        { name: newChannelName || "CH" },
+                        "w-full h-full text-sm",
+                        "rounded-none"
+                      )
+                    )}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                      <Camera size={16} />
+                    </div>
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <label className="text-[12.5px] font-bold text-slate-900 dark:text-white block mb-1">
+                      Channel Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newChannelName}
+                      onChange={(e) => setNewChannelName(e.target.value)}
+                      placeholder="e.g. VIP Forex Signals"
+                      className="w-full h-10 bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/30 rounded-xl px-3 text-[13.5px] font-bold text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Channel Type (Public vs Private) */}
+                <div className="space-y-1.5">
+                  <label className="text-[12.5px] font-bold text-slate-900 dark:text-white block">
+                    Channel Type
+                  </label>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setNewChannelType("public")}
+                      className={`p-3 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+                        newChannelType === "public"
+                          ? "border-slate-900 bg-slate-900/5 dark:border-white dark:bg-white/10 ring-1 ring-slate-900 dark:ring-white"
+                          : "border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] hover:bg-slate-100/70 dark:hover:bg-white/[0.05]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Globe size={14} className="text-slate-800 dark:text-white" />
+                        <span className="text-[12.5px] font-extrabold text-slate-900 dark:text-white">
+                          Public
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-tight">
+                        Anyone can search & join
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setNewChannelType("private")}
+                      className={`p-3 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
+                        newChannelType === "private"
+                          ? "border-slate-900 bg-slate-900/5 dark:border-white dark:bg-white/10 ring-1 ring-slate-900 dark:ring-white"
+                          : "border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] hover:bg-slate-100/70 dark:hover:bg-white/[0.05]"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Lock size={14} className="text-slate-800 dark:text-white" />
+                        <span className="text-[12.5px] font-extrabold text-slate-900 dark:text-white">
+                          Private
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-tight">
+                        Invite link only
+                      </p>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. Description */}
+                <div className="space-y-1.5">
+                  <label className="text-[12.5px] font-bold text-slate-900 dark:text-white block">
+                    Description <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <textarea
+                    value={newChannelDesc}
+                    onChange={(e) => setNewChannelDesc(e.target.value)}
+                    placeholder="What kind of signals or updates will you post here?"
+                    rows={2}
+                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/30 rounded-xl p-3 text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none transition-colors resize-none"
+                  />
+                </div>
+
+                {/* 4. Optional "More options" */}
+                <div className="border border-slate-200/80 dark:border-white/10 rounded-2xl overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced(!showAdvanced)}
+                    className="w-full p-2.5 px-3.5 flex items-center justify-between text-left bg-slate-50/60 dark:bg-white/[0.02] hover:bg-slate-100/60 dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
+                  >
+                    <span className="text-[11.5px] font-bold text-slate-700 dark:text-zinc-300">
+                      More options (Market, VIP price, Broker link)
+                    </span>
+                    {showAdvanced ? (
+                      <ChevronUp size={14} className="text-slate-400" />
+                    ) : (
+                      <ChevronDown size={14} className="text-slate-400" />
+                    )}
+                  </button>
+
+                  {showAdvanced && (
+                    <div className="p-3.5 space-y-3.5 border-t border-slate-150 dark:border-white/5 bg-white dark:bg-[#121212]">
+                      {/* Market focus */}
+                      <div className="space-y-1.5">
+                        <label className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 block">
+                          Market Focus
+                        </label>
+                        <div className="flex flex-wrap gap-1.5">
+                          {MARKET_CATEGORIES.map((m) => (
+                            <button
+                              key={m}
+                              type="button"
+                              onClick={() => setNewChannelMarket(m)}
+                              className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer ${
+                                newChannelMarket === m
+                                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                                  : "bg-slate-100 hover:bg-slate-200 text-slate-600 dark:bg-white/5 dark:text-zinc-300"
+                              }`}
+                            >
+                              {m}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* VIP price */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 block">
+                          VIP Price (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          value={newVipPrice}
+                          onChange={(e) => {
+                            setNewVipPrice(e.target.value);
+                            if (e.target.value.trim()) setNewChannelType("vip");
+                          }}
+                          placeholder="e.g. ₹999/month (Leave blank if free)"
+                          className="w-full h-8.5 bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-lg px-2.5 text-[12px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none"
+                        />
+                      </div>
+
+                      {/* Broker link */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-bold text-slate-700 dark:text-zinc-300 block">
+                          Broker Link (Optional)
+                        </label>
+                        <input
+                          type="url"
+                          value={newBrokerLink}
+                          onChange={(e) => setNewBrokerLink(e.target.value)}
+                          placeholder="https://..."
+                          className="w-full h-8.5 bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-lg px-2.5 text-[12px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Step 2: Invite followers */
+              <div className="flex-1 overflow-y-auto amazing-scrollbar p-6 space-y-3">
+                <p className="text-[13px] font-semibold text-slate-600 dark:text-zinc-300">
+                  Select followers to invite to your new channel:
+                </p>
+                <div className="space-y-1.5">
+                  {followedUsers.length > 0 ? (
+                    followedUsers.map((fUser) => {
+                      const isInvited = Boolean(selectedInvites[fUser.id]);
+                      return (
+                        <div
+                          key={fUser.id}
+                          onClick={() => toggleInvite(fUser.id)}
+                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/[0.03] border border-slate-150 dark:border-white/5 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={fUser.avatar_url || "/default-avatar.svg"}
+                              alt={fUser.username}
+                              className="w-9 h-9 rounded-full object-cover bg-slate-100"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = "/default-avatar.svg";
+                              }}
+                            />
+                            <div>
+                              <p className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                {fUser.display_name || fUser.username}
+                              </p>
+                              <p className="text-[11px] text-slate-500">@{fUser.username}</p>
+                            </div>
+                          </div>
+                          <div
+                            className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors ${
+                              isInvited
+                                ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900"
+                                : "border-slate-300 dark:border-white/20"
+                            }`}
+                          >
+                            {isInvited && <Check size={12} strokeWidth={3} />}
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="py-8 text-center text-slate-400 text-[13px]">
+                      You don't have any followers yet. You can still invite people later with your channel link.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="p-4 px-6 border-t border-slate-100 dark:border-white/10 flex items-center justify-between bg-slate-50/50 dark:bg-white/[0.02] shrink-0">
+              <button
+                type="button"
+                onClick={() =>
+                  createStep === 2 ? setCreateStep(1) : setIsCreateModalOpen(false)
+                }
+                className="text-[13px] font-bold text-slate-500 hover:text-slate-900 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                {createStep === 2 ? "Back" : "Cancel"}
+              </button>
+
+              <button
+                type="submit"
+                disabled={isCreating || (createStep === 1 && !newChannelName.trim())}
+                className="px-6 py-2.5 rounded-full bg-slate-900 hover:bg-black text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-[13px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                {isCreating ? (
+                  <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white dark:border-black/20 dark:border-t-black animate-spin" />
+                ) : (
+                  <>
+                    <span>
+                      {createStep === 1
+                        ? followedUsers.length > 0
+                          ? "Continue"
+                          : "Create Channel"
+                        : "Create Channel"}
+                    </span>
+                    <ArrowRight size={14} />
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
       

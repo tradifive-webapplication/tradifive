@@ -180,6 +180,40 @@ const VerifiedBadge = () => (
     </span>
 );
 
+// Bespoke visual badge generator for algorithms and quantitative trading strategies
+const getAlgoVisual = (algo: MarketplaceProduct) => {
+    const isFiAlgo = algo.id === "algo-fialgo-v1" || algo.name?.includes("FiAlgo");
+    if (isFiAlgo || algo.thumbnailUrl) {
+        return (
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-amber-500/15 to-amber-500/5 dark:from-amber-400/10 dark:to-transparent border border-amber-500/30 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                <img src={algo.thumbnailUrl || "/fialgo-v1-box.png"} alt={algo.name} className="w-full h-full object-contain drop-shadow" />
+            </div>
+        );
+    }
+
+    if (algo.name?.includes("Alpha Momentum") || algo.category === "Algo") {
+        return (
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-cyan-500/15 to-blue-600/10 dark:from-cyan-400/15 dark:to-blue-500/5 border border-cyan-500/30 dark:border-cyan-400/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                <Cpu size={20} strokeWidth={2.2} />
+            </div>
+        );
+    }
+
+    if (algo.name?.includes("London Breakout") || algo.pairs?.includes("GBP/USD")) {
+        return (
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-emerald-500/15 to-teal-600/10 dark:from-emerald-400/15 dark:to-teal-500/5 border border-emerald-500/30 dark:border-emerald-400/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                <TrendingUp size={20} strokeWidth={2.2} />
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-purple-500/15 to-indigo-600/10 dark:from-purple-400/15 dark:to-indigo-500/5 border border-purple-500/30 dark:border-purple-400/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+            <ShieldCheck size={20} strokeWidth={2.2} />
+        </div>
+    );
+};
+
 export default function Discover() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -595,11 +629,11 @@ export default function Discover() {
         return {
             id: c.id,
             name: c.name,
-            onlineCount: (charCodeSum * 7) % 300 + 15,
-            memberCount: (c as any).memberCount || c.member_count || ((charCodeSum * 19) % 2000 + 500),
+            onlineCount: 0,
+            memberCount: (c as any).memberCount || c.member_count || 1,
             description: c.description || "Official Tradifive communication channel.",
             icon: c.icon || "C",
-            avatar_url: (c as any).avatar_url || c.avatar_url || `https://i.pravatar.cc/150?img=${charCodeSum % 70}`,
+            avatar_url: (c as any).avatar_url || c.avatar_url || null,
             cover_url: (c as any).cover_url || c.cover_url || fallbackCovers[charCodeSum % fallbackCovers.length],
             locked: c.channel_type === "private" || c.channel_type === "premium"
         };
@@ -741,6 +775,169 @@ export default function Discover() {
             </div>
         );
     }
+
+    const renderAlgoCard = (algo: MarketplaceProduct, isFlagshipOverride?: boolean) => {
+        const isPurchased = purchasedItems.includes(algo.id);
+        const isFlagship = isFlagshipOverride ?? (algo.id === "algo-fialgo-v1" || algo.name === "FiAlgo V1");
+
+        return (
+            <div
+                key={algo.id}
+                className={`rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 relative group min-h-[440px] bg-white dark:bg-[#151518] border ${
+                    isFlagship
+                        ? "border-amber-500/35 dark:border-amber-400/30 shadow-[0_2px_16px_rgba(245,158,11,0.06)] hover:border-amber-500/60 dark:hover:border-amber-400/50"
+                        : "border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-slate-300 dark:hover:border-white/20"
+                } hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-0.5`}
+            >
+                <div>
+                    {/* Top Row: Refined Single Flagship Badge & Star Rating */}
+                    <div className="flex items-center justify-between gap-2 mb-3.5">
+                        <div className="flex items-center gap-1.5">
+                            {isFlagship ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25">
+                                    <Sparkles size={11} className="text-amber-500 fill-amber-500" />
+                                    Flagship EA
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
+                                    {algo.badge || algo.category}
+                                </span>
+                            )}
+                        </div>
+                        {algo.rating && (
+                            <div className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-zinc-400">
+                                <Star size={11.5} className="text-amber-400 fill-amber-400" />
+                                <span className="font-bold text-slate-900 dark:text-white">{algo.rating}</span>
+                                {algo.reviewsCount && (
+                                    <span className="text-[10px] text-slate-400 dark:text-zinc-500">({algo.reviewsCount})</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Product Box Art & Title */}
+                    <div className="flex items-start gap-3 mb-3.5">
+                        {getAlgoVisual(algo)}
+                        <div className="min-w-0 flex-1">
+                            <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-snug tracking-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                {algo.name}
+                            </h3>
+                            <div className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-zinc-400 mt-1 flex-wrap">
+                                <span className="font-medium text-slate-700 dark:text-zinc-300">by {algo.creatorName}</span>
+                                <VerifiedBadge />
+                                {algo.version && (
+                                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">· {algo.version}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Instrument & Timeframe Specs Strip */}
+                    {algo.pairs && (
+                        <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] mb-3">
+                            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                {algo.pairs.map(p => (
+                                    <span key={p} className="inline-flex items-center gap-1 text-[10.5px] font-mono font-medium text-slate-700 dark:text-zinc-300 truncate">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                        {p}
+                                    </span>
+                                ))}
+                            </div>
+                            {algo.timeframe && (
+                                <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500 shrink-0 uppercase tracking-tight">
+                                    {algo.timeframe}
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Metrics 3-tile Row (Institutional Segmented Box) */}
+                    <div className="grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-white/[0.06] rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.05] mb-3 text-center overflow-hidden">
+                        <div className="py-2 px-1">
+                            <div className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500 mb-0.5">
+                                WIN RATE
+                            </div>
+                            <div className="text-[13px] font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
+                                {algo.winRate || "—"}
+                            </div>
+                        </div>
+                        <div className="py-2 px-1">
+                            <div className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500 mb-0.5">
+                                AVG RETURN
+                            </div>
+                            <div className="text-[13px] font-bold font-mono text-slate-900 dark:text-white tabular-nums">
+                                {algo.monthlyReturn || "—"}
+                            </div>
+                        </div>
+                        <div className="py-2 px-1">
+                            <div className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500 mb-0.5">
+                                MAX DD
+                            </div>
+                            <div className="text-[13px] font-bold font-mono text-slate-600 dark:text-zinc-400 tabular-nums">
+                                {algo.drawdown || "—"}
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4 min-h-[36px]">
+                        {algo.description}
+                    </p>
+                </div>
+
+                {/* Price & Action Footer */}
+                <div className="pt-3.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between mt-auto gap-2">
+                    <div>
+                        <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block leading-none mb-1">
+                            Lifetime License
+                        </span>
+                        <div className="text-[17px] font-bold font-mono text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
+                            <span className="text-xs font-semibold text-slate-400 dark:text-zinc-500">{algo.currency || "₹"}</span>
+                            <span>{Number(algo.price || 10000).toLocaleString("en-IN")}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setDetailsModalProduct(algo)}
+                            className="h-8 px-3 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-700 dark:text-zinc-300 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer select-none"
+                            title="Inspect algorithm details"
+                        >
+                            <Eye size={12.5} />
+                            <span>Details</span>
+                        </button>
+
+                        {isPurchased ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPurchaseModalProduct(algo);
+                                    setPurchaseStep("activated");
+                                    const isFiAlgo = algo.name?.includes("FiAlgo") || algo.id?.includes("fialgo");
+                                    const prefix = isFiAlgo ? "FIALGO-V1" : algo.name?.includes("Scalper") ? "SCALP" : algo.name?.includes("Swing") ? "SWING" : algo.name?.includes("HFT") ? "HFT" : "GRID";
+                                    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+                                    setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
+                                }}
+                                className="h-8 px-3.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 select-none"
+                            >
+                                <Check size={13} strokeWidth={2.5} />
+                                <span>Active</span>
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => handlePurchase(algo)}
+                                className="h-8 px-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-slate-950 text-xs font-bold shadow-xs transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border border-transparent select-none"
+                            >
+                                <span>Buy</span>
+                                <ArrowRight size={12.5} strokeWidth={2.2} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     const isColdLoading = loading && finalPeople.length === 0 && finalMentors.length === 0 && channels.length === 0 && finalTraders.length === 0;
 
@@ -1171,14 +1368,14 @@ export default function Discover() {
                     {/* Featured Trading Algorithms & Strategies (Preview on All tab) */}
                     {(activeTab === "All") && !searchQuery && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-1">
                                 <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
+                                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
                                             Institutional Algos & Strategies
                                         </span>
-                                        <span className="text-[10px] font-semibold text-slate-400 dark:text-zinc-500">
-                                            MT5 Compatible · Lifetime License
+                                        <span className="text-[10px] font-mono font-medium text-slate-500 dark:text-zinc-400">
+                                            MT5 Certified · Lifetime License
                                         </span>
                                     </div>
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
@@ -1188,7 +1385,7 @@ export default function Discover() {
                                 <button
                                     type="button"
                                     onClick={() => handleTabChange("Marketplace")}
-                                    className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                                    className="h-8 px-3.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-700 dark:text-zinc-300 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors self-start sm:self-auto shrink-0 shadow-xs select-none"
                                 >
                                     <span>Browse Marketplace</span>
                                     <ArrowRight size={13} strokeWidth={2.2} />
@@ -1196,152 +1393,7 @@ export default function Discover() {
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                                {EXISTING_OFFICIAL_ALGOS.map((algo) => {
-                                    const isPurchased = purchasedItems.includes(algo.id);
-                                    const isFlagship = algo.id === "algo-fialgo-v1" || algo.name === "FiAlgo V1";
-                                    return (
-                                        <div
-                                            key={algo.id}
-                                            className="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[420px] bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1"
-                                        >
-                                            <div>
-                                                {/* Top Row: Refined Single Flagship Badge & Star Rating */}
-                                                <div className="flex items-center justify-between gap-2 mb-3.5">
-                                                    <div className="flex items-center gap-1.5">
-                                                        {isFlagship ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs">
-                                                                <Sparkles size={11} className="text-amber-400 fill-amber-400" />
-                                                                Flagship EA
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
-                                                                {algo.badge || algo.category}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {algo.rating && (
-                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/[0.04] px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
-                                                            <Star size={11} className="text-amber-400 fill-amber-400" />
-                                                            <span className="font-bold text-slate-900 dark:text-white">{algo.rating}</span>
-                                                            {algo.reviewsCount && (
-                                                                <span className="text-[10px] text-slate-400 dark:text-slate-500">({algo.reviewsCount})</span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Product Box Art & Title */}
-                                                <div className="flex items-center gap-3 mb-3.5">
-                                                    {(algo.thumbnailUrl || algo.name.includes("FiAlgo")) ? (
-                                                        <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                                                            <img src={algo.thumbnailUrl || "/fialgo-v1-box.png"} alt={algo.name} className="w-full h-full object-contain drop-shadow" />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                                                            {algo.category === "Strategy" ? <TrendingUp size={20} strokeWidth={2.2} /> : <Cpu size={20} strokeWidth={2.2} />}
-                                                        </div>
-                                                    )}
-                                                    <div className="min-w-0">
-                                                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                            {algo.name}
-                                                        </h3>
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                            <span className="font-medium text-slate-600 dark:text-slate-300">by {algo.creatorName}</span>
-                                                            <VerifiedBadge />
-                                                            {algo.version && (
-                                                                <span className="text-[10px] text-slate-400 font-mono">· {algo.version}</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Instrument & Timeframe Specs Strip */}
-                                                {algo.pairs && (
-                                                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-xs">
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            {algo.pairs.map(p => (
-                                                                <span key={p} className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                                                    {p}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                        {algo.timeframe && (
-                                                            <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 font-mono">
-                                                                {algo.timeframe}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Metrics 3-tile Row */}
-                                                <div className="grid grid-cols-3 gap-1.5 p-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-center">
-                                                    <div className="py-1 px-1">
-                                                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">WIN RATE</div>
-                                                        <div className="text-sm font-black text-emerald-600 dark:text-emerald-400">{algo.winRate}</div>
-                                                    </div>
-                                                    <div className="py-1 px-1 border-x border-slate-200/60 dark:border-white/5">
-                                                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">AVG RETURN</div>
-                                                        <div className="text-sm font-black text-slate-900 dark:text-white">{algo.monthlyReturn}</div>
-                                                    </div>
-                                                    <div className="py-1 px-1">
-                                                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">MAX DD</div>
-                                                        <div className="text-sm font-black text-slate-700 dark:text-slate-300">{algo.drawdown}</div>
-                                                    </div>
-                                                </div>
-
-                                                <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4">
-                                                    {algo.description}
-                                                </p>
-                                            </div>
-
-                                            {/* Price & Action Footer */}
-                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between mt-auto">
-                                                <div>
-                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block leading-none mb-1">
-                                                        Lifetime License
-                                                    </span>
-                                                    <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
-                                                        <span className="text-sm font-bold text-slate-500">{algo.currency || "₹"}</span>
-                                                        <span>{algo.price.toLocaleString("en-IN")}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setDetailsModalProduct(algo)}
-                                                        className="h-8 px-3 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1 cursor-pointer"
-                                                        title="Inspect details"
-                                                    >
-                                                        <Eye size={12} />
-                                                        <span>Details</span>
-                                                    </button>
-
-                                                    {isPurchased ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => navigate('/order-history')}
-                                                            className="h-8 px-3.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                                                        >
-                                                            <Check size={13} strokeWidth={2.5} />
-                                                            <span>Active</span>
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handlePurchase(algo)}
-                                                            className="h-8 px-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-xs font-semibold shadow-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer border border-slate-900 dark:border-white"
-                                                        >
-                                                            <span>Buy</span>
-                                                            <ArrowRight size={13} strokeWidth={2.2} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                {EXISTING_OFFICIAL_ALGOS.map((algo) => renderAlgoCard(algo))}
                             </div>
                         </motion.div>
                     )}
@@ -1464,162 +1516,7 @@ export default function Discover() {
 
                             {/* Algos Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product) => {
-                                    const isPurchased = purchasedItems.includes(product.id);
-                                    const isFlagship = product.id === "algo-fialgo-v1" || product.name === "FiAlgo V1";
-
-                                    return (
-                                        <div
-                                            key={product.id}
-                                            className="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[420px] bg-white dark:bg-[#1A1A1E] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_36px_-6px_rgba(0,0,0,0.12)] hover:-translate-y-1"
-                                        >
-                                            <div>
-                                                {/* Top Row: Refined Single Flagship Badge & Star Rating */}
-                                                <div className="flex items-center justify-between gap-2 mb-3.5">
-                                                    <div className="flex items-center gap-1.5">
-                                                        {isFlagship ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs">
-                                                                <Sparkles size={11} className="text-amber-400 fill-amber-400" />
-                                                                Flagship EA
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
-                                                                {product.badge || product.category}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {product.rating && (
-                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/[0.04] px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
-                                                            <Star size={11} className="text-amber-400 fill-amber-400" />
-                                                            <span className="font-bold text-slate-900 dark:text-white">{product.rating}</span>
-                                                            {product.reviewsCount && (
-                                                                <span className="text-[10px] text-slate-400 dark:text-slate-500">({product.reviewsCount})</span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Product Box Art & Title */}
-                                                <div className="flex items-center gap-3 mb-3.5">
-                                                    {(product.thumbnailUrl || product.name.includes("FiAlgo")) ? (
-                                                        <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                                                            <img src={product.thumbnailUrl || "/fialgo-v1-box.png"} alt={product.name} className="w-full h-full object-contain drop-shadow" />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-12 h-12 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                                                            {product.category === "Strategy" ? <TrendingUp size={20} strokeWidth={2.2} /> : <Cpu size={20} strokeWidth={2.2} />}
-                                                        </div>
-                                                    )}
-                                                    <div className="min-w-0">
-                                                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                            {product.name}
-                                                        </h3>
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                            <span className="font-medium text-slate-600 dark:text-slate-300">by {product.creatorName}</span>
-                                                            <VerifiedBadge />
-                                                            {product.version && (
-                                                                <span className="text-[10px] text-slate-400 font-mono">· {product.version}</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Instrument & Timeframe Specs Strip */}
-                                                {product.pairs && (
-                                                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-xs">
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            {product.pairs.map(p => (
-                                                                <span key={p} className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                                                    {p}
-                                                                </span>
-                              ))}
-                                                        </div>
-                                                        {product.timeframe && (
-                                                            <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 font-mono">
-                                                                {product.timeframe}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Metrics 3-tile Row */}
-                                                {product.winRate && (
-                                                    <div className="grid grid-cols-3 gap-1.5 p-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-center">
-                                                        <div className="py-1 px-1">
-                                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">WIN RATE</div>
-                                                            <div className="text-sm font-black text-emerald-600 dark:text-emerald-400">{product.winRate}</div>
-                                                        </div>
-                                                        <div className="py-1 px-1 border-x border-slate-200/60 dark:border-white/5">
-                                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">AVG RETURN</div>
-                                                            <div className="text-sm font-black text-blue-600 dark:text-blue-400">{product.monthlyReturn || "—"}</div>
-                                                        </div>
-                                                        <div className="py-1 px-1">
-                                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">MAX DD</div>
-                                                            <div className="text-sm font-black text-slate-700 dark:text-slate-200">{product.drawdown || "—"}</div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4">
-                                                    {product.description}
-                                                </p>
-                                            </div>
-
-                                            {/* Price & Action Footer */}
-                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between mt-auto">
-                                                <div>
-                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block leading-none mb-1">
-                                                        Lifetime License
-                                                    </span>
-                                                    <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
-                                                        <span className="text-sm font-bold text-slate-500">{product.currency || "₹"}</span>
-                                                        <span>{Number(product.price || 10000).toLocaleString("en-IN")}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setDetailsModalProduct(product)}
-                                                        className="h-8 px-3 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1 cursor-pointer"
-                                                        title="Inspect details"
-                                                    >
-                                                        <Eye size={12} />
-                                                        <span>Details</span>
-                                                    </button>
-
-                                                    {isPurchased ? (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setPurchaseModalProduct(product);
-                                                                setPurchaseStep("activated");
-                                                                const isFiAlgo = product.name?.includes("FiAlgo") || product.id?.includes("fialgo");
-                                                                const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
-                                                                const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-                                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
-                                                            }}
-                                                            className="h-8 px-3.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                                                        >
-                                                            <Check size={13} strokeWidth={2.5} />
-                                                            <span>Active</span>
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handlePurchase(product)}
-                                                            className="h-8 px-3.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-xs font-semibold shadow-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer border border-slate-900 dark:border-white"
-                                                        >
-                                                            <span>Buy</span>
-                                                            <ArrowRight size={13} strokeWidth={2.2} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product) => renderAlgoCard(product))}
                             </div>
                         </motion.div>
                     )}
@@ -1640,27 +1537,19 @@ export default function Discover() {
                             {/* Modal Header */}
                             <div className="flex justify-between items-start border-b border-slate-100 dark:border-white/10 pb-4">
                                 <div className="flex items-center gap-3.5">
-                                    {(detailsModalProduct.thumbnailUrl || detailsModalProduct.name?.includes("FiAlgo")) ? (
-                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-1.5 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-                                            <img src={detailsModalProduct.thumbnailUrl || "/fialgo-v1-box.png"} alt={detailsModalProduct.name} className="w-full h-full object-contain drop-shadow" />
-                                        </div>
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
-                                            <Cpu size={24} strokeWidth={2.2} />
-                                        </div>
-                                    )}
+                                    {getAlgoVisual(detailsModalProduct)}
                                     <div>
                                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
                                                 {detailsModalProduct.category || "Algo"}
                                             </span>
                                             {detailsModalProduct.badge && (
-                                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                                                     {detailsModalProduct.badge}
                                                 </span>
                                             )}
                                         </div>
-                                        <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
                                             {detailsModalProduct.name}
                                         </h3>
                                         <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1682,43 +1571,43 @@ export default function Discover() {
 
                             {/* Performance Grid */}
                             <div>
-                                <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
+                                <h4 className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
                                     Verified Metrics & Specs
                                 </h4>
                                 <div className="grid grid-cols-3 gap-2.5">
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">WIN RATE</div>
-                                        <div className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">WIN RATE</div>
+                                        <div className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
                                             {detailsModalProduct.winRate || "73%"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">AVG MONTHLY</div>
-                                        <div className="text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">AVG MONTHLY</div>
+                                        <div className="text-base font-bold font-mono text-slate-900 dark:text-white mt-0.5 tabular-nums">
                                             {detailsModalProduct.monthlyReturn || "+18–42%"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">MAX DRAWDOWN</div>
-                                        <div className="text-base font-black text-slate-700 dark:text-slate-300 mt-0.5">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">MAX DRAWDOWN</div>
+                                        <div className="text-base font-bold font-mono text-slate-700 dark:text-slate-300 mt-0.5 tabular-nums">
                                             {detailsModalProduct.drawdown || "3.2%"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">PAIRS</div>
-                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">PAIRS</div>
+                                        <div className="text-xs font-bold font-mono text-slate-900 dark:text-white mt-1">
                                             {detailsModalProduct.pairs ? (Array.isArray(detailsModalProduct.pairs) ? detailsModalProduct.pairs.join(", ") : detailsModalProduct.pairs) : "XAUUSD"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">TIMEFRAME</div>
-                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">TIMEFRAME</div>
+                                        <div className="text-xs font-bold font-mono text-slate-900 dark:text-white mt-1">
                                             {detailsModalProduct.timeframe || "M15 / H1"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">PLATFORM</div>
-                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">PLATFORM</div>
+                                        <div className="text-xs font-bold font-mono text-slate-900 dark:text-white mt-1">
                                             MetaTrader 5
                                         </div>
                                     </div>
@@ -1773,7 +1662,7 @@ export default function Discover() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setDetailsModalProduct(null)}
-                                        className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer"
+                                        className="h-10 px-4 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer"
                                     >
                                         Close
                                     </button>
@@ -1789,7 +1678,7 @@ export default function Discover() {
                                                 const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
                                                 setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
                                             }}
-                                            className="px-5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                                            className="h-10 px-5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
                                         >
                                             <Check size={14} strokeWidth={3} />
                                             <span>Active License</span>
@@ -1801,7 +1690,7 @@ export default function Discover() {
                                                 setDetailsModalProduct(null);
                                                 handlePurchase(prod);
                                             }}
-                                            className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] transition-all duration-150 active:scale-[0.985] flex items-center gap-2 cursor-pointer border-none"
+                                            className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-slate-950 text-xs font-bold shadow-sm transition-all active:scale-[0.985] flex items-center gap-2 cursor-pointer border-none"
                                         >
                                             <span>Buy License Now</span>
                                             <ArrowRight size={14} strokeWidth={2.5} />
