@@ -1259,6 +1259,41 @@ html, body, * {
   background: #2C2C31;
 }
 
+/* ══════ TACTILE PILL ACTIVE / PRESSED STATE ══════
+   Refined tactile depressed state: neither harsh solid black nor electric blue.
+   Soft, sunken physical button feel with natural inset shadow.
+*/
+.tactile-pill-active,
+.tactile-white-pill.tactile-pill-active {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow:
+    inset 0 2px 3.5px 0 rgba(0, 0, 0, 0.12),
+    inset 0 0.5px 1px 0 rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.14) !important;
+  transform: translateY(0.5px);
+}
+
+.tactile-pill-active:hover,
+.tactile-white-pill.tactile-pill-active:hover {
+  background: #D8DFE8 !important;
+}
+
+.dark .tactile-pill-active,
+.dark .tactile-white-pill.tactile-pill-active {
+  background: #18181C !important;
+  color: #FFFFFF !important;
+  box-shadow:
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.50),
+    0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+  transform: translateY(0.5px);
+}
+
+.dark .tactile-pill-active:hover,
+.dark .tactile-white-pill.tactile-pill-active:hover {
+  background: #202026 !important;
+}
+
 /* ══════ TACTILE COLORED PILL VARIANTS (Matching Bevelled Button Feel) ══════ */
 .tactile-emerald-pill {
   background: linear-gradient(180deg, #10B981 0%, #059669 50%, #047857 100%);

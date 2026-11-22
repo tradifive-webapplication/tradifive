@@ -317,7 +317,7 @@ function JournalContent() {
                   Journal
                 </h1>
                 {isEditMode && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-900 text-white dark:bg-white dark:text-slate-900">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-neutral-200 border border-slate-200 dark:border-white/10">
                     Editing layout
                   </span>
                 )}
@@ -408,9 +408,7 @@ function JournalContent() {
                   setHideBalance(!hideBalance);
                 }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
-                  hideBalance
-                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
-                    : ""
+                  hideBalance ? "tactile-pill-active" : ""
                 } ${isStarter ? "opacity-60" : ""}`}
                 title="Hide all P&L values across the journal"
               >
@@ -431,9 +429,7 @@ function JournalContent() {
                   setHideOnlyBalance(!hideOnlyBalance);
                 }}
                 className={`tactile-white-pill hidden sm:inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
-                  hideOnlyBalance
-                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
-                    : ""
+                  hideOnlyBalance ? "tactile-pill-active" : ""
                 } ${isStarter ? "opacity-60" : ""}`}
                 title="Hide account balance only while keeping P&L visible"
               >
@@ -454,9 +450,7 @@ function JournalContent() {
                   setPercentageOnly(!percentageOnly);
                 }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
-                  percentageOnly
-                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
-                    : ""
+                  percentageOnly ? "tactile-pill-active" : ""
                 } ${isStarter ? "opacity-60" : ""}`}
                 title="Display trade P&L in % return instead of currency"
               >
@@ -469,9 +463,7 @@ function JournalContent() {
                 type="button"
                 onClick={() => setIsEditMode((v) => !v)}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
-                  isEditMode
-                    ? "!bg-slate-900 !text-white !border-slate-900 dark:!bg-white dark:!text-slate-900 dark:!border-white"
-                    : ""
+                  isEditMode ? "tactile-pill-active" : ""
                 }`}
                 title={isEditMode ? "Save layout order" : "Drag & reorder journal cards"}
               >
