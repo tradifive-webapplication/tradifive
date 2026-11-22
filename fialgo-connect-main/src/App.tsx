@@ -50,7 +50,6 @@ const Login = lazy(() => import("./pages/Login"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Portfolio = lazy(() => import("./pages/dashboard/Portfolio"));
-const Brokers = lazy(() => import("./pages/dashboard/Brokers"));
 const Reports = lazy(() => import("./pages/dashboard/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BrokerConnect = lazy(() => import("./pages/BrokerConnect"));
@@ -231,7 +230,7 @@ const App = () => {
                   <Route path="/post/:postId" element={<PostDetail />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/portfolio" element={<Portfolio />} />
-                  <Route path="/dashboard/brokers" element={<Brokers />} />
+                  <Route path="/dashboard/brokers" element={<Navigate to="/settings?tab=trading" replace />} />
                   <Route path="/dashboard/reports" element={<Reports />} />
                   <Route path="/broker-connect" element={<Navigate to="/settings?tab=trading" replace />} />
                   <Route path="/journal" element={<Journal />} />

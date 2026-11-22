@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, Link, useSearchParams, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Share2,
@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Portfolio from "./dashboard/Portfolio";
-import Brokers from "./dashboard/Brokers";
 import Reports from "./dashboard/Reports";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useMarket } from "@/contexts/MarketContext";
@@ -1314,7 +1313,7 @@ const Dashboard = () => {
       )}
 
       {currentTab === "portfolio" && <Portfolio />}
-      {currentTab === "brokers" && <Brokers />}
+      {currentTab === "brokers" && <Navigate to="/settings?tab=trading" replace />}
       {currentTab === "reports" && <Reports />}
     </DashboardLayout>
   );

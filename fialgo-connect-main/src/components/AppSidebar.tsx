@@ -290,13 +290,8 @@ const riskGuardMenu = [
 
 
 const dashboardMenu = [
-
   { path: "/dashboard", icon: WrappedIconly(Category), label: "Main Dashboard" },
-
-  { path: "/dashboard?tab=brokers", icon: wrapLucide(Server), label: "Connected Brokers" },
-
   { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
-
 ];
 
 
@@ -1363,15 +1358,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         return homeMenu;
 
       case "dashboard":
-
         return [
-
           { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard" },
-
-          { path: "/broker-connect", icon: WrappedIconly(Activity), label: "Connected Brokers" },
-
           { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
-
         ];
 
       case "journal":
