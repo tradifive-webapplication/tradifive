@@ -255,44 +255,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
       </header>
 
       {/* ── MAIN CONTENT WORKSPACE ── */}
-      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col md:flex-row px-5 sm:px-10 md:px-16 pt-4 pb-8 md:py-10 gap-5 md:gap-12 lg:gap-16">
-        {/* ── MOBILE SYSTEMIC STEP PROGRESS BAR (< md) ── */}
-        <div className="md:hidden w-full space-y-2.5 shrink-0">
-          <div className="flex items-center justify-between text-[11px]">
-            <span className="font-semibold text-zinc-400 tabular-nums">
-              Step {currentStepIndex + 1} of {STEPS_ORDER.length}
-            </span>
-            <span className="font-bold tracking-[0.14em] uppercase text-white">
-              {currentStep}
-            </span>
-          </div>
-          <div className="grid grid-cols-8 gap-1.5 w-full">
-            {STEPS_ORDER.map((s, idx) => {
-              const isCurrent = idx === currentStepIndex;
-              const isPassed = idx < currentStepIndex;
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  disabled={!isPassed}
-                  onClick={() => isPassed && setCurrentStepIndex(idx)}
-                  aria-label={s}
-                  className={`h-[3.5px] rounded-full transition-all duration-300 ${
-                    isCurrent
-                      ? "bg-[#2563EB] shadow-[0_0_8px_rgba(37,99,235,0.7)]"
-                      : isPassed
-                      ? "bg-white/75 cursor-pointer"
-                      : "bg-white/12"
-                  }`}
-                />
-              );
-            })}
-          </div>
-        </div>
-
+      <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-[200px_1fr_200px] lg:grid-cols-[240px_1fr_240px] xl:grid-cols-[260px_1fr_260px] items-center px-4 sm:px-8 md:px-10 lg:px-14 xl:px-20 py-4 md:py-6 min-h-0">
         {/* ── DESKTOP LEFT SIDEBAR (md+) ── */}
-        <aside className="hidden md:flex w-60 shrink-0 flex-col pr-6 pt-28 lg:pt-32">
-          <div className="flex flex-col gap-0">
+        <aside className="hidden md:flex flex-col justify-center pr-4 lg:pr-6 my-auto select-none">
+          <div className="flex flex-col">
             {/* Dynamic Steps */}
             {STEPS_ORDER.map((s, idx) => {
               const isCurrent = idx === currentStepIndex;
@@ -313,10 +279,10 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                 <div 
                   key={s} 
                   onClick={() => isPassed && setCurrentStepIndex(idx)}
-                  className={`h-[58px] flex flex-col justify-center border-b border-white/[0.08] transition-all duration-200 ${isPassed ? 'cursor-pointer hover:opacity-80' : ''}`}
+                  className={`h-[48px] lg:h-[54px] flex flex-col justify-center border-b border-white/[0.08] transition-all duration-200 ${isPassed ? 'cursor-pointer hover:opacity-80' : ''}`}
                 >
                   <div className="flex items-center">
-                    <span className={`text-[11px] font-sans font-bold tracking-[0.16em] uppercase transition-colors ${
+                    <span className={`text-[10.5px] lg:text-[11px] font-sans font-bold tracking-[0.16em] uppercase transition-colors ${
                       isCurrent 
                         ? 'text-white' 
                         : isPassed 
@@ -327,9 +293,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                     </span>
                   </div>
 
-                  <div className="h-4 flex items-center mt-1">
+                  <div className="h-4 flex items-center mt-0.5">
                     {valDisplay ? (
-                      <span className={`text-xs font-medium truncate max-w-[200px] ${
+                      <span className={`text-[11.5px] lg:text-xs font-medium truncate max-w-[170px] lg:max-w-[210px] ${
                         isCurrent ? 'text-white' : 'text-zinc-400'
                       }`}>
                         {valDisplay}
@@ -346,9 +312,43 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
           </div>
         </aside>
 
-        {/* ── CENTER QUESTION CANVAS ── */}
-        <div className="flex-1 flex items-start md:items-center justify-center pt-4 pb-6 md:py-8">
-          <main className="w-full max-w-xl flex flex-col justify-center">
+        {/* ── CENTER QUESTION CANVAS (True dead center of the screen) ── */}
+        <div className="w-full flex flex-col items-center justify-center my-auto px-2 sm:px-4">
+          {/* ── MOBILE SYSTEMIC STEP PROGRESS BAR (< md) ── */}
+          <div className="md:hidden w-full max-w-lg space-y-2.5 mb-6 shrink-0">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-semibold text-zinc-400 tabular-nums">
+                Step {currentStepIndex + 1} of {STEPS_ORDER.length}
+              </span>
+              <span className="font-bold tracking-[0.14em] uppercase text-white">
+                {currentStep}
+              </span>
+            </div>
+            <div className="grid grid-cols-8 gap-1.5 w-full">
+              {STEPS_ORDER.map((s, idx) => {
+                const isCurrent = idx === currentStepIndex;
+                const isPassed = idx < currentStepIndex;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    disabled={!isPassed}
+                    onClick={() => isPassed && setCurrentStepIndex(idx)}
+                    aria-label={s}
+                    className={`h-[3.5px] rounded-full transition-all duration-300 ${
+                      isCurrent
+                        ? "bg-[#2563EB] shadow-[0_0_8px_rgba(37,99,235,0.7)]"
+                        : isPassed
+                        ? "bg-white/75 cursor-pointer"
+                        : "bg-white/12"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+          </div>
+
+          <main className="w-full max-w-lg lg:max-w-xl flex flex-col justify-center">
             {/* Back button */}
             <div className="h-7 md:h-8 mb-2 flex items-center">
               {currentStepIndex > 0 && (
@@ -724,13 +724,13 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
               onClick={handleNext}
               className={`group h-11 px-7 rounded-full text-sm font-bold tracking-wide transition-all duration-200 inline-flex items-center justify-center gap-2 border-0 outline-none select-none ${
                 isContinueEnabled() && !isSaving
-                  ? "bg-gradient-to-br from-[#1e293b] to-[#0f172a] hover:from-[#253347] hover:to-[#131c33] text-[#60a5fa] hover:text-[#93c5fd] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_2px_6px_rgba(0,0,0,0.3)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.985] cursor-pointer"
-                  : "bg-[#141a24] text-[#60a5fa]/40 shadow-none cursor-not-allowed opacity-50"
+                  ? "tactile-black-pill text-white hover:text-white shadow-md active:scale-95 cursor-pointer"
+                  : "bg-zinc-900 border border-white/5 text-zinc-600 shadow-none cursor-not-allowed opacity-50"
               }`}
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin text-[#60a5fa]" />
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
                   <span>Saving...</span>
                 </>
               ) : currentStep === 'ACCOUNT' ? (
@@ -750,7 +750,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
               <button
                 type="button"
                 onClick={handleNext}
-                className="text-xs text-zinc-400 hover:text-white font-medium transition-colors px-2 py-1"
+                className="text-xs text-zinc-400 hover:text-white font-medium transition-colors px-2 py-1 cursor-pointer"
               >
                 Skip this
               </button>
@@ -759,8 +759,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
         </main>
         </div>
 
-        {/* ── RIGHT BALANCER (Ensures Center Question is 100% centered) ── */}
-        <div className="hidden md:block w-60 shrink-0 pointer-events-none" aria-hidden="true" />
+        {/* ── RIGHT BALANCER (Ensures Center Question is 100% centered in Grid) ── */}
+        <div className="hidden md:block pointer-events-none" aria-hidden="true" />
       </div>
     </div>
   );
