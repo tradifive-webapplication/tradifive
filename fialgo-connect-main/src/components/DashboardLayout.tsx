@@ -640,7 +640,6 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     if (p === '/profile') return 'Profile';
     if (p === '/dashboard') return 'Dashboard';
     if (p.startsWith('/journal/history')) return 'Trade History';
-    if (p.startsWith('/journal/mistakes')) return 'Mistake Tracking';
     if (p.startsWith('/journal')) return 'Journal';
     if (p.startsWith('/risk-guard')) return 'Risk Guard';
     if (p.startsWith('/auto-trade/setup')) return 'Auto Trade Setup';

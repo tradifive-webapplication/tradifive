@@ -302,8 +302,6 @@ const journalMenu = [
 
   { path: "/journal/history", icon: wrapLucide(Clock), label: "Trade History" },
 
-  { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
-
 ];
 
 
@@ -1381,8 +1379,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
           { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
 
           { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History" },
-
-          { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
 
         ];
 
