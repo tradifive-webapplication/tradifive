@@ -316,18 +316,6 @@ function JournalContent() {
                 <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
                   Journal
                 </h1>
-                <button
-                  type="button"
-                  onClick={() => setDemoMode((v) => !v)}
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors cursor-pointer ${
-                    demoMode
-                      ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400"
-                      : "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-neutral-400"
-                  }`}
-                  title="Toggle demo preview data"
-                >
-                  {demoMode ? "Demo data · On" : "Demo data · Off"}
-                </button>
                 {isEditMode && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400">
                     Editing layout
