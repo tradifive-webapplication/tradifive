@@ -81,7 +81,6 @@ function resolveActiveTab(pathname: string): CommunityTabId {
   ) {
     return "discover";
   }
-  if (pathname.startsWith("/creator/live")) return "live";
   if (pathname.startsWith("/inbox")) return "inbox";
   if (pathname.startsWith("/channel")) return "channels";
   return "home";

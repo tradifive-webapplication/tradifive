@@ -365,8 +365,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     location.pathname.startsWith("/post/") ||
     location.pathname.startsWith("/inbox") ||
     location.pathname.startsWith("/channel") ||
-    location.pathname.startsWith("/discover") ||
-    location.pathname.startsWith("/creator/live");
+    location.pathname.startsWith("/discover");
   const { isFiAlgo } = useWorkspace();
 
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
@@ -634,7 +633,6 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     const params = new URLSearchParams(location.search);
     if (p === '/home') return params.get('tab') === 'saved' ? 'Saved' : 'Home';
     if (p.startsWith('/discover') || p.startsWith('/marketplace')) return 'Discover';
-    if (p.startsWith('/creator/live')) return 'Live';
     if (p.startsWith('/channel')) return 'Channels';
     if (p.startsWith('/inbox')) return 'Inbox';
     if (p.startsWith('/post/')) return 'Post';

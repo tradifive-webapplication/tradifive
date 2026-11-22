@@ -37,7 +37,6 @@ const CREATE_HUB_ITEMS = [
   { icon: GraduationCap, label: 'Mentorship Hub', desc: 'Guide & track your student community', color: 'blue', href: '/creator/mentorship' },
   { icon: Cpu, label: 'My Store', desc: 'Manage your marketplace products', color: 'emerald', href: '/creator/store' },
   { icon: MessageCircle, label: 'Private Channels', desc: 'Create subscriber-only chat rooms', color: 'purple', href: '/channel' },
-  { icon: PlusCircle, label: 'Live Sessions', desc: 'Schedule Zoom or Google Meet classes', color: 'rose', href: '/creator/live' },
 ];
 
 const colorStyles: any = {

@@ -86,7 +86,6 @@ const Referrals = lazy(() => import("./pages/Referrals"));
 const CreatorAnalytics = lazy(() => import("./pages/CreatorAnalytics"));
 const MentorshipHub = lazy(() => import("./pages/MentorshipHub"));
 const MyStore = lazy(() => import("./pages/creator/MyStore"));
-const LiveSessions = lazy(() => import("./pages/creator/LiveSessions"));
 const Create = lazy(() => import("./pages/create"));
 const Home = lazyWithRetry(() => import("./pages/Home"));
 const PostDetail = lazyWithRetry(() => import("./pages/PostDetail"));
@@ -151,7 +150,6 @@ const App = () => {
       import("./pages/Discover");
       import("./pages/Inbox");
       import("./pages/Channel");
-      import("./pages/creator/LiveSessions");
     };
 
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -225,7 +223,7 @@ const App = () => {
                     <Route path="/store" element={<Discover />} />
                     <Route path="/learning" element={<Discover />} />
                     <Route path="/courses" element={<Discover />} />
-                    <Route path="/creator/live" element={<LiveSessions />} />
+                    <Route path="/creator/live" element={<Navigate to="/home" replace />} />
                     <Route path="/inbox" element={<Inbox />} />
                     <Route path="/channel" element={<Channel />} />
                     <Route path="/channel/:channelId" element={<Channel />} />

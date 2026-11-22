@@ -100,19 +100,6 @@ export default function CommunityHeaderBar({
       ),
     },
     {
-      id: "live",
-      label: "Live",
-      path: "/creator/live",
-      renderIcon: (active) => (
-        <IconlyPlay
-          set="curved"
-          stroke={active ? "bold" : "regular"}
-          primaryColor="currentColor"
-          size={22}
-        />
-      ),
-    },
-    {
       id: "inbox",
       label: "Inbox",
       path: "/inbox",

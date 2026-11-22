@@ -227,7 +227,6 @@ const SidebarIconNotification = WrappedIconly(Notification);
 const homeMenu = [
   { path: "/home", icon: SidebarIconHome, label: "Home" },
   { path: "/discover", icon: SidebarIconDiscovery, label: "Discover" },
-  { path: "/creator/live", icon: SidebarIconPlay, label: "Live" },
   { path: "/channel", icon: SidebarIconTwoUsers, label: "Channels" },
   { path: "/home?tab=saved", icon: SidebarIconBookmark, label: "Saved" },
 ];
@@ -369,13 +368,8 @@ const channelsMenu = [
 
 
 const creatorHubMenu = [
-
   { path: "/creator/analytics", icon: WrappedIconly(Graph), label: "Creator Dashboard" },
-
   { path: "/creator/store", icon: WrappedIconly(Bag), label: "My Store" },
-
-  { path: "/creator/live", icon: WrappedIconly(IconlyVideo), label: "Live Sessions" },
-
 ];
 
 
@@ -577,7 +571,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
       path.startsWith("/store") ||
       path.startsWith("/learning") ||
       path.startsWith("/courses") ||
-      path.startsWith("/creator/live") ||
       path.startsWith("/channel")
     ) return "home";
 
@@ -1485,15 +1478,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
 
       case "creatorHub":
-
         return [
-
           { path: "/creator/analytics", icon: WrappedIconly(Graph), label: "Creator Dashboard" },
-
           { path: "/creator/store", icon: WrappedIconly(Bag), label: "My Store" },
-
-          { path: "/creator/live", icon: WrappedIconly(IconlyVideo), label: "Live Sessions" },
-
         ];
 
       default:
