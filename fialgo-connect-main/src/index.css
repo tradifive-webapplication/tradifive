@@ -143,6 +143,8 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased tabular-nums;
+    font-feature-settings: "tnum" 1, "zero" 0;
+    font-variant-numeric: tabular-nums;
   }
 
   /* Prevent mobile browsers (especially iOS Safari) from auto-zooming on input focus */
@@ -1127,8 +1129,17 @@ html, body, * {
 
 @layer utilities {
   .font-mono {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: "tnum" 1, "zero" 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .font-code {
     font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-feature-settings: "tnum";
+  }
+
+  .tabular-nums {
+    font-feature-settings: "tnum" 1, "zero" 0;
     font-variant-numeric: tabular-nums;
   }
 }

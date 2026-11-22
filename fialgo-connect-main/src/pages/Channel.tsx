@@ -34,7 +34,7 @@ import {
     Send, Plus, Eye, MessageSquare, Menu, LogOut, AlertTriangle, Info,
     Image as ImageIcon, Film, Folder, Link2, BarChart2, Mic, QrCode, Trash, Paperclip, Smile, Edit2, Copy, Crown, Video, GraduationCap, CreditCard, Cpu, LineChart, BookOpen, MessageCircle,
     Megaphone, CheckCircle2, VolumeX, Volume2, X, CornerUpRight, SendHorizonal, Search as SearchIcon, Globe, Lock, ArrowRight, Bell, ShieldAlert, Settings, CornerUpLeft, EyeOff, ChevronLeft, Download, PenLine, ExternalLink, Trash2, Shield, Check,
-    UserPlus, Radio, Camera, ChevronDown, ChevronUp
+    UserPlus, Radio, Camera, ChevronDown, ChevronUp, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -837,6 +837,11 @@ function ChannelSkeleton() {
     }
   };
 
+  const handleInsertSignalTemplate = () => {
+    const template = `⚡ TRADE SETUP\nAsset: XAUUSD\nOrder: BUY LIMIT\nEntry: \nStop Loss: \nTake Profit 1: \nTake Profit 2: \nRisk: 1%\nRationale: `;
+    setInputText((prev) => (prev ? `${prev}\n\n${template}` : template));
+  };
+
   const handleCreatePoll = async () => {
     const validOptions = pollOptions.filter(o => o.trim() !== "");
     if (!pollQuestion.trim() || validOptions.length < 2) {
@@ -1605,99 +1610,148 @@ function ChannelSkeleton() {
                 const isAdmin = activeChannel?.created_by === user?.id;
 
                 if (!allowMessages && !isAdmin && activeChannel?.id !== "saved") {
-                    return <p className="text-[12px] font-bold text-slate-400">Only admins can send messages in this channel.</p>;
+                    return (
+                      <div className="w-full max-w-2xl mx-auto py-3 px-4 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200/80 dark:border-white/10 text-center flex items-center justify-center gap-2 text-[12.5px] font-semibold text-slate-500 dark:text-zinc-400 shadow-2xs">
+                        <Lock size={14} className="text-slate-400" />
+                        <span>Only channel admins can broadcast messages here.</span>
+                      </div>
+                    );
                 }
 
                 return activeChannel?.id === "saved" || dbChannels.length > 0 ? (
-                  <div className="w-full max-w-4xl mx-auto relative flex flex-col gap-2">
+                  <div className="w-full max-w-3xl mx-auto relative flex flex-col gap-2">
                     {attachmentPreview && (
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
-                         <img src={attachmentPreview} alt="Attachment preview" className="w-full h-full object-cover" />
-                         <button onClick={removeAttachment} className="absolute top-1 right-1 bg-black/60 rounded-full p-1 text-white hover:bg-black/80 transition-colors cursor-pointer">
-                           <X size={12} />
-                         </button>
+                      <div className="relative inline-flex items-center gap-3 p-2 pr-3 bg-white dark:bg-[#18181b] rounded-xl border border-slate-200 dark:border-white/10 shadow-xs w-fit max-w-full">
+                        <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-100 dark:border-white/5 shrink-0">
+                          <img src={attachmentPreview} alt="Attachment preview" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0 pr-6">
+                          <p className="text-[12px] font-bold text-slate-800 dark:text-white truncate">Attached chart</p>
+                          <p className="text-[10.5px] text-slate-400">Ready to broadcast</p>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={removeAttachment} 
+                          className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-zinc-300 hover:bg-slate-200 dark:hover:bg-white/20 flex items-center justify-center transition-colors cursor-pointer"
+                        >
+                          <X size={11} />
+                        </button>
                       </div>
                     )}
                     {showEmojiPicker && (
-                      <div className="absolute bottom-16 left-0 z-50 shadow-2xl">
+                      <div className="absolute bottom-full mb-3 left-0 z-50 shadow-2xl">
                         <EmojiPicker onEmojiClick={onEmojiClick} theme={themeMode as any} />
                       </div>
                     )}
                     <form onSubmit={handleSendMessage} className="w-full">
-                      <div className="bg-slate-100/90 dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 focus-within:border-slate-400 dark:focus-within:border-white/25 rounded-2xl p-1.5 sm:p-2 flex items-end gap-2 shadow-xs transition-all">
+                      <div className="bg-white dark:bg-[#151518] border border-slate-200/90 dark:border-white/10 focus-within:border-slate-400 dark:focus-within:border-white/25 rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.35)] transition-all overflow-hidden">
                         
-                        {/* Left Action Cluster */}
-                        <div className="flex items-center gap-0.5 shrink-0 pb-0.5">
-                          <button 
-                            type="button" 
-                            onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 cursor-pointer"
-                            title="Insert Emoji"
-                          >
-                            <Smile size={18} />
-                          </button>
-                          <button 
-                            type="button" 
-                            onClick={() => fileInputRef.current?.click()} 
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 cursor-pointer"
-                            title="Attach Image or Chart"
-                          >
-                            <Paperclip size={18} />
-                          </button>
-                          <button 
-                            type="button" 
-                            onClick={() => setIsPollModalOpen(true)} 
-                            className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-200/70 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 cursor-pointer"
-                            title="Create Poll"
-                          >
-                            <BarChart2 size={18} />
-                          </button>
-                        </div>
-
-                        <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} className="hidden" accept="image/*,video/*" />
-                        
-                        {/* Text Input */}
-                        <div className="flex-1 relative pb-0.5">
-                          {editingMessageId && (
-                            <div className="absolute -top-9 left-0 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 text-[11px] px-2.5 py-0.5 rounded-full flex items-center gap-1.5 font-bold uppercase tracking-wider shadow-xs">
-                              <span>Editing Message</span>
-                              <button onClick={handleCancelEdit} type="button" className="hover:text-blue-900 dark:hover:text-white rounded-full p-0.5">
-                                <X size={11} />
-                              </button>
+                        {/* Editing Message Banner */}
+                        {editingMessageId && (
+                          <div className="px-3.5 pt-2 flex items-center justify-between text-blue-600 dark:text-blue-400 text-[11.5px] font-bold border-b border-blue-150/50 dark:border-blue-900/30 pb-1.5 bg-blue-50/50 dark:bg-blue-950/20">
+                            <div className="flex items-center gap-1.5">
+                              <Edit2 size={12} />
+                              <span>Editing Broadcast Message</span>
                             </div>
-                          )}
+                            <button onClick={handleCancelEdit} type="button" className="text-slate-400 hover:text-slate-600 dark:hover:text-white p-0.5">
+                              <X size={13} />
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Text Input Area */}
+                        <div className="px-3.5 pt-3 pb-1">
                           <textarea 
                             value={inputText}
                             onChange={(e) => setInputText(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            placeholder={isUploading ? "Uploading attachment..." : "Broadcast a setup, signal, or message..."}
-                            className="w-full bg-transparent outline-none text-[14px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 resize-none min-h-[24px] max-h-[140px] py-1.5 leading-relaxed custom-scrollbar"
+                            placeholder={isUploading ? "Uploading attachment..." : "Broadcast a setup, signal, or market analysis..."}
+                            className="w-full bg-transparent outline-none text-[13.5px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-zinc-500 resize-none min-h-[46px] max-h-[160px] leading-relaxed custom-scrollbar block"
                             disabled={isUploading}
-                            rows={1}
+                            rows={inputText.includes('\n') ? Math.min(5, inputText.split('\n').length) : 1}
                           />
                         </div>
+
+                        <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} className="hidden" accept="image/*,video/*" />
                         
-                        {/* High-contrast Send Button */}
-                        <div className="shrink-0 pb-0.5">
-                          <button 
-                            type="submit"
-                            disabled={(!inputText.trim() && !attachment) || isUploading}
-                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 shadow-xs disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-all outline-none active:scale-95 cursor-pointer"
-                            title="Send Broadcast"
-                          >
-                            {isUploading ? (
-                              <div className="w-4 h-4 rounded-full border-2 border-slate-400 border-t-white animate-spin" />
-                            ) : (
-                              <SendHorizonal size={17} strokeWidth={2.4} className="ml-0.5" />
+                        {/* Disciplined Bottom Action Bar */}
+                        <div className="px-3 py-2 border-t border-slate-100 dark:border-white/5 bg-slate-50/70 dark:bg-white/[0.015] flex items-center justify-between gap-2">
+                          {/* Left Action Buttons */}
+                          <div className="flex items-center gap-1">
+                            <button 
+                              type="button" 
+                              onClick={() => fileInputRef.current?.click()} 
+                              className="h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+                              title="Attach Chart Screenshot"
+                            >
+                              <Paperclip size={14} className="text-slate-500 dark:text-zinc-400" />
+                              <span className="hidden sm:inline">Chart</span>
+                            </button>
+
+                            <button 
+                              type="button" 
+                              onClick={() => setIsPollModalOpen(true)} 
+                              className="h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 dark:text-zinc-300 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+                              title="Create Subscriber Poll"
+                            >
+                              <BarChart2 size={14} className="text-slate-500 dark:text-zinc-400" />
+                              <span className="hidden sm:inline">Poll</span>
+                            </button>
+
+                            {isAdmin && (
+                              <button 
+                                type="button" 
+                                onClick={handleInsertSignalTemplate} 
+                                className="h-8 px-2.5 rounded-lg flex items-center gap-1.5 text-[12px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 border border-amber-200/80 dark:border-amber-500/20 active:scale-95 transition-all cursor-pointer"
+                                title="Insert Trade Setup Format"
+                              >
+                                <Zap size={13} className="fill-amber-500/40 text-amber-600 dark:text-amber-400" />
+                                <span>Signal</span>
+                              </button>
                             )}
-                          </button>
+
+                            <div className="w-[1px] h-4 bg-slate-200 dark:bg-white/10 mx-0.5" />
+
+                            <button 
+                              type="button" 
+                              onClick={() => setShowEmojiPicker(!showEmojiPicker)} 
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+                              title="Insert Emoji"
+                            >
+                              <Smile size={16} />
+                            </button>
+                          </div>
+
+                          {/* Right Send Action */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-slate-400 dark:text-zinc-500 hidden md:inline">
+                              Enter ↵ to send
+                            </span>
+                            <button 
+                              type="submit"
+                              disabled={(!inputText.trim() && !attachment) || isUploading}
+                              className={`h-8 sm:h-8.5 px-3.5 sm:px-4 rounded-xl font-bold text-[12.5px] sm:text-[13px] flex items-center gap-1.5 transition-all outline-none ${
+                                (!inputText.trim() && !attachment) || isUploading
+                                  ? "bg-slate-100 text-slate-400 dark:bg-white/5 dark:text-zinc-500 cursor-not-allowed border border-slate-200/60 dark:border-white/5"
+                                  : "bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 active:scale-95 cursor-pointer shadow-xs"
+                              }`}
+                              title="Send Broadcast"
+                            >
+                              {isUploading ? (
+                                <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-400 border-t-white animate-spin" />
+                              ) : (
+                                <>
+                                  <span>Broadcast</span>
+                                  <SendHorizonal size={13} strokeWidth={2.4} />
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </form>
                   </div>
-                ) : (
-                  <div className="w-full h-10 border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl" />
-                );
+                ) : null;
             })()}
           </div>
 
