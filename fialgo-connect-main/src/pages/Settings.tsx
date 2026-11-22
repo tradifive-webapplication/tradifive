@@ -1,3608 +1,3794 @@
-import { RunningNumber } from '@/components/ui/RunningNumber';
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import '../theme-switch.css';
-import DashboardLayout from '@/components/DashboardLayout';
-import logoOnly from '@/assets/Logo_only.png';
-import defaultAvatar from '@/assets/default-avatar.svg';
-import AccountTab from '@/components/settings/AccountTab';
-import ProfileTab, { TactileBoxButton } from '@/components/settings/ProfileTab';
-import HelpTab from '@/components/settings/HelpTab';
-import ReportTab from '@/components/settings/ReportTab';
-import CreatorTab from '@/components/settings/CreatorTab';
-import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
-import { supabase } from '@/lib/supabase';
-import { useMarket } from '@/contexts/MarketContext';
-import { toast } from 'sonner';
-import { applyThemeWithTransition } from '@/utils/themeTransition';
-import { getGamificationState, saveGamificationState } from '@/utils/gamification';
-import { validateUsername } from '@/utils/usernameValidation';
-import { PricingCards } from '@/components/PricingCards';
-import { initiateRazorpayCheckout } from '@/lib/razorpay';
-import ThemeSwitch from '@/components/ThemeSwitch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-   Settings as SettingsIcon, Camera, Check, 
-   Twitter, Instagram, Youtube, Trash2, Shield, 
-   Smartphone, Monitor, Moon, Sun, MonitorSmartphone, Power, X,
-   Key, Lock, Globe, Bot, Brain, TrendingUp, Gem, Receipt, Hash, Award, 
-   FileText, ChevronDown, CheckCircle, RefreshCw, Eye, EyeOff,
-   ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
-   CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
-   AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
-   ChevronLeft, Sliders, Copy, Pencil, HelpCircle, MousePointer } from 'lucide-react';
-import { triggerHaptic } from '@/utils/haptics';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
-import { useAICoachData } from '@/hooks/useAICoachData';
-import { useTradingTheme } from '@/hooks/useTradingTheme';
-import { TradingThemeId } from '@/utils/tradingTheme';
-
-const TAB_TITLES: Record<string, string> = {
-   account: "Account & Security",
-   general: "General Details",
-   profile: "Profile",
-   security: "Account & Security",
-   privacy: "Privacy & Community",
-   appearance: "Theme & Display",
-   notifications: "Notifications",
-   trading_preferences: "Trading & Risk Config",
-   ai: "AI Coach",
-   trading: "Accounts & Brokers",
-   subscription: "Subscription",
-   channel: "Channel Settings",
-   creator: "Creator Account",
-   help: "Help Center",
-   report: "Report a Problem",
-   terms: "Terms & Policies"
-};
-
-const TAB_SUBTITLES: Record<string, string> = {
-   profile: "Your card, bio, avatar, banner and privacy preferences",
-   account: "Manage email, password, sessions, standing and data export",
-   security: "Protect your account with password and session controls",
-   privacy: "Control profile visibility and community privacy",
-   notifications: "Choose which trade alerts and activity pings you receive",
-   trading_preferences: "Break-even range, risk circuit breaker and symbol preferences",
-   trading: "Connect MetaTrader 5 and Indian broker accounts",
-   ai: "Customize your TradiFive AI Coach persona and guardrails",
-   subscription: "Manage your active plan, perks and billing history",
-   appearance: "Switch light or dark theme and display preferences",
-   channel: "Configure your community channel and messaging settings",
-   creator: "Manage creator monetization, payouts and subscriber perks",
-   help: "Guides, FAQs and direct TradiFive support",
-   report: "Share bugs or issues directly with our engineering team",
-};
-
-const PushableButton = ({ children, onClick, type = 'primary', className = '', ...props }: any) => {
-   const baseClasses = "relative rounded-xl font-bold transition-all duration-200 active:top-[2px] active:shadow-none overflow-hidden";
-   
-   const types = {
-      primary: "bg-indigo-650 text-white shadow-[0_4px_0_rgb(67,56,202)] hover:bg-indigo-700 active:shadow-[0_0px_0_rgb(67,56,202)]",
-      secondary: "bg-white dark:bg-[#121212] text-slate-700 dark:text-slate-200 shadow-[0_4px_0_rgb(203,213,225)] dark:shadow-none hover:bg-slate-50 dark:hover:bg-[#222225] border border-slate-200 dark:border-transparent",
-      danger: "bg-red-500 text-white shadow-[0_4px_0_rgb(185,28,28)] hover:bg-red-400 active:shadow-[0_0px_0_rgb(185,28,28)]"
-   };
-
-   return (
-      <button 
-         className={`${baseClasses} ${types[type as keyof typeof types]} ${className}`}
-         onClick={onClick}
-         {...props}
-      >
-         <div className="absolute inset-0 bg-white/20 dark:bg-black/10 translate-y-[-50%] rounded-full blur-md"></div>
-         <span className="relative z-10 block">{children}</span>
-      </button>
-   );
-};
-
-const ConsistencyToggleButton = ({ label, checked, onChange, icon: Icon, type = 'button' }: any) => (
-   <button
-      type={type}
-      onClick={onChange}
-      className={`inline-flex items-center gap-1.5 h-[44px] px-5 rounded-[16px] border-2 text-[12px] font-bold tracking-tight transition-all duration-300 ${
-         checked
-         ? "border-white dark:border-transparent bg-gradient-to-b from-[#E0E7FF] to-[#EEF2FF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#818CF840] dark:shadow-none text-indigo-700 dark:text-indigo-400"
-         : "border-white dark:border-transparent bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-slate-500 dark:text-slate-400 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none"
-      }`}
-   >
-      {Icon && <Icon size={14} />}
-      <span>{label}</span>
-   </button>
-);
-
-const AnimatedCheckbox = ({ checked, onChange }: { checked: boolean, onChange: (checked: boolean) => void }) => (
-   <button 
-      type="button" 
-      onClick={() => onChange(!checked)} 
-      className={`group relative flex items-center justify-center w-[18px] h-[18px] rounded-[5px] transition-all duration-200 overflow-hidden outline-none ring-0 border ${checked ? 'border-[#5865F2] bg-[#5865F2]' : 'border-slate-300 dark:border-[#313338] bg-white dark:bg-[#1e1f22]'}`}
-   >
-      {checked && <Check size={11} strokeWidth={4} className="relative z-10 text-white" />}
-   </button>
-);
-
-const SettingsToggle = ({ checked, onChange, disabled = false }: { checked: boolean, onChange: (v: boolean) => void, disabled?: boolean }) => (
-   <button
-      type="button"
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      className={`relative w-9 h-[20px] rounded-full transition-colors duration-200 outline-none focus:outline-none ${disabled ? 'opacity-40 cursor-not-allowed' : ''} ${checked ? 'bg-[#3b82f6]' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
-   >
-      <div className={`absolute top-1/2 -translate-y-1/2 left-[3px] w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-[16px]' : 'translate-x-0'}`} />
-   </button>
-);
-
-const BrokerIcon = ({ name, size = 36 }: { name: string; size?: number }) => {
-   const colors: Record<string, string> = {
-      icmarkets: "from-emerald-500 to-teal-600 text-white",
-      zerodha: "from-blue-500 to-sky-600 text-white",
-      dhan: "from-amber-400 to-yellow-500 text-slate-900",
-      upstox: "from-purple-500 to-indigo-600 text-white",
-      groww: "from-cyan-500 to-teal-500 text-white",
-      angelone: "from-orange-500 to-amber-600 text-white",
-      ibkr: "from-red-600 to-rose-700 text-white",
-      pepperstone: "from-slate-800 to-slate-900 text-white",
-      ic: "from-emerald-500 to-teal-600 text-white",
-      vantage: "from-blue-600 to-indigo-700 text-white",
-      exness: "from-yellow-400 to-yellow-600 text-slate-900",
-      xm: "from-red-500 to-red-700 text-white"
-   };
-   
-   const initials: Record<string, string> = {
-      icmarkets: "IC",
-      zerodha: "Z",
-      dhan: "D",
-      upstox: "U",
-      groww: "G",
-      angelone: "A",
-      ibkr: "IB",
-      pepperstone: "P",
-      ic: "IC",
-      vantage: "V",
-      exness: "EX",
-      xm: "XM"
-   };
-
-   const colorClass = colors[name] || "from-slate-400 to-slate-500 text-white";
-   const letter = initials[name] || name.charAt(0).toUpperCase();
-
-   return (
-      <div 
-         style={{ width: size, height: size }}
-         className={`rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center font-extrabold text-[12px] tracking-wider shadow-sm shrink-0`}
-      >
-         {letter}
-      </div>
-   );
-};
-
-export default function Settings() {
-   const navigate = useNavigate();
-   const [searchParams] = useSearchParams();
-   const { activeMarket } = useMarket();
-
-   const normalizeTab = (rawTab: string | null) => {
-      if (!rawTab) return 'profile';
-      if (rawTab === 'plan') return 'subscription';
-      if (rawTab === 'profiles') return 'profile';
-      if (rawTab === 'File Setup') return 'trading';
-      if (rawTab === 'risk' || rawTab === 'preferences' || rawTab === 'trading-preferences') return 'trading_preferences';
-      return rawTab;
-   };
-
-   const [activeTab, setActiveTab] = useState(() => normalizeTab(searchParams.get('tab')));
-   const [mobileShowDetails, setMobileShowDetails] = useState(() => Boolean(searchParams.get('tab')));
-
-   useEffect(() => {
-      const rawTab = searchParams.get('tab');
-      if (rawTab) {
-         if (rawTab === 'plan') {
-            navigate('/upgrade', { replace: true });
-            return;
-         }
-         setActiveTab(normalizeTab(rawTab));
-         setMobileShowDetails(true);
-         if (rawTab === 'profiles') {
-            setIsDesktopEditingProfile(true);
-         }
-      } else {
-         setMobileShowDetails(false);
-      }
-
-      const planParam = searchParams.get('plan');
-      if (planParam && ['starter', 'pro', 'elite'].includes(planParam)) {
-         setSelectedPlan(planParam);
-      }
-   }, [searchParams, navigate]);
-   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
-   const [isLoggingOut, setIsLoggingOut] = useState(false);
-   const headerTitle = TAB_TITLES[activeTab] || "Settings";
-   const [activeSubTab, setActiveSubTab] = useState('account-info');
-   const [activePlan, setActivePlan] = useState(() => localStorage.getItem('tradifive_cached_plan') || 'starter');
-   const [selectedPlan, setSelectedPlan] = useState(() => activePlan);
-   const [searchQuery, setSearchQuery] = useState('');
-   const [loading, setLoading] = useState(false);
-   const [isInitialLoading, setIsInitialLoading] = useState(true);
-   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
-   
-   // Billing State
-   const [billingHistory, setBillingHistory] = useState<any[]>([]);
-   const [loadingBilling, setLoadingBilling] = useState(true);
-   const [downgradeModalPlan, setDowngradeModalPlan] = useState<'starter' | 'pro' | null>(null);
-   const [isChangingPlan, setIsChangingPlan] = useState(false);
-   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annually'>('monthly');
-   const [discountCodeInput, setDiscountCodeInput] = useState('');
-   const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
-   const [showRefundModal, setShowRefundModal] = useState(false);
-
-   const applyPlanChange = async (newPlan: 'starter' | 'pro' | 'elite') => {
-      setIsChangingPlan(true);
-      try {
-         const { data: { user } } = await supabase.auth.getUser();
-         if (user) {
-            await supabase.from('profiles').update({
-               subscription_status: newPlan,
-               plan_type: newPlan,
-            }).eq('id', user.id);
-            localStorage.setItem('tradifive_selected_plan', newPlan);
-            localStorage.setItem('tradifive_cached_plan', newPlan);
-            const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-            const newMax = limits[newPlan] || 20;
-            localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
-            window.dispatchEvent(new Event('tradifive_profile_update'));
-         }
-         setActivePlan(newPlan);
-         setSelectedPlan(newPlan);
-         toast.success(`Plan updated to ${newPlan === 'starter' ? 'Standard' : newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}!`);
-      } catch (err: any) {
-         console.error('Error applying plan change:', err);
-         toast.error('Failed to change plan. Please try again.');
-      } finally {
-         setIsChangingPlan(false);
-         setDowngradeModalPlan(null);
-      }
-   };
-
-   const handleSettingsUpgrade = async (plan: 'starter' | 'pro' | 'elite') => {
-      if (plan === 'starter') {
-         setDowngradeModalPlan('starter');
-         return;
-      }
-      const price = plan === 'pro' ? 1399 : 2799;
-      try {
-         const { data: { user } } = await supabase.auth.getUser();
-         await initiateRazorpayCheckout({
-            amount: price * 100,
-            currency: 'INR',
-            name: 'TradiFive',
-            description: `${plan.toUpperCase()} Membership Upgrade`,
-            receipt: `sett_upg_${plan}_${Date.now()}`,
-            notes: {
-               plan,
-               userId: user?.id || 'guest',
-            },
-            prefill: {
-               email: user?.email || undefined,
-               name: userProfile?.display_name || user?.user_metadata?.full_name || undefined,
-            },
-            onSuccess: async () => {
-               await applyPlanChange(plan);
-            },
-         });
-      } catch (err: any) {
-         console.error('Settings upgrade error:', err);
-         toast.error(err.message || 'Failed to start checkout.');
-      }
-   };
-
-   const handleSettingsDowngrade = (plan: 'starter' | 'pro' | 'elite') => {
-      if (plan === 'starter' || plan === 'pro') {
-         setDowngradeModalPlan(plan);
-      }
-   };
-   
-   // Modals State
-   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-   const [isDesktopEditingProfile, setIsDesktopEditingProfile] = useState(false);
-   const [showSmsModal, setShowSmsModal] = useState(false);
-   const [isConnectingBroker, setIsConnectingBroker] = useState(false);
-   const [selectedBrokerToConnect, setSelectedBrokerToConnect] = useState('');
-   
-   // Profile State
-   const [profile, setProfile] = useState({
-      firstName: '',
-      lastName: '',
-      name: '',
-      display_name: '',
-      username: '',
-      email: '',
-      avatarUrl: '',
-      bannerUrl: '',
-      bio: '',
-      website: '',
-      twitter: '',
-      instagram: '',
-      youtube: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: '',
-      dob: '',
-      gender: '',
-      countryEmoji: '🌍',
-      isPrivate: false,
-      hideFollowers: false,
-      hideTrades: false,
-      account_standing: 'GOOD',
-      standing_message: '',
-      preferred_market: 'global'
-   });
-   
-   const [password, setPassword] = useState({ current: '', new: '', confirm: '' });
-   const avatarUploadRef = useRef<HTMLInputElement>(null);
-   const bannerUploadRef = useRef<HTMLInputElement>(null);
-
-   // Privacy State
-   const [privacySettings, setPrivacySettings] = useState<Record<string, any>>({
-      show_location: true,
-      show_winrate: true,
-      show_roi: true,
-      show_streak: true,
-      show_trades: true,
-      is_private: false,
-      account_type: 'personal'
-   });
-
-   // Notifications State
-   const [globalOff, setGlobalOff] = useState(false);
-   const [globalEmailOnly, setGlobalEmailOnly] = useState(false);
-   const [notifications, setNotifications] = useState({
-      messages: [
-         { id: 'direct', label: 'Direct Messages', push: true, app: true, email: false },
-         { id: 'group', label: 'Group Messages', push: true, app: true, email: false },
-         { id: 'mentions', label: 'Mentions & Tags', push: true, app: true, email: true },
-      ],
-      text: [
-         { id: 'sms_alerts', label: 'SMS Security Alerts', push: true, app: false, email: false },
-         { id: 'push_marketing', label: 'Push Marketing & Promos', push: false, app: false, email: false },
-      ],
-      alerts: [
-         { id: 'trade', label: 'Trade Execution Alerts', push: true, app: true, email: true },
-         { id: 'price', label: 'Price Drops & Spikes', push: true, app: true, email: false },
-         { id: 'risk', label: 'Risk Guard Warnings', push: true, app: true, email: true },
-      ],
-      ai_coach: [
-         { id: 'insights', label: 'AI Coach Insights', push: true, app: true, email: false },
-         { id: 'weekly_report', label: 'Weekly Performance Reports', push: false, app: true, email: true },
-      ],
-      channels: [
-         { id: 'announcements', label: 'Channel Announcements', push: true, app: true, email: true },
-         { id: 'replies', label: 'Replies & Threads', push: true, app: true, email: false },
-      ],
-      inboxes: [
-         { id: 'news', label: 'Community News', push: false, app: true, email: true },
-         { id: 'invites', label: 'Friend & Group Invites', push: true, app: true, email: false },
-      ]
-   });
-
-    // Appearance State
-    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
-   const [accentColor, setAccentColor] = useState('blue');
-   const [layoutDensity, setLayoutDensity] = useState('comfortable');
-   const [terminalLogging, setTerminalLogging] = useState(false);
-   const [fullScreenLayout, setFullScreenLayout] = useState(() => localStorage.getItem('fialgo_full_screen') === 'true');
-   const { themeId: pnlTheme, changeTheme: changePnlTheme, THEMES: PNL_THEMES } = useTradingTheme();
-   const [cursorStyle, setCursorStyle] = useState<"3d" | "dot" | "system">(() => {
-     if (typeof window === "undefined") return "3d";
-     return (localStorage.getItem('tradifive_cursor_style') as "3d" | "dot" | "system") || "3d";
-   });
-
-   const handleCursorStyleChange = (style: "3d" | "dot" | "system") => {
-     setCursorStyle(style);
-     try {
-       localStorage.setItem('tradifive_cursor_style', style);
-       window.dispatchEvent(new CustomEvent('tradifive_cursor_change', { detail: style }));
-     } catch (_) {}
-     const names: Record<string, string> = {
-       "3d": "3D Glossy Arrow",
-       "dot": "Minimal Precision Dot",
-       "system": "Classic System Default",
-     };
-     toast.success(`${names[style]} cursor selected`);
-   };
-
-   // New Tab States
-   const [language, setLanguage] = useState('en');
-   const [aiTone, setAiTone] = useState('strict');
-   const [aiVoice, setAiVoice] = useState('female');
-   const [aiFrequency, setAiFrequency] = useState('medium');
-   const [connectedBroker, setConnectedBroker] = useState<string>('');
-   const [brokerApiKey, setBrokerApiKey] = useState('');
-   const [brokerClientId, setBrokerClientId] = useState('');
-   const [isSyncing, setIsSyncing] = useState(false);
-   
-   const [bgFadeStyle, setBgFadeStyle] = useState(() => localStorage.getItem('fialgo_bg_fade_style') || 'purple');
-   const [lastSyncedTime, setLastSyncedTime] = useState('Just now');
-   
-   // Creator Settings
-   const [creatorHandle, setCreatorHandle] = useState('');
-   const [creatorCategory, setCreatorCategory] = useState('Day Trading');
-   const [creatorBio, setCreatorBio] = useState('');
-   
-   // Channel Settings
-   const [feedVisibility, setFeedVisibility] = useState('public');
-   const [channelRules, setChannelRules] = useState('No self-promotion, maintain civil discussions.');
-
-   // Help FAQ Open state
-   const [openFaqId, setOpenFaqId] = useState<number | null>(null);
-
-   // Report State
-   const [reportCategory, setReportCategory] = useState('bug');
-   const [reportSubject, setReportSubject] = useState('');
-   const [reportDescription, setReportDescription] = useState('');
-
-   // Global User ID for AI Credits
-   const [globalUserId, setGlobalUserId] = useState<string>('');
-   
-   const { creditsLeft, maxCredits } = useAICoachData();
-   const aiCredits = creditsLeft ?? 0;
-   const activeMaxCredits = maxCredits ?? 10;
-
-   // Billing Cards Expand State
-   const [starterExpanded, setStarterExpanded] = useState(false);
-   const [proExpanded, setProExpanded] = useState(false);
-   const [eliteExpanded, setEliteExpanded] = useState(false);
-
-   const handleCloseSettings = () => {
-      const fromDhan = localStorage.getItem('dhan_auth_completed') === 'true';
-      if (fromDhan) {
-         localStorage.removeItem('dhan_auth_completed');
-         navigate('/home', { replace: true });
-      } else if (document.referrer && !document.referrer.includes(window.location.host)) {
-         navigate('/home', { replace: true });
-      } else if (window.history.length > 2) {
-         navigate(-1);
-      } else {
-         navigate('/home', { replace: true });
-      }
-   };
-
-   // Escape key close handling
-   useEffect(() => {
-      const handleKeyDown = (e: KeyboardEvent) => {
-         if (e.key === 'Escape') {
-            handleCloseSettings();
-         }
-      };
-      window.addEventListener('keydown', handleKeyDown);
-      return () => {
-         window.removeEventListener('keydown', handleKeyDown);
-      };
-   }, [navigate]);
-
-   // Listen for authentication completion from popup tab
-   useEffect(() => {
-      const handleStorage = (e: StorageEvent) => {
-         if (e.key === 'dhan_auth_completed' && e.newValue === 'true') {
-            setConnectedBroker('dhan');
-            setIsConnectingBroker(false);
-            setSelectedBrokerToConnect('');
-            localStorage.removeItem('dhan_auth_completed');
-            toast.dismiss();
-            toast.success('Successfully connected your Dhan account!');
-         }
-      };
-      window.addEventListener('storage', handleStorage);
-      return () => window.removeEventListener('storage', handleStorage);
-   }, []);
-
-
-
-   // Load privacy settings and profile details on mount
-   useEffect(() => {
-      const fetchUserData = async () => {
-         const { data: { user } } = await supabase.auth.getUser();
-         if (user) {
-            // Load privacy settings from localStorage
-            const storedPrivacy = localStorage.getItem(`tradifive_privacy_${user.id}`);
-            if (storedPrivacy) {
-               setPrivacySettings(JSON.parse(storedPrivacy));
-            }
-                        setGlobalUserId(user.id);
-             
-             const params = new URLSearchParams(window.location.search);
-
-             // Check Dhan OAuth redirect callback params
-             const tokenId = params.get('tokenId');
-             if (tokenId) {
-                const storedUserId = localStorage.getItem('dhan_connecting_user_id');
-                const storedClientId = localStorage.getItem('dhan_connecting_client_id');
-                
-                if (storedUserId === user.id && storedClientId) {
-                   localStorage.removeItem('dhan_connecting_user_id');
-                   localStorage.removeItem('dhan_connecting_client_id');
-                   
-                   toast.promise(
-                      (async () => {
-                         const { data, error } = await supabase.functions.invoke('sync-indian-trades', {
-                            body: {
-                               action: 'consume-consent',
-                               tokenId: tokenId,
-                               userId: user.id,
-                               dhanClientId: storedClientId
-                            }
-                         });
-                         if (error || !data || !data.success) {
-                             let errorMessage = error?.message || 'Failed to link account';
-                             if (error && (error as any).context) {
-                                try {
-                                   const errBody = await (error as any).context.json();
-                                   errorMessage = errBody.error || errorMessage;
-                                } catch (_) {
-                                   try {
-                                      const errText = await (error as any).context.text();
-                                      if (errText) errorMessage = errText;
-                                   } catch (__) {}
-                                }
-                             }
-                             throw new Error(errorMessage);
-                          }
-                         
-                         setConnectedBroker('dhan');
-                         setBrokerClientId(storedClientId);
-                         setIsConnectingBroker(false);
-                         
-                         localStorage.setItem('dhan_auth_completed', 'true');
-
-                         const url = new URL(window.location.href);
-                         url.searchParams.delete('tokenId');
-                         window.history.replaceState({}, document.title, url.pathname + url.search);
-                         
-                         // Try to close the tab automatically. If browser blocks it, it's okay.
-                         setTimeout(() => {
-                            window.close();
-                         }, 1500);
-                      })(),
-                      {
-                         loading: 'Completing secure Dhan connection...',
-                         success: 'Successfully connected your Dhan account!',
-                         error: (err: any) => `Connection failed: ${err.message}`
-                      }
-                   );
-                }
-             }
-
-             // Check Stripe redirect outcome params
-             const success = params.get('success');
-            const plan = params.get('plan');
-            const sessId = params.get('session_id') || 'generic';
-            
-            let currentPlan = localStorage.getItem('tradifive_selected_plan') || 'starter';
-            
-            if (success === 'true') {
-               const processedKey = `tradifive_processed_session_${sessId}`;
-               if (!localStorage.getItem(processedKey)) {
-                  localStorage.setItem(processedKey, 'true');
-                  if (plan && ['pro', 'elite'].includes(plan)) {
-                     localStorage.setItem('tradifive_selected_plan', plan);
-                     currentPlan = plan;
-                     
-                     const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-                     const newMax = limits[plan as keyof typeof limits] || 100;
-                     localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
-                     
-                     try {
-                        await supabase.from('profiles').update({
-                           subscription_status: plan
-                        }).eq('id', user.id);
-                     } catch (err) {
-                        console.error("Error updating subscription status in profiles:", err);
-                     }
-                     
-                     toast.success(`Successfully upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan!`, {
-                        description: `Your daily AI credits limit is now ${newMax}.`
-                     });
-                  }
-               }
-               navigate('/settings?tab=ai', { replace: true });
-            } else if (params.get('canceled') === 'true') {
-               toast.error("Upgrade cancelled.", {
-                  description: "Your payment session was closed."
-               });
-               navigate('/settings?tab=ai', { replace: true });
-            }
-            
-            setSelectedPlan(currentPlan);
-            
-            const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-            const max = limits[currentPlan as keyof typeof limits] || 20;
-            
-            // Load profile details from database
-            const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-            if (data) {
-               if (data.subscription_status) {
-                  localStorage.setItem('tradifive_cached_plan', data.subscription_status);
-                  setActivePlan(data.subscription_status);
-                  setSelectedPlan(prev => ['starter', 'pro', 'elite'].includes(new URLSearchParams(window.location.search).get('plan') || '') ? prev : data.subscription_status);
-               } else {
-                  localStorage.setItem('tradifive_cached_plan', 'starter');
-                  setActivePlan('starter');
-                  setSelectedPlan(prev => ['starter', 'pro', 'elite'].includes(new URLSearchParams(window.location.search).get('plan') || '') ? prev : 'starter');
-               }
-               
-               if (data.account_type) {
-                  setPrivacySettings(prev => ({ ...prev, account_type: data.account_type }));
-               }
-               let savedLocalSocial: Record<string, string> = {};
-               try {
-                  const s = localStorage.getItem(`tradifive_social_links_${user.id}`);
-                  if (s) savedLocalSocial = JSON.parse(s);
-               } catch (_) {}
-               setProfile({
-                  firstName: data.first_name || '',
-                  lastName: data.last_name || '',
-                  name: data.display_name || data.first_name || '',
-                  display_name: data.display_name || data.first_name || '',
-                  username: data.username || '',
-                  email: user.email || '',
-                  avatarUrl: data.avatar_url || '',
-                  bannerUrl: data.banner_url || '',
-                  bio: data.bio || '',
-                  tags: data.trading_style ? data.trading_style.split(',') : [],
-                  website: data.website || savedLocalSocial.website || '',
-                  twitter: data.twitter_url || savedLocalSocial.twitter || '',
-                  instagram: data.instagram_id || data.instagram_url || savedLocalSocial.instagram || '',
-                  youtube: data.youtube_url || savedLocalSocial.youtube || '',
-                  discord: data.discord_url || data.discord || savedLocalSocial.discord || '',
-                  tradingview: data.tradingview_url || data.tradingview || savedLocalSocial.tradingview || '',
-                  address: data.address || '',
-                  city: data.city || '',
-                  state: data.state || '',
-                  zipCode: data.zip_code || '',
-                  country: data.country || '',
-                  dob: data.dob || '',
-                  gender: data.gender || '',
-                  countryEmoji: data.country_emoji || '🌍',
-                  isPrivate: data.is_private || false,
-                  hideFollowers: data.hide_followers || false,
-                  hideTrades: data.hide_trades || false,
-                  account_standing: data.account_standing || 'GOOD',
-                  standing_message: data.standing_message || '',
-                  preferred_market: data.preferred_market || 'global'
-               });
-               setCreatorHandle(data.username ? `@${data.username}_trades` : '');
-            } else {
-                // Load fallback from localStorage cache only if it belongs to current user
-                const cached = localStorage.getItem('prof_cache_data');
-                if (cached) {
-                   const parsed = JSON.parse(cached);
-                   if (parsed.id === user.id) {
-                      setProfile({
-                         firstName: parsed.first_name || '',
-                         lastName: parsed.last_name || '',
-                         name: parsed.display_name || parsed.first_name || '',
-                         display_name: parsed.display_name || parsed.first_name || '',
-                         username: parsed.username || '',
-                         email: user.email || '',
-                         avatarUrl: parsed.avatar_url || '',
-                         bannerUrl: parsed.banner_url || '',
-                         bio: parsed.bio || '',
-                         tags: parsed.trading_style ? parsed.trading_style.split(',') : [],
-                         website: parsed.website || '',
-                         twitter: parsed.twitter_url || '',
-                         instagram: parsed.instagram_url || '',
-                         youtube: parsed.youtube_url || '',
-                         address: parsed.address || '',
-                         city: parsed.city || '',
-                         state: parsed.state || '',
-                         zipCode: parsed.zip_code || '',
-                         country: parsed.country || '',
-                         dob: parsed.dob || '',
-                         gender: parsed.gender || '',
-                         countryEmoji: parsed.country_emoji || '🌍',
-                         isPrivate: parsed.is_private || false,
-                         hideFollowers: parsed.hide_followers || false,
-                         hideTrades: parsed.hide_trades || false
-                      });
-                      setCreatorHandle(parsed.username ? `@${parsed.username}_trades` : '');
-                   } else {
-                      // Initial empty state fallback for new profiles
-                      setProfile(prev => ({
-                         ...prev,
-                         email: user.email || ''
-                      }));
-                   }
-                } else {
-                   setProfile(prev => ({
-                      ...prev,
-                      email: user.email || ''
-                   }));
-                }
-             }
-
-            // Fetch billing history
-            try {
-               const { data: billingData, error: billingError } = await supabase
-                  .from('billing_history')
-                  .select('*')
-                  .eq('user_id', user.id)
-                  .order('created_at', { ascending: false });
-                  
-               if (billingData && !billingError) {
-                  setBillingHistory(billingData);
-               } else {
-                  setBillingHistory([]);
-               }
-            } catch (err) {
-               console.error("Error fetching billing history:", err);
-               setBillingHistory([]);
-            } finally {
-               setLoadingBilling(false);
-            }
-
-            // Fetch broker connections
-            try {
-               const { data: brokerData } = await supabase
-                  .from('broker_connections')
-                  .select('*')
-                  .eq('user_id', user.id);
-               if (brokerData && brokerData.length > 0) {
-                  setConnectedBroker(brokerData[0].broker_name);
-                  setBrokerClientId(brokerData[0].client_id || '');
-                  setBrokerApiKey(brokerData[0].api_key ? '••••••••••••••••' : '');
-               }
-            } catch (err) {
-               console.error("Error fetching broker connections:", err);
-            }
-         }
-      };
-      fetchUserData().finally(() => setIsInitialLoading(false));
-   }, []);
-
-   const handleToggle = (category: string, id: string, type: 'app' | 'push' | 'email') => {
-      setNotifications(prev => ({
-         ...prev,
-         [category]: (prev as any)[category].map((n: any) => 
-            n.id === id ? { ...n, [type]: !n[type] } : n
-         )
-      }));
-   };
-
-   const handleGlobalOff = () => {
-      const newState = !globalOff;
-      setGlobalOff(newState);
-      if (newState) setGlobalEmailOnly(false);
-      
-      const newNotifs = { ...notifications };
-      Object.keys(newNotifs).forEach(key => {
-         (newNotifs as any)[key] = (newNotifs as any)[key].map((n: any) => ({
-            ...n, app: !newState, push: !newState, email: !newState
-         }));
-      });
-      setNotifications(newNotifs);
-   };
-
-   const handleEmailOnly = () => {
-      const newState = !globalEmailOnly;
-      setGlobalEmailOnly(newState);
-      if (newState) setGlobalOff(false);
-      
-      const newNotifs = { ...notifications };
-      Object.keys(newNotifs).forEach(key => {
-         (newNotifs as any)[key] = (newNotifs as any)[key].map((n: any) => ({
-            ...n, app: !newState, push: !newState, email: true
-         }));
-      });
-      setNotifications(newNotifs);
-   };
-
-   const handleUpdateProfile = async (e?: React.FormEvent) => {
-      if (e) e.preventDefault();
-      
-      const requestedUsername = profile.username || profile.name || null;
-      if (requestedUsername) {
-         const validation = validateUsername(requestedUsername);
-         if (!validation.isValid) {
-            toast.error(validation.message);
-            return;
-         }
-      }
-
-      try {
-         const { data: { user } } = await supabase.auth.getUser();
-         if (!user) return;
-         setLoading(true);
-         
-         const updatePayload = {
-            first_name: profile.firstName,
-            last_name: profile.lastName,
-            display_name: profile.display_name !== undefined ? profile.display_name : (profile.name || `${profile.firstName} ${profile.lastName}`.trim()),
-            username: profile.username || profile.name || null,
-            has_chosen_username: !!(profile.username || profile.name),
-            bio: profile.bio,
-            trading_style: profile.tags?.length ? profile.tags.join(',') : null,
-            website: profile.website,
-            instagram_id: profile.instagram,
-            address: profile.address,
-            city: profile.city,
-            state: profile.state,
-            zip_code: profile.zipCode,
-            country: profile.country,
-            date_of_birth: profile.dob || null,
-            gender: profile.gender,
-            avatar_url: profile.avatarUrl,
-            banner_url: profile.bannerUrl
-         };
-         
-         const { error } = await supabase.from('profiles').update(updatePayload).eq('id', user.id);
-         
-         if (error) throw error;
-         
-         // Save privacy settings locally
-         const updatedPrivacySettings = { ...privacySettings, is_private: privacySettings.is_private };
-         localStorage.setItem(`tradifive_privacy_${user.id}`, JSON.stringify(updatedPrivacySettings));
-         const effectiveUsername = profile.username || profile.name || user.id;
-         localStorage.setItem(`tradifive_privacy_user_${effectiveUsername.toLowerCase()}`, JSON.stringify(updatedPrivacySettings));
-         localStorage.setItem("tradifive_cached_account_type", privacySettings.account_type || 'personal');
-         window.dispatchEvent(new Event("storage"));
-         
-         // Save social links locally so Profile & Public Profile display them immediately
-         const socialLinksPayload = {
-            website: profile.website || '',
-            instagram: profile.instagram || '',
-            youtube: profile.youtube || '',
-            discord: (profile as any).discord || '',
-            tradingview: (profile as any).tradingview || '',
-            twitter: profile.twitter || '',
-         };
-         localStorage.setItem(`tradifive_social_links_${user.id}`, JSON.stringify(socialLinksPayload));
-         localStorage.setItem(`tradifive_social_links_user_${effectiveUsername.toLowerCase()}`, JSON.stringify(socialLinksPayload));
-
-         const updatedCache = {
-            id: user.id,
-            first_name: profile.firstName,
-            last_name: profile.lastName,
-            display_name: profile.display_name !== undefined ? profile.display_name : (profile.name || `${profile.firstName} ${profile.lastName}`.trim()),
-            username: effectiveUsername,
-            avatar_url: profile.avatarUrl,
-            banner_url: profile.bannerUrl,
-            bio: profile.bio,
-            website: profile.website || '',
-            instagram_id: profile.instagram || '',
-            youtube_url: profile.youtube || '',
-            discord: (profile as any).discord || '',
-            tradingview: (profile as any).tradingview || '',
-            twitter_url: profile.twitter || '',
-            location: profile.city,
-            country: profile.country,
-            country_emoji: profile.countryEmoji
-         };
-         
-         localStorage.setItem('prof_cache_data', JSON.stringify(updatedCache));
-         localStorage.setItem(`tradifive_mock_profile_${effectiveUsername.toLowerCase()}`, JSON.stringify(updatedCache));
-         
-         // Update tradifive cache keys for sidebar
-         localStorage.setItem("tradifive_cached_display_name", profile.display_name !== undefined ? profile.display_name : (profile.name || `${profile.firstName} ${profile.lastName}`.trim()));
-         localStorage.setItem("tradifive_cached_username", effectiveUsername);
-         localStorage.setItem("tradifive_cached_avatar_url", profile.avatarUrl);
-         
-         // Dispatch update event
-         window.dispatchEvent(new Event("tradifive_profile_update"));
-         
-         toast.success('Preferences saved successfully');
-      } catch (e: any) {
-         console.error("Profile update error FULL:", e);
-         toast.error(`Error: ${e?.message || JSON.stringify(e)}`);
-      } finally {
-         setLoading(false);
-      }
-   };
-
-   const handleFullScreenChange = (checked: boolean) => {
-      setFullScreenLayout(checked);
-      localStorage.setItem('fialgo_full_screen', String(checked));
-      window.dispatchEvent(new Event('fialgo_full_screen_changed'));
-   };
-
-   const handleThemeChange = (newTheme: string) => {
-      setTheme(newTheme);
-      applyThemeWithTransition(newTheme as 'light' | 'dark', () => {
-         // Theme transition completed
-      });
-   };
-
-   const handleForceSync = async () => {
-      setIsSyncing(true);
-      try {
-         const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(connectedBroker);
-         
-         if (isGlobal) {
-            const { error } = await supabase.functions.invoke('sync-metaapi-trades');
-            if (error) throw error;
-            toast.success('Synchronized global trading activity!');
-         } else {
-            const { error } = await supabase.functions.invoke('sync-indian-trades');
-            if (error) throw error;
-            toast.success(`Synchronized trading activity from ${connectedBroker.toUpperCase()}!`);
-         }
-         setLastSyncedTime('Just now');
-      } catch (err: any) {
-         console.error("Sync error:", err);
-         toast.error(`Sync failed: ${err.message || 'Please check your credentials.'}`);
-      } finally {
-         setIsSyncing(false);
-      }
-   };
-
-   const handleConnectBrokerSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      
-      const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(selectedBrokerToConnect);
-      
-      if (isGlobal) {
-         setConnectedBroker(selectedBrokerToConnect);
-         setIsConnectingBroker(false);
-         toast.success(`Successfully connected to ${selectedBrokerToConnect.toUpperCase()}!`);
-         return;
-      }
-
-      if (selectedBrokerToConnect === 'dhan') {
-         try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) {
-               toast.error('You must be logged in to connect a broker');
-               return;
-            }
-            
-            // 1. Call generate-consent on Edge Function
-            const { data, error } = await supabase.functions.invoke('sync-indian-trades', {
-               body: {
-                  action: 'generate-consent',
-                  dhanClientId: brokerClientId
-               }
-            });
-            
-            if (error || !data || !data.consentAppId) {
-                let errorMessage = error?.message || 'Failed to generate consent app ID';
-                throw new Error(errorMessage);
-             }
-            
-            localStorage.setItem('dhan_connecting_client_id', brokerClientId);
-            localStorage.setItem('dhan_connecting_user_id', user.id);
-            
-            toast.loading('Redirecting to Dhan secure login...', { duration: 3000 });
-            setTimeout(() => {
-               window.open(`https://auth.dhan.co/login/consentApp-login?consentAppId=${data.consentAppId}`, '_blank');
-            }, 1500);
-         } catch (err: any) {
-            console.error("Error generating Dhan consent:", err);
-            toast.error(`Failed to initiate login: ${err.message}`);
-         }
-         return;
-      }
-      
-      // For Zerodha and Upstox, we insert into the database so that useDashboardData auto-syncs.
-      try {
-         const { data: { user } } = await supabase.auth.getUser();
-         if (!user) {
-            toast.error('You must be logged in to connect a broker');
-            return;
-         }
-
-         if (selectedBrokerToConnect === 'zerodha' && !brokerApiKey) {
-             toast.error('API Key is required for Zerodha');
-             return;
-         }
-         
-         if (selectedBrokerToConnect === 'upstox' && !brokerClientId) {
-             toast.error('Client ID is required for Upstox');
-             return;
-         }
-
-         toast.loading(`Connecting to ${selectedBrokerToConnect.toUpperCase()}...`, { id: 'broker-connect' });
-
-         const { error } = await supabase
-            .from('broker_connections')
-            .upsert({
-               user_id: user.id,
-               broker_name: selectedBrokerToConnect,
-               client_id: brokerClientId || 'connected',
-               api_key: brokerApiKey || 'connected',
-               connection_status: 'active',
-               updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id, broker_name' });
-
-         if (error) throw error;
-         
-         toast.success(`Successfully linked ${selectedBrokerToConnect.toUpperCase()}! Your data will now sync.`, { id: 'broker-connect' });
-         setConnectedBroker(selectedBrokerToConnect);
-         setIsConnectingBroker(false);
-         setSelectedBrokerToConnect('');
-
-      } catch (err: any) {
-         console.error("Error saving broker:", err);
-         toast.error(`Failed to connect: ${err.message}`, { id: 'broker-connect' });
-      }
-   };
-
-   const handleDisconnectBroker = async () => {
-       const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(connectedBroker);
-       
-       if (isGlobal) {
-          setConnectedBroker('');
-          toast.success('Disconnected broker account');
-          return;
-       }
-       
-       try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) return;
-          
-          const { error } = await supabase
-             .from('broker_connections')
-             .delete()
-             .eq('user_id', user.id)
-             .eq('broker_name', connectedBroker);
-             
-          if (error) throw error;
-          
-          setConnectedBroker('');
-          setBrokerClientId('');
-          setBrokerApiKey('');
-          toast.success('Successfully disconnected broker account');
-       } catch (err: any) {
-          console.error("Error disconnecting broker:", err);
-          toast.error(`Failed to disconnect: ${err.message}`);
-       }
-    };
-
-   const handleReportSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!reportSubject || !reportDescription) {
-         toast.error('Please fill out all problem report fields');
-         return;
-      }
-   toast.success('Problem report logged. Our support team will investigate.');
-      setReportSubject('');
-      setReportDescription('');
-   };
-
-   // Define structural settings categories for left sidebar (grouped like ACCOUNT / TRADING / APP)
-   const sidebarSections = [
-      {
-         title: "Account",
-         items: [
-            { id: "profile", label: "Profile", icon: User },
-            { 
-               id: "account", 
-               label: "Account & Security", 
-               icon: ShieldDone,
-               children: [
-                  { id: "account-info", label: "Account Info" },
-                  { id: "password-security", label: "Password & Security" },
-                  { id: "active-sessions", label: "Active Sessions" },
-                  { id: "account-standing", label: "Account Standing" },
-                  { id: "family-center", label: "Family Center" },
-                  { id: "data-export", label: "Export & Privacy" },
-                  { id: "danger-zone", label: "Danger Zone" }
-               ]
-            },
-            { id: "notifications", label: "Notifications", icon: Notification }
-         ]
-      },
-      {
-         title: "Trading",
-         items: [
-            { id: "trading_preferences", label: "Trading & Risk Config", icon: Sliders },
-            { id: "trading", label: "Accounts & Brokers", icon: Wallet },
-            { id: "ai", label: "AI Coach", icon: Sparkles }
-         ]
-      },
-      {
-         title: "App",
-         items: [
-            { id: "appearance", label: "Preferences", icon: Category },
-            { id: "subscription", label: "Subscription", icon: TicketStar },
-            { id: "channel", label: "Channel Settings", icon: Chat },
-            { id: "creator", label: "Creator Account", icon: Star },
-            { id: "help", label: "Help Center", icon: InfoCircle },
-            { id: "report", label: "Report a Problem", icon: Danger },
-            { id: "logout", label: "Log Out", icon: Logout }
-         ]
-      }
-   ];
-
-   // Filter the sidebar list using query search AND plan requirement
-   const filteredSections = sidebarSections.map(section => {
-      const items = section.items.filter(item => {
-         // Hide Creator Account tab if not on Elite plan
-         if (item.id === 'creator' && activePlan !== 'elite') return false;
-         
-         return item.label.toLowerCase().includes(searchQuery.toLowerCase());
-      });
-      return { ...section, items };
-   }).filter(section => section.items.length > 0);
-
-   const displayName = `${profile.firstName} ${profile.lastName}`.trim() || profile.name || "username";
-
-   const tabTitles = TAB_TITLES;
-
-   const resizeImageFile = (file: File, maxWidth: number, maxHeight: number, quality: number = 0.8): Promise<string> => {
-      return new Promise((resolve, reject) => {
-         const reader = new FileReader();
-         reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-               const canvas = document.createElement('canvas');
-               let width = img.width;
-               let height = img.height;
-
-               if (width > height) {
-                  if (width > maxWidth) {
-                     height = Math.round((height * maxWidth) / width);
-                     width = maxWidth;
-                  }
-               } else {
-                  if (height > maxHeight) {
-                     width = Math.round((width * maxHeight) / height);
-                     height = maxHeight;
-                  }
-               }
-
-               canvas.width = width;
-               canvas.height = height;
-               const ctx = canvas.getContext('2d');
-               if (ctx) {
-                  ctx.drawImage(img, 0, 0, width, height);
-                  resolve(canvas.toDataURL('image/jpeg', quality));
-               } else {
-                  resolve(e.target?.result as string);
-               }
-            };
-            img.onerror = reject;
-            img.src = e.target?.result as string;
-         };
-         reader.onerror = reject;
-         reader.readAsDataURL(file);
-      });
-   };
-
-   return (
-      <DashboardLayout 
-         breadcrumbs={[{ label: "Home", path: "/home" }, { label: "Settings", path: "/settings" }]}
-         noScroll={true}
-         hideBottomNav={mobileShowDetails}
-      >
-      <motion.div
-         className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[3px] p-0 sm:p-6 md:p-8 select-none font-sans"
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         transition={{ duration: 0.05, ease: "easeOut" }}
-      >
-         
-         {/* Click outside backdrop container back to dashboard page (desktop/tablet only) */}
-         <div className="absolute inset-0 hidden sm:block" onClick={handleCloseSettings} />
-
-         {/* Centered Settings Dialog Modal Box */}
-         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[860px] max-w-[1160px] rounded-none sm:rounded-[24px] bg-white dark:bg-[#141417] text-slate-800 dark:text-[#dbdee1] flex flex-col overflow-hidden shadow-[0_24px_80px_rgba(15,23,42,0.22)] border-0 sm:border sm:border-slate-200/70 dark:sm:border-white/[0.08] z-10 pb-16 md:pb-0">
-            
-            {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
-            <div className="hidden md:block relative shrink-0 select-none">
-               <div className="relative h-[132px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-900">
-                  <img
-                     src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
-                     alt="Profile banner"
-                     className="w-full h-full object-cover object-center"
-                     onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                  />
-                  {/* Smooth fade melting cover cleanly into white/dark surface */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/55 to-transparent dark:from-[#141417] dark:via-[#141417]/55" />
-
-                  {/* Top-Right Translucent Close Circle */}
-                  <button
-                     type="button"
-                     onClick={handleCloseSettings}
-                     className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-sm text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer"
-                     title="Close Settings"
-                     aria-label="Close Settings"
-                  >
-                     <X size={15} strokeWidth={2.2} />
-                  </button>
-               </div>
-
-               {/* Overlapping Avatar + Identity Row */}
-               <div className="relative z-10 -mt-12 px-7 pb-3 flex items-end gap-3.5">
-                  <button
-                     type="button"
-                     onClick={() => setActiveTab('profile')}
-                     className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#141417] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800 shrink-0 cursor-pointer active:scale-95 transition-transform"
-                     aria-label="View profile settings"
-                  >
-                     <img
-                        src={profile.avatarUrl || defaultAvatar}
-                        alt={displayName}
-                        className="w-full h-full object-cover"
-                        onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
-                     />
-                  </button>
-                  <div className="min-w-0 pb-1">
-                     <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
-                        {displayName}
-                     </h2>
-                     <p className="text-[12.5px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-                        @{profile.username || "trader"} · <span className="capitalize">{activePlan}</span>
-                     </p>
-                  </div>
-               </div>
-            </div>
-
-            {/* ── MAIN MODAL BODY (Mobile list/detail OR Desktop 2-column sidebar + content) ── */}
-            <div className="flex flex-1 min-h-0 overflow-hidden">
-            
-             {/* ── MOBILE SETTINGS NAVIGATION (Matching Reference Picture 2) ── */}
-             <div className={`${mobileShowDetails ? 'hidden' : 'flex md:hidden'} w-full bg-[#F4F5F7] dark:bg-[#121215] flex-col h-full min-h-0 overflow-y-auto amazing-scrollbar select-none`}>
-                {/* Mobile Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1E] shrink-0 sticky top-0 z-20">
-                   <h1 className="text-[17px] font-bold text-slate-900 dark:text-white">Settings</h1>
-                   <button 
-                      onClick={handleCloseSettings} 
-                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer"
-                      aria-label="Close settings"
-                   >
-                      <X size={15} />
-                   </button>
-                </div>
-
-                <div className="p-4 space-y-4 pb-28">
-                   {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
-                   <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
-                      {/* Banner Image with smooth bottom fade */}
-                      <div className="relative h-36 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
-                         <img
-                            src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
-                            alt="Cover"
-                            className="w-full h-full object-cover object-center"
-                            onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                         />
-                         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40" />
-                      </div>
-
-                      {/* Overlapping Avatar */}
-                      <div className="relative -mt-9 ml-4 flex items-end justify-between pr-4">
-                         <div className="w-16 h-16 rounded-full border-2 border-white dark:border-[#1A1A1E] shadow-md overflow-hidden bg-white dark:bg-neutral-800 shrink-0">
-                            <img
-                               src={profile.avatarUrl || "/nikil_avatar.jpg"}
-                               alt={displayName}
-                               className="w-full h-full object-cover"
-                               onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
-                            />
-                         </div>
-                      </div>
-
-                      {/* Name, Username & Edit button row */}
-                      <div className="px-4 pt-2.5 pb-4 flex items-center justify-between">
-                         <div className="min-w-0 pr-3">
-                            <h2 className="text-[16px] font-bold text-slate-900 dark:text-white truncate leading-tight">
-                               {displayName}
-                            </h2>
-                            <p className="text-[12px] text-slate-400 dark:text-neutral-500 font-normal mt-0.5 truncate">
-                               @{profile.username || "nikhilharake"}
-                            </p>
-                         </div>
-                         <TactileBoxButton
-                            onClick={() => {
-                               triggerHaptic("selection");
-                               setActiveTab("profile");
-                               setMobileShowDetails(true);
-                            }}
-                            className="h-9 px-4 shrink-0"
-                            title="Edit profile"
-                         >
-                            <Pencil size={13.5} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
-                            <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-none tracking-tight">Edit</span>
-                         </TactileBoxButton>
-                      </div>
-                   </div>
-
-                   {/* 2. Search Settings Box */}
-                   <div className="relative">
-                      <Search set="curved" stroke="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={15} />
-                      <input
-                         type="text"
-                         placeholder="Search settings"
-                         value={searchQuery}
-                         onChange={(e) => setSearchQuery(e.target.value)}
-                         className="w-full bg-[#EAECEF] dark:bg-[#1E1E22] rounded-xl pl-9 pr-8 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 border border-transparent focus:outline-none focus:border-blue-500 transition-colors"
-                      />
-                      {searchQuery && (
-                         <button
-                            onClick={() => setSearchQuery('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                         >
-                            Clear
-                         </button>
-                      )}
-                   </div>
-
-                   {/* 3. Grouped Settings Lists (Matching Reference Picture 2) */}
-                   <div className="space-y-4 pt-1">
-                      {/* Section: ACCOUNT */}
-                      {(!searchQuery || "account profile activity trophies security notifications delete history privacy".includes(searchQuery.toLowerCase())) && (
-                         <div>
-                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
-                               ACCOUNT
-                            </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                               {(!searchQuery || "profile".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('profile'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <User set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Profile</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "activity".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('active-sessions'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Activity set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Activity</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "trophies badges standing".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('account-standing'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Star set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Trophies & Standing</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "security password green check".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('password-security'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Security & Password</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "notifications alerts".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('notifications'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Notification set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Notifications</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "delete history privacy data".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('data-export'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Document set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Data & Privacy</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-                            </div>
-                         </div>
-                      )}
-
-                      {/* Section: TRADING */}
-                      {(!searchQuery || "trading break-even risk accounts circuit breaker symbol pricing".includes(searchQuery.toLowerCase())) && (
-                         <div>
-                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
-                               TRADING
-                            </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                               {(!searchQuery || "break-even range risk".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Setting set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Break-even Range & Risk</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "accounts brokers".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Wallet set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Accounts & Brokers</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "risk circuit breaker".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Risk Circuit Breaker</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "symbol pricing market".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Swap set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Symbol Pricing</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-                            </div>
-                         </div>
-                      )}
-
-                      {/* Section: PREFERENCES & SUPPORT */}
-                      {(!searchQuery || "subscription theme appearance help report logout".includes(searchQuery.toLowerCase())) && (
-                         <div>
-                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
-                               PREFERENCES & SUPPORT
-                            </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                               {(!searchQuery || "subscription plan billing".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('subscription'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <TicketStar set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Subscription & Plan</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "theme appearance display".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('appearance'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Category set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Theme & Display</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "help center desk support".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('help'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <InfoCircle set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Help Center</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "report problem issue".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('report'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Danger set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Report a Problem</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               <button
-                                  type="button"
-                                  onClick={() => setShowLogoutConfirm(true)}
-                                  className="w-full flex items-center justify-between p-3.5 hover:bg-rose-50/50 dark:hover:bg-rose-500/10 active:bg-rose-100/50 transition-colors cursor-pointer text-left"
-                               >
-                                  <div className="flex items-center gap-3">
-                                     <div className="text-rose-500">
-                                        <Logout set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                     </div>
-                                     <span className="text-[13.5px] font-semibold text-rose-500">Log Out</span>
-                                  </div>
-                               </button>
-                            </div>
-                         </div>
-                      )}
-                   </div>
-                </div>
-             </div>
-
-             {/* ── DESKTOP SIDEBAR PANEL (Clean White Rail with Elevated Active Pill) ── */}
-             <div className="hidden md:flex w-[256px] bg-white dark:bg-[#141417] flex-col h-full min-h-0 shrink-0">
-
-               <div className="pt-1 pb-5 px-5 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-                  {/* Search Settings Pill */}
-                  <div className="relative">
-                     <Search stroke="bold" set="curved" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={14} />
-                     <input
-                        type="text"
-                        placeholder="Search settings"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-8 py-2 rounded-[11px] bg-[#F2F3F6] dark:bg-white/[0.06] border border-transparent focus:border-slate-300 dark:focus:border-white/15 focus:bg-white dark:focus:bg-[#1C1C21] text-[12.5px] placeholder:text-slate-400 text-slate-800 dark:text-slate-100 outline-none transition-all"
-                     />
-                     {searchQuery && (
-                        <button
-                           type="button"
-                           onClick={() => setSearchQuery('')}
-                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
-                        >
-                           Clear
-                        </button>
-                     )}
-                  </div>
-
-                  {/* Grouped Sections (ACCOUNT / TRADING / APP) */}
-                  <div className="space-y-5">
-                     {filteredSections.map((section, idx) => (
-                        <div key={idx}>
-                           <h3 className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.08em] mb-1.5 px-2.5">
-                              {section.title}
-                           </h3>
-                           <div className="space-y-1">
-                              {section.items.map((item: any) => {
-                                 const isActive = activeTab === item.id;
-                                 const isLogout = item.id === 'logout';
-                                 return (
-                                    <div key={item.id} className="flex flex-col">
-                                       <button
-                                          type="button"
-                                          onClick={async () => {
-                                             if (isLogout) {
-                                                setShowLogoutConfirm(true);
-                                             } else {
-                                                setActiveTab(item.id);
-                                                setMobileShowDetails(true);
-                                                if (item.children) setActiveSubTab(item.children[0].id);
-                                             }
-                                          }}
-                                          className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[12px] text-[13.5px] transition-all duration-150 text-left cursor-pointer ${
-                                             isLogout
-                                                ? 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'
-                                                : isActive
-                                                ? 'bg-white dark:bg-[#1E1E24] text-slate-900 dark:text-white font-semibold shadow-[0_2px_10px_rgba(15,23,42,0.07),0_0_0_1px_rgba(15,23,42,0.06)] dark:shadow-none dark:border dark:border-white/10'
-                                                : 'text-slate-600 dark:text-neutral-400 hover:bg-slate-100/75 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white font-medium'
-                                          }`}
-                                       >
-                                          <span
-                                             className={`w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 transition-colors ${
-                                                isLogout
-                                                   ? 'text-rose-500'
-                                                   : isActive
-                                                   ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
-                                                   : 'text-slate-500 dark:text-neutral-400'
-                                             }`}
-                                          >
-                                             {item.icon === Sparkles || item.icon === Sliders ? (
-                                                <item.icon size={15} strokeWidth={2.1} />
-                                             ) : (
-                                                <item.icon
-                                                   stroke="bold"
-                                                   set="curved"
-                                                   size={16}
-                                                   primaryColor="currentColor"
-                                                />
-                                             )}
-                                          </span>
-                                          <span className="truncate">{item.label}</span>
-                                       </button>
-
-                                       {item.children && isActive && (
-                                          <div className="mt-1.5 ml-5 pl-3.5 border-l border-slate-200 dark:border-white/10 flex flex-col gap-1 relative py-0.5">
-                                             {item.children.map((child: any) => (
-                                                <button
-                                                   key={child.id}
-                                                   type="button"
-                                                   onClick={() => {
-                                                      setActiveSubTab(child.id);
-                                                      setMobileShowDetails(true);
-                                                      const el = document.getElementById(child.id);
-                                                      const container = document.getElementById('settings-scroll-container');
-                                                      if (el && container) {
-                                                         container.scrollTo({ top: el.offsetTop - 90, behavior: 'smooth' });
-                                                      }
-                                                   }}
-                                                   className={`relative text-left text-[12.5px] font-medium transition-colors py-1 cursor-pointer ${
-                                                      activeSubTab === child.id
-                                                         ? 'text-slate-900 dark:text-white font-semibold'
-                                                         : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200'
-                                                   }`}
-                                                >
-                                                   {activeSubTab === child.id && (
-                                                      <div className="absolute left-[-15px] top-1/2 -translate-y-1/2 w-[2px] h-3.5 bg-slate-900 dark:bg-white rounded-r-full" />
-                                                   )}
-                                                   {child.label}
-                                                </button>
-                                             ))}
-                                          </div>
-                                       )}
-                                    </div>
-                                 );
-                              })}
-                           </div>
-                        </div>
-                     ))}
-                  </div>
-
-                  {/* Subtle Footer Links */}
-                  <div className="mt-auto pt-4 px-2 select-none border-t border-slate-100 dark:border-white/[0.06]">
-                     <div className="flex items-center justify-between mb-2.5">
-                        <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">v2.0.0</span>
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                           Connected
-                        </span>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] font-medium text-slate-400">
-                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Privacy Policy</a>
-                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Terms</a>
-                        <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Risk Disclosure</a>
-                        <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Refund Policy</a>
-                     </div>
-                  </div>
-               </div>
-             </div>
-
-            {/* RIGHT CONTENT PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-[#F4F5F7] dark:bg-[#121215] md:bg-white md:dark:bg-[#141417] h-full min-h-0 overflow-hidden relative flex flex-col`}>
-               
-               {/* Mobile-only Sticky Back Header (Desktop uses Hero close + clean section title) */}
-               <div className="flex md:hidden bg-white dark:bg-[#1A1A1E] px-4 py-3 border-b border-slate-200/60 dark:border-white/5 items-center justify-between shrink-0 sticky top-0 z-20">
-                  <div className="flex items-center gap-2 min-w-0">
-                     <button
-                        type="button"
-                        onClick={() => setMobileShowDetails(false)}
-                        className="flex items-center gap-1 text-[14px] font-medium text-slate-800 dark:text-neutral-200 py-1 px-1 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
-                     >
-                        <ChevronLeft size={18} />
-                        <span>Settings</span>
-                     </button>
-                  </div>
-                  
-                  <button
-                      type="button"
-                      onClick={handleCloseSettings}
-                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer shrink-0"
-                      title="Close Settings"
-                   >
-                      <X size={15} />
-                   </button>
-               </div>
-
-               {/* Scrollable Content Container */}
-               <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto amazing-scrollbar scroll-smooth overscroll-contain">
-
-                  {/* Scrollable Content wrapper with padding */}
-                  <div className="w-full mx-auto pt-2 md:pt-1 px-3 sm:px-6 md:px-8 pb-6 md:pb-12 space-y-5">
-                     {/* Desktop Clean Section Heading & Subtitle */}
-                     <div className="hidden md:block mb-5 max-w-[820px]">
-                        <h1 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                           {headerTitle}
-                        </h1>
-                        {TAB_SUBTITLES[activeTab] && (
-                           <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-1">
-                              {TAB_SUBTITLES[activeTab]}
-                           </p>
-                        )}
-                     </div>
-
-                     <AnimatePresence mode="wait">
-
-                     {/* TAB 0: ACCOUNT SETTINGS */}
-                     {activeTab === 'account' && (
-                        <motion.div
-                           key="account"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
-                        >
-                           <AccountTab 
-                              profile={profile}
-                              isInitialLoading={isInitialLoading}
-                              setActiveSubTab={setActiveSubTab} 
-                              onEditProfile={() => setActiveTab('profile')}
-                              onEditPhone={() => setShowSmsModal(true)}
-                           />
-                        </motion.div>
-                     )}
-
-                     {/* TAB 1: PROFILE INFORMATION & PRIVACY */}
-                     {activeTab === 'profile' && (
-                        <motion.div
-                           key="profile"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-5 w-full max-w-[820px]"
-                        >
-                           {/* Desktop Profile Overview (Showcase Card + Details Card) when NOT in edit mode */}
-                           {!isDesktopEditingProfile && (
-                              <div className="hidden md:block space-y-5">
-                                 {/* Card 1: Profile Showcase Card (Banner + Fade + Avatar + Name + Edit Profile) */}
-                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
-                                    <div className="relative h-[185px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
-                                       <img
-                                          src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
-                                          alt="Profile cover"
-                                          className="w-full h-full object-cover object-center"
-                                          onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                                       />
-                                       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/60" />
-                                    </div>
-
-                                    <div className="px-6 pb-6">
-                                       <div className="relative z-10 -mt-12 mb-3">
-                                          <div className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#1B1B20] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800">
-                                             <img
-                                                src={profile.avatarUrl || defaultAvatar}
-                                                alt={displayName}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
-                                             />
-                                          </div>
-                                       </div>
-
-                                       <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
-                                          {displayName}
-                                       </h2>
-                                       <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          @{profile.username || "trader"}
-                                       </p>
-
-                                       <div className="mt-4">
-                                          <TactileBoxButton
-                                             onClick={() => {
-                                                triggerHaptic("selection");
-                                                setIsDesktopEditingProfile(true);
-                                             }}
-                                             className="h-9 px-4"
-                                          >
-                                             <Pencil size={13.5} strokeWidth={2.2} className="text-slate-800 dark:text-white" />
-                                             <span>Edit profile</span>
-                                          </TactileBoxButton>
-                                       </div>
-                                    </div>
-                                 </div>
-
-                                 {/* Card 2: Account & Profile Summary Card */}
-                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-4">
-                                    <div>
-                                       <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                                          Profile Details
-                                       </h3>
-                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Public identity, contact email, and workspace plan linked to your account.
-                                       </p>
-                                    </div>
-
-                                    <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
-                                       <div className="py-3 flex items-center justify-between gap-4">
-                                          <div>
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Email</p>
-                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                                {profile.email || "Not set"}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setActiveTab("account")}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
-                                          >
-                                             Manage
-                                          </button>
-                                       </div>
-
-                                       <div className="py-3 flex items-center justify-between gap-4">
-                                          <div className="min-w-0">
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Public Link</p>
-                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-                                                tradifive.in/{profile.username || "trader"}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setIsDesktopEditingProfile(true)}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                                          >
-                                             Edit
-                                          </button>
-                                       </div>
-
-                                       <div className="py-3 flex items-center justify-between gap-4">
-                                          <div className="min-w-0">
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Bio</p>
-                                             <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
-                                                {profile.bio?.trim() || "No bio added yet."}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setIsDesktopEditingProfile(true)}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                                          >
-                                             Edit
-                                          </button>
-                                       </div>
-
-                                       <div className="pt-3 flex items-center justify-between gap-4">
-                                          <div>
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Workspace Plan</p>
-                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 capitalize">
-                                                {activePlan} Plan · {profile.isPrivate ? "Private profile" : "Public profile"}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setActiveTab("subscription")}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
-                                          >
-                                             View plan
-                                          </button>
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
-                           )}
-
-                           {/* Mobile ALWAYS renders ProfileTab; Desktop renders full ProfileTab editor when Edit profile is clicked */}
-                           <div id="settings-profile-editor" className={isDesktopEditingProfile ? "block" : "md:hidden"}>
-                              {isDesktopEditingProfile && (
-                                 <div className="hidden md:flex items-center justify-between mb-4">
-                                    <button
-                                       type="button"
-                                       onClick={() => setIsDesktopEditingProfile(false)}
-                                       className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
-                                    >
-                                       <ChevronLeft size={15} />
-                                       <span>Back to profile card</span>
-                                    </button>
-                                 </div>
-                              )}
-                              <ProfileTab 
-                                 profile={profile} 
-                                 setProfile={setProfile} 
-                                 privacySettings={privacySettings} 
-                                 setPrivacySettings={setPrivacySettings} 
-                                 avatarUploadRef={avatarUploadRef} 
-                                 bannerUploadRef={bannerUploadRef} 
-                                 isInitialLoading={isInitialLoading}
-                                 onSave={async () => {
-                                    await handleUpdateProfile();
-                                    setIsDesktopEditingProfile(false);
-                                 }}
-                                 onCancel={() => {
-                                    setIsDesktopEditingProfile(false);
-                                    setMobileShowDetails(false);
-                                 }}
-                                 loading={loading}
-                                 setActiveTab={setActiveTab}
-                              />
-                           </div>
-
-                           {/* Hidden inputs triggers */}
-                           <input type="file" ref={avatarUploadRef} accept="image/*" className="hidden" onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                 try {
-                                    const base64 = await resizeImageFile(file, 250, 250, 0.8);
-                                    setProfile(p => ({...p, avatarUrl: base64}));
-                                 } catch (err) {
-                                    console.error("Failed to resize avatar", err);
-                                 }
-                              }
-                           }} />
-                           <input type="file" ref={bannerUploadRef} accept="image/*" className="hidden" onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                 try {
-                                    const base64 = await resizeImageFile(file, 800, 400, 0.8);
-                                    setProfile(p => ({...p, bannerUrl: base64}));
-                                 } catch (err) {
-                                    console.error("Failed to resize banner", err);
-                                 }
-                              }
-                           }} />
-
-                        </motion.div>
-                     )}
-
-                     {/* TAB 2: ACCOUNT & SECURITY */}
-                     {activeTab === 'security' && (
-                        <motion.div
-                           key="security"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
-                        >
-                           
-
-                           <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-5">
-                              <h4 className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                 <Key size={14} className="text-indigo-650" /> Password Controls
-                              </h4>
-                              <p className="text-[12px] text-slate-500">Need to update your security credentials? Click below to dispatch an automated secure reset trigger to your registered email.</p>
-                              <button 
-                                 onClick={() => { toast.success("Password reset token dispatched to registered address."); }}
-                                 className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded transition-all shadow-sm"
-                              >
-                                 Change Password
-                              </button>
-                           </div>
-
-                           {/* MFA Card */}
-                           <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-5">
-                              <div className="flex justify-between items-start">
-                                 <div className="space-y-1">
-                                    <h4 className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                                       <ShieldCheck size={14} className="text-indigo-650" /> Two-Factor Authentication (2FA)
-                                    </h4>
-                                    <p className="text-[12px] text-slate-500 max-w-md">Protect your Tradifive account with an extra layer of security. Verify logging attempts with an authenticator app (Google Authenticator, Duo).</p>
-                                 </div>
-                                 <span className="px-2 py-0.5 rounded bg-slate-250 dark:bg-[#121212] text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest border border-slate-300 dark:border-transparent">Disabled</span>
-                              </div>
-                              <button 
-                                 onClick={() => { toast.info("Authenticating via SMS code setup modal instead"); setShowSmsModal(true); }}
-                                 className="px-5 py-2.5 bg-slate-250 hover:bg-slate-350 dark:bg-[#121212] dark:hover:bg-[#222225] text-slate-800 dark:text-white font-bold text-xs rounded transition-all shadow-sm"
-                              >
-                                 Enable 2FA Authentication
-                              </button>
-                           </div>
-
-                           {/* Danger zone */}
-                           <div className="p-6 rounded-xl border-2 border-red-500/20 bg-red-50 dark:bg-red-950/5 space-y-5">
-                              <div className="space-y-1">
-                                 <h4 className="text-[11px] font-semibold text-red-650 dark:text-red-400 uppercase tracking-wider flex items-center gap-2">
-                                    <AlertTriangle size={14} /> Danger Zone / Account Suspension
-                                 </h4>
-                                 <p className="text-[12px] text-red-700/80 dark:text-red-400/80">Deactivating deletes active billing, stops AI sync engines, and hides trading logs instantly. This action cannot be reversed without support verification.</p>
-                              </div>
-                              <div className="flex gap-4">
-                                 <button 
-                                    onClick={() => { toast.error("Deactivation request initialized. Check email for details."); }}
-                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded transition-all shadow-md active:translate-y-[1px]"
-                                 >
-                                    Deactivate Account
-                                 </button>
-                              </div>
-                           </div>
-
-                        </motion.div>
-                     )}
-
-                     {/* TAB 3: PRIVACY & COMMUNITY */}
-                     {activeTab === 'privacy' && (
-                        <motion.div
-                           key="privacy"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
-                        >
-                           
-                           {/* Visibility list */}
-                           <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-4">
-                              <h4 className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider">Analytics Sharing Preferences</h4>
-                              
-                              <div className="space-y-3">
-                                 <div className={`p-4 rounded-lg bg-white dark:bg-[#121212] flex items-center justify-between transition-opacity`}>
-                                    <div className="flex flex-col gap-0.5 max-w-[80%]">
-                                       <span className="text-[13px] font-bold text-slate-800 dark:text-white">Private Profile Account</span>
-                                       <span className="text-[11px] text-slate-500">Only approved followers can view your feed posts and calendar heatmap.</span>
-                                    </div>
-                                    <SettingsToggle checked={privacySettings.is_private} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, is_private: v }))} />
-                                 </div>
-
-                                 {[
-                                    { key: "show_location", label: "Share Location Indicators", desc: "Allow community members to view city, state, and flag emojis." },
-                                    { key: "show_winrate", label: "Share Win Rate Stats", desc: "Publicly showcase win rate metrics in feed panels." },
-                                    { key: "show_roi", label: "Share ROI (All Time)", desc: "Render active PnL curve percentages on public profiles." },
-                                    { key: "show_streak", label: "Share Active Trading Streaks", desc: "Show consecutive green/red trading days." },
-                                    { key: "show_trades", label: "Share Active Trade Ledger", desc: "Allows open viewing of individual position histories." }
-                                 ].map((item) => (
-                                    <div key={item.key} className="p-4 rounded-lg bg-white dark:bg-[#121212] flex items-center justify-between">
-                                       <div className="flex flex-col gap-0.5 max-w-[80%]">
-                                          <span className="text-[13px] font-bold text-slate-800 dark:text-white">{item.label}</span>
-                                          <span className="text-[11px] text-slate-500">{item.desc}</span>
-                                       </div>
-                                       <SettingsToggle checked={privacySettings[item.key]} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, [item.key]: v }))} />
-                                    </div>
-                                 ))}
-                              </div>
-                           </div>
-
-                           <div className="flex justify-end pt-2 pb-8">
-                              <ConsistencyToggleButton 
-                                 label="Save Privacy Preferences" 
-                                 checked={true} 
-                                 onChange={() => handleUpdateProfile()} 
-                              />
-                           </div>
-
-                        </motion.div>
-                     )}
-
-                     {/* TAB 4: APPEARANCE */}
-                     {activeTab === 'appearance' && (
-                        <motion.div
-                           key="appearance"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
-                        >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              Theme
-                           </h2>
-                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-4">
-                              Customize how the app looks and feels across all your devices. Tweak lighting, colors, and layout density to create your perfect workspace.
-                           </p>
-
-                           {/* Color Theme Box */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-slate-200/60 dark:bg-[#202022] flex items-center justify-center shrink-0 text-slate-600 dark:text-slate-300">
-                                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Global Color Theme</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Toggles the full lighting environment across the entire application interface. Changes are applied instantly.
-                                    </p>
-                                 </div>
-                              </div>
-                              <ThemeSwitch checked={theme === 'dark'} onChange={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')} />
-                           </div>
-
-                           {/* Full Screen Layout Box */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-slate-200/60 dark:bg-[#202022] flex items-center justify-center shrink-0 text-slate-600 dark:text-slate-300">
-                                    <Monitor size={18} />
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Immersive Full Screen</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Removes the rounded curves and margin padding, stretching the content to fill the entire screen for a more immersive experience.
-                                    </p>
-                                 </div>
-                              </div>
-                              <SettingsToggle checked={fullScreenLayout} onChange={handleFullScreenChange} />
-                           </div>
-                           
-                           {/* Background Fade Theme Box */}
-                           <div className={`bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-sm flex-col md:flex-row md:items-center justify-between gap-6 mt-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
-                                 <div className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-slate-200/60 flex items-center justify-center shrink-0 text-slate-600">
-                                       <Palette size={18} />
-                                    </div>
-                                    <div className="space-y-1">
-                                       <h3 className="text-[16px] font-bold text-slate-900 mb-1">Background Fade Style</h3>
-                                       <p className="text-[13px] text-slate-500 max-w-md">
-                                          Customize the background gradient color. Choose from various subtle fades to suit your preference in light mode.
-                                       </p>
-                                    </div>
-                                 </div>
-                                 <div className="relative w-[140px]">
-                                    <Select
-                                       value={bgFadeStyle}
-                                       onValueChange={(value) => {
-                                          setBgFadeStyle(value);
-                                          localStorage.setItem("fialgo_bg_fade_style", value);
-                                          window.dispatchEvent(new Event("fialgo_bg_style_changed"));
-                                       }}
-                                    >
-                                       <SelectTrigger className="w-full bg-white border border-slate-200 text-slate-700 text-[13px] font-bold rounded-xl h-10 shadow-sm focus:ring-2 focus:ring-indigo-500/50">
-                                          <SelectValue placeholder="Select Fade" />
-                                       </SelectTrigger>
-                                       <SelectContent className="bg-white border-slate-200 rounded-xl shadow-lg z-[9999]">
-                                          <SelectItem value="purple" className="text-[13px] font-semibold cursor-pointer">Purple Fade</SelectItem>
-                                          <SelectItem value="gray" className="text-[13px] font-semibold cursor-pointer">Gray Fade</SelectItem>
-                                          <SelectItem value="black" className="text-[13px] font-semibold cursor-pointer">Black Fade</SelectItem>
-                                          <SelectItem value="blue" className="text-[13px] font-semibold cursor-pointer">Blue Fade</SelectItem>
-                                          <SelectItem value="rose" className="text-[13px] font-semibold cursor-pointer">Rose Fade</SelectItem>
-                                       </SelectContent>
-                                    </Select>
-                                 </div>
-                           </div>
-
-                        
-                           {/* Accent Color Palette */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 text-blue-500">
-                                    <Sparkles size={18} />
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Interface Accent Tint</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Customize primary button glows, active tabs, and highlights across TradiFive.
-                                    </p>
-                                 </div>
-                              </div>
-                              <div className="flex items-center gap-2.5">
-                                 {[
-                                    { id: 'blue', color: 'bg-blue-500', name: 'Electric Blue' },
-                                    { id: 'emerald', color: 'bg-emerald-500', name: 'Emerald' },
-                                    { id: 'purple', color: 'bg-purple-500', name: 'Royal Violet' },
-                                    { id: 'amber', color: 'bg-amber-500', name: 'Cyber Amber' },
-                                    { id: 'rose', color: 'bg-rose-500', name: 'Rose Red' },
-                                 ].map((tint) => (
-                                    <button
-                                       key={tint.id}
-                                       type="button"
-                                       title={tint.name}
-                                       onClick={() => {
-                                          setAccentColor(tint.id);
-                                          localStorage.setItem('tradifive_accent_color', tint.id);
-                                          toast.success(tint.name + ' accent selected');
-                                       }}
-                                       className={'w-7 h-7 rounded-full ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'opacity-70 hover:opacity-100')}
-                                    >
-                                       {accentColor === tint.id && <Check size={14} className="text-white" strokeWidth={3} />}
-                                    </button>
-                                 ))}
-                              </div>
-                           </div>
-
-                           {/* Trading & P&L Colors Palette */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                 <div className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
-                                       <TrendingUp size={18} />
-                                    </div>
-                                    <div className="space-y-1">
-                                       <div className="flex items-center gap-2">
-                                          <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
-                                             Trading &amp; P&amp;L Colors
-                                          </h3>
-                                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                             Dashboard &amp; Journal
-                                          </span>
-                                       </div>
-                                       <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
-                                          Choose how profit, loss, equity curves, win rate rings, and trade logs are colored. Classic Green &amp; Red is the primary recommended preset.
-                                       </p>
-                                    </div>
-                                 </div>
-                              </div>
-
-                              {/* 3 Selectable Theme Cards */}
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                 {(Object.keys(PNL_THEMES) as TradingThemeId[]).map((id) => {
-                                    const t = PNL_THEMES[id];
-                                    const isSelected = pnlTheme === id;
-                                    return (
-                                       <button
-                                          key={id}
-                                          type="button"
-                                          onClick={() => {
-                                             changePnlTheme(id);
-                                             localStorage.setItem('tradifive_chart_theme', id === 'monochrome' ? 'classic' : id);
-                                             toast.success(`Applied ${t.label} palette across Dashboard & Journal`);
-                                          }}
-                                          className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
-                                             isSelected
-                                                ? "border-emerald-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(16,185,129,0.12)] ring-2 ring-emerald-500/25"
-                                                : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
-                                          }`}
-                                       >
-                                          <div>
-                                             <div className="flex items-center justify-between gap-1 mb-1.5">
-                                                <span className="text-[13px] font-bold text-slate-900 dark:text-white">
-                                                   {t.label}
-                                                </span>
-                                                {t.badge ? (
-                                                   <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                      {t.badge}
-                                                   </span>
-                                                ) : isSelected ? (
-                                                   <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
-                                                      <Check size={10} strokeWidth={3} />
-                                                   </span>
-                                                ) : null}
-                                             </div>
-                                             <p className="text-[11px] text-slate-500 dark:text-neutral-400 line-clamp-2 leading-relaxed mb-3">
-                                                {t.subLabel}
-                                             </p>
-                                          </div>
-
-                                          {/* Live Swatch Preview */}
-                                          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-bold tabular-nums">
-                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.profitBadge}`}>
-                                                {t.previewProfit}
-                                             </span>
-                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.lossBadge}`}>
-                                                {t.previewLoss}
-                                             </span>
-                                          </div>
-                                       </button>
-                                    );
-                                 })}
-                              </div>
-                           </div>
-
-                        
-                            {/* Mouse Pointer & Cursor Selection */}
-                            <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
-                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                  <div className="flex gap-4">
-                                     <div className="w-10 h-10 rounded-full bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
-                                        <MousePointer size={18} />
-                                     </div>
-                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                           <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
-                                              Mouse Pointer &amp; Cursor
-                                           </h3>
-                                           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                              Tactile Feedback
-                                           </span>
-                                        </div>
-                                        <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
-                                           Choose your desktop mouse pointer style. Includes tactile spring physics and luxury expanding click circles.
-                                        </p>
-                                     </div>
-                                  </div>
-                               </div>
-
-                               {/* 3 Selectable Cursor Cards */}
-                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                  {[
-                                     {
-                                        id: '3d' as const,
-                                        title: '3D Glossy Arrow',
-                                        badge: 'Recommended',
-                                        desc: 'Sleek beveled black arrow with specular reflection, softer shadow & click circles.',
-                                        preview: (
-                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
-                                              <div className="absolute w-8 h-8 rounded-full border border-slate-900/30 dark:border-white/50 bg-slate-900/[0.04] dark:bg-white/[0.08] animate-ping" />
-                                              <img src="/custom-cursor.png" alt="3D Arrow" className="w-6 h-6 object-contain drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.20)] relative z-10" />
-                                           </div>
-                                        ),
-                                     },
-                                     {
-                                        id: 'dot' as const,
-                                        title: 'Precision Dot',
-                                        badge: 'Modern',
-                                        desc: 'Minimalist circle dot with active dynamic hover expansion and click ripple.',
-                                        preview: (
-                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
-                                              <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-blue-500/20" />
-                                           </div>
-                                        ),
-                                     },
-                                     {
-                                        id: 'system' as const,
-                                        title: 'System Default',
-                                        badge: 'Classic',
-                                        desc: 'Standard native operating system cursor with normal OS mouse behavior.',
-                                        preview: (
-                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
-                                              <MousePointer size={20} className="text-slate-700 dark:text-neutral-300" />
-                                           </div>
-                                        ),
-                                     },
-                                  ].map((opt) => {
-                                     const isSelected = cursorStyle === opt.id;
-                                     return (
-                                        <button
-                                           key={opt.id}
-                                           type="button"
-                                           onClick={() => handleCursorStyleChange(opt.id)}
-                                           className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
-                                              isSelected
-                                                 ? "border-blue-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-2 ring-blue-500/25"
-                                                 : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
-                                           }`}
-                                        >
-                                           <div>
-                                              <div className="flex items-center justify-between gap-1 mb-1.5">
-                                                 <span className="text-[13px] font-bold text-slate-900 dark:text-white">
-                                                    {opt.title}
-                                                 </span>
-                                                 {isSelected ? (
-                                                    <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
-                                                       <Check size={10} strokeWidth={3} />
-                                                    </span>
-                                                 ) : (
-                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-neutral-400">
-                                                       {opt.badge}
-                                                    </span>
-                                                 )}
-                                              </div>
-                                              <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed mb-3">
-                                                 {opt.desc}
-                                              </p>
-                                           </div>
-
-                                           {opt.preview}
-                                        </button>
-                                     );
-                                  })}
-                               </div>
-                            </div>
-
-</motion.div>
-                     )}
-
-
-                     {/* TAB 6: NOTIFICATIONS */}
-                     {activeTab === 'notifications' && (
-                        <motion.div
-                           key="notifications"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
-                        >
-                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-[#3f4147] pb-4 mb-6">
-                              <h2 className="text-[20px] font-bold text-slate-900 dark:text-white">
-                                 Notifications
-                              </h2>
-                              {/* Global Control Hub */}
-                              <div className="flex items-center gap-3 text-[12px] font-bold">
-                                 <button 
-                                    onClick={handleGlobalOff} 
-                                    className="group flex items-center justify-center gap-2 h-8 px-4 rounded-full border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-all hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FCA5A5] dark:hover:shadow-none active:scale-95 shrink-0"
-                                 >
-                                    <Power size={14} className="transition-transform group-hover:scale-110 duration-200" /> Switch off all
-                                 </button>
-                                 <button 
-                                    onClick={handleEmailOnly} 
-                                    className="group flex items-center justify-center gap-2 h-8 px-4 rounded-full border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#A5B4FC] dark:hover:shadow-none active:scale-95 shrink-0"
-                                 >
-                                    <Mail size={14} className="transition-transform group-hover:scale-110 duration-200" /> Email only
-                                 </button>
-                              </div>
-                           </div>
-                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Configure push alerts, app notifications, security reminders, and emails.</p>
-
-                           {/* Sections iteration */}
-                           {[
-                              { key: 'messages', title: 'Message Preferences', desc: 'Alerts for direct messages, groups, and @username mentions.', icon: MessageSquare },
-                              { key: 'text', title: 'SMS Security Alerts', desc: 'Secure phone log alerts and promotional bulletins.', icon: Smartphone },
-                              { key: 'alerts', title: 'Trading Execution Alerts', desc: 'Price ticks, target alerts, and risk guard parameters.', icon: AlertTriangle },
-                              { key: 'ai_coach', title: 'AI Coach Notifications', desc: 'Insights, performance reports, and coaching suggestions.', icon: Brain },
-                              { key: 'channels', title: 'Channels & Communities', desc: 'Announcements, replies, and channel activities.', icon: Hash },
-                              { key: 'inboxes', title: 'Inboxes & Networking', desc: 'Friend requests, invites, and community news.', icon: Inbox }
-                           ].map((section) => (
-                              <div key={section.key} className="space-y-6 p-6 rounded-xl bg-slate-50 dark:bg-[#1a1b1e]">
-                                 <div className="flex gap-4 items-start">
-                                    <div className="w-10 h-10 bg-[#1e1f22] rounded-full flex items-center justify-center shrink-0 text-[#DBDEE1]">
-                                       <section.icon size={18} />
-                                    </div>
-                                    <div>
-                                       <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">{section.title}</h3>
-                                       <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">{section.desc}</p>
-                                    </div>
-                                 </div>
-
-                                 <div className="space-y-1">
-                                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-[#80848e] uppercase tracking-wider mb-2">
-                                       <span>Event Type</span>
-                                       <div className="flex text-center w-48 justify-end">
-                                          <span className="w-16">Push</span>
-                                          <span className="w-16">App</span>
-                                          <span className="w-16">Email</span>
-                                       </div>
-                                    </div>
-
-                                    {(notifications as any)[section.key].map((notif: any) => (
-                                       <div key={notif.id} className="flex items-center justify-between py-2 group">
-                                          <span className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1] pr-4">{notif.label}</span>
-                                          <div className="flex justify-end w-48 shrink-0">
-                                             <div className="w-16 flex justify-center">
-                                                <AnimatedCheckbox checked={notif.push} onChange={() => handleToggle(section.key, notif.id, 'push')} />
-                                             </div>
-                                             <div className="w-16 flex justify-center">
-                                                <AnimatedCheckbox checked={notif.app} onChange={() => handleToggle(section.key, notif.id, 'app')} />
-                                             </div>
-                                             <div className="w-16 flex justify-center">
-                                                <AnimatedCheckbox checked={notif.email} onChange={() => handleToggle(section.key, notif.id, 'email')} />
-                                             </div>
-                                          </div>
-                                       </div>
-                                    ))}
-                                 </div>
-                              </div>
-                           ))}
-                        </motion.div>
-                     )}
-
-                     {/* TAB 7: AI ASSISTANT */}
-                     {activeTab === 'ai' && (
-                        <motion.div
-                           key="ai"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
-                        >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              AI Assistant
-                           </h2>
-                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Configure your AI Coach's tone, voice, and analysis frequency.</p>
-
-                           {/* AI Credits Card */}
-                           <div className="p-6 rounded-xl border-2 border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/10 shadow-sm flex flex-col gap-4">
-                              <div className="flex items-center justify-between">
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                       <Sparkles size={16} className="text-indigo-600" /> AI Usage & Credits
-                                    </h3>
-                                    <p className="text-[13px] text-slate-600 dark:text-slate-400 max-w-md">
-                                       Your {activePlan.charAt(0).toUpperCase() + activePlan.slice(1)} plan includes high-tier AI inference bandwidth. Each prompt consumes 1 credit.
-                                    </p>
-                                 </div>
-                                 <div className="text-right">
-                                    <p className="text-3xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
-                                       {aiCredits} <span className="text-sm font-semibold text-slate-500">/ {activeMaxCredits}</span>
-                                    </p>
-                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Credits Remaining</p>
-                                 </div>
-                              </div>
-                                    <div className="w-full bg-indigo-200 dark:bg-indigo-950/50 rounded-full h-2 mt-2">
-                                       <div 
-                                          className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full" 
-                                          style={{ width: `${Math.min(100, Math.max(0, (aiCredits / activeMaxCredits) * 100))}%` }}
-                                       />
-                                    </div>
-                                    <div className="space-y-4">
-                                       <div className="mt-4 p-4 rounded-xl bg-white dark:bg-black/20 border border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
-                                          <div className="space-y-1">
-                                             <h4 className="text-sm font-black text-slate-800 dark:text-white">Need More Daily Credits?</h4>
-                                             <p className="text-[11px] text-slate-500 font-semibold">Your plan provides a strict daily credit quota. Upgrading your subscription plan increases your daily allowance immediately.</p>
-                                          </div>
-                                          <button 
-                                             onClick={() => navigate('/upgrade')}
-                                             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-1 shrink-0"
-                                          >
-                                             View Plans <ArrowRight size={13} />
-                                          </button>
-                                       </div>
-                                    </div>
-                                 </div>
-
-
-                              </motion.div>
-                           )}
-
-                           {/* TAB 8: BROKER & INTEGRATIONS */}
-                           
-                     {/* TAB: TRADING & RISK PREFERENCES */}
-                     {activeTab === 'trading_preferences' && (
-                        <motion.div
-                           key="trading_preferences"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[840px] mx-auto"
-                        >
-                           <TradingPreferencesTab />
-                        </motion.div>
-                     )}
-
-                     {activeTab === 'trading' && (
-                              <motion.div
-                                 key="trading"
-                                 initial={{ opacity: 0, y: 10 }}
-                                 animate={{ opacity: 1, y: 0 }}
-                                 exit={{ opacity: 0, y: -10 }}
-                                 transition={{ duration: 0.2 }}
-                                 className="space-y-6 w-full max-w-[1100px] mx-auto"
-                              >
-                                       <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                                    Broker & Integrations
-                                 </h2>
-                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Manage your connected trading accounts and third-party integrations.</p>
-
-                                 {/* Connected Brokers Box */}
-                                 <div className={isConnectingBroker || selectedBrokerToConnect ? "w-full" : "bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8"}>
-                                    {!(isConnectingBroker || selectedBrokerToConnect) && (
-                                       <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">Connected Brokers</h3>
-                                    )}
-                                    
-                                    {isConnectingBroker || selectedBrokerToConnect ? (
-                                       <div className="bg-white dark:bg-[#111112] border border-slate-200/80 dark:border-white/5 rounded-[36px] shadow-[0_8px_40px_rgb(0,0,0,0.03)] w-full overflow-hidden p-6 md:p-10 relative">
-                                          <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-white/5 pb-5">
-                                             <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
-                                                {!selectedBrokerToConnect ? 'Select A Broker' : `Connect ${selectedBrokerToConnect}`}
-                                             </h3>
-                                             <button type="button" onClick={() => {
-                                                if (selectedBrokerToConnect) {
-                                                   setSelectedBrokerToConnect('');
-                                                } else {
-                                                   setIsConnectingBroker(false);
-                                                }
-                                             }} className="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all text-[13px] font-bold border border-slate-200/60 dark:border-white/5 active:scale-95 shadow-sm">
-                                                <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                                                Back
-                                             </button>
-                                          </div>
-                                          
-                                          {!selectedBrokerToConnect ? (
-                                             <div className="space-y-8">
-                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                  <p className="text-[15px] text-slate-500 dark:text-[#949ba4] font-medium leading-relaxed max-w-2xl">
-                                                     Select your trading platform or broker to sync your live accounts and start tracking your performance.
-                                                  </p>
-                                                </div>
-                                                
-                                                <div className="flex flex-wrap gap-5 md:gap-6">
-                                                   {['zerodha', 'dhan', 'upstox', 'mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].filter(broker => { const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker); return activeMarket === 'indian' ? !isGlobal : isGlobal; }).map(broker => (
-                                                      <button
-                                                         key={broker}
-                                                         onClick={() => setSelectedBrokerToConnect(broker)}
-                                                         className={`group w-[150px] md:w-[160px] relative flex flex-col items-center justify-center p-6 bg-gradient-to-b from-white to-slate-50/80 dark:from-[#1A1A24] dark:to-[#121215] border border-slate-200/80 dark:border-white/10 hover:border-${broker === 'zerodha' ? 'blue' : broker === 'dhan' ? 'yellow' : broker === 'upstox' ? 'purple' : 'indigo'}-500/50 rounded-[32px] transition-all duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] hover:-translate-y-1 active:translate-y-0 active:scale-95 overflow-hidden`}
-                                                      >
-                                                         {/* Background Glow on Hover tailored to broker */}
-                                                         <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${broker === 'zerodha' ? 'bg-blue-500/5' : broker === 'dhan' ? 'bg-yellow-500/5' : broker === 'upstox' ? 'bg-purple-500/5' : 'bg-indigo-500/5'}`} />
-                                                         <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${broker === 'zerodha' ? 'bg-blue-400/20' : broker === 'dhan' ? 'bg-yellow-400/20' : broker === 'upstox' ? 'bg-purple-400/20' : 'bg-indigo-400/20'}`} />
-                                                         
-                                                         <div className={`relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white dark:bg-black/50 border border-slate-100 dark:border-white/5 rounded-[24px] shadow-sm mb-4 group-hover:scale-105 group-hover:shadow-md transition-all duration-300 z-10 overflow-hidden`}>
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none" />
-                                                            {broker === 'mt5' || broker === 'mt4' ? (
-                                                               <img src="/Mt5 logo.png" alt="MT" className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg" />
-                                                            ) : (
-                                                               <BrokerIcon name={broker} size={48} />
-                                                            )}
-                                                         </div>
-                                                         
-                                                         <span className={`relative z-10 text-[13px] md:text-[14px] font-black text-slate-800 dark:text-white capitalize text-center tracking-tight transition-colors duration-300 ${broker === 'zerodha' ? 'group-hover:text-blue-600 dark:group-hover:text-blue-400' : broker === 'dhan' ? 'group-hover:text-yellow-600 dark:group-hover:text-yellow-400' : broker === 'upstox' ? 'group-hover:text-purple-600 dark:group-hover:text-purple-400' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
-                                                            {broker === 'mt5' ? 'MetaTrader 5' : broker === 'mt4' ? 'MetaTrader 4' : broker === 'icmarkets' ? 'IC Markets' : broker}
-                                                         </span>
-                                                      </button>
-                                                   ))}
-                                                </div>
-
-                                                {activeMarket !== 'indian' && (
-                                                <div className="mt-10 bg-gradient-to-r from-[#EEF2FF] to-[#F8FAFC] dark:from-[#16161D] dark:to-[#111113] border border-indigo-100 dark:border-[#2A2A35] rounded-[24px] p-6 md:p-8 relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
-                                                   <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-indigo-500/20 transition-colors duration-500"></div>
-                                                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5 md:gap-6">
-                                                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-[18px] bg-indigo-500 dark:bg-indigo-500/20 shadow-[0_4px_20px_rgba(99,102,241,0.4)] dark:shadow-none border border-indigo-400 dark:border-indigo-500/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                                         <Sparkles size={28} className="text-white dark:text-indigo-400" />
-                                                      </div>
-                                                      <div className="flex-1">
-                                                         <h4 className="text-[17px] md:text-[18px] font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Don't have an account?</h4>
-                                                         <p className="text-[13.5px] text-slate-600 dark:text-[#949BA4] mb-5 sm:mb-0 leading-relaxed max-w-xl">
-                                                            Sign up with our partners like <span className="font-bold text-indigo-600 dark:text-indigo-400">Vantage</span>, <span className="font-bold text-indigo-600 dark:text-indigo-400">Exness</span>, or <span className="font-bold text-indigo-600 dark:text-indigo-400">XM</span> to instantly get <span className="font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded uppercase text-[11px] tracking-wider ml-1">+500 XP</span> and exclusive platform benefits!
-                                                         </p>
-                                                      </div>
-                                                      <button className="px-6 py-3 md:py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[13px] md:text-[14px] font-bold rounded-[14px] shadow-lg hover:shadow-xl transition-all active:scale-95 shrink-0 whitespace-nowrap">
-                                                         View Partner Offers
-                                                      </button>
-                                                   </div>
-                                                </div>
-                                                )}
-                                             </div>
-                                          ) : (
-                                             <>
-                                                <p className="text-xs text-slate-505 mb-6 font-sans">
-                                                   {selectedBrokerToConnect === 'dhan' 
-                                                      ? "Link your Dhan account. Enter your Client ID to securely redirect and authorize TradiFive." 
-                                                      : "Link your live trading account. Enter your secure API key or login credentials to pull transaction histories."}
-                                                </p>
-                                                
-                                                <form onSubmit={handleConnectBrokerSubmit} className="space-y-4 max-w-md">
-                                                   {selectedBrokerToConnect === 'icmarkets' || selectedBrokerToConnect === 'vantage' || selectedBrokerToConnect === 'exness' || selectedBrokerToConnect === 'xm' || selectedBrokerToConnect === 'mt5' || selectedBrokerToConnect === 'mt4' ? (
-                                                      <>
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Login ID</label>
-                                                            <input type="text" required placeholder="e.g. 98310842" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
-                                                         </div>
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Investor Password</label>
-                                                            <input type="password" required className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
-                                                         </div>
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Server</label>
-                                                            <input type="text" required placeholder="e.g. Vantage-Live-1" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
-                                                         </div>
-                                                      </>
-                                                   ) : (
-                                                      <>
-                                                         {selectedBrokerToConnect !== 'dhan' && (
-                                                            <div>
-                                                               <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">API Key Token</label>
-                                                               <input 
-                                                                  type="text" 
-                                                                  required 
-                                                                  value={brokerApiKey}
-                                                                  onChange={(e) => setBrokerApiKey(e.target.value)}
-                                                                  placeholder="KITE-XXXXX or UPSTOX-XXXXX" 
-                                                                  className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" 
-                                                               />
-                                                            </div>
-                                                         )}
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Client ID</label>
-                                                            <input 
-                                                               type="text" 
-                                                               required 
-                                                               value={brokerClientId}
-                                                               onChange={(e) => setBrokerClientId(e.target.value)}
-                                                               placeholder={selectedBrokerToConnect === 'dhan' ? "e.g. 1000000000" : "User unique ID"} 
-                                                               className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" 
-                                                            />
-                                                         </div>
-                                                      </>
-                                                   )}
-                                                   <div className="flex justify-start gap-3 pt-6 mt-4">
-                                                      <button type="submit" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md transition-colors flex items-center gap-2">
-                                                         <Link2 size={18} />
-                                                         Connect Account
-                                                      </button>
-                                                   </div>
-                                                </form>
-                                             </>
-                                          )}
-                                       </div>
-                                    ) : connectedBroker ? (
-                                       <>
-                                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-[24px] bg-gradient-to-r from-[#FFFFFF] to-[#F8F9FA] dark:from-[#1C1C1E] dark:to-[#121214] border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] transition-shadow mb-4">
-                                          <div className="flex items-center gap-4">
-                                             <div className="w-14 h-14 flex items-center justify-center bg-white dark:bg-black/40 border border-slate-100 dark:border-white/10 rounded-[14px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] shrink-0">
-                                                {connectedBroker === 'mt5' || connectedBroker === 'mt4' ? (
-                                                   <img src="/Mt5 logo.png" alt="MT" className="w-9 h-9 object-contain drop-shadow-md" />
-                                                ) : (
-                                                   <BrokerIcon name={connectedBroker} size={36} />
-                                                )}
-                                             </div>
-                                             <div>
-                                                <div className="flex items-center gap-3">
-                                                   <h4 className="text-[15px] md:text-[16px] font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
-                                                      {connectedBroker === 'mt5' ? 'MetaTrader 5' : connectedBroker === 'mt4' ? 'MetaTrader 4' : connectedBroker}
-                                                   </h4>
-                                                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest">
-                                                      Active Sync
-                                                   </span>
-                                                </div>
-                                                <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-1 font-medium">
-                                                   {brokerClientId ? `Client ID • ${brokerClientId}` : 'Live Account • 892314902'}
-                                                </p>
-                                             </div>
-                                          </div>
-                                          
-                                          <div className="flex items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
-                                             <button 
-                                                onClick={() => {
-                                                   if (connectedBroker === 'dhan') {
-                                                      window.open('https://hq.dhan.co/', '_blank');
-                                                   } else if (connectedBroker === 'zerodha') {
-                                                      window.open('https://kite.trade/', '_blank');
-                                                   } else {
-                                                      toast.info("Manage settings for this broker in their developer console.");
-                                                   }
-                                                }}
-                                                className="flex-1 md:flex-none px-5 py-2.5 bg-slate-100 dark:bg-[#242428] hover:bg-slate-200 dark:hover:bg-[#2A2A2F] border border-slate-200 dark:border-transparent text-slate-800 dark:text-white text-[13px] font-bold rounded-[12px] transition-all active:scale-95 shadow-sm"
-                                             >
-                                                Manage
-                                             </button>
-                                             <button 
-                                                onClick={handleDisconnectBroker}
-                                                className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[13px] font-bold rounded-[12px] transition-all active:scale-95"
-                                             >
-                                                Disconnect
-                                             </button>
-                                          </div>
-                                       </div>
-                                       <button 
-                                          onClick={() => setIsConnectingBroker(true)}
-                                          className="w-full py-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[24px] flex flex-col items-center justify-center text-slate-500 dark:text-[#949ba4] hover:bg-slate-50 dark:hover:bg-white/[0.02] hover:border-indigo-300/50 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all group"
-                                       >
-                                          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-all text-slate-400 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                             <Plus size={22} />
-                                          </div>
-                                          <span className="text-[14px] font-extrabold tracking-tight">Connect Another Broker</span>
-                                       </button>
-                                       </>
-                                    ) : (
-                                       
-                                          <div className="relative overflow-hidden flex flex-col items-center justify-center py-10 px-6 border border-slate-200/60 dark:border-white/5 rounded-[28px] bg-gradient-to-b from-white to-slate-50/50 dark:from-[#111112] dark:to-[#0A0A0B] text-slate-500 dark:text-slate-400 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                                          {/* Glowing Background Orbs */}
-                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none" />
-                                          
-                                          <div className="relative mb-6">
-                                             <div className="absolute inset-0 bg-indigo-500/20 dark:bg-indigo-500/20 blur-lg rounded-full" />
-                                             <div className="relative w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-50 to-white dark:from-[#1A1A24] dark:to-[#121215] border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-[0_4px_12px_rgba(99,102,241,0.12)] rotate-[-5deg] hover:rotate-0 transition-transform duration-500">
-                                                <Link2 size={24} strokeWidth={2.5} />
-                                             </div>
-                                          </div>
-                                          
-                                          <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight z-10">No Broker Connected</h4>
-                                          <p className="text-[14px] mb-8 max-w-md text-center text-slate-500 dark:text-[#8B92A0] leading-relaxed font-medium z-10">
-                                             Link your trading account to unlock real-time performance tracking, automated journaling, and advanced AI risk management.
-                                          </p>
-                                          
-                                          <button 
-                                             onClick={() => setIsConnectingBroker(true)}
-                                             className="relative group px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[16px] text-[14px] font-bold transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_rgba(255,255,255,0.1)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_8px_20px_rgba(255,255,255,0.15)] hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 overflow-hidden z-10"
-                                          >
-                                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                             <span className="relative flex items-center gap-2 group-hover:text-white transition-colors duration-300">
-                                                <Plus size={18} strokeWidth={3} />
-                                                Connect Your Broker
-                                             </span>
-                                          </button>
-                                          
-                                          <div className="mt-8 flex items-center gap-5 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 z-10 bg-slate-100/50 dark:bg-black/20 px-5 py-2.5 rounded-full border border-slate-200 dark:border-white/5">
-                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Zerodha</span></div>
-                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Dhan</span></div>
-                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Upstox</span></div>
-                                          </div>
-                                       </div>
-                                    )}
-                                 </div>
-                              
-                                 {/* TradingView Webhook Integration Hub */}
-                                 <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8 space-y-5 mt-6">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-white/5 pb-4">
-                                       <div className="flex items-center gap-3">
-                                          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 font-extrabold text-sm">
-                                             TV
-                                          </div>
-                                          <div>
-                                             <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                                TradingView Webhook Integration
-                                                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 uppercase">Active</span>
-                                             </h3>
-                                             <p className="text-xs text-slate-500 dark:text-[#949ba4]">Dispatch automated orders and signals directly from TradingView pine-script alerts.</p>
-                                          </div>
-                                       </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                       <div className="space-y-1.5">
-                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Your Personal Webhook Endpoint</label>
-                                          <div className="flex gap-2">
-                                             <input 
-                                                readOnly
-                                                type="text"
-                                                value={`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`}
-                                                className="w-full px-4 py-2.5 rounded-xl text-xs font-mono bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 select-all"
-                                             />
-                                             <button
-                                                type="button"
-                                                onClick={() => {
-                                                   navigator.clipboard.writeText(`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`);
-                                                   toast.success('Webhook URL copied to clipboard!');
-                                                }}
-                                                className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 transition-all flex items-center gap-1.5"
-                                             >
-                                                <Copy size={13} /> Copy
-                                             </button>
-                                          </div>
-                                          <p className="text-[11px] text-slate-500">Paste this into the 'Webhook URL' field when creating an alert in TradingView.</p>
-                                       </div>
-
-                                       <div className="space-y-1.5">
-                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Alert Message Template (JSON)</label>
-                                          <pre className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 text-[11px] font-mono text-slate-700 dark:text-slate-300 overflow-x-auto leading-relaxed">
-{`{
-  "ticker": "{{ticker}}",
-  "action": "{{strategy.order.action}}",
-  "contracts": "{{strategy.order.contracts}}",
-  "price": "{{close}}",
-  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"
-}`}
-                                          </pre>
-                                          <button
-                                             type="button"
-                                             onClick={() => {
-                                                navigator.clipboard.writeText(`{\n  "ticker": "{{ticker}}",\n  "action": "{{strategy.order.action}}",\n  "contracts": "{{strategy.order.contracts}}",\n  "price": "{{close}}",\n  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"\n}`);
-                                                toast.success('Alert JSON template copied!');
-                                             }}
-                                             className="text-xs text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1"
-                                          >
-                                             <Copy size={12} /> Copy JSON Template
-                                          </button>
-                                       </div>
-                                    </div>
-                                 </div>
-
-                              </motion.div>
-                           )}
-
-
-
-                     {/* TAB 10: SUBSCRIPTION MANAGEMENT */}
-                     {activeTab === 'subscription' && (() => {
-      const normalizePlan = (p: string | null | undefined): 'starter' | 'pro' | 'elite' => {
-         if (!p) return 'starter';
-         const lower = p.toLowerCase();
-         if (lower === 'pro' || lower === 'intermediate') return 'pro';
-         if (lower === 'elite' || lower === 'advanced' || lower === 'institutional') return 'elite';
-         return 'starter';
-      };
-      const currentTier = normalizePlan(activePlan);
-
-      const nextBillingDate = (() => {
-         if (billingHistory && billingHistory.length > 0 && billingHistory[0]?.period_end) {
-            try {
-               return new Date(billingHistory[0].period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-            } catch (_) {}
-         }
-         const d = new Date();
-         d.setDate(d.getDate() + 30);
-         return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-      })();
-
-      const memberSinceDate = (() => {
-         if (profile?.createdAt) {
-            try {
-               return new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-            } catch (_) {}
-         }
-         return new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-      })();
-
-      return (
-         <motion.div
-            key="subscription"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="space-y-4 w-full max-w-[760px] mx-auto pb-16"
-         >
-            {/* Page Title */}
-            <div className="mb-6">
-               <h2 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">Subscription</h2>
-               <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Manage your current plan</p>
-            </div>
-
-            {/* Card 1: Active Subscription Overview */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3.5">
-               <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">
-                     {currentTier === 'starter' ? 'Free Plan' : currentTier === 'pro' ? 'Pro Plan' : 'Elite Plan'}
-                  </span>
-                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
-                     {currentTier === 'starter' ? 'Free tier active' : `${currentTier.toUpperCase()} active`}
-                  </span>
-               </div>
-
-               <div className="space-y-2.5 pt-1">
-                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
-                     <span className="text-slate-500 dark:text-slate-400">Plan status</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'Active (Free tier)' : 'Active (Paid monthly)'}
-                     </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
-                     <span className="text-slate-500 dark:text-slate-400">Current rate</span>
-                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums flex items-center gap-1">
-                        {currentTier === 'starter' ? (
-                           <>
-                              <RunningNumber value={0} prefix="₹" /> <span>/ forever</span>
-                           </>
-                        ) : currentTier === 'pro' ? (
-                           <>
-                              <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
-                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
-                           </>
-                        ) : (
-                           <>
-                              <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
-                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
-                           </>
-                        )}
-                     </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
-                     <span className="text-slate-500 dark:text-slate-400">Next payment</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'No charges scheduled' : `${nextBillingDate} · ${currentTier === 'pro' ? (billingInterval === 'monthly' ? '₹1,399' : '₹1,119') : (billingInterval === 'monthly' ? '₹2,799' : '₹2,239')}`}
-                     </span>
-                  </div>
-               </div>
-
-               <div className="pt-2 border-t border-slate-100 dark:border-white/5">
-                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-2">
-                     Have a code? Add it before your next billing cycle and it counts on your next payment.
-                  </p>
-                  <div className="flex items-center gap-2">
-                     <input
-                        type="text"
-                        placeholder="Discount code"
-                        value={discountCodeInput}
-                        onChange={(e) => setDiscountCodeInput(e.target.value)}
-                        className="flex-1 h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
-                     />
-                     <TactileBoxButton
-                        onClick={() => {
-                           if (!discountCodeInput.trim()) return toast.error("Please enter a discount code");
-                           setAppliedDiscount(discountCodeInput.trim().toUpperCase());
-                           toast.success(`Discount code "${discountCodeInput.trim().toUpperCase()}" applied!`);
-                           setDiscountCodeInput('');
-                        }}
-                        className="h-9 px-5 text-xs font-bold"
-                     >
-                        Add
-                     </TactileBoxButton>
-                  </div>
-                  {appliedDiscount && (
-                     <div className="mt-2 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                        <Check size={12} /> Code {appliedDiscount} applied
-                     </div>
-                  )}
-               </div>
-            </div>
-
-            {/* Card 2: Billing Summary */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3">
-               <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">Billing</span>
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
-                     {currentTier === 'starter' ? 'Free tier' : 'Active'}
-                  </span>
-               </div>
-
-               <div className="space-y-2 pt-1 text-xs">
-                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                     <span className="text-slate-500 dark:text-slate-400">Plan</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'Free · ₹0 a month' : currentTier === 'pro' ? 'Pro · ₹1,399 a month' : 'Elite · ₹2,799 a month'}
-                     </span>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                     <span className="text-slate-500 dark:text-slate-400">Member since</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">{memberSinceDate}</span>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                     <span className="text-slate-500 dark:text-slate-400">Next renewal</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'None (Free plan)' : `${nextBillingDate} · ₹${currentTier === 'pro' ? (billingInterval === 'monthly' ? '1,399' : '1,119') : (billingInterval === 'monthly' ? '2,799' : '2,239')}`}
-                     </span>
-                  </div>
-                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
-                     <span className="text-slate-500 dark:text-slate-400">Payment method</span>
-                     <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
-                        <CreditCard size={13} className="text-slate-500" />
-                        {currentTier === 'starter' ? 'None required' : 'Razorpay Secure Checkout'}
-                     </span>
-                  </div>
-               </div>
-
-               <div className="pt-2 border-t border-slate-100 dark:border-white/5 text-[11.5px] text-slate-500 flex items-center gap-1.5">
-                  <ArrowUpRight size={13} className="text-slate-400" /> Change plan or manage subscription below
-               </div>
-            </div>
-
-            {/* Card 3: Payments / Invoices */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
-               <div className="text-xs font-bold text-slate-900 dark:text-white mb-3">Payments</div>
-               {billingHistory && billingHistory.length > 0 ? (
-                  <div className="space-y-2">
-                     {billingHistory.map((inv: any) => (
-                        <div key={inv.id || Math.random()} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-white/5 last:border-b-0">
-                           <span className="text-slate-500">
-                              {inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
-                           </span>
-                           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
-                              ₹{Number(inv.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                              <span
-                                 className="text-slate-400 hover:text-slate-700 dark:hover:text-white font-normal cursor-pointer hover:underline text-xs"
-                                 onClick={() => toast.info(`Invoice receipt #${String(inv.id || '').slice(0, 8)} generated`)}
-                              >
-                                 Invoice
-                              </span>
-                           </span>
-                        </div>
-                     ))}
-                  </div>
-               ) : (
-                  <div className="py-3 text-center">
-                     <p className="text-xs text-slate-500 dark:text-slate-400">No payment invoices yet</p>
-                     <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
-                        {currentTier === 'starter'
-                           ? 'You are currently on the Free tier. Upgrade below to activate pro features.'
-                           : 'Receipts and tax invoices will automatically appear here.'}
-                     </p>
-                  </div>
-               )}
-            </div>
-
-            {/* Card 4: Billing Cycle Switcher */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex items-center justify-between">
-               <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">Billing cycle</div>
-                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Switch to annual for a lower monthly rate</p>
-               </div>
-               <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-full inline-flex items-center gap-1 border border-slate-200/80 dark:border-white/10">
-                  <button
-                     onClick={() => setBillingInterval('monthly')}
-                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                        billingInterval === 'monthly'
-                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                     }`}
-                  >
-                     Monthly
-                  </button>
-                  <button
-                     onClick={() => setBillingInterval('annually')}
-                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                        billingInterval === 'annually'
-                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
-                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                     }`}
-                  >
-                     Annual
-                  </button>
-               </div>
-            </div>
-
-            {/* Card 5: Free Plan */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-               <div>
-                  <div className="text-sm font-bold text-slate-900 dark:text-white">Free Plan</div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1 broker connection, basic trading journal & core risk guard</p>
-               </div>
-               <div className="flex items-center gap-4 self-end sm:self-auto">
-                  <RunningNumber value={0} prefix="₹" className="text-sm font-bold text-slate-900 dark:text-white" />
-                  {currentTier === 'starter' ? (
-                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
-                        Current
-                     </span>
-                  ) : (
-                     <TactileBoxButton
-                        onClick={() => handleSettingsDowngrade('starter')}
-                        className="h-8 px-4 text-xs font-semibold rounded-xl"
-                     >
-                        Switch
-                     </TactileBoxButton>
-                  )}
-               </div>
-            </div>
-
-            {/* Card 6: Pro Plan — ₹1,399/mo */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-               <div>
-                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                     Pro Plan
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                     Up to 6 broker connections, loss cooldown & 50 AI coach credits/day
-                  </p>
-               </div>
-               <div className="flex items-center gap-4 self-end sm:self-auto">
-                  <div className="text-right">
-                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums flex items-baseline justify-end gap-0.5">
-                        <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
-                        <span className="text-xs text-slate-400 font-normal">/mo</span>
-                     </span>
-                     {billingInterval === 'annually' && (
-                        <div className="text-[10px] text-slate-400">Billed annually</div>
-                     )}
-                  </div>
-                  {currentTier === 'pro' ? (
-                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
-                        Current
-                     </span>
-                  ) : currentTier === 'elite' ? (
-                     <TactileBoxButton
-                        onClick={() => handleSettingsDowngrade('pro')}
-                        className="h-8 px-4 text-xs font-semibold rounded-xl"
-                     >
-                        Switch
-                     </TactileBoxButton>
-                  ) : (
-                     <TactileBoxButton
-                        onClick={() => handleSettingsUpgrade('pro')}
-                        className="h-8 px-4 text-xs font-semibold rounded-xl"
-                     >
-                        Switch
-                     </TactileBoxButton>
-                  )}
-               </div>
-            </div>
-
-            {/* Card 7: Elite Plan — ₹2,799/mo + TOP badge */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-               <div>
-                  <div className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
-                     Elite Plan
-                     <span className="bg-[#7c3aed] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
-                        TOP
-                     </span>
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                     Unlimited broker connections, automated trading & 100 AI credits/day
-                  </p>
-               </div>
-               <div className="flex items-center gap-4 self-end sm:self-auto">
-                  <div className="text-right">
-                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums flex items-baseline justify-end gap-0.5">
-                        <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
-                        <span className="text-xs text-slate-400 font-normal">/mo</span>
-                     </span>
-                     {billingInterval === 'annually' && (
-                        <div className="text-[10px] text-slate-400">Billed annually</div>
-                     )}
-                  </div>
-                  {currentTier === 'elite' ? (
-                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
-                        Current
-                     </span>
-                  ) : (
-                     <TactileBoxButton
-                        onClick={() => handleSettingsUpgrade('elite')}
-                        className="h-8 px-4 text-xs font-semibold rounded-xl"
-                     >
-                        Switch
-                     </TactileBoxButton>
-                  )}
-               </div>
-            </div>
-
-            {/* Card 8: Refund & Cancellation */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-               <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">Refund</div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                     This sends a message to us, it does not refund automatically. Your plan stays active until the refund is issued.
-                  </p>
-               </div>
-               <TactileBoxButton
-                  onClick={() => {
-                     toast.success("Refund request submitted", {
-                        description: "Our billing support team will review your account within 24 hours."
-                     });
-                  }}
-                  className="h-9 px-4 text-xs font-semibold rounded-xl flex items-center gap-1.5 self-end sm:self-auto shrink-0"
-               >
-                  <HelpCircle size={14} className="text-slate-400" />
-                  Request
-               </TactileBoxButton>
-            </div>
-         </motion.div>
-      );
-   })()}
-
-   {/* TAB 11: CHANNEL SETTINGS */}
-                     {activeTab === 'channel' && (
-                        <motion.div
-                           key="channel"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="w-full max-w-[740px] mx-auto"
-                        >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              Channel Settings
-                           </h2>
-
-                           <div className="space-y-8">
-                              {/* Channel Privacy Level (Discord Spam filter style) */}
-                              <div>
-                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Channel Privacy Level</h3>
-                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-4">Determine who can search, view, and interact with posts in your channel.</p>
-                                 
-                                 <div className="space-y-4">
-                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('public'); toast.success('Visibility updated!'); }}>
-                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'public' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
-                                          {feedVisibility === 'public' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
-                                       </div>
-                                       <div>
-                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Public (Everyone)</div>
-                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Anyone can search and read posts.</div>
-                                       </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('request'); toast.success('Visibility updated!'); }}>
-                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'request' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
-                                          {feedVisibility === 'request' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
-                                       </div>
-                                       <div>
-                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Request-Only</div>
-                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Users must request access to join and read posts.</div>
-                                       </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('private'); toast.success('Visibility updated!'); }}>
-                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'private' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
-                                          {feedVisibility === 'private' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
-                                       </div>
-                                       <div>
-                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Private (Paid subscription)</div>
-                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Only paid subscribers have access to this channel.</div>
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
-
-                              {/* Divider */}
-                              <div className="h-[1px] w-full bg-slate-200 dark:bg-[#3f4147]"></div>
-
-                              {/* Channel Guidelines */}
-                              <div>
-                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-4">Channel Guidelines</h3>
-                                 <textarea
-                                    rows={4}
-                                    value={channelRules}
-                                    onChange={e => setChannelRules(e.target.value)}
-                                    className="w-full p-4 rounded-md bg-slate-50 dark:bg-[#1E1F22] border border-transparent text-[14px] text-slate-800 dark:text-[#DBDEE1] outline-none resize-none focus:ring-1 focus:ring-[#5865F2] placeholder-slate-400 dark:placeholder-[#80848E]"
-                                    placeholder="Set the rules and guidelines for your channel..."
-                                 />
-                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mt-2">These rules will be displayed to users before they join your channel.</p>
-                              </div>
-                           </div>
-                        </motion.div>
-                     )}
-
-                     {/* TAB 12: CREATOR / BUSINESS ACCOUNT */}
-                     {activeTab === 'creator' && (
-                        <motion.div
-                           key="creator"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-8 w-full max-w-[740px] mx-auto animate-in fade-in duration-300"
-                        >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              Creator Account
-                           </h2>
-
-                           <CreatorTab 
-                              privacySettings={privacySettings}
-                              setPrivacySettings={setPrivacySettings}
-                              creatorHandle={creatorHandle}
-                              setCreatorHandle={setCreatorHandle}
-                              creatorCategory={creatorCategory}
-                              setCreatorCategory={setCreatorCategory}
-                              creatorBio={creatorBio}
-                              setCreatorBio={setCreatorBio}
-                              profile={profile}
-                              selectedPlan={selectedPlan}
-                           />
-                        </motion.div>
-                     )}
-
-                     {/* TAB 13: HELP CENTER */}
-                     {activeTab === 'help' && (
-                        <motion.div
-                           key="help"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="w-full"
-                        >
-                           <HelpTab />
-                        </motion.div>
-                     )}
-
-                     {/* TAB 14: REPORT A PROBLEM */}
-                     {activeTab === 'report' && (
-                        <motion.div
-                           key="report"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="w-full max-w-[740px] mx-auto"
-                        >
-                           <ReportTab />
-                        </motion.div>
-                     )}
-
-                  </AnimatePresence>
-                  </div>
-
-               </div>
-            </div>
-
-            </div>
-
-         </div>
-
-         {/* EDIT PROFILE DETAILS MODAL */}
-         <AnimatePresence>
-            {isEditModalOpen && (
-               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                  <motion.div
-                     initial={{ opacity: 0, scale: 0.95 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     exit={{ opacity: 0, scale: 0.95 }}
-                     className="bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl"
-                  >
-                     <div className="p-6 border-b border-slate-100 dark:border-[#333333] flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit Profile Details</h3>
-                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-650 dark:hover:text-slate-250">
-                           <X size={20} />
-                        </button>
-                     </div>
-                     <form onSubmit={(e) => { e.preventDefault(); handleUpdateProfile(); setIsEditModalOpen(false); }} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-hide">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">First Name</label>
-                              <input type="text" value={profile.firstName} onChange={e => setProfile({...profile, firstName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Last Name</label>
-                              <input type="text" value={profile.lastName} onChange={e => setProfile({...profile, lastName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                        </div>
-                        <div>
-                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Username</label>
-                           <input type="text" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                        </div>
-                        <div>
-                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Email</label>
-                           <input type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Address</label>
-                              <input type="text" value={profile.address || ''} onChange={e => setProfile({...profile, address: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">City</label>
-                              <input type="text" value={profile.city || ''} onChange={e => setProfile({...profile, city: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">State</label>
-                              <input type="text" value={profile.state || ''} onChange={e => setProfile({...profile, state: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Zip Code</label>
-                              <input type="text" value={profile.zipCode || ''} onChange={e => setProfile({...profile, zipCode: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Country</label>
-                              <input type="text" value={profile.country || ''} onChange={e => setProfile({...profile, country: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Date of Birth</label>
-                              <input type="text" value={profile.dob || ''} onChange={e => setProfile({...profile, dob: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                           <div>
-                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Gender</label>
-                              <input type="text" value={profile.gender || ''} onChange={e => setProfile({...profile, gender: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                           </div>
-                        </div>
-                        <div className="pt-4 border-t border-slate-100 dark:border-[#333333] flex justify-end items-center gap-3">
-                           <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 bg-slate-100 dark:bg-[#2C2C2E] text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors">Cancel</button>
-                           <ConsistencyToggleButton 
-                              label="Save Details" 
-                              checked={true} 
-                              type="submit" 
-                           />
-                        </div>
-                     </form>
-                  </motion.div>
-               </div>
-            )}
-         </AnimatePresence>
-
-         {/* PHONE VERIFICATION MODAL */}
-         <AnimatePresence>
-            {showSmsModal && (
-               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                  <motion.div
-                     initial={{ opacity: 0, scale: 0.95 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     exit={{ opacity: 0, scale: 0.95 }}
-                     className="bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6"
-                  >
-                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Add Phone Number</h3>
-                        <button type="button" onClick={() => setShowSmsModal(false)} className="text-slate-400 hover:text-slate-655 dark:hover:text-slate-250">
-                           <X size={20} />
-                        </button>
-                     </div>
-                     <p className="text-xs text-slate-505 mb-4">Enter your mobile phone number to receive SMS security alerts and code verifications.</p>
-                     <div className="space-y-4">
-                        <div>
-                           <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Phone Number</label>
-                           <input type="tel" placeholder="+1 (555) 000-0000" className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
-                        </div>
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-[#333333]">
-                           <button type="button" onClick={() => setShowSmsModal(false)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors">Cancel</button>
-                           <button type="button" onClick={() => { toast.success("Phone number verified successfully!"); setShowSmsModal(false); }} className="px-6 py-2 bg-indigo-650 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md transition-colors">Save Number</button>
-                        </div>
-                     </div>
-                  </motion.div>
-               </div>
-            )}
-         </AnimatePresence>
-
-         <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-           <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-2xl p-6">
-             <DialogHeader>
-               <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                 <LogOut className="text-red-500" size={24} />
-                 Confirm Logout
-               </DialogTitle>
-               <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-                 Are you sure you want to log out? You will need to log in again to access your account.
-               </DialogDescription>
-             </DialogHeader>
-             <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
-               <button 
-                 type="button" 
-                 onClick={() => setShowLogoutConfirm(false)}
-                 className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#222226] text-slate-700 dark:text-slate-200 font-semibold text-[13.5px] hover:bg-slate-50 dark:hover:bg-[#2b2b30] transition-all duration-150 active:scale-[0.985] shadow-sm"
-               >
-                 Cancel
-               </button>
-               <button 
-                 type="button" 
-                 onClick={async () => {
-                   setShowLogoutConfirm(false);
-                   setIsLoggingOut(true);
-                   await supabase.auth.signOut();
-                   toast.success("Logged out successfully");
-                   setIsLoggingOut(false);
-                   navigate('/login');
-                 }}
-                 className="h-[38px] px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25 flex items-center justify-center min-w-[105px]"
-               >
-                 {isLoggingOut ? (
-                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                 ) : (
-                   "Log Out"
-                 )}
-               </button>
-             </DialogFooter>
-           </DialogContent>
-         </Dialog>
-
-               {/* Plan Downgrade Confirmation Dialog */}
-         <Dialog open={!!downgradeModalPlan} onOpenChange={(open) => !open && setDowngradeModalPlan(null)}>
-           <DialogContent className="sm:max-w-[440px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-3xl p-7 text-slate-900 dark:text-white">
-             <DialogHeader>
-               <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2">
-                 <AlertCircle size={24} />
-               </div>
-               <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
-                 Downgrade to {downgradeModalPlan === 'starter' ? 'Free Plan (₹0)' : 'Pro Plan (₹1,399/mo)'}?
-               </DialogTitle>
-               <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
-                 {downgradeModalPlan === 'starter'
-                   ? 'By switching to the Free plan, your broker connections will be limited to 1, daily AI credits will revert to 20/day, and automated execution features will be paused.'
-                   : 'By downgrading to Pro (₹1,399/mo), broker connections will be set to 6 and AI credits will be 100/day.'}
-               </DialogDescription>
-             </DialogHeader>
-             <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2.5 sm:justify-end">
-               <TactileBoxButton 
-                 onClick={() => setDowngradeModalPlan(null)}
-                 disabled={isChangingPlan}
-                 className="h-10 px-5 rounded-xl font-semibold text-xs"
-               >
-                 Keep Current Plan
-               </TactileBoxButton>
-               <button 
-                 type="button" 
-                 disabled={isChangingPlan}
-                 onClick={() => downgradeModalPlan && applyPlanChange(downgradeModalPlan)}
-                 className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2"
-               >
-                 {isChangingPlan ? (
-                   <>
-                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                     Updating...
-                   </>
-                 ) : (
-                   'Confirm Downgrade'
-                 )}
-               </button>
-             </DialogFooter>
-           </DialogContent>
-         </Dialog>
-
-</motion.div>
-      </DashboardLayout>
-   );
-}
-
+import { RunningNumber } from '@/components/ui/RunningNumber';
+import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import '../theme-switch.css';
+import DashboardLayout from '@/components/DashboardLayout';
+import logoOnly from '@/assets/Logo_only.png';
+import defaultAvatar from '@/assets/default-avatar.svg';
+import AccountTab from '@/components/settings/AccountTab';
+import ProfileTab, { TactileBoxButton } from '@/components/settings/ProfileTab';
+import HelpTab from '@/components/settings/HelpTab';
+import ReportTab from '@/components/settings/ReportTab';
+import CreatorTab from '@/components/settings/CreatorTab';
+import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
+import { supabase } from '@/lib/supabase';
+import { useMarket } from '@/contexts/MarketContext';
+import { toast } from 'sonner';
+import { applyThemeWithTransition } from '@/utils/themeTransition';
+import { getGamificationState, saveGamificationState } from '@/utils/gamification';
+import { validateUsername } from '@/utils/usernameValidation';
+import { PricingCards } from '@/components/PricingCards';
+import { initiateRazorpayCheckout } from '@/lib/razorpay';
+import ThemeSwitch from '@/components/ThemeSwitch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { 
+   Settings as SettingsIcon, Camera, Check, 
+   Twitter, Instagram, Youtube, Trash2, Shield, 
+   Smartphone, Monitor, Moon, Sun, MonitorSmartphone, Power, X,
+   Key, Lock, Globe, Bot, Brain, TrendingUp, Gem, Receipt, Hash, Award, 
+   FileText, ChevronDown, CheckCircle, RefreshCw, Eye, EyeOff,
+   ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
+   CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
+   AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
+   ChevronLeft, Sliders, Copy, Pencil, HelpCircle, MousePointer } from 'lucide-react';
+import { triggerHaptic } from '@/utils/haptics';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
+import { useAICoachData } from '@/hooks/useAICoachData';
+import { useTradingTheme } from '@/hooks/useTradingTheme';
+import { TradingThemeId } from '@/utils/tradingTheme';
+
+const TAB_TITLES: Record<string, string> = {
+   account: "Account & Security",
+   general: "General Details",
+   profile: "Profile",
+   security: "Account & Security",
+   privacy: "Privacy & Community",
+   appearance: "Theme & Display",
+   notifications: "Notifications",
+   trading_preferences: "Trading & Risk Config",
+   ai: "AI Coach",
+   trading: "Accounts & Brokers",
+   subscription: "Subscription",
+   channel: "Channel Settings",
+   creator: "Creator Account",
+   help: "Help Center",
+   report: "Report a Problem",
+   terms: "Terms & Policies"
+};
+
+const TAB_SUBTITLES: Record<string, string> = {
+   profile: "Your card, bio, avatar, banner and privacy preferences",
+   account: "Manage email, password, sessions, standing and data export",
+   security: "Protect your account with password and session controls",
+   privacy: "Control profile visibility and community privacy",
+   notifications: "Choose which trade alerts and activity pings you receive",
+   trading_preferences: "Break-even range, risk circuit breaker and symbol preferences",
+   trading: "Connect MetaTrader 5 and Indian broker accounts",
+   ai: "Customize your TradiFive AI Coach persona and guardrails",
+   subscription: "Manage your active plan, perks and billing history",
+   appearance: "Switch light or dark theme and display preferences",
+   channel: "Configure your community channel and messaging settings",
+   creator: "Manage creator monetization, payouts and subscriber perks",
+   help: "Guides, FAQs and direct TradiFive support",
+   report: "Share bugs or issues directly with our engineering team",
+};
+
+const PushableButton = ({ children, onClick, type = 'primary', className = '', ...props }: any) => {
+   const baseClasses = "relative rounded-xl font-bold transition-all duration-200 active:top-[2px] active:shadow-none overflow-hidden";
+   
+   const types = {
+      primary: "bg-indigo-650 text-white shadow-[0_4px_0_rgb(67,56,202)] hover:bg-indigo-700 active:shadow-[0_0px_0_rgb(67,56,202)]",
+      secondary: "bg-white dark:bg-[#121212] text-slate-700 dark:text-slate-200 shadow-[0_4px_0_rgb(203,213,225)] dark:shadow-none hover:bg-slate-50 dark:hover:bg-[#222225] border border-slate-200 dark:border-transparent",
+      danger: "bg-red-500 text-white shadow-[0_4px_0_rgb(185,28,28)] hover:bg-red-400 active:shadow-[0_0px_0_rgb(185,28,28)]"
+   };
+
+   return (
+      <button 
+         className={`${baseClasses} ${types[type as keyof typeof types]} ${className}`}
+         onClick={onClick}
+         {...props}
+      >
+         <div className="absolute inset-0 bg-white/20 dark:bg-black/10 translate-y-[-50%] rounded-full blur-md"></div>
+         <span className="relative z-10 block">{children}</span>
+      </button>
+   );
+};
+
+const ConsistencyToggleButton = ({ label, checked, onChange, icon: Icon, type = 'button' }: any) => (
+   <button
+      type={type}
+      onClick={onChange}
+      className={`inline-flex items-center gap-1.5 h-[44px] px-5 rounded-[16px] border-2 text-[12px] font-bold tracking-tight transition-all duration-300 ${
+         checked
+         ? "border-white dark:border-transparent bg-gradient-to-b from-[#E0E7FF] to-[#EEF2FF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#818CF840] dark:shadow-none text-indigo-700 dark:text-indigo-400"
+         : "border-white dark:border-transparent bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-slate-500 dark:text-slate-400 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none"
+      }`}
+   >
+      {Icon && <Icon size={14} />}
+      <span>{label}</span>
+   </button>
+);
+
+const AnimatedCheckbox = ({ checked, onChange }: { checked: boolean, onChange: (checked: boolean) => void }) => (
+   <button 
+      type="button" 
+      onClick={() => onChange(!checked)} 
+      className={`group relative flex items-center justify-center w-[18px] h-[18px] rounded-[5px] transition-all duration-200 overflow-hidden outline-none ring-0 border ${checked ? 'border-[#5865F2] bg-[#5865F2]' : 'border-slate-300 dark:border-[#313338] bg-white dark:bg-[#1e1f22]'}`}
+   >
+      {checked && <Check size={11} strokeWidth={4} className="relative z-10 text-white" />}
+   </button>
+);
+
+const SettingsToggle = ({ checked, onChange, disabled = false }: { checked: boolean, onChange: (v: boolean) => void, disabled?: boolean }) => (
+   <button
+      type="button"
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className={`relative w-9 h-[20px] rounded-full transition-colors duration-200 outline-none focus:outline-none ${disabled ? 'opacity-40 cursor-not-allowed' : ''} ${checked ? 'bg-[#3b82f6]' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+   >
+      <div className={`absolute top-1/2 -translate-y-1/2 left-[3px] w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-[16px]' : 'translate-x-0'}`} />
+   </button>
+);
+
+const BrokerIcon = ({ name, size = 36 }: { name: string; size?: number }) => {
+   const colors: Record<string, string> = {
+      icmarkets: "from-emerald-500 to-teal-600 text-white",
+      zerodha: "from-blue-500 to-sky-600 text-white",
+      dhan: "from-amber-400 to-yellow-500 text-slate-900",
+      upstox: "from-purple-500 to-indigo-600 text-white",
+      groww: "from-cyan-500 to-teal-500 text-white",
+      angelone: "from-orange-500 to-amber-600 text-white",
+      ibkr: "from-red-600 to-rose-700 text-white",
+      pepperstone: "from-slate-800 to-slate-900 text-white",
+      ic: "from-emerald-500 to-teal-600 text-white",
+      vantage: "from-blue-600 to-indigo-700 text-white",
+      exness: "from-yellow-400 to-yellow-600 text-slate-900",
+      xm: "from-red-500 to-red-700 text-white"
+   };
+   
+   const initials: Record<string, string> = {
+      icmarkets: "IC",
+      zerodha: "Z",
+      dhan: "D",
+      upstox: "U",
+      groww: "G",
+      angelone: "A",
+      ibkr: "IB",
+      pepperstone: "P",
+      ic: "IC",
+      vantage: "V",
+      exness: "EX",
+      xm: "XM"
+   };
+
+   const colorClass = colors[name] || "from-slate-400 to-slate-500 text-white";
+   const letter = initials[name] || name.charAt(0).toUpperCase();
+
+   return (
+      <div 
+         style={{ width: size, height: size }}
+         className={`rounded-xl bg-gradient-to-br ${colorClass} flex items-center justify-center font-extrabold text-[12px] tracking-wider shadow-sm shrink-0`}
+      >
+         {letter}
+      </div>
+   );
+};
+
+export default function Settings() {
+   const navigate = useNavigate();
+   const [searchParams] = useSearchParams();
+   const { activeMarket } = useMarket();
+
+   const normalizeTab = (rawTab: string | null) => {
+      if (!rawTab) return 'profile';
+      if (rawTab === 'plan') return 'subscription';
+      if (rawTab === 'profiles') return 'profile';
+      if (rawTab === 'File Setup') return 'trading';
+      if (rawTab === 'risk' || rawTab === 'preferences' || rawTab === 'trading-preferences') return 'trading_preferences';
+      return rawTab;
+   };
+
+   const [activeTab, setActiveTab] = useState(() => normalizeTab(searchParams.get('tab')));
+   const [mobileShowDetails, setMobileShowDetails] = useState(() => Boolean(searchParams.get('tab')));
+
+   useEffect(() => {
+      const rawTab = searchParams.get('tab');
+      if (rawTab) {
+         if (rawTab === 'plan') {
+            navigate('/upgrade', { replace: true });
+            return;
+         }
+         setActiveTab(normalizeTab(rawTab));
+         setMobileShowDetails(true);
+         if (rawTab === 'profiles') {
+            setIsDesktopEditingProfile(true);
+         }
+      } else {
+         setMobileShowDetails(false);
+      }
+
+      const planParam = searchParams.get('plan');
+      if (planParam && ['starter', 'pro', 'elite'].includes(planParam)) {
+         setSelectedPlan(planParam);
+      }
+   }, [searchParams, navigate]);
+   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+   const [isLoggingOut, setIsLoggingOut] = useState(false);
+   const headerTitle = TAB_TITLES[activeTab] || "Settings";
+   const [activeSubTab, setActiveSubTab] = useState('account-info');
+   const [activePlan, setActivePlan] = useState(() => localStorage.getItem('tradifive_cached_plan') || 'starter');
+   const [selectedPlan, setSelectedPlan] = useState(() => activePlan);
+   const [searchQuery, setSearchQuery] = useState('');
+   const [loading, setLoading] = useState(false);
+   const [isInitialLoading, setIsInitialLoading] = useState(true);
+   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+   
+   // Billing State
+   const [billingHistory, setBillingHistory] = useState<any[]>([]);
+   const [loadingBilling, setLoadingBilling] = useState(true);
+   const [downgradeModalPlan, setDowngradeModalPlan] = useState<'starter' | 'pro' | null>(null);
+   const [isChangingPlan, setIsChangingPlan] = useState(false);
+   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annually'>('monthly');
+   const [discountCodeInput, setDiscountCodeInput] = useState('');
+   const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
+   const [showRefundModal, setShowRefundModal] = useState(false);
+
+   const applyPlanChange = async (newPlan: 'starter' | 'pro' | 'elite') => {
+      setIsChangingPlan(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (user) {
+            await supabase.from('profiles').update({
+               subscription_status: newPlan,
+               plan_type: newPlan,
+            }).eq('id', user.id);
+            localStorage.setItem('tradifive_selected_plan', newPlan);
+            localStorage.setItem('tradifive_cached_plan', newPlan);
+            const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
+            const newMax = limits[newPlan] || 20;
+            localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
+            window.dispatchEvent(new Event('tradifive_profile_update'));
+         }
+         setActivePlan(newPlan);
+         setSelectedPlan(newPlan);
+         toast.success(`Plan updated to ${newPlan === 'starter' ? 'Standard' : newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}!`);
+      } catch (err: any) {
+         console.error('Error applying plan change:', err);
+         toast.error('Failed to change plan. Please try again.');
+      } finally {
+         setIsChangingPlan(false);
+         setDowngradeModalPlan(null);
+      }
+   };
+
+   const handleSettingsUpgrade = async (plan: 'starter' | 'pro' | 'elite') => {
+      if (plan === 'starter') {
+         setDowngradeModalPlan('starter');
+         return;
+      }
+      const price = plan === 'pro' ? 1399 : 2799;
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         await initiateRazorpayCheckout({
+            amount: price * 100,
+            currency: 'INR',
+            name: 'TradiFive',
+            description: `${plan.toUpperCase()} Membership Upgrade`,
+            receipt: `sett_upg_${plan}_${Date.now()}`,
+            notes: {
+               plan,
+               userId: user?.id || 'guest',
+            },
+            prefill: {
+               email: user?.email || undefined,
+               name: userProfile?.display_name || user?.user_metadata?.full_name || undefined,
+            },
+            onSuccess: async () => {
+               await applyPlanChange(plan);
+            },
+         });
+      } catch (err: any) {
+         console.error('Settings upgrade error:', err);
+         toast.error(err.message || 'Failed to start checkout.');
+      }
+   };
+
+   const handleSettingsDowngrade = (plan: 'starter' | 'pro' | 'elite') => {
+      if (plan === 'starter' || plan === 'pro') {
+         setDowngradeModalPlan(plan);
+      }
+   };
+   
+   // Modals State
+   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+   const [isDesktopEditingProfile, setIsDesktopEditingProfile] = useState(false);
+   const [showSmsModal, setShowSmsModal] = useState(false);
+   const [isConnectingBroker, setIsConnectingBroker] = useState(false);
+   const [selectedBrokerToConnect, setSelectedBrokerToConnect] = useState('');
+   
+   // Profile State
+   const [profile, setProfile] = useState({
+      firstName: '',
+      lastName: '',
+      name: '',
+      display_name: '',
+      username: '',
+      email: '',
+      avatarUrl: '',
+      bannerUrl: '',
+      bio: '',
+      website: '',
+      twitter: '',
+      instagram: '',
+      youtube: '',
+      address: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: '',
+      dob: '',
+      gender: '',
+      countryEmoji: '🌍',
+      isPrivate: false,
+      hideFollowers: false,
+      hideTrades: false,
+      account_standing: 'GOOD',
+      standing_message: '',
+      preferred_market: 'global'
+   });
+   
+   const [password, setPassword] = useState({ current: '', new: '', confirm: '' });
+   const avatarUploadRef = useRef<HTMLInputElement>(null);
+   const bannerUploadRef = useRef<HTMLInputElement>(null);
+
+   // Privacy State
+   const [privacySettings, setPrivacySettings] = useState<Record<string, any>>({
+      show_location: true,
+      show_winrate: true,
+      show_roi: true,
+      show_streak: true,
+      show_trades: true,
+      is_private: false,
+      account_type: 'personal'
+   });
+
+   // Notifications State with Persistence
+   const [globalOff, setGlobalOff] = useState(() => {
+      try {
+         return localStorage.getItem('tradifive_notif_global_off') === 'true';
+      } catch {
+         return false;
+      }
+   });
+   const [globalEmailOnly, setGlobalEmailOnly] = useState(() => {
+      try {
+         return localStorage.getItem('tradifive_notif_email_only') === 'true';
+      } catch {
+         return false;
+      }
+   });
+   const [soundAlertsEnabled, setSoundAlertsEnabled] = useState(() => {
+      try {
+         return localStorage.getItem('tradifive_notif_sound') !== 'false';
+      } catch {
+         return true;
+      }
+   });
+
+   const DEFAULT_NOTIFICATIONS = {
+      alerts: [
+         { id: 'trade', label: 'Trade Execution Fills', desc: 'Instant alert when a manual or algo order opens or closes.', push: true, app: true, email: true },
+         { id: 'price', label: 'Price Targets & Stop Loss Hits', desc: 'Real-time alert when market hits your take-profit or stop-loss.', push: true, app: true, email: false },
+         { id: 'risk', label: 'RiskGuard & Drawdown Limits', desc: 'Immediate alarm when approaching max daily drawdown or exposure limit.', push: true, app: true, email: true },
+      ],
+      ai_coach: [
+         { id: 'insights', label: 'Real-Time Psychology Insights', desc: 'AI Coach alerts when detecting revenge trading or emotional pacing.', push: true, app: true, email: false },
+         { id: 'weekly_report', label: 'Monday Performance Audit Statement', desc: 'Notification when your weekly audited statement is ready to download.', push: true, app: true, email: true },
+         { id: 'morning_plan', label: 'Daily Pre-Market Directives', desc: 'Morning notification to review your trading rules before market open.', push: false, app: true, email: false },
+      ],
+      messages: [
+         { id: 'direct', label: 'Direct Messages & Mentions', desc: 'Private messages from other traders, channels, and @mentions.', push: true, app: true, email: false },
+         { id: 'group', label: 'Channel & Group Activities', desc: 'Replies, pinned messages, and trade ideas in followed channels.', push: false, app: true, email: false },
+      ],
+      text: [
+         { id: 'sms_alerts', label: 'Security & 2FA Login Alerts', desc: 'Immediate notification when an unrecognized login or IP is detected.', push: true, app: true, email: true },
+         { id: 'settlements', label: 'Weekly Profit Settlements', desc: 'Payout confirmations, profit share invoices, and wallet receipts.', push: true, app: true, email: true },
+      ],
+   };
+
+   const [notifications, setNotifications] = useState(() => {
+      try {
+         const saved = localStorage.getItem('tradifive_user_notifications');
+         if (saved) {
+            const parsed = JSON.parse(saved);
+            return { ...DEFAULT_NOTIFICATIONS, ...parsed };
+         }
+      } catch {}
+      return DEFAULT_NOTIFICATIONS;
+   });
+
+    // Appearance State
+    const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
+   const [accentColor, setAccentColor] = useState('blue');
+   const [layoutDensity, setLayoutDensity] = useState('comfortable');
+   const [terminalLogging, setTerminalLogging] = useState(false);
+   const [fullScreenLayout, setFullScreenLayout] = useState(() => localStorage.getItem('fialgo_full_screen') === 'true');
+   const { themeId: pnlTheme, changeTheme: changePnlTheme, THEMES: PNL_THEMES } = useTradingTheme();
+   const [cursorStyle, setCursorStyle] = useState<"3d" | "dot" | "system">(() => {
+     if (typeof window === "undefined") return "3d";
+     return (localStorage.getItem('tradifive_cursor_style') as "3d" | "dot" | "system") || "3d";
+   });
+
+   const handleCursorStyleChange = (style: "3d" | "dot" | "system") => {
+     setCursorStyle(style);
+     try {
+       localStorage.setItem('tradifive_cursor_style', style);
+       window.dispatchEvent(new CustomEvent('tradifive_cursor_change', { detail: style }));
+     } catch (_) {}
+     const names: Record<string, string> = {
+       "3d": "3D Glossy Arrow",
+       "dot": "Minimal Precision Dot",
+       "system": "Classic System Default",
+     };
+     toast.success(`${names[style]} cursor selected`);
+   };
+
+   // New Tab States
+   const [language, setLanguage] = useState('en');
+   const [aiTone, setAiTone] = useState('strict');
+   const [aiVoice, setAiVoice] = useState('female');
+   const [aiFrequency, setAiFrequency] = useState('medium');
+   const [connectedBroker, setConnectedBroker] = useState<string>('');
+   const [brokerApiKey, setBrokerApiKey] = useState('');
+   const [brokerClientId, setBrokerClientId] = useState('');
+   const [isSyncing, setIsSyncing] = useState(false);
+   
+   const [bgFadeStyle, setBgFadeStyle] = useState(() => localStorage.getItem('fialgo_bg_fade_style') || 'purple');
+   const [lastSyncedTime, setLastSyncedTime] = useState('Just now');
+   
+   // Creator Settings
+   const [creatorHandle, setCreatorHandle] = useState('');
+   const [creatorCategory, setCreatorCategory] = useState('Day Trading');
+   const [creatorBio, setCreatorBio] = useState('');
+   
+   // Channel Settings
+   const [feedVisibility, setFeedVisibility] = useState('public');
+   const [channelRules, setChannelRules] = useState('No self-promotion, maintain civil discussions.');
+
+   // Help FAQ Open state
+   const [openFaqId, setOpenFaqId] = useState<number | null>(null);
+
+   // Report State
+   const [reportCategory, setReportCategory] = useState('bug');
+   const [reportSubject, setReportSubject] = useState('');
+   const [reportDescription, setReportDescription] = useState('');
+
+   // Global User ID for AI Credits
+   const [globalUserId, setGlobalUserId] = useState<string>('');
+   
+   const { creditsLeft, maxCredits } = useAICoachData();
+   const aiCredits = creditsLeft ?? 0;
+   const activeMaxCredits = maxCredits ?? 10;
+
+   // Billing Cards Expand State
+   const [starterExpanded, setStarterExpanded] = useState(false);
+   const [proExpanded, setProExpanded] = useState(false);
+   const [eliteExpanded, setEliteExpanded] = useState(false);
+
+   const handleCloseSettings = () => {
+      const fromDhan = localStorage.getItem('dhan_auth_completed') === 'true';
+      if (fromDhan) {
+         localStorage.removeItem('dhan_auth_completed');
+         navigate('/home', { replace: true });
+      } else if (document.referrer && !document.referrer.includes(window.location.host)) {
+         navigate('/home', { replace: true });
+      } else if (window.history.length > 2) {
+         navigate(-1);
+      } else {
+         navigate('/home', { replace: true });
+      }
+   };
+
+   // Escape key close handling
+   useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+         if (e.key === 'Escape') {
+            handleCloseSettings();
+         }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+         window.removeEventListener('keydown', handleKeyDown);
+      };
+   }, [navigate]);
+
+   // Listen for authentication completion from popup tab
+   useEffect(() => {
+      const handleStorage = (e: StorageEvent) => {
+         if (e.key === 'dhan_auth_completed' && e.newValue === 'true') {
+            setConnectedBroker('dhan');
+            setIsConnectingBroker(false);
+            setSelectedBrokerToConnect('');
+            localStorage.removeItem('dhan_auth_completed');
+            toast.dismiss();
+            toast.success('Successfully connected your Dhan account!');
+         }
+      };
+      window.addEventListener('storage', handleStorage);
+      return () => window.removeEventListener('storage', handleStorage);
+   }, []);
+
+
+
+   // Load privacy settings and profile details on mount
+   useEffect(() => {
+      const fetchUserData = async () => {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (user) {
+            // Load privacy settings from localStorage
+            const storedPrivacy = localStorage.getItem(`tradifive_privacy_${user.id}`);
+            if (storedPrivacy) {
+               setPrivacySettings(JSON.parse(storedPrivacy));
+            }
+                        setGlobalUserId(user.id);
+             
+             const params = new URLSearchParams(window.location.search);
+
+             // Check Dhan OAuth redirect callback params
+             const tokenId = params.get('tokenId');
+             if (tokenId) {
+                const storedUserId = localStorage.getItem('dhan_connecting_user_id');
+                const storedClientId = localStorage.getItem('dhan_connecting_client_id');
+                
+                if (storedUserId === user.id && storedClientId) {
+                   localStorage.removeItem('dhan_connecting_user_id');
+                   localStorage.removeItem('dhan_connecting_client_id');
+                   
+                   toast.promise(
+                      (async () => {
+                         const { data, error } = await supabase.functions.invoke('sync-indian-trades', {
+                            body: {
+                               action: 'consume-consent',
+                               tokenId: tokenId,
+                               userId: user.id,
+                               dhanClientId: storedClientId
+                            }
+                         });
+                         if (error || !data || !data.success) {
+                             let errorMessage = error?.message || 'Failed to link account';
+                             if (error && (error as any).context) {
+                                try {
+                                   const errBody = await (error as any).context.json();
+                                   errorMessage = errBody.error || errorMessage;
+                                } catch (_) {
+                                   try {
+                                      const errText = await (error as any).context.text();
+                                      if (errText) errorMessage = errText;
+                                   } catch (__) {}
+                                }
+                             }
+                             throw new Error(errorMessage);
+                          }
+                         
+                         setConnectedBroker('dhan');
+                         setBrokerClientId(storedClientId);
+                         setIsConnectingBroker(false);
+                         
+                         localStorage.setItem('dhan_auth_completed', 'true');
+
+                         const url = new URL(window.location.href);
+                         url.searchParams.delete('tokenId');
+                         window.history.replaceState({}, document.title, url.pathname + url.search);
+                         
+                         // Try to close the tab automatically. If browser blocks it, it's okay.
+                         setTimeout(() => {
+                            window.close();
+                         }, 1500);
+                      })(),
+                      {
+                         loading: 'Completing secure Dhan connection...',
+                         success: 'Successfully connected your Dhan account!',
+                         error: (err: any) => `Connection failed: ${err.message}`
+                      }
+                   );
+                }
+             }
+
+             // Check Stripe redirect outcome params
+             const success = params.get('success');
+            const plan = params.get('plan');
+            const sessId = params.get('session_id') || 'generic';
+            
+            let currentPlan = localStorage.getItem('tradifive_selected_plan') || 'starter';
+            
+            if (success === 'true') {
+               const processedKey = `tradifive_processed_session_${sessId}`;
+               if (!localStorage.getItem(processedKey)) {
+                  localStorage.setItem(processedKey, 'true');
+                  if (plan && ['pro', 'elite'].includes(plan)) {
+                     localStorage.setItem('tradifive_selected_plan', plan);
+                     currentPlan = plan;
+                     
+                     const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
+                     const newMax = limits[plan as keyof typeof limits] || 100;
+                     localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
+                     
+                     try {
+                        await supabase.from('profiles').update({
+                           subscription_status: plan
+                        }).eq('id', user.id);
+                     } catch (err) {
+                        console.error("Error updating subscription status in profiles:", err);
+                     }
+                     
+                     toast.success(`Successfully upgraded to ${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan!`, {
+                        description: `Your daily AI credits limit is now ${newMax}.`
+                     });
+                  }
+               }
+               navigate('/settings?tab=ai', { replace: true });
+            } else if (params.get('canceled') === 'true') {
+               toast.error("Upgrade cancelled.", {
+                  description: "Your payment session was closed."
+               });
+               navigate('/settings?tab=ai', { replace: true });
+            }
+            
+            setSelectedPlan(currentPlan);
+            
+            const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
+            const max = limits[currentPlan as keyof typeof limits] || 20;
+            
+            // Load profile details from database
+            const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
+            if (data) {
+               if (data.subscription_status) {
+                  localStorage.setItem('tradifive_cached_plan', data.subscription_status);
+                  setActivePlan(data.subscription_status);
+                  setSelectedPlan(prev => ['starter', 'pro', 'elite'].includes(new URLSearchParams(window.location.search).get('plan') || '') ? prev : data.subscription_status);
+               } else {
+                  localStorage.setItem('tradifive_cached_plan', 'starter');
+                  setActivePlan('starter');
+                  setSelectedPlan(prev => ['starter', 'pro', 'elite'].includes(new URLSearchParams(window.location.search).get('plan') || '') ? prev : 'starter');
+               }
+               
+               if (data.account_type) {
+                  setPrivacySettings(prev => ({ ...prev, account_type: data.account_type }));
+               }
+               let savedLocalSocial: Record<string, string> = {};
+               try {
+                  const s = localStorage.getItem(`tradifive_social_links_${user.id}`);
+                  if (s) savedLocalSocial = JSON.parse(s);
+               } catch (_) {}
+               setProfile({
+                  firstName: data.first_name || '',
+                  lastName: data.last_name || '',
+                  name: data.display_name || data.first_name || '',
+                  display_name: data.display_name || data.first_name || '',
+                  username: data.username || '',
+                  email: user.email || '',
+                  avatarUrl: data.avatar_url || '',
+                  bannerUrl: data.banner_url || '',
+                  bio: data.bio || '',
+                  tags: data.trading_style ? data.trading_style.split(',') : [],
+                  website: data.website || savedLocalSocial.website || '',
+                  twitter: data.twitter_url || savedLocalSocial.twitter || '',
+                  instagram: data.instagram_id || data.instagram_url || savedLocalSocial.instagram || '',
+                  youtube: data.youtube_url || savedLocalSocial.youtube || '',
+                  discord: data.discord_url || data.discord || savedLocalSocial.discord || '',
+                  tradingview: data.tradingview_url || data.tradingview || savedLocalSocial.tradingview || '',
+                  address: data.address || '',
+                  city: data.city || '',
+                  state: data.state || '',
+                  zipCode: data.zip_code || '',
+                  country: data.country || '',
+                  dob: data.dob || '',
+                  gender: data.gender || '',
+                  countryEmoji: data.country_emoji || '🌍',
+                  isPrivate: data.is_private || false,
+                  hideFollowers: data.hide_followers || false,
+                  hideTrades: data.hide_trades || false,
+                  account_standing: data.account_standing || 'GOOD',
+                  standing_message: data.standing_message || '',
+                  preferred_market: data.preferred_market || 'global'
+               });
+               setCreatorHandle(data.username ? `@${data.username}_trades` : '');
+            } else {
+                // Load fallback from localStorage cache only if it belongs to current user
+                const cached = localStorage.getItem('prof_cache_data');
+                if (cached) {
+                   const parsed = JSON.parse(cached);
+                   if (parsed.id === user.id) {
+                      setProfile({
+                         firstName: parsed.first_name || '',
+                         lastName: parsed.last_name || '',
+                         name: parsed.display_name || parsed.first_name || '',
+                         display_name: parsed.display_name || parsed.first_name || '',
+                         username: parsed.username || '',
+                         email: user.email || '',
+                         avatarUrl: parsed.avatar_url || '',
+                         bannerUrl: parsed.banner_url || '',
+                         bio: parsed.bio || '',
+                         tags: parsed.trading_style ? parsed.trading_style.split(',') : [],
+                         website: parsed.website || '',
+                         twitter: parsed.twitter_url || '',
+                         instagram: parsed.instagram_url || '',
+                         youtube: parsed.youtube_url || '',
+                         address: parsed.address || '',
+                         city: parsed.city || '',
+                         state: parsed.state || '',
+                         zipCode: parsed.zip_code || '',
+                         country: parsed.country || '',
+                         dob: parsed.dob || '',
+                         gender: parsed.gender || '',
+                         countryEmoji: parsed.country_emoji || '🌍',
+                         isPrivate: parsed.is_private || false,
+                         hideFollowers: parsed.hide_followers || false,
+                         hideTrades: parsed.hide_trades || false
+                      });
+                      setCreatorHandle(parsed.username ? `@${parsed.username}_trades` : '');
+                   } else {
+                      // Initial empty state fallback for new profiles
+                      setProfile(prev => ({
+                         ...prev,
+                         email: user.email || ''
+                      }));
+                   }
+                } else {
+                   setProfile(prev => ({
+                      ...prev,
+                      email: user.email || ''
+                   }));
+                }
+             }
+
+            // Fetch billing history
+            try {
+               const { data: billingData, error: billingError } = await supabase
+                  .from('billing_history')
+                  .select('*')
+                  .eq('user_id', user.id)
+                  .order('created_at', { ascending: false });
+                  
+               if (billingData && !billingError) {
+                  setBillingHistory(billingData);
+               } else {
+                  setBillingHistory([]);
+               }
+            } catch (err) {
+               console.error("Error fetching billing history:", err);
+               setBillingHistory([]);
+            } finally {
+               setLoadingBilling(false);
+            }
+
+            // Fetch broker connections
+            try {
+               const { data: brokerData } = await supabase
+                  .from('broker_connections')
+                  .select('*')
+                  .eq('user_id', user.id);
+               if (brokerData && brokerData.length > 0) {
+                  setConnectedBroker(brokerData[0].broker_name);
+                  setBrokerClientId(brokerData[0].client_id || '');
+                  setBrokerApiKey(brokerData[0].api_key ? '••••••••••••••••' : '');
+               }
+            } catch (err) {
+               console.error("Error fetching broker connections:", err);
+            }
+         }
+      };
+      fetchUserData().finally(() => setIsInitialLoading(false));
+   }, []);
+
+   const handleToggle = (category: string, id: string, type: 'app' | 'push' | 'email') => {
+      setNotifications(prev => {
+         const next = {
+            ...prev,
+            [category]: (prev as any)[category].map((n: any) => 
+               n.id === id ? { ...n, [type]: !n[type] } : n
+            )
+         };
+         try {
+            localStorage.setItem('tradifive_user_notifications', JSON.stringify(next));
+         } catch {}
+         return next;
+      });
+      triggerHaptic('selection');
+      toast.success('Notification preferences updated');
+   };
+
+   const handleGlobalOff = () => {
+      const newState = !globalOff;
+      setGlobalOff(newState);
+      if (newState) setGlobalEmailOnly(false);
+      try {
+         localStorage.setItem('tradifive_notif_global_off', String(newState));
+         if (newState) localStorage.setItem('tradifive_notif_email_only', 'false');
+      } catch {}
+      
+      const newNotifs = { ...notifications };
+      Object.keys(newNotifs).forEach(key => {
+         (newNotifs as any)[key] = (newNotifs as any)[key].map((n: any) => ({
+            ...n, app: !newState, push: !newState, email: !newState
+         }));
+      });
+      setNotifications(newNotifs);
+      try {
+         localStorage.setItem('tradifive_user_notifications', JSON.stringify(newNotifs));
+      } catch {}
+      toast(newState ? 'All alerts paused (DND active)' : 'Notifications restored');
+   };
+
+   const handleEmailOnly = () => {
+      const newState = !globalEmailOnly;
+      setGlobalEmailOnly(newState);
+      if (newState) setGlobalOff(false);
+      try {
+         localStorage.setItem('tradifive_notif_email_only', String(newState));
+         if (newState) localStorage.setItem('tradifive_notif_global_off', 'false');
+      } catch {}
+      
+      const newNotifs = { ...notifications };
+      Object.keys(newNotifs).forEach(key => {
+         (newNotifs as any)[key] = (newNotifs as any)[key].map((n: any) => ({
+            ...n, app: !newState, push: !newState, email: true
+         }));
+      });
+      setNotifications(newNotifs);
+      try {
+         localStorage.setItem('tradifive_user_notifications', JSON.stringify(newNotifs));
+      } catch {}
+      toast(newState ? 'Email-only mode enabled' : 'Multi-channel notifications active');
+   };
+
+   const handleResetNotificationDefaults = () => {
+      setGlobalOff(false);
+      setGlobalEmailOnly(false);
+      setSoundAlertsEnabled(true);
+      setNotifications(DEFAULT_NOTIFICATIONS);
+      try {
+         localStorage.removeItem('tradifive_user_notifications');
+         localStorage.setItem('tradifive_notif_global_off', 'false');
+         localStorage.setItem('tradifive_notif_email_only', 'false');
+         localStorage.setItem('tradifive_notif_sound', 'true');
+      } catch {}
+      toast.success('Notification settings reset to defaults');
+   };
+
+   const handleToggleSound = () => {
+      const next = !soundAlertsEnabled;
+      setSoundAlertsEnabled(next);
+      try {
+         localStorage.setItem('tradifive_notif_sound', String(next));
+      } catch {}
+      toast(next ? 'Sound chimes enabled' : 'Sound chimes muted');
+   };
+
+   const handleUpdateProfile = async (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      
+      const requestedUsername = profile.username || profile.name || null;
+      if (requestedUsername) {
+         const validation = validateUsername(requestedUsername);
+         if (!validation.isValid) {
+            toast.error(validation.message);
+            return;
+         }
+      }
+
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) return;
+         setLoading(true);
+         
+         const updatePayload = {
+            first_name: profile.firstName,
+            last_name: profile.lastName,
+            display_name: profile.display_name !== undefined ? profile.display_name : (profile.name || `${profile.firstName} ${profile.lastName}`.trim()),
+            username: profile.username || profile.name || null,
+            has_chosen_username: !!(profile.username || profile.name),
+            bio: profile.bio,
+            trading_style: profile.tags?.length ? profile.tags.join(',') : null,
+            website: profile.website,
+            instagram_id: profile.instagram,
+            address: profile.address,
+            city: profile.city,
+            state: profile.state,
+            zip_code: profile.zipCode,
+            country: profile.country,
+            date_of_birth: profile.dob || null,
+            gender: profile.gender,
+            avatar_url: profile.avatarUrl,
+            banner_url: profile.bannerUrl
+         };
+         
+         const { error } = await supabase.from('profiles').update(updatePayload).eq('id', user.id);
+         
+         if (error) throw error;
+         
+         // Save privacy settings locally
+         const updatedPrivacySettings = { ...privacySettings, is_private: privacySettings.is_private };
+         localStorage.setItem(`tradifive_privacy_${user.id}`, JSON.stringify(updatedPrivacySettings));
+         const effectiveUsername = profile.username || profile.name || user.id;
+         localStorage.setItem(`tradifive_privacy_user_${effectiveUsername.toLowerCase()}`, JSON.stringify(updatedPrivacySettings));
+         localStorage.setItem("tradifive_cached_account_type", privacySettings.account_type || 'personal');
+         window.dispatchEvent(new Event("storage"));
+         
+         // Save social links locally so Profile & Public Profile display them immediately
+         const socialLinksPayload = {
+            website: profile.website || '',
+            instagram: profile.instagram || '',
+            youtube: profile.youtube || '',
+            discord: (profile as any).discord || '',
+            tradingview: (profile as any).tradingview || '',
+            twitter: profile.twitter || '',
+         };
+         localStorage.setItem(`tradifive_social_links_${user.id}`, JSON.stringify(socialLinksPayload));
+         localStorage.setItem(`tradifive_social_links_user_${effectiveUsername.toLowerCase()}`, JSON.stringify(socialLinksPayload));
+
+         const updatedCache = {
+            id: user.id,
+            first_name: profile.firstName,
+            last_name: profile.lastName,
+            display_name: profile.display_name !== undefined ? profile.display_name : (profile.name || `${profile.firstName} ${profile.lastName}`.trim()),
+            username: effectiveUsername,
+            avatar_url: profile.avatarUrl,
+            banner_url: profile.bannerUrl,
+            bio: profile.bio,
+            website: profile.website || '',
+            instagram_id: profile.instagram || '',
+            youtube_url: profile.youtube || '',
+            discord: (profile as any).discord || '',
+            tradingview: (profile as any).tradingview || '',
+            twitter_url: profile.twitter || '',
+            location: profile.city,
+            country: profile.country,
+            country_emoji: profile.countryEmoji
+         };
+         
+         localStorage.setItem('prof_cache_data', JSON.stringify(updatedCache));
+         localStorage.setItem(`tradifive_mock_profile_${effectiveUsername.toLowerCase()}`, JSON.stringify(updatedCache));
+         
+         // Update tradifive cache keys for sidebar
+         localStorage.setItem("tradifive_cached_display_name", profile.display_name !== undefined ? profile.display_name : (profile.name || `${profile.firstName} ${profile.lastName}`.trim()));
+         localStorage.setItem("tradifive_cached_username", effectiveUsername);
+         localStorage.setItem("tradifive_cached_avatar_url", profile.avatarUrl);
+         
+         // Dispatch update event
+         window.dispatchEvent(new Event("tradifive_profile_update"));
+         
+         toast.success('Preferences saved successfully');
+      } catch (e: any) {
+         console.error("Profile update error FULL:", e);
+         toast.error(`Error: ${e?.message || JSON.stringify(e)}`);
+      } finally {
+         setLoading(false);
+      }
+   };
+
+   const handleFullScreenChange = (checked: boolean) => {
+      setFullScreenLayout(checked);
+      localStorage.setItem('fialgo_full_screen', String(checked));
+      window.dispatchEvent(new Event('fialgo_full_screen_changed'));
+   };
+
+   const handleThemeChange = (newTheme: string) => {
+      setTheme(newTheme);
+      applyThemeWithTransition(newTheme as 'light' | 'dark', () => {
+         // Theme transition completed
+      });
+   };
+
+   const handleForceSync = async () => {
+      setIsSyncing(true);
+      try {
+         const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(connectedBroker);
+         
+         if (isGlobal) {
+            const { error } = await supabase.functions.invoke('sync-metaapi-trades');
+            if (error) throw error;
+            toast.success('Synchronized global trading activity!');
+         } else {
+            const { error } = await supabase.functions.invoke('sync-indian-trades');
+            if (error) throw error;
+            toast.success(`Synchronized trading activity from ${connectedBroker.toUpperCase()}!`);
+         }
+         setLastSyncedTime('Just now');
+      } catch (err: any) {
+         console.error("Sync error:", err);
+         toast.error(`Sync failed: ${err.message || 'Please check your credentials.'}`);
+      } finally {
+         setIsSyncing(false);
+      }
+   };
+
+   const handleConnectBrokerSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(selectedBrokerToConnect);
+      
+      if (isGlobal) {
+         setConnectedBroker(selectedBrokerToConnect);
+         setIsConnectingBroker(false);
+         toast.success(`Successfully connected to ${selectedBrokerToConnect.toUpperCase()}!`);
+         return;
+      }
+
+      if (selectedBrokerToConnect === 'dhan') {
+         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+               toast.error('You must be logged in to connect a broker');
+               return;
+            }
+            
+            // 1. Call generate-consent on Edge Function
+            const { data, error } = await supabase.functions.invoke('sync-indian-trades', {
+               body: {
+                  action: 'generate-consent',
+                  dhanClientId: brokerClientId
+               }
+            });
+            
+            if (error || !data || !data.consentAppId) {
+                let errorMessage = error?.message || 'Failed to generate consent app ID';
+                throw new Error(errorMessage);
+             }
+            
+            localStorage.setItem('dhan_connecting_client_id', brokerClientId);
+            localStorage.setItem('dhan_connecting_user_id', user.id);
+            
+            toast.loading('Redirecting to Dhan secure login...', { duration: 3000 });
+            setTimeout(() => {
+               window.open(`https://auth.dhan.co/login/consentApp-login?consentAppId=${data.consentAppId}`, '_blank');
+            }, 1500);
+         } catch (err: any) {
+            console.error("Error generating Dhan consent:", err);
+            toast.error(`Failed to initiate login: ${err.message}`);
+         }
+         return;
+      }
+      
+      // For Zerodha and Upstox, we insert into the database so that useDashboardData auto-syncs.
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) {
+            toast.error('You must be logged in to connect a broker');
+            return;
+         }
+
+         if (selectedBrokerToConnect === 'zerodha' && !brokerApiKey) {
+             toast.error('API Key is required for Zerodha');
+             return;
+         }
+         
+         if (selectedBrokerToConnect === 'upstox' && !brokerClientId) {
+             toast.error('Client ID is required for Upstox');
+             return;
+         }
+
+         toast.loading(`Connecting to ${selectedBrokerToConnect.toUpperCase()}...`, { id: 'broker-connect' });
+
+         const { error } = await supabase
+            .from('broker_connections')
+            .upsert({
+               user_id: user.id,
+               broker_name: selectedBrokerToConnect,
+               client_id: brokerClientId || 'connected',
+               api_key: brokerApiKey || 'connected',
+               connection_status: 'active',
+               updated_at: new Date().toISOString()
+            }, { onConflict: 'user_id, broker_name' });
+
+         if (error) throw error;
+         
+         toast.success(`Successfully linked ${selectedBrokerToConnect.toUpperCase()}! Your data will now sync.`, { id: 'broker-connect' });
+         setConnectedBroker(selectedBrokerToConnect);
+         setIsConnectingBroker(false);
+         setSelectedBrokerToConnect('');
+
+      } catch (err: any) {
+         console.error("Error saving broker:", err);
+         toast.error(`Failed to connect: ${err.message}`, { id: 'broker-connect' });
+      }
+   };
+
+   const handleDisconnectBroker = async () => {
+       const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(connectedBroker);
+       
+       if (isGlobal) {
+          setConnectedBroker('');
+          toast.success('Disconnected broker account');
+          return;
+       }
+       
+       try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+          
+          const { error } = await supabase
+             .from('broker_connections')
+             .delete()
+             .eq('user_id', user.id)
+             .eq('broker_name', connectedBroker);
+             
+          if (error) throw error;
+          
+          setConnectedBroker('');
+          setBrokerClientId('');
+          setBrokerApiKey('');
+          toast.success('Successfully disconnected broker account');
+       } catch (err: any) {
+          console.error("Error disconnecting broker:", err);
+          toast.error(`Failed to disconnect: ${err.message}`);
+       }
+    };
+
+   const handleReportSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!reportSubject || !reportDescription) {
+         toast.error('Please fill out all problem report fields');
+         return;
+      }
+   toast.success('Problem report logged. Our support team will investigate.');
+      setReportSubject('');
+      setReportDescription('');
+   };
+
+   // Define structural settings categories for left sidebar (grouped like ACCOUNT / TRADING / APP)
+   const sidebarSections = [
+      {
+         title: "Account",
+         items: [
+            { id: "profile", label: "Profile", icon: User },
+            { 
+               id: "account", 
+               label: "Account & Security", 
+               icon: ShieldDone,
+               children: [
+                  { id: "account-info", label: "Account Info" },
+                  { id: "password-security", label: "Password & Security" },
+                  { id: "active-sessions", label: "Active Sessions" },
+                  { id: "account-standing", label: "Account Standing" },
+                  { id: "family-center", label: "Family Center" },
+                  { id: "data-export", label: "Export & Privacy" },
+                  { id: "danger-zone", label: "Danger Zone" }
+               ]
+            },
+            { id: "notifications", label: "Notifications", icon: Notification }
+         ]
+      },
+      {
+         title: "Trading",
+         items: [
+            { id: "trading_preferences", label: "Trading & Risk Config", icon: Sliders },
+            { id: "trading", label: "Accounts & Brokers", icon: Wallet },
+            { id: "ai", label: "AI Coach", icon: Sparkles }
+         ]
+      },
+      {
+         title: "App",
+         items: [
+            { id: "appearance", label: "Preferences", icon: Category },
+            { id: "subscription", label: "Subscription", icon: TicketStar },
+            { id: "channel", label: "Channel Settings", icon: Chat },
+            { id: "creator", label: "Creator Account", icon: Star },
+            { id: "help", label: "Help Center", icon: InfoCircle },
+            { id: "report", label: "Report a Problem", icon: Danger },
+            { id: "logout", label: "Log Out", icon: Logout }
+         ]
+      }
+   ];
+
+   // Filter the sidebar list using query search AND plan requirement
+   const filteredSections = sidebarSections.map(section => {
+      const items = section.items.filter(item => {
+         // Hide Creator Account tab if not on Elite plan
+         if (item.id === 'creator' && activePlan !== 'elite') return false;
+         
+         return item.label.toLowerCase().includes(searchQuery.toLowerCase());
+      });
+      return { ...section, items };
+   }).filter(section => section.items.length > 0);
+
+   const displayName = `${profile.firstName} ${profile.lastName}`.trim() || profile.name || "username";
+
+   const tabTitles = TAB_TITLES;
+
+   const resizeImageFile = (file: File, maxWidth: number, maxHeight: number, quality: number = 0.8): Promise<string> => {
+      return new Promise((resolve, reject) => {
+         const reader = new FileReader();
+         reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+               const canvas = document.createElement('canvas');
+               let width = img.width;
+               let height = img.height;
+
+               if (width > height) {
+                  if (width > maxWidth) {
+                     height = Math.round((height * maxWidth) / width);
+                     width = maxWidth;
+                  }
+               } else {
+                  if (height > maxHeight) {
+                     width = Math.round((width * maxHeight) / height);
+                     height = maxHeight;
+                  }
+               }
+
+               canvas.width = width;
+               canvas.height = height;
+               const ctx = canvas.getContext('2d');
+               if (ctx) {
+                  ctx.drawImage(img, 0, 0, width, height);
+                  resolve(canvas.toDataURL('image/jpeg', quality));
+               } else {
+                  resolve(e.target?.result as string);
+               }
+            };
+            img.onerror = reject;
+            img.src = e.target?.result as string;
+         };
+         reader.onerror = reject;
+         reader.readAsDataURL(file);
+      });
+   };
+
+   return (
+      <DashboardLayout 
+         breadcrumbs={[{ label: "Home", path: "/home" }, { label: "Settings", path: "/settings" }]}
+         noScroll={true}
+         hideBottomNav={mobileShowDetails}
+      >
+      <motion.div
+         className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[3px] p-0 sm:p-6 md:p-8 select-none font-sans"
+         initial={{ opacity: 0 }}
+         animate={{ opacity: 1 }}
+         transition={{ duration: 0.05, ease: "easeOut" }}
+      >
+         
+         {/* Click outside backdrop container back to dashboard page (desktop/tablet only) */}
+         <div className="absolute inset-0 hidden sm:block" onClick={handleCloseSettings} />
+
+         {/* Centered Settings Dialog Modal Box */}
+         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[860px] max-w-[1160px] rounded-none sm:rounded-[24px] bg-white dark:bg-[#141417] text-slate-800 dark:text-[#dbdee1] flex flex-col overflow-hidden shadow-[0_24px_80px_rgba(15,23,42,0.22)] border-0 sm:border sm:border-slate-200/70 dark:sm:border-white/[0.08] z-10 pb-16 md:pb-0">
+            
+            {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
+            <div className="hidden md:block relative shrink-0 select-none">
+               <div className="relative h-[132px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-900">
+                  <img
+                     src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                     alt="Profile banner"
+                     className="w-full h-full object-cover object-center"
+                     onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                  />
+                  {/* Smooth fade melting cover cleanly into white/dark surface */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/55 to-transparent dark:from-[#141417] dark:via-[#141417]/55" />
+
+                  {/* Top-Right Translucent Close Circle */}
+                  <button
+                     type="button"
+                     onClick={handleCloseSettings}
+                     className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-sm text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                     title="Close Settings"
+                     aria-label="Close Settings"
+                  >
+                     <X size={15} strokeWidth={2.2} />
+                  </button>
+               </div>
+
+               {/* Overlapping Avatar + Identity Row */}
+               <div className="relative z-10 -mt-12 px-7 pb-3 flex items-end gap-3.5">
+                  <button
+                     type="button"
+                     onClick={() => setActiveTab('profile')}
+                     className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#141417] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800 shrink-0 cursor-pointer active:scale-95 transition-transform"
+                     aria-label="View profile settings"
+                  >
+                     <img
+                        src={profile.avatarUrl || defaultAvatar}
+                        alt={displayName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                     />
+                  </button>
+                  <div className="min-w-0 pb-1">
+                     <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                        {displayName}
+                     </h2>
+                     <p className="text-[12.5px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                        @{profile.username || "trader"} · <span className="capitalize">{activePlan}</span>
+                     </p>
+                  </div>
+               </div>
+            </div>
+
+            {/* ── MAIN MODAL BODY (Mobile list/detail OR Desktop 2-column sidebar + content) ── */}
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+            
+             {/* ── MOBILE SETTINGS NAVIGATION (Matching Reference Picture 2) ── */}
+             <div className={`${mobileShowDetails ? 'hidden' : 'flex md:hidden'} w-full bg-[#F4F5F7] dark:bg-[#121215] flex-col h-full min-h-0 overflow-y-auto amazing-scrollbar select-none`}>
+                {/* Mobile Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1E] shrink-0 sticky top-0 z-20">
+                   <h1 className="text-[17px] font-bold text-slate-900 dark:text-white">Settings</h1>
+                   <button 
+                      onClick={handleCloseSettings} 
+                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer"
+                      aria-label="Close settings"
+                   >
+                      <X size={15} />
+                   </button>
+                </div>
+
+                <div className="p-4 space-y-4 pb-28">
+                   {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
+                   <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
+                      {/* Banner Image with smooth bottom fade */}
+                      <div className="relative h-36 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                         <img
+                            src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                            alt="Cover"
+                            className="w-full h-full object-cover object-center"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                         />
+                         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40" />
+                      </div>
+
+                      {/* Overlapping Avatar */}
+                      <div className="relative -mt-9 ml-4 flex items-end justify-between pr-4">
+                         <div className="w-16 h-16 rounded-full border-2 border-white dark:border-[#1A1A1E] shadow-md overflow-hidden bg-white dark:bg-neutral-800 shrink-0">
+                            <img
+                               src={profile.avatarUrl || "/nikil_avatar.jpg"}
+                               alt={displayName}
+                               className="w-full h-full object-cover"
+                               onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                            />
+                         </div>
+                      </div>
+
+                      {/* Name, Username & Edit button row */}
+                      <div className="px-4 pt-2.5 pb-4 flex items-center justify-between">
+                         <div className="min-w-0 pr-3">
+                            <h2 className="text-[16px] font-bold text-slate-900 dark:text-white truncate leading-tight">
+                               {displayName}
+                            </h2>
+                            <p className="text-[12px] text-slate-400 dark:text-neutral-500 font-normal mt-0.5 truncate">
+                               @{profile.username || "nikhilharake"}
+                            </p>
+                         </div>
+                         <TactileBoxButton
+                            onClick={() => {
+                               triggerHaptic("selection");
+                               setActiveTab("profile");
+                               setMobileShowDetails(true);
+                            }}
+                            className="h-9 px-4 shrink-0"
+                            title="Edit profile"
+                         >
+                            <Pencil size={13.5} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
+                            <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-none tracking-tight">Edit</span>
+                         </TactileBoxButton>
+                      </div>
+                   </div>
+
+                   {/* 2. Search Settings Box */}
+                   <div className="relative">
+                      <Search set="curved" stroke="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={15} />
+                      <input
+                         type="text"
+                         placeholder="Search settings"
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         className="w-full bg-[#EAECEF] dark:bg-[#1E1E22] rounded-xl pl-9 pr-8 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 border border-transparent focus:outline-none focus:border-blue-500 transition-colors"
+                      />
+                      {searchQuery && (
+                         <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                         >
+                            Clear
+                         </button>
+                      )}
+                   </div>
+
+                   {/* 3. Grouped Settings Lists (Matching Reference Picture 2) */}
+                   <div className="space-y-4 pt-1">
+                      {/* Section: ACCOUNT */}
+                      {(!searchQuery || "account profile activity trophies security notifications delete history privacy".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               ACCOUNT
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "profile".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('profile'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <User set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Profile</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "activity".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('active-sessions'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Activity set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Activity</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "trophies badges standing".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('account-standing'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Star set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Trophies & Standing</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "security password green check".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('password-security'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Security & Password</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "notifications alerts".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('notifications'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Notification set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Notifications</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "delete history privacy data".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('data-export'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Document set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Data & Privacy</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+                            </div>
+                         </div>
+                      )}
+
+                      {/* Section: TRADING */}
+                      {(!searchQuery || "trading break-even risk accounts circuit breaker symbol pricing".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               TRADING
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "break-even range risk".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Setting set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Break-even Range & Risk</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "accounts brokers".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Wallet set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Accounts & Brokers</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "risk circuit breaker".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Risk Circuit Breaker</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "symbol pricing market".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Swap set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Symbol Pricing</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+                            </div>
+                         </div>
+                      )}
+
+                      {/* Section: PREFERENCES & SUPPORT */}
+                      {(!searchQuery || "subscription theme appearance help report logout".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               PREFERENCES & SUPPORT
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "subscription plan billing".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('subscription'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <TicketStar set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Subscription & Plan</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "theme appearance display".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('appearance'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Category set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Theme & Display</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "help center desk support".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('help'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <InfoCircle set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Help Center</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "report problem issue".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('report'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Danger set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Report a Problem</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               <button
+                                  type="button"
+                                  onClick={() => setShowLogoutConfirm(true)}
+                                  className="w-full flex items-center justify-between p-3.5 hover:bg-rose-50/50 dark:hover:bg-rose-500/10 active:bg-rose-100/50 transition-colors cursor-pointer text-left"
+                               >
+                                  <div className="flex items-center gap-3">
+                                     <div className="text-rose-500">
+                                        <Logout set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                     </div>
+                                     <span className="text-[13.5px] font-semibold text-rose-500">Log Out</span>
+                                  </div>
+                               </button>
+                            </div>
+                         </div>
+                      )}
+                   </div>
+                </div>
+             </div>
+
+             {/* ── DESKTOP SIDEBAR PANEL (Clean White Rail with Elevated Active Pill) ── */}
+             <div className="hidden md:flex w-[256px] bg-white dark:bg-[#141417] flex-col h-full min-h-0 shrink-0">
+
+               <div className="pt-1 pb-5 px-5 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+                  {/* Search Settings Pill */}
+                  <div className="relative">
+                     <Search stroke="bold" set="curved" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={14} />
+                     <input
+                        type="text"
+                        placeholder="Search settings"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="w-full pl-9 pr-8 py-2 rounded-[11px] bg-[#F2F3F6] dark:bg-white/[0.06] border border-transparent focus:border-slate-300 dark:focus:border-white/15 focus:bg-white dark:focus:bg-[#1C1C21] text-[12.5px] placeholder:text-slate-400 text-slate-800 dark:text-slate-100 outline-none transition-all"
+                     />
+                     {searchQuery && (
+                        <button
+                           type="button"
+                           onClick={() => setSearchQuery('')}
+                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                        >
+                           Clear
+                        </button>
+                     )}
+                  </div>
+
+                  {/* Grouped Sections (ACCOUNT / TRADING / APP) */}
+                  <div className="space-y-5">
+                     {filteredSections.map((section, idx) => (
+                        <div key={idx}>
+                           <h3 className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.08em] mb-1.5 px-2.5">
+                              {section.title}
+                           </h3>
+                           <div className="space-y-1">
+                              {section.items.map((item: any) => {
+                                 const isActive = activeTab === item.id;
+                                 const isLogout = item.id === 'logout';
+                                 return (
+                                    <div key={item.id} className="flex flex-col">
+                                       <button
+                                          type="button"
+                                          onClick={async () => {
+                                             if (isLogout) {
+                                                setShowLogoutConfirm(true);
+                                             } else {
+                                                setActiveTab(item.id);
+                                                setMobileShowDetails(true);
+                                                if (item.children) setActiveSubTab(item.children[0].id);
+                                             }
+                                          }}
+                                          className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[12px] text-[13.5px] transition-all duration-150 text-left cursor-pointer ${
+                                             isLogout
+                                                ? 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'
+                                                : isActive
+                                                ? 'bg-white dark:bg-[#1E1E24] text-slate-900 dark:text-white font-semibold shadow-[0_2px_10px_rgba(15,23,42,0.07),0_0_0_1px_rgba(15,23,42,0.06)] dark:shadow-none dark:border dark:border-white/10'
+                                                : 'text-slate-600 dark:text-neutral-400 hover:bg-slate-100/75 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white font-medium'
+                                          }`}
+                                       >
+                                          <span
+                                             className={`w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 transition-colors ${
+                                                isLogout
+                                                   ? 'text-rose-500'
+                                                   : isActive
+                                                   ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
+                                                   : 'text-slate-500 dark:text-neutral-400'
+                                             }`}
+                                          >
+                                             {item.icon === Sparkles || item.icon === Sliders ? (
+                                                <item.icon size={15} strokeWidth={2.1} />
+                                             ) : (
+                                                <item.icon
+                                                   stroke="bold"
+                                                   set="curved"
+                                                   size={16}
+                                                   primaryColor="currentColor"
+                                                />
+                                             )}
+                                          </span>
+                                          <span className="truncate">{item.label}</span>
+                                       </button>
+
+                                       {item.children && isActive && (
+                                          <div className="mt-1.5 ml-5 pl-3.5 border-l border-slate-200 dark:border-white/10 flex flex-col gap-1 relative py-0.5">
+                                             {item.children.map((child: any) => (
+                                                <button
+                                                   key={child.id}
+                                                   type="button"
+                                                   onClick={() => {
+                                                      setActiveSubTab(child.id);
+                                                      setMobileShowDetails(true);
+                                                      const el = document.getElementById(child.id);
+                                                      const container = document.getElementById('settings-scroll-container');
+                                                      if (el && container) {
+                                                         container.scrollTo({ top: el.offsetTop - 90, behavior: 'smooth' });
+                                                      }
+                                                   }}
+                                                   className={`relative text-left text-[12.5px] font-medium transition-colors py-1 cursor-pointer ${
+                                                      activeSubTab === child.id
+                                                         ? 'text-slate-900 dark:text-white font-semibold'
+                                                         : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200'
+                                                   }`}
+                                                >
+                                                   {activeSubTab === child.id && (
+                                                      <div className="absolute left-[-15px] top-1/2 -translate-y-1/2 w-[2px] h-3.5 bg-slate-900 dark:bg-white rounded-r-full" />
+                                                   )}
+                                                   {child.label}
+                                                </button>
+                                             ))}
+                                          </div>
+                                       )}
+                                    </div>
+                                 );
+                              })}
+                           </div>
+                        </div>
+                     ))}
+                  </div>
+
+                  {/* Subtle Footer Links */}
+                  <div className="mt-auto pt-4 px-2 select-none border-t border-slate-100 dark:border-white/[0.06]">
+                     <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">v2.0.0</span>
+                        <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                           Connected
+                        </span>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] font-medium text-slate-400">
+                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Privacy Policy</a>
+                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Terms</a>
+                        <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Risk Disclosure</a>
+                        <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Refund Policy</a>
+                     </div>
+                  </div>
+               </div>
+             </div>
+
+            {/* RIGHT CONTENT PANEL inside Modal */}
+            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-[#F4F5F7] dark:bg-[#121215] md:bg-white md:dark:bg-[#141417] h-full min-h-0 overflow-hidden relative flex flex-col`}>
+               
+               {/* Mobile-only Sticky Back Header (Desktop uses Hero close + clean section title) */}
+               <div className="flex md:hidden bg-white dark:bg-[#1A1A1E] px-4 py-3 border-b border-slate-200/60 dark:border-white/5 items-center justify-between shrink-0 sticky top-0 z-20">
+                  <div className="flex items-center gap-2 min-w-0">
+                     <button
+                        type="button"
+                        onClick={() => setMobileShowDetails(false)}
+                        className="flex items-center gap-1 text-[14px] font-medium text-slate-800 dark:text-neutral-200 py-1 px-1 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
+                     >
+                        <ChevronLeft size={18} />
+                        <span>Settings</span>
+                     </button>
+                  </div>
+                  
+                  <button
+                      type="button"
+                      onClick={handleCloseSettings}
+                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer shrink-0"
+                      title="Close Settings"
+                   >
+                      <X size={15} />
+                   </button>
+               </div>
+
+               {/* Scrollable Content Container */}
+               <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto amazing-scrollbar scroll-smooth overscroll-contain">
+
+                  {/* Scrollable Content wrapper with padding */}
+                  <div className="w-full mx-auto pt-2 md:pt-1 px-3 sm:px-6 md:px-8 pb-6 md:pb-12 space-y-5">
+                     {/* Desktop Clean Section Heading & Subtitle */}
+                     <div className="hidden md:block mb-5 max-w-[820px]">
+                        <h1 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                           {headerTitle}
+                        </h1>
+                        {TAB_SUBTITLES[activeTab] && (
+                           <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-1">
+                              {TAB_SUBTITLES[activeTab]}
+                           </p>
+                        )}
+                     </div>
+
+                     <AnimatePresence mode="wait">
+
+                     {/* TAB 0: ACCOUNT SETTINGS */}
+                     {activeTab === 'account' && (
+                        <motion.div
+                           key="account"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                        >
+                           <AccountTab 
+                              profile={profile}
+                              isInitialLoading={isInitialLoading}
+                              setActiveSubTab={setActiveSubTab} 
+                              onEditProfile={() => setActiveTab('profile')}
+                              onEditPhone={() => setShowSmsModal(true)}
+                           />
+                        </motion.div>
+                     )}
+
+                     {/* TAB 1: PROFILE INFORMATION & PRIVACY */}
+                     {activeTab === 'profile' && (
+                        <motion.div
+                           key="profile"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-5 w-full max-w-[820px]"
+                        >
+                           {/* Desktop Profile Overview (Showcase Card + Details Card) when NOT in edit mode */}
+                           {!isDesktopEditingProfile && (
+                              <div className="hidden md:block space-y-5">
+                                 {/* Card 1: Profile Showcase Card (Banner + Fade + Avatar + Name + Edit Profile) */}
+                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
+                                    <div className="relative h-[185px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                                       <img
+                                          src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                                          alt="Profile cover"
+                                          className="w-full h-full object-cover object-center"
+                                          onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                                       />
+                                       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/60" />
+                                    </div>
+
+                                    <div className="px-6 pb-6">
+                                       <div className="relative z-10 -mt-12 mb-3">
+                                          <div className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#1B1B20] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                                             <img
+                                                src={profile.avatarUrl || defaultAvatar}
+                                                alt={displayName}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                                             />
+                                          </div>
+                                       </div>
+
+                                       <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                                          {displayName}
+                                       </h2>
+                                       <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          @{profile.username || "trader"}
+                                       </p>
+
+                                       <div className="mt-4">
+                                          <TactileBoxButton
+                                             onClick={() => {
+                                                triggerHaptic("selection");
+                                                setIsDesktopEditingProfile(true);
+                                             }}
+                                             className="h-9 px-4"
+                                          >
+                                             <Pencil size={13.5} strokeWidth={2.2} className="text-slate-800 dark:text-white" />
+                                             <span>Edit profile</span>
+                                          </TactileBoxButton>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                                 {/* Card 2: Account & Profile Summary Card */}
+                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-4">
+                                    <div>
+                                       <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          Profile Details
+                                       </h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          Public identity, contact email, and workspace plan linked to your account.
+                                       </p>
+                                    </div>
+
+                                    <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div>
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Email</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                                {profile.email || "Not set"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setActiveTab("account")}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                                          >
+                                             Manage
+                                          </button>
+                                       </div>
+
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div className="min-w-0">
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Public Link</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                                                tradifive.in/{profile.username || "trader"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setIsDesktopEditingProfile(true)}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                                          >
+                                             Edit
+                                          </button>
+                                       </div>
+
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div className="min-w-0">
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Bio</p>
+                                             <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
+                                                {profile.bio?.trim() || "No bio added yet."}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setIsDesktopEditingProfile(true)}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                                          >
+                                             Edit
+                                          </button>
+                                       </div>
+
+                                       <div className="pt-3 flex items-center justify-between gap-4">
+                                          <div>
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Workspace Plan</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 capitalize">
+                                                {activePlan} Plan · {profile.isPrivate ? "Private profile" : "Public profile"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setActiveTab("subscription")}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                                          >
+                                             View plan
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           )}
+
+                           {/* Mobile ALWAYS renders ProfileTab; Desktop renders full ProfileTab editor when Edit profile is clicked */}
+                           <div id="settings-profile-editor" className={isDesktopEditingProfile ? "block" : "md:hidden"}>
+                              {isDesktopEditingProfile && (
+                                 <div className="hidden md:flex items-center justify-between mb-4">
+                                    <button
+                                       type="button"
+                                       onClick={() => setIsDesktopEditingProfile(false)}
+                                       className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
+                                    >
+                                       <ChevronLeft size={15} />
+                                       <span>Back to profile card</span>
+                                    </button>
+                                 </div>
+                              )}
+                              <ProfileTab 
+                                 profile={profile} 
+                                 setProfile={setProfile} 
+                                 privacySettings={privacySettings} 
+                                 setPrivacySettings={setPrivacySettings} 
+                                 avatarUploadRef={avatarUploadRef} 
+                                 bannerUploadRef={bannerUploadRef} 
+                                 isInitialLoading={isInitialLoading}
+                                 onSave={async () => {
+                                    await handleUpdateProfile();
+                                    setIsDesktopEditingProfile(false);
+                                 }}
+                                 onCancel={() => {
+                                    setIsDesktopEditingProfile(false);
+                                    setMobileShowDetails(false);
+                                 }}
+                                 loading={loading}
+                                 setActiveTab={setActiveTab}
+                              />
+                           </div>
+
+                           {/* Hidden inputs triggers */}
+                           <input type="file" ref={avatarUploadRef} accept="image/*" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                 try {
+                                    const base64 = await resizeImageFile(file, 250, 250, 0.8);
+                                    setProfile(p => ({...p, avatarUrl: base64}));
+                                 } catch (err) {
+                                    console.error("Failed to resize avatar", err);
+                                 }
+                              }
+                           }} />
+                           <input type="file" ref={bannerUploadRef} accept="image/*" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                 try {
+                                    const base64 = await resizeImageFile(file, 800, 400, 0.8);
+                                    setProfile(p => ({...p, bannerUrl: base64}));
+                                 } catch (err) {
+                                    console.error("Failed to resize banner", err);
+                                 }
+                              }
+                           }} />
+
+                        </motion.div>
+                     )}
+
+                     {/* TAB 2: ACCOUNT & SECURITY */}
+                     {activeTab === 'security' && (
+                        <motion.div
+                           key="security"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                        >
+                           
+
+                           <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-5">
+                              <h4 className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                 <Key size={14} className="text-indigo-650" /> Password Controls
+                              </h4>
+                              <p className="text-[12px] text-slate-500">Need to update your security credentials? Click below to dispatch an automated secure reset trigger to your registered email.</p>
+                              <button 
+                                 onClick={() => { toast.success("Password reset token dispatched to registered address."); }}
+                                 className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded transition-all shadow-sm"
+                              >
+                                 Change Password
+                              </button>
+                           </div>
+
+                           {/* MFA Card */}
+                           <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-5">
+                              <div className="flex justify-between items-start">
+                                 <div className="space-y-1">
+                                    <h4 className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
+                                       <ShieldCheck size={14} className="text-indigo-650" /> Two-Factor Authentication (2FA)
+                                    </h4>
+                                    <p className="text-[12px] text-slate-500 max-w-md">Protect your Tradifive account with an extra layer of security. Verify logging attempts with an authenticator app (Google Authenticator, Duo).</p>
+                                 </div>
+                                 <span className="px-2 py-0.5 rounded bg-slate-250 dark:bg-[#121212] text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest border border-slate-300 dark:border-transparent">Disabled</span>
+                              </div>
+                              <button 
+                                 onClick={() => { toast.info("Authenticating via SMS code setup modal instead"); setShowSmsModal(true); }}
+                                 className="px-5 py-2.5 bg-slate-250 hover:bg-slate-350 dark:bg-[#121212] dark:hover:bg-[#222225] text-slate-800 dark:text-white font-bold text-xs rounded transition-all shadow-sm"
+                              >
+                                 Enable 2FA Authentication
+                              </button>
+                           </div>
+
+                           {/* Danger zone */}
+                           <div className="p-6 rounded-xl border-2 border-red-500/20 bg-red-50 dark:bg-red-950/5 space-y-5">
+                              <div className="space-y-1">
+                                 <h4 className="text-[11px] font-semibold text-red-650 dark:text-red-400 uppercase tracking-wider flex items-center gap-2">
+                                    <AlertTriangle size={14} /> Danger Zone / Account Suspension
+                                 </h4>
+                                 <p className="text-[12px] text-red-700/80 dark:text-red-400/80">Deactivating deletes active billing, stops AI sync engines, and hides trading logs instantly. This action cannot be reversed without support verification.</p>
+                              </div>
+                              <div className="flex gap-4">
+                                 <button 
+                                    onClick={() => { toast.error("Deactivation request initialized. Check email for details."); }}
+                                    className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded transition-all shadow-md active:translate-y-[1px]"
+                                 >
+                                    Deactivate Account
+                                 </button>
+                              </div>
+                           </div>
+
+                        </motion.div>
+                     )}
+
+                     {/* TAB 3: PRIVACY & COMMUNITY */}
+                     {activeTab === 'privacy' && (
+                        <motion.div
+                           key="privacy"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                        >
+                           
+                           {/* Visibility list */}
+                           <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-4">
+                              <h4 className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider">Analytics Sharing Preferences</h4>
+                              
+                              <div className="space-y-3">
+                                 <div className={`p-4 rounded-lg bg-white dark:bg-[#121212] flex items-center justify-between transition-opacity`}>
+                                    <div className="flex flex-col gap-0.5 max-w-[80%]">
+                                       <span className="text-[13px] font-bold text-slate-800 dark:text-white">Private Profile Account</span>
+                                       <span className="text-[11px] text-slate-500">Only approved followers can view your feed posts and calendar heatmap.</span>
+                                    </div>
+                                    <SettingsToggle checked={privacySettings.is_private} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, is_private: v }))} />
+                                 </div>
+
+                                 {[
+                                    { key: "show_location", label: "Share Location Indicators", desc: "Allow community members to view city, state, and flag emojis." },
+                                    { key: "show_winrate", label: "Share Win Rate Stats", desc: "Publicly showcase win rate metrics in feed panels." },
+                                    { key: "show_roi", label: "Share ROI (All Time)", desc: "Render active PnL curve percentages on public profiles." },
+                                    { key: "show_streak", label: "Share Active Trading Streaks", desc: "Show consecutive green/red trading days." },
+                                    { key: "show_trades", label: "Share Active Trade Ledger", desc: "Allows open viewing of individual position histories." }
+                                 ].map((item) => (
+                                    <div key={item.key} className="p-4 rounded-lg bg-white dark:bg-[#121212] flex items-center justify-between">
+                                       <div className="flex flex-col gap-0.5 max-w-[80%]">
+                                          <span className="text-[13px] font-bold text-slate-800 dark:text-white">{item.label}</span>
+                                          <span className="text-[11px] text-slate-500">{item.desc}</span>
+                                       </div>
+                                       <SettingsToggle checked={privacySettings[item.key]} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, [item.key]: v }))} />
+                                    </div>
+                                 ))}
+                              </div>
+                           </div>
+
+                           <div className="flex justify-end pt-2 pb-8">
+                              <ConsistencyToggleButton 
+                                 label="Save Privacy Preferences" 
+                                 checked={true} 
+                                 onChange={() => handleUpdateProfile()} 
+                              />
+                           </div>
+
+                        </motion.div>
+                     )}
+
+                     {/* TAB 4: APPEARANCE */}
+                     {activeTab === 'appearance' && (
+                        <motion.div
+                           key="appearance"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                        >
+                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
+                              Theme
+                           </h2>
+                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-4">
+                              Customize how the app looks and feels across all your devices. Tweak lighting, colors, and layout density to create your perfect workspace.
+                           </p>
+
+                           {/* Color Theme Box */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
+                              <div className="flex gap-4">
+                                 <div className="w-10 h-10 rounded-full bg-slate-200/60 dark:bg-[#202022] flex items-center justify-center shrink-0 text-slate-600 dark:text-slate-300">
+                                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                                 </div>
+                                 <div className="space-y-1">
+                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Global Color Theme</h3>
+                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
+                                       Toggles the full lighting environment across the entire application interface. Changes are applied instantly.
+                                    </p>
+                                 </div>
+                              </div>
+                              <ThemeSwitch checked={theme === 'dark'} onChange={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')} />
+                           </div>
+
+                           {/* Full Screen Layout Box */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
+                              <div className="flex gap-4">
+                                 <div className="w-10 h-10 rounded-full bg-slate-200/60 dark:bg-[#202022] flex items-center justify-center shrink-0 text-slate-600 dark:text-slate-300">
+                                    <Monitor size={18} />
+                                 </div>
+                                 <div className="space-y-1">
+                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Immersive Full Screen</h3>
+                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
+                                       Removes the rounded curves and margin padding, stretching the content to fill the entire screen for a more immersive experience.
+                                    </p>
+                                 </div>
+                              </div>
+                              <SettingsToggle checked={fullScreenLayout} onChange={handleFullScreenChange} />
+                           </div>
+                           
+                           {/* Background Fade Theme Box */}
+                           <div className={`bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-sm flex-col md:flex-row md:items-center justify-between gap-6 mt-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
+                                 <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-slate-200/60 flex items-center justify-center shrink-0 text-slate-600">
+                                       <Palette size={18} />
+                                    </div>
+                                    <div className="space-y-1">
+                                       <h3 className="text-[16px] font-bold text-slate-900 mb-1">Background Fade Style</h3>
+                                       <p className="text-[13px] text-slate-500 max-w-md">
+                                          Customize the background gradient color. Choose from various subtle fades to suit your preference in light mode.
+                                       </p>
+                                    </div>
+                                 </div>
+                                 <div className="relative w-[140px]">
+                                    <Select
+                                       value={bgFadeStyle}
+                                       onValueChange={(value) => {
+                                          setBgFadeStyle(value);
+                                          localStorage.setItem("fialgo_bg_fade_style", value);
+                                          window.dispatchEvent(new Event("fialgo_bg_style_changed"));
+                                       }}
+                                    >
+                                       <SelectTrigger className="w-full bg-white border border-slate-200 text-slate-700 text-[13px] font-bold rounded-xl h-10 shadow-sm focus:ring-2 focus:ring-indigo-500/50">
+                                          <SelectValue placeholder="Select Fade" />
+                                       </SelectTrigger>
+                                       <SelectContent className="bg-white border-slate-200 rounded-xl shadow-lg z-[9999]">
+                                          <SelectItem value="purple" className="text-[13px] font-semibold cursor-pointer">Purple Fade</SelectItem>
+                                          <SelectItem value="gray" className="text-[13px] font-semibold cursor-pointer">Gray Fade</SelectItem>
+                                          <SelectItem value="black" className="text-[13px] font-semibold cursor-pointer">Black Fade</SelectItem>
+                                          <SelectItem value="blue" className="text-[13px] font-semibold cursor-pointer">Blue Fade</SelectItem>
+                                          <SelectItem value="rose" className="text-[13px] font-semibold cursor-pointer">Rose Fade</SelectItem>
+                                       </SelectContent>
+                                    </Select>
+                                 </div>
+                           </div>
+
+                        
+                           {/* Accent Color Palette */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
+                              <div className="flex gap-4">
+                                 <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 text-blue-500">
+                                    <Sparkles size={18} />
+                                 </div>
+                                 <div className="space-y-1">
+                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Interface Accent Tint</h3>
+                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
+                                       Customize primary button glows, active tabs, and highlights across TradiFive.
+                                    </p>
+                                 </div>
+                              </div>
+                              <div className="flex items-center gap-2.5">
+                                 {[
+                                    { id: 'blue', color: 'bg-blue-500', name: 'Electric Blue' },
+                                    { id: 'emerald', color: 'bg-emerald-500', name: 'Emerald' },
+                                    { id: 'purple', color: 'bg-purple-500', name: 'Royal Violet' },
+                                    { id: 'amber', color: 'bg-amber-500', name: 'Cyber Amber' },
+                                    { id: 'rose', color: 'bg-rose-500', name: 'Rose Red' },
+                                 ].map((tint) => (
+                                    <button
+                                       key={tint.id}
+                                       type="button"
+                                       title={tint.name}
+                                       onClick={() => {
+                                          setAccentColor(tint.id);
+                                          localStorage.setItem('tradifive_accent_color', tint.id);
+                                          toast.success(tint.name + ' accent selected');
+                                       }}
+                                       className={'w-7 h-7 rounded-full ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'opacity-70 hover:opacity-100')}
+                                    >
+                                       {accentColor === tint.id && <Check size={14} className="text-white" strokeWidth={3} />}
+                                    </button>
+                                 ))}
+                              </div>
+                           </div>
+
+                           {/* Trading & P&L Colors Palette */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                 <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
+                                       <TrendingUp size={18} />
+                                    </div>
+                                    <div className="space-y-1">
+                                       <div className="flex items-center gap-2">
+                                          <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                                             Trading &amp; P&amp;L Colors
+                                          </h3>
+                                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                             Dashboard &amp; Journal
+                                          </span>
+                                       </div>
+                                       <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
+                                          Choose how profit, loss, equity curves, win rate rings, and trade logs are colored. Classic Green &amp; Red is the primary recommended preset.
+                                       </p>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              {/* 3 Selectable Theme Cards */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                 {(Object.keys(PNL_THEMES) as TradingThemeId[]).map((id) => {
+                                    const t = PNL_THEMES[id];
+                                    const isSelected = pnlTheme === id;
+                                    return (
+                                       <button
+                                          key={id}
+                                          type="button"
+                                          onClick={() => {
+                                             changePnlTheme(id);
+                                             localStorage.setItem('tradifive_chart_theme', id === 'monochrome' ? 'classic' : id);
+                                             toast.success(`Applied ${t.label} palette across Dashboard & Journal`);
+                                          }}
+                                          className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                             isSelected
+                                                ? "border-emerald-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(16,185,129,0.12)] ring-2 ring-emerald-500/25"
+                                                : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
+                                          }`}
+                                       >
+                                          <div>
+                                             <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                   {t.label}
+                                                </span>
+                                                {t.badge ? (
+                                                   <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                                      {t.badge}
+                                                   </span>
+                                                ) : isSelected ? (
+                                                   <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                                                      <Check size={10} strokeWidth={3} />
+                                                   </span>
+                                                ) : null}
+                                             </div>
+                                             <p className="text-[11px] text-slate-500 dark:text-neutral-400 line-clamp-2 leading-relaxed mb-3">
+                                                {t.subLabel}
+                                             </p>
+                                          </div>
+
+                                          {/* Live Swatch Preview */}
+                                          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-bold tabular-nums">
+                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.profitBadge}`}>
+                                                {t.previewProfit}
+                                             </span>
+                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.lossBadge}`}>
+                                                {t.previewLoss}
+                                             </span>
+                                          </div>
+                                       </button>
+                                    );
+                                 })}
+                              </div>
+                           </div>
+
+                        
+                            {/* Mouse Pointer & Cursor Selection */}
+                            <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
+                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                  <div className="flex gap-4">
+                                     <div className="w-10 h-10 rounded-full bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
+                                        <MousePointer size={18} />
+                                     </div>
+                                     <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                           <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                                              Mouse Pointer &amp; Cursor
+                                           </h3>
+                                           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                              Tactile Feedback
+                                           </span>
+                                        </div>
+                                        <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
+                                           Choose your desktop mouse pointer style. Includes tactile spring physics and luxury expanding click circles.
+                                        </p>
+                                     </div>
+                                  </div>
+                               </div>
+
+                               {/* 3 Selectable Cursor Cards */}
+                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                  {[
+                                     {
+                                        id: '3d' as const,
+                                        title: '3D Glossy Arrow',
+                                        badge: 'Recommended',
+                                        desc: 'Sleek beveled black arrow with specular reflection, softer shadow & click circles.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <div className="absolute w-8 h-8 rounded-full border border-slate-900/30 dark:border-white/50 bg-slate-900/[0.04] dark:bg-white/[0.08] animate-ping" />
+                                              <img src="/custom-cursor.png" alt="3D Arrow" className="w-6 h-6 object-contain drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.20)] relative z-10" />
+                                           </div>
+                                        ),
+                                     },
+                                     {
+                                        id: 'dot' as const,
+                                        title: 'Precision Dot',
+                                        badge: 'Modern',
+                                        desc: 'Minimalist circle dot with active dynamic hover expansion and click ripple.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-blue-500/20" />
+                                           </div>
+                                        ),
+                                     },
+                                     {
+                                        id: 'system' as const,
+                                        title: 'System Default',
+                                        badge: 'Classic',
+                                        desc: 'Standard native operating system cursor with normal OS mouse behavior.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <MousePointer size={20} className="text-slate-700 dark:text-neutral-300" />
+                                           </div>
+                                        ),
+                                     },
+                                  ].map((opt) => {
+                                     const isSelected = cursorStyle === opt.id;
+                                     return (
+                                        <button
+                                           key={opt.id}
+                                           type="button"
+                                           onClick={() => handleCursorStyleChange(opt.id)}
+                                           className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                              isSelected
+                                                 ? "border-blue-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-2 ring-blue-500/25"
+                                                 : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
+                                           }`}
+                                        >
+                                           <div>
+                                              <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                 <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                    {opt.title}
+                                                 </span>
+                                                 {isSelected ? (
+                                                    <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                                                       <Check size={10} strokeWidth={3} />
+                                                    </span>
+                                                 ) : (
+                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-neutral-400">
+                                                       {opt.badge}
+                                                    </span>
+                                                 )}
+                                              </div>
+                                              <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed mb-3">
+                                                 {opt.desc}
+                                              </p>
+                                           </div>
+
+                                           {opt.preview}
+                                        </button>
+                                     );
+                                  })}
+                               </div>
+                            </div>
+
+</motion.div>
+                     )}
+
+
+                     {/* TAB 6: NOTIFICATIONS (Clean, Modern, Tactile) */}
+                     {activeTab === 'notifications' && (
+                        <motion.div
+                           key="notifications"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[800px] mx-auto"
+                        >
+                           {/* Header & Quick Action Pills */}
+                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
+                              <div>
+                                 <h2 className="text-[22px] font-bold tracking-tight text-slate-900 dark:text-white">
+                                    Notifications
+                                 </h2>
+                                 <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">
+                                    Configure trade execution alerts, risk guard limits, AI Coach digests, and messaging.
+                                 </p>
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                                 <button
+                                    type="button"
+                                    onClick={handleGlobalOff}
+                                    className={`h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                       globalOff
+                                          ? 'bg-rose-500 text-white shadow-xs'
+                                          : 'tactile-white-pill text-slate-700 dark:text-slate-200'
+                                    }`}
+                                 >
+                                    <Power size={13} strokeWidth={2.4} />
+                                    <span>{globalOff ? 'Muted (DND)' : 'Pause All'}</span>
+                                 </button>
+                                 <button
+                                    type="button"
+                                    onClick={handleEmailOnly}
+                                    className={`h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                       globalEmailOnly
+                                          ? 'bg-indigo-600 text-white shadow-xs'
+                                          : 'tactile-white-pill text-slate-700 dark:text-slate-200'
+                                    }`}
+                                 >
+                                    <Mail size={13} strokeWidth={2.4} />
+                                    <span>Email Only</span>
+                                 </button>
+                                 <button
+                                    type="button"
+                                    onClick={handleResetNotificationDefaults}
+                                    className="tactile-white-pill w-[34px] h-[34px] rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer select-none active:scale-95"
+                                    title="Reset to defaults"
+                                 >
+                                    <RefreshCw size={13} strokeWidth={2.4} />
+                                 </button>
+                              </div>
+                           </div>
+
+                           {/* 3 Master Delivery Channels */}
+                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              {/* Push alerts */}
+                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                       <Smartphone size={17} />
+                                    </div>
+                                    <div>
+                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Push Alerts</h4>
+                                       <p className="text-[11px] text-slate-400">{globalOff ? 'Paused' : 'Active on device'}</p>
+                                    </div>
+                                 </div>
+                                 <SettingsToggle checked={!globalOff} onChange={handleGlobalOff} />
+                              </div>
+
+                              {/* Sound Chimes */}
+                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                       <Volume2 size={17} />
+                                    </div>
+                                    <div>
+                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Audio Chimes</h4>
+                                       <p className="text-[11px] text-slate-400">{soundAlertsEnabled ? 'Fills & warnings' : 'Muted'}</p>
+                                    </div>
+                                 </div>
+                                 <SettingsToggle checked={soundAlertsEnabled} onChange={handleToggleSound} />
+                              </div>
+
+                              {/* Email Digests */}
+                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <Mail size={17} />
+                                    </div>
+                                    <div>
+                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Email Statements</h4>
+                                       <p className="text-[11px] text-slate-400">Monday audits</p>
+                                    </div>
+                                 </div>
+                                 <SettingsToggle checked={!globalOff || globalEmailOnly} onChange={handleEmailOnly} />
+                              </div>
+                           </div>
+
+                           {/* Notification Category Sections */}
+                           {[
+                              {
+                                 key: 'alerts',
+                                 title: 'Trading & Execution Alerts',
+                                 desc: 'Real-time fills, stop loss hits, and critical drawdown alarms.',
+                                 icon: AlertTriangle,
+                                 color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
+                              },
+                              {
+                                 key: 'ai_coach',
+                                 title: 'AI Coach & Daily Routine',
+                                 desc: 'Psychology detection, Monday audit statements, and morning directives.',
+                                 icon: Brain,
+                                 color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10'
+                              },
+                              {
+                                 key: 'messages',
+                                 title: 'Community & Discussions',
+                                 desc: 'Direct messages from mentors, @mentions, and channel announcements.',
+                                 icon: MessageSquare,
+                                 color: 'text-blue-600 dark:text-blue-400 bg-blue-500/10'
+                              },
+                              {
+                                 key: 'text',
+                                 title: 'Security & Payouts',
+                                 desc: '2FA security alerts, new login logins, and weekly profit settlements.',
+                                 icon: ShieldCheck,
+                                 color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+                              }
+                           ].map((section) => (
+                              <div
+                                 key={section.key}
+                                 className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 shadow-xs space-y-4"
+                              >
+                                 {/* Section Header */}
+                                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${section.color}`}>
+                                       <section.icon size={17} />
+                                    </div>
+                                    <div>
+                                       <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                                          {section.title}
+                                       </h3>
+                                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                          {section.desc}
+                                       </p>
+                                    </div>
+                                 </div>
+
+                                 {/* Notification Items */}
+                                 <div className="divide-y divide-slate-100 dark:divide-white/5">
+                                    {((notifications as any)[section.key] || []).map((notif: any) => (
+                                       <div
+                                          key={notif.id}
+                                          className="py-3.5 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                                       >
+                                          <div className="pr-2">
+                                             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                                                {notif.label}
+                                             </h4>
+                                             {notif.desc && (
+                                                <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                                                   {notif.desc}
+                                                </p>
+                                             )}
+                                          </div>
+
+                                          {/* Tactile Channel Pills (Push / App / Email) */}
+                                          <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                                             {(['push', 'app', 'email'] as const).map((channel) => {
+                                                const isActive = !!notif[channel];
+                                                const label = channel === 'push' ? 'Push' : channel === 'app' ? 'In-App' : 'Email';
+                                                return (
+                                                   <button
+                                                      key={channel}
+                                                      type="button"
+                                                      onClick={() => handleToggle(section.key, notif.id, channel)}
+                                                      className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                                                         isActive
+                                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
+                                                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-300'
+                                                      }`}
+                                                      title={`Toggle ${label} alert`}
+                                                   >
+                                                      {label}
+                                                   </button>
+                                                );
+                                             })}
+                                          </div>
+                                       </div>
+                                    ))}
+                                 </div>
+                              </div>
+                           ))}
+                        </motion.div>
+                     )}
+
+                     {/* TAB 7: AI ASSISTANT */}
+                     {activeTab === 'ai' && (
+                        <motion.div
+                           key="ai"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                        >
+                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
+                              AI Assistant
+                           </h2>
+                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Configure your AI Coach's tone, voice, and analysis frequency.</p>
+
+                           {/* AI Credits Card */}
+                           <div className="p-6 rounded-xl border-2 border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/10 shadow-sm flex flex-col gap-4">
+                              <div className="flex items-center justify-between">
+                                 <div className="space-y-1">
+                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                       <Sparkles size={16} className="text-indigo-600" /> AI Usage & Credits
+                                    </h3>
+                                    <p className="text-[13px] text-slate-600 dark:text-slate-400 max-w-md">
+                                       Your {activePlan.charAt(0).toUpperCase() + activePlan.slice(1)} plan includes high-tier AI inference bandwidth. Each prompt consumes 1 credit.
+                                    </p>
+                                 </div>
+                                 <div className="text-right">
+                                    <p className="text-3xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+                                       {aiCredits} <span className="text-sm font-semibold text-slate-500">/ {activeMaxCredits}</span>
+                                    </p>
+                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Credits Remaining</p>
+                                 </div>
+                              </div>
+                                    <div className="w-full bg-indigo-200 dark:bg-indigo-950/50 rounded-full h-2 mt-2">
+                                       <div 
+                                          className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full" 
+                                          style={{ width: `${Math.min(100, Math.max(0, (aiCredits / activeMaxCredits) * 100))}%` }}
+                                       />
+                                    </div>
+                                    <div className="space-y-4">
+                                       <div className="mt-4 p-4 rounded-xl bg-white dark:bg-black/20 border border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
+                                          <div className="space-y-1">
+                                             <h4 className="text-sm font-black text-slate-800 dark:text-white">Need More Daily Credits?</h4>
+                                             <p className="text-[11px] text-slate-500 font-semibold">Your plan provides a strict daily credit quota. Upgrading your subscription plan increases your daily allowance immediately.</p>
+                                          </div>
+                                          <button 
+                                             onClick={() => navigate('/upgrade')}
+                                             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-1 shrink-0"
+                                          >
+                                             View Plans <ArrowRight size={13} />
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </div>
+
+
+                              </motion.div>
+                           )}
+
+                           {/* TAB 8: BROKER & INTEGRATIONS */}
+                           
+                     {/* TAB: TRADING & RISK PREFERENCES */}
+                     {activeTab === 'trading_preferences' && (
+                        <motion.div
+                           key="trading_preferences"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-6 w-full max-w-[840px] mx-auto"
+                        >
+                           <TradingPreferencesTab />
+                        </motion.div>
+                     )}
+
+                     {activeTab === 'trading' && (
+                              <motion.div
+                                 key="trading"
+                                 initial={{ opacity: 0, y: 10 }}
+                                 animate={{ opacity: 1, y: 0 }}
+                                 exit={{ opacity: 0, y: -10 }}
+                                 transition={{ duration: 0.2 }}
+                                 className="space-y-6 w-full max-w-[1100px] mx-auto"
+                              >
+                                       <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
+                                    Broker & Integrations
+                                 </h2>
+                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Manage your connected trading accounts and third-party integrations.</p>
+
+                                 {/* Connected Brokers Box */}
+                                 <div className={isConnectingBroker || selectedBrokerToConnect ? "w-full" : "bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8"}>
+                                    {!(isConnectingBroker || selectedBrokerToConnect) && (
+                                       <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">Connected Brokers</h3>
+                                    )}
+                                    
+                                    {isConnectingBroker || selectedBrokerToConnect ? (
+                                       <div className="bg-white dark:bg-[#111112] border border-slate-200/80 dark:border-white/5 rounded-[36px] shadow-[0_8px_40px_rgb(0,0,0,0.03)] w-full overflow-hidden p-6 md:p-10 relative">
+                                          <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-white/5 pb-5">
+                                             <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
+                                                {!selectedBrokerToConnect ? 'Select A Broker' : `Connect ${selectedBrokerToConnect}`}
+                                             </h3>
+                                             <button type="button" onClick={() => {
+                                                if (selectedBrokerToConnect) {
+                                                   setSelectedBrokerToConnect('');
+                                                } else {
+                                                   setIsConnectingBroker(false);
+                                                }
+                                             }} className="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all text-[13px] font-bold border border-slate-200/60 dark:border-white/5 active:scale-95 shadow-sm">
+                                                <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                                                Back
+                                             </button>
+                                          </div>
+                                          
+                                          {!selectedBrokerToConnect ? (
+                                             <div className="space-y-8">
+                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                  <p className="text-[15px] text-slate-500 dark:text-[#949ba4] font-medium leading-relaxed max-w-2xl">
+                                                     Select your trading platform or broker to sync your live accounts and start tracking your performance.
+                                                  </p>
+                                                </div>
+                                                
+                                                <div className="flex flex-wrap gap-5 md:gap-6">
+                                                   {['zerodha', 'dhan', 'upstox', 'mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].filter(broker => { const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker); return activeMarket === 'indian' ? !isGlobal : isGlobal; }).map(broker => (
+                                                      <button
+                                                         key={broker}
+                                                         onClick={() => setSelectedBrokerToConnect(broker)}
+                                                         className={`group w-[150px] md:w-[160px] relative flex flex-col items-center justify-center p-6 bg-gradient-to-b from-white to-slate-50/80 dark:from-[#1A1A24] dark:to-[#121215] border border-slate-200/80 dark:border-white/10 hover:border-${broker === 'zerodha' ? 'blue' : broker === 'dhan' ? 'yellow' : broker === 'upstox' ? 'purple' : 'indigo'}-500/50 rounded-[32px] transition-all duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] hover:-translate-y-1 active:translate-y-0 active:scale-95 overflow-hidden`}
+                                                      >
+                                                         {/* Background Glow on Hover tailored to broker */}
+                                                         <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${broker === 'zerodha' ? 'bg-blue-500/5' : broker === 'dhan' ? 'bg-yellow-500/5' : broker === 'upstox' ? 'bg-purple-500/5' : 'bg-indigo-500/5'}`} />
+                                                         <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${broker === 'zerodha' ? 'bg-blue-400/20' : broker === 'dhan' ? 'bg-yellow-400/20' : broker === 'upstox' ? 'bg-purple-400/20' : 'bg-indigo-400/20'}`} />
+                                                         
+                                                         <div className={`relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white dark:bg-black/50 border border-slate-100 dark:border-white/5 rounded-[24px] shadow-sm mb-4 group-hover:scale-105 group-hover:shadow-md transition-all duration-300 z-10 overflow-hidden`}>
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none" />
+                                                            {broker === 'mt5' || broker === 'mt4' ? (
+                                                               <img src="/Mt5 logo.png" alt="MT" className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg" />
+                                                            ) : (
+                                                               <BrokerIcon name={broker} size={48} />
+                                                            )}
+                                                         </div>
+                                                         
+                                                         <span className={`relative z-10 text-[13px] md:text-[14px] font-black text-slate-800 dark:text-white capitalize text-center tracking-tight transition-colors duration-300 ${broker === 'zerodha' ? 'group-hover:text-blue-600 dark:group-hover:text-blue-400' : broker === 'dhan' ? 'group-hover:text-yellow-600 dark:group-hover:text-yellow-400' : broker === 'upstox' ? 'group-hover:text-purple-600 dark:group-hover:text-purple-400' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
+                                                            {broker === 'mt5' ? 'MetaTrader 5' : broker === 'mt4' ? 'MetaTrader 4' : broker === 'icmarkets' ? 'IC Markets' : broker}
+                                                         </span>
+                                                      </button>
+                                                   ))}
+                                                </div>
+
+                                                {activeMarket !== 'indian' && (
+                                                <div className="mt-10 bg-gradient-to-r from-[#EEF2FF] to-[#F8FAFC] dark:from-[#16161D] dark:to-[#111113] border border-indigo-100 dark:border-[#2A2A35] rounded-[24px] p-6 md:p-8 relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
+                                                   <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-indigo-500/20 transition-colors duration-500"></div>
+                                                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5 md:gap-6">
+                                                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-[18px] bg-indigo-500 dark:bg-indigo-500/20 shadow-[0_4px_20px_rgba(99,102,241,0.4)] dark:shadow-none border border-indigo-400 dark:border-indigo-500/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                                         <Sparkles size={28} className="text-white dark:text-indigo-400" />
+                                                      </div>
+                                                      <div className="flex-1">
+                                                         <h4 className="text-[17px] md:text-[18px] font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Don't have an account?</h4>
+                                                         <p className="text-[13.5px] text-slate-600 dark:text-[#949BA4] mb-5 sm:mb-0 leading-relaxed max-w-xl">
+                                                            Sign up with our partners like <span className="font-bold text-indigo-600 dark:text-indigo-400">Vantage</span>, <span className="font-bold text-indigo-600 dark:text-indigo-400">Exness</span>, or <span className="font-bold text-indigo-600 dark:text-indigo-400">XM</span> to instantly get <span className="font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded uppercase text-[11px] tracking-wider ml-1">+500 XP</span> and exclusive platform benefits!
+                                                         </p>
+                                                      </div>
+                                                      <button className="px-6 py-3 md:py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[13px] md:text-[14px] font-bold rounded-[14px] shadow-lg hover:shadow-xl transition-all active:scale-95 shrink-0 whitespace-nowrap">
+                                                         View Partner Offers
+                                                      </button>
+                                                   </div>
+                                                </div>
+                                                )}
+                                             </div>
+                                          ) : (
+                                             <>
+                                                <p className="text-xs text-slate-505 mb-6 font-sans">
+                                                   {selectedBrokerToConnect === 'dhan' 
+                                                      ? "Link your Dhan account. Enter your Client ID to securely redirect and authorize TradiFive." 
+                                                      : "Link your live trading account. Enter your secure API key or login credentials to pull transaction histories."}
+                                                </p>
+                                                
+                                                <form onSubmit={handleConnectBrokerSubmit} className="space-y-4 max-w-md">
+                                                   {selectedBrokerToConnect === 'icmarkets' || selectedBrokerToConnect === 'vantage' || selectedBrokerToConnect === 'exness' || selectedBrokerToConnect === 'xm' || selectedBrokerToConnect === 'mt5' || selectedBrokerToConnect === 'mt4' ? (
+                                                      <>
+                                                         <div>
+                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Login ID</label>
+                                                            <input type="text" required placeholder="e.g. 98310842" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
+                                                         </div>
+                                                         <div>
+                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Investor Password</label>
+                                                            <input type="password" required className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
+                                                         </div>
+                                                         <div>
+                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Server</label>
+                                                            <input type="text" required placeholder="e.g. Vantage-Live-1" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
+                                                         </div>
+                                                      </>
+                                                   ) : (
+                                                      <>
+                                                         {selectedBrokerToConnect !== 'dhan' && (
+                                                            <div>
+                                                               <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">API Key Token</label>
+                                                               <input 
+                                                                  type="text" 
+                                                                  required 
+                                                                  value={brokerApiKey}
+                                                                  onChange={(e) => setBrokerApiKey(e.target.value)}
+                                                                  placeholder="KITE-XXXXX or UPSTOX-XXXXX" 
+                                                                  className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" 
+                                                               />
+                                                            </div>
+                                                         )}
+                                                         <div>
+                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Client ID</label>
+                                                            <input 
+                                                               type="text" 
+                                                               required 
+                                                               value={brokerClientId}
+                                                               onChange={(e) => setBrokerClientId(e.target.value)}
+                                                               placeholder={selectedBrokerToConnect === 'dhan' ? "e.g. 1000000000" : "User unique ID"} 
+                                                               className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" 
+                                                            />
+                                                         </div>
+                                                      </>
+                                                   )}
+                                                   <div className="flex justify-start gap-3 pt-6 mt-4">
+                                                      <button type="submit" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md transition-colors flex items-center gap-2">
+                                                         <Link2 size={18} />
+                                                         Connect Account
+                                                      </button>
+                                                   </div>
+                                                </form>
+                                             </>
+                                          )}
+                                       </div>
+                                    ) : connectedBroker ? (
+                                       <>
+                                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-[24px] bg-gradient-to-r from-[#FFFFFF] to-[#F8F9FA] dark:from-[#1C1C1E] dark:to-[#121214] border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] transition-shadow mb-4">
+                                          <div className="flex items-center gap-4">
+                                             <div className="w-14 h-14 flex items-center justify-center bg-white dark:bg-black/40 border border-slate-100 dark:border-white/10 rounded-[14px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] shrink-0">
+                                                {connectedBroker === 'mt5' || connectedBroker === 'mt4' ? (
+                                                   <img src="/Mt5 logo.png" alt="MT" className="w-9 h-9 object-contain drop-shadow-md" />
+                                                ) : (
+                                                   <BrokerIcon name={connectedBroker} size={36} />
+                                                )}
+                                             </div>
+                                             <div>
+                                                <div className="flex items-center gap-3">
+                                                   <h4 className="text-[15px] md:text-[16px] font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
+                                                      {connectedBroker === 'mt5' ? 'MetaTrader 5' : connectedBroker === 'mt4' ? 'MetaTrader 4' : connectedBroker}
+                                                   </h4>
+                                                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest">
+                                                      Active Sync
+                                                   </span>
+                                                </div>
+                                                <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-1 font-medium">
+                                                   {brokerClientId ? `Client ID • ${brokerClientId}` : 'Live Account • 892314902'}
+                                                </p>
+                                             </div>
+                                          </div>
+                                          
+                                          <div className="flex items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
+                                             <button 
+                                                onClick={() => {
+                                                   if (connectedBroker === 'dhan') {
+                                                      window.open('https://hq.dhan.co/', '_blank');
+                                                   } else if (connectedBroker === 'zerodha') {
+                                                      window.open('https://kite.trade/', '_blank');
+                                                   } else {
+                                                      toast.info("Manage settings for this broker in their developer console.");
+                                                   }
+                                                }}
+                                                className="flex-1 md:flex-none px-5 py-2.5 bg-slate-100 dark:bg-[#242428] hover:bg-slate-200 dark:hover:bg-[#2A2A2F] border border-slate-200 dark:border-transparent text-slate-800 dark:text-white text-[13px] font-bold rounded-[12px] transition-all active:scale-95 shadow-sm"
+                                             >
+                                                Manage
+                                             </button>
+                                             <button 
+                                                onClick={handleDisconnectBroker}
+                                                className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[13px] font-bold rounded-[12px] transition-all active:scale-95"
+                                             >
+                                                Disconnect
+                                             </button>
+                                          </div>
+                                       </div>
+                                       <button 
+                                          onClick={() => setIsConnectingBroker(true)}
+                                          className="w-full py-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[24px] flex flex-col items-center justify-center text-slate-500 dark:text-[#949ba4] hover:bg-slate-50 dark:hover:bg-white/[0.02] hover:border-indigo-300/50 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all group"
+                                       >
+                                          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-all text-slate-400 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                             <Plus size={22} />
+                                          </div>
+                                          <span className="text-[14px] font-extrabold tracking-tight">Connect Another Broker</span>
+                                       </button>
+                                       </>
+                                    ) : (
+                                       
+                                          <div className="relative overflow-hidden flex flex-col items-center justify-center py-10 px-6 border border-slate-200/60 dark:border-white/5 rounded-[28px] bg-gradient-to-b from-white to-slate-50/50 dark:from-[#111112] dark:to-[#0A0A0B] text-slate-500 dark:text-slate-400 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                                          {/* Glowing Background Orbs */}
+                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none" />
+                                          
+                                          <div className="relative mb-6">
+                                             <div className="absolute inset-0 bg-indigo-500/20 dark:bg-indigo-500/20 blur-lg rounded-full" />
+                                             <div className="relative w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-50 to-white dark:from-[#1A1A24] dark:to-[#121215] border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-[0_4px_12px_rgba(99,102,241,0.12)] rotate-[-5deg] hover:rotate-0 transition-transform duration-500">
+                                                <Link2 size={24} strokeWidth={2.5} />
+                                             </div>
+                                          </div>
+                                          
+                                          <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight z-10">No Broker Connected</h4>
+                                          <p className="text-[14px] mb-8 max-w-md text-center text-slate-500 dark:text-[#8B92A0] leading-relaxed font-medium z-10">
+                                             Link your trading account to unlock real-time performance tracking, automated journaling, and advanced AI risk management.
+                                          </p>
+                                          
+                                          <button 
+                                             onClick={() => setIsConnectingBroker(true)}
+                                             className="relative group px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[16px] text-[14px] font-bold transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_rgba(255,255,255,0.1)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_8px_20px_rgba(255,255,255,0.15)] hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 overflow-hidden z-10"
+                                          >
+                                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                             <span className="relative flex items-center gap-2 group-hover:text-white transition-colors duration-300">
+                                                <Plus size={18} strokeWidth={3} />
+                                                Connect Your Broker
+                                             </span>
+                                          </button>
+                                          
+                                          <div className="mt-8 flex items-center gap-5 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 z-10 bg-slate-100/50 dark:bg-black/20 px-5 py-2.5 rounded-full border border-slate-200 dark:border-white/5">
+                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Zerodha</span></div>
+                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Dhan</span></div>
+                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
+                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Upstox</span></div>
+                                          </div>
+                                       </div>
+                                    )}
+                                 </div>
+                              
+                                 {/* TradingView Webhook Integration Hub */}
+                                 <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8 space-y-5 mt-6">
+                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-white/5 pb-4">
+                                       <div className="flex items-center gap-3">
+                                          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 font-extrabold text-sm">
+                                             TV
+                                          </div>
+                                          <div>
+                                             <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                                TradingView Webhook Integration
+                                                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 uppercase">Active</span>
+                                             </h3>
+                                             <p className="text-xs text-slate-500 dark:text-[#949ba4]">Dispatch automated orders and signals directly from TradingView pine-script alerts.</p>
+                                          </div>
+                                       </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                       <div className="space-y-1.5">
+                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Your Personal Webhook Endpoint</label>
+                                          <div className="flex gap-2">
+                                             <input 
+                                                readOnly
+                                                type="text"
+                                                value={`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`}
+                                                className="w-full px-4 py-2.5 rounded-xl text-xs font-mono bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 select-all"
+                                             />
+                                             <button
+                                                type="button"
+                                                onClick={() => {
+                                                   navigator.clipboard.writeText(`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`);
+                                                   toast.success('Webhook URL copied to clipboard!');
+                                                }}
+                                                className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 transition-all flex items-center gap-1.5"
+                                             >
+                                                <Copy size={13} /> Copy
+                                             </button>
+                                          </div>
+                                          <p className="text-[11px] text-slate-500">Paste this into the 'Webhook URL' field when creating an alert in TradingView.</p>
+                                       </div>
+
+                                       <div className="space-y-1.5">
+                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Alert Message Template (JSON)</label>
+                                          <pre className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 text-[11px] font-mono text-slate-700 dark:text-slate-300 overflow-x-auto leading-relaxed">
+{`{
+  "ticker": "{{ticker}}",
+  "action": "{{strategy.order.action}}",
+  "contracts": "{{strategy.order.contracts}}",
+  "price": "{{close}}",
+  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"
+}`}
+                                          </pre>
+                                          <button
+                                             type="button"
+                                             onClick={() => {
+                                                navigator.clipboard.writeText(`{\n  "ticker": "{{ticker}}",\n  "action": "{{strategy.order.action}}",\n  "contracts": "{{strategy.order.contracts}}",\n  "price": "{{close}}",\n  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"\n}`);
+                                                toast.success('Alert JSON template copied!');
+                                             }}
+                                             className="text-xs text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1"
+                                          >
+                                             <Copy size={12} /> Copy JSON Template
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                              </motion.div>
+                           )}
+
+
+
+                     {/* TAB 10: SUBSCRIPTION MANAGEMENT */}
+                     {activeTab === 'subscription' && (() => {
+      const normalizePlan = (p: string | null | undefined): 'starter' | 'pro' | 'elite' => {
+         if (!p) return 'starter';
+         const lower = p.toLowerCase();
+         if (lower === 'pro' || lower === 'intermediate') return 'pro';
+         if (lower === 'elite' || lower === 'advanced' || lower === 'institutional') return 'elite';
+         return 'starter';
+      };
+      const currentTier = normalizePlan(activePlan);
+
+      const nextBillingDate = (() => {
+         if (billingHistory && billingHistory.length > 0 && billingHistory[0]?.period_end) {
+            try {
+               return new Date(billingHistory[0].period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (_) {}
+         }
+         const d = new Date();
+         d.setDate(d.getDate() + 30);
+         return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      })();
+
+      const memberSinceDate = (() => {
+         if (profile?.createdAt) {
+            try {
+               return new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (_) {}
+         }
+         return new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      })();
+
+      return (
+         <motion.div
+            key="subscription"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4 w-full max-w-[760px] mx-auto pb-16"
+         >
+            {/* Page Title */}
+            <div className="mb-6">
+               <h2 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">Subscription</h2>
+               <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Manage your current plan</p>
+            </div>
+
+            {/* Card 1: Active Subscription Overview */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3.5">
+               <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                     {currentTier === 'starter' ? 'Free Plan' : currentTier === 'pro' ? 'Pro Plan' : 'Elite Plan'}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
+                     {currentTier === 'starter' ? 'Free tier active' : `${currentTier.toUpperCase()} active`}
+                  </span>
+               </div>
+
+               <div className="space-y-2.5 pt-1">
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Plan status</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'Active (Free tier)' : 'Active (Paid monthly)'}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Current rate</span>
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums flex items-center gap-1">
+                        {currentTier === 'starter' ? (
+                           <>
+                              <RunningNumber value={0} prefix="₹" /> <span>/ forever</span>
+                           </>
+                        ) : currentTier === 'pro' ? (
+                           <>
+                              <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
+                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
+                           </>
+                        ) : (
+                           <>
+                              <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
+                           </>
+                        )}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Next payment</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'No charges scheduled' : `${nextBillingDate} · ${currentTier === 'pro' ? (billingInterval === 'monthly' ? '₹1,399' : '₹1,119') : (billingInterval === 'monthly' ? '₹2,799' : '₹2,239')}`}
+                     </span>
+                  </div>
+               </div>
+
+               <div className="pt-2 border-t border-slate-100 dark:border-white/5">
+                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-2">
+                     Have a code? Add it before your next billing cycle and it counts on your next payment.
+                  </p>
+                  <div className="flex items-center gap-2">
+                     <input
+                        type="text"
+                        placeholder="Discount code"
+                        value={discountCodeInput}
+                        onChange={(e) => setDiscountCodeInput(e.target.value)}
+                        className="flex-1 h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                     />
+                     <TactileBoxButton
+                        onClick={() => {
+                           if (!discountCodeInput.trim()) return toast.error("Please enter a discount code");
+                           setAppliedDiscount(discountCodeInput.trim().toUpperCase());
+                           toast.success(`Discount code "${discountCodeInput.trim().toUpperCase()}" applied!`);
+                           setDiscountCodeInput('');
+                        }}
+                        className="h-9 px-5 text-xs font-bold"
+                     >
+                        Add
+                     </TactileBoxButton>
+                  </div>
+                  {appliedDiscount && (
+                     <div className="mt-2 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                        <Check size={12} /> Code {appliedDiscount} applied
+                     </div>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 2: Billing Summary */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3">
+               <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">Billing</span>
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
+                     {currentTier === 'starter' ? 'Free tier' : 'Active'}
+                  </span>
+               </div>
+
+               <div className="space-y-2 pt-1 text-xs">
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Plan</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'Free · ₹0 a month' : currentTier === 'pro' ? 'Pro · ₹1,399 a month' : 'Elite · ₹2,799 a month'}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Member since</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">{memberSinceDate}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Next renewal</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'None (Free plan)' : `${nextBillingDate} · ₹${currentTier === 'pro' ? (billingInterval === 'monthly' ? '1,399' : '1,119') : (billingInterval === 'monthly' ? '2,799' : '2,239')}`}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Payment method</span>
+                     <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CreditCard size={13} className="text-slate-500" />
+                        {currentTier === 'starter' ? 'None required' : 'Razorpay Secure Checkout'}
+                     </span>
+                  </div>
+               </div>
+
+               <div className="pt-2 border-t border-slate-100 dark:border-white/5 text-[11.5px] text-slate-500 flex items-center gap-1.5">
+                  <ArrowUpRight size={13} className="text-slate-400" /> Change plan or manage subscription below
+               </div>
+            </div>
+
+            {/* Card 3: Payments / Invoices */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+               <div className="text-xs font-bold text-slate-900 dark:text-white mb-3">Payments</div>
+               {billingHistory && billingHistory.length > 0 ? (
+                  <div className="space-y-2">
+                     {billingHistory.map((inv: any) => (
+                        <div key={inv.id || Math.random()} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-white/5 last:border-b-0">
+                           <span className="text-slate-500">
+                              {inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+                           </span>
+                           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                              ₹{Number(inv.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              <span
+                                 className="text-slate-400 hover:text-slate-700 dark:hover:text-white font-normal cursor-pointer hover:underline text-xs"
+                                 onClick={() => toast.info(`Invoice receipt #${String(inv.id || '').slice(0, 8)} generated`)}
+                              >
+                                 Invoice
+                              </span>
+                           </span>
+                        </div>
+                     ))}
+                  </div>
+               ) : (
+                  <div className="py-3 text-center">
+                     <p className="text-xs text-slate-500 dark:text-slate-400">No payment invoices yet</p>
+                     <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        {currentTier === 'starter'
+                           ? 'You are currently on the Free tier. Upgrade below to activate pro features.'
+                           : 'Receipts and tax invoices will automatically appear here.'}
+                     </p>
+                  </div>
+               )}
+            </div>
+
+            {/* Card 4: Billing Cycle Switcher */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex items-center justify-between">
+               <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Billing cycle</div>
+                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Switch to annual for a lower monthly rate</p>
+               </div>
+               <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-full inline-flex items-center gap-1 border border-slate-200/80 dark:border-white/10">
+                  <button
+                     onClick={() => setBillingInterval('monthly')}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        billingInterval === 'monthly'
+                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                     }`}
+                  >
+                     Monthly
+                  </button>
+                  <button
+                     onClick={() => setBillingInterval('annually')}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        billingInterval === 'annually'
+                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                     }`}
+                  >
+                     Annual
+                  </button>
+               </div>
+            </div>
+
+            {/* Card 5: Free Plan */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white">Free Plan</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1 broker connection, basic trading journal & core risk guard</p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <RunningNumber value={0} prefix="₹" className="text-sm font-bold text-slate-900 dark:text-white" />
+                  {currentTier === 'starter' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsDowngrade('starter')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 6: Pro Plan — ₹1,399/mo */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                     Pro Plan
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     Up to 6 broker connections, loss cooldown & 50 AI coach credits/day
+                  </p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <div className="text-right">
+                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums flex items-baseline justify-end gap-0.5">
+                        <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
+                        <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     </span>
+                     {billingInterval === 'annually' && (
+                        <div className="text-[10px] text-slate-400">Billed annually</div>
+                     )}
+                  </div>
+                  {currentTier === 'pro' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : currentTier === 'elite' ? (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsDowngrade('pro')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsUpgrade('pro')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 7: Elite Plan — ₹2,799/mo + TOP badge */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                     Elite Plan
+                     <span className="bg-[#7c3aed] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        TOP
+                     </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     Unlimited broker connections, automated trading & 100 AI credits/day
+                  </p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <div className="text-right">
+                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums flex items-baseline justify-end gap-0.5">
+                        <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                        <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     </span>
+                     {billingInterval === 'annually' && (
+                        <div className="text-[10px] text-slate-400">Billed annually</div>
+                     )}
+                  </div>
+                  {currentTier === 'elite' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsUpgrade('elite')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 8: Refund & Cancellation */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Refund</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     This sends a message to us, it does not refund automatically. Your plan stays active until the refund is issued.
+                  </p>
+               </div>
+               <TactileBoxButton
+                  onClick={() => {
+                     toast.success("Refund request submitted", {
+                        description: "Our billing support team will review your account within 24 hours."
+                     });
+                  }}
+                  className="h-9 px-4 text-xs font-semibold rounded-xl flex items-center gap-1.5 self-end sm:self-auto shrink-0"
+               >
+                  <HelpCircle size={14} className="text-slate-400" />
+                  Request
+               </TactileBoxButton>
+            </div>
+         </motion.div>
+      );
+   })()}
+
+   {/* TAB 11: CHANNEL SETTINGS */}
+                     {activeTab === 'channel' && (
+                        <motion.div
+                           key="channel"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="w-full max-w-[740px] mx-auto"
+                        >
+                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
+                              Channel Settings
+                           </h2>
+
+                           <div className="space-y-8">
+                              {/* Channel Privacy Level (Discord Spam filter style) */}
+                              <div>
+                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Channel Privacy Level</h3>
+                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-4">Determine who can search, view, and interact with posts in your channel.</p>
+                                 
+                                 <div className="space-y-4">
+                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('public'); toast.success('Visibility updated!'); }}>
+                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'public' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
+                                          {feedVisibility === 'public' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
+                                       </div>
+                                       <div>
+                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Public (Everyone)</div>
+                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Anyone can search and read posts.</div>
+                                       </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('request'); toast.success('Visibility updated!'); }}>
+                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'request' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
+                                          {feedVisibility === 'request' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
+                                       </div>
+                                       <div>
+                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Request-Only</div>
+                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Users must request access to join and read posts.</div>
+                                       </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('private'); toast.success('Visibility updated!'); }}>
+                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'private' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
+                                          {feedVisibility === 'private' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
+                                       </div>
+                                       <div>
+                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Private (Paid subscription)</div>
+                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Only paid subscribers have access to this channel.</div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+
+                              {/* Divider */}
+                              <div className="h-[1px] w-full bg-slate-200 dark:bg-[#3f4147]"></div>
+
+                              {/* Channel Guidelines */}
+                              <div>
+                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-4">Channel Guidelines</h3>
+                                 <textarea
+                                    rows={4}
+                                    value={channelRules}
+                                    onChange={e => setChannelRules(e.target.value)}
+                                    className="w-full p-4 rounded-md bg-slate-50 dark:bg-[#1E1F22] border border-transparent text-[14px] text-slate-800 dark:text-[#DBDEE1] outline-none resize-none focus:ring-1 focus:ring-[#5865F2] placeholder-slate-400 dark:placeholder-[#80848E]"
+                                    placeholder="Set the rules and guidelines for your channel..."
+                                 />
+                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mt-2">These rules will be displayed to users before they join your channel.</p>
+                              </div>
+                           </div>
+                        </motion.div>
+                     )}
+
+                     {/* TAB 12: CREATOR / BUSINESS ACCOUNT */}
+                     {activeTab === 'creator' && (
+                        <motion.div
+                           key="creator"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="space-y-8 w-full max-w-[740px] mx-auto animate-in fade-in duration-300"
+                        >
+                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
+                              Creator Account
+                           </h2>
+
+                           <CreatorTab 
+                              privacySettings={privacySettings}
+                              setPrivacySettings={setPrivacySettings}
+                              creatorHandle={creatorHandle}
+                              setCreatorHandle={setCreatorHandle}
+                              creatorCategory={creatorCategory}
+                              setCreatorCategory={setCreatorCategory}
+                              creatorBio={creatorBio}
+                              setCreatorBio={setCreatorBio}
+                              profile={profile}
+                              selectedPlan={selectedPlan}
+                           />
+                        </motion.div>
+                     )}
+
+                     {/* TAB 13: HELP CENTER */}
+                     {activeTab === 'help' && (
+                        <motion.div
+                           key="help"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="w-full"
+                        >
+                           <HelpTab />
+                        </motion.div>
+                     )}
+
+                     {/* TAB 14: REPORT A PROBLEM */}
+                     {activeTab === 'report' && (
+                        <motion.div
+                           key="report"
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -10 }}
+                           transition={{ duration: 0.2 }}
+                           className="w-full max-w-[740px] mx-auto"
+                        >
+                           <ReportTab />
+                        </motion.div>
+                     )}
+
+                  </AnimatePresence>
+                  </div>
+
+               </div>
+            </div>
+
+            </div>
+
+         </div>
+
+         {/* EDIT PROFILE DETAILS MODAL */}
+         <AnimatePresence>
+            {isEditModalOpen && (
+               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                  <motion.div
+                     initial={{ opacity: 0, scale: 0.95 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     exit={{ opacity: 0, scale: 0.95 }}
+                     className="bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl"
+                  >
+                     <div className="p-6 border-b border-slate-100 dark:border-[#333333] flex justify-between items-center">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit Profile Details</h3>
+                        <button type="button" onClick={() => setIsEditModalOpen(false)} className="text-slate-400 hover:text-slate-650 dark:hover:text-slate-250">
+                           <X size={20} />
+                        </button>
+                     </div>
+                     <form onSubmit={(e) => { e.preventDefault(); handleUpdateProfile(); setIsEditModalOpen(false); }} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto scrollbar-hide">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">First Name</label>
+                              <input type="text" value={profile.firstName} onChange={e => setProfile({...profile, firstName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Last Name</label>
+                              <input type="text" value={profile.lastName} onChange={e => setProfile({...profile, lastName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                        </div>
+                        <div>
+                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Username</label>
+                           <input type="text" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                        </div>
+                        <div>
+                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Email</label>
+                           <input type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Address</label>
+                              <input type="text" value={profile.address || ''} onChange={e => setProfile({...profile, address: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">City</label>
+                              <input type="text" value={profile.city || ''} onChange={e => setProfile({...profile, city: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">State</label>
+                              <input type="text" value={profile.state || ''} onChange={e => setProfile({...profile, state: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Zip Code</label>
+                              <input type="text" value={profile.zipCode || ''} onChange={e => setProfile({...profile, zipCode: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Country</label>
+                              <input type="text" value={profile.country || ''} onChange={e => setProfile({...profile, country: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Date of Birth</label>
+                              <input type="text" value={profile.dob || ''} onChange={e => setProfile({...profile, dob: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                           <div>
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Gender</label>
+                              <input type="text" value={profile.gender || ''} onChange={e => setProfile({...profile, gender: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           </div>
+                        </div>
+                        <div className="pt-4 border-t border-slate-100 dark:border-[#333333] flex justify-end items-center gap-3">
+                           <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-5 py-2.5 bg-slate-100 dark:bg-[#2C2C2E] text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors">Cancel</button>
+                           <ConsistencyToggleButton 
+                              label="Save Details" 
+                              checked={true} 
+                              type="submit" 
+                           />
+                        </div>
+                     </form>
+                  </motion.div>
+               </div>
+            )}
+         </AnimatePresence>
+
+         {/* PHONE VERIFICATION MODAL */}
+         <AnimatePresence>
+            {showSmsModal && (
+               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                  <motion.div
+                     initial={{ opacity: 0, scale: 0.95 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     exit={{ opacity: 0, scale: 0.95 }}
+                     className="bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6"
+                  >
+                     <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Add Phone Number</h3>
+                        <button type="button" onClick={() => setShowSmsModal(false)} className="text-slate-400 hover:text-slate-655 dark:hover:text-slate-250">
+                           <X size={20} />
+                        </button>
+                     </div>
+                     <p className="text-xs text-slate-505 mb-4">Enter your mobile phone number to receive SMS security alerts and code verifications.</p>
+                     <div className="space-y-4">
+                        <div>
+                           <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Phone Number</label>
+                           <input type="tel" placeholder="+1 (555) 000-0000" className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                        </div>
+                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-[#333333]">
+                           <button type="button" onClick={() => setShowSmsModal(false)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors">Cancel</button>
+                           <button type="button" onClick={() => { toast.success("Phone number verified successfully!"); setShowSmsModal(false); }} className="px-6 py-2 bg-indigo-650 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md transition-colors">Save Number</button>
+                        </div>
+                     </div>
+                  </motion.div>
+               </div>
+            )}
+         </AnimatePresence>
+
+         <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+           <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-2xl p-6">
+             <DialogHeader>
+               <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                 <LogOut className="text-red-500" size={24} />
+                 Confirm Logout
+               </DialogTitle>
+               <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
+                 Are you sure you want to log out? You will need to log in again to access your account.
+               </DialogDescription>
+             </DialogHeader>
+             <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
+               <button 
+                 type="button" 
+                 onClick={() => setShowLogoutConfirm(false)}
+                 className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#222226] text-slate-700 dark:text-slate-200 font-semibold text-[13.5px] hover:bg-slate-50 dark:hover:bg-[#2b2b30] transition-all duration-150 active:scale-[0.985] shadow-sm"
+               >
+                 Cancel
+               </button>
+               <button 
+                 type="button" 
+                 onClick={async () => {
+                   setShowLogoutConfirm(false);
+                   setIsLoggingOut(true);
+                   await supabase.auth.signOut();
+                   toast.success("Logged out successfully");
+                   setIsLoggingOut(false);
+                   navigate('/login');
+                 }}
+                 className="h-[38px] px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25 flex items-center justify-center min-w-[105px]"
+               >
+                 {isLoggingOut ? (
+                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                 ) : (
+                   "Log Out"
+                 )}
+               </button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+
+               {/* Plan Downgrade Confirmation Dialog */}
+         <Dialog open={!!downgradeModalPlan} onOpenChange={(open) => !open && setDowngradeModalPlan(null)}>
+           <DialogContent className="sm:max-w-[440px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-3xl p-7 text-slate-900 dark:text-white">
+             <DialogHeader>
+               <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2">
+                 <AlertCircle size={24} />
+               </div>
+               <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
+                 Downgrade to {downgradeModalPlan === 'starter' ? 'Free Plan (₹0)' : 'Pro Plan (₹1,399/mo)'}?
+               </DialogTitle>
+               <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
+                 {downgradeModalPlan === 'starter'
+                   ? 'By switching to the Free plan, your broker connections will be limited to 1, daily AI credits will revert to 20/day, and automated execution features will be paused.'
+                   : 'By downgrading to Pro (₹1,399/mo), broker connections will be set to 6 and AI credits will be 100/day.'}
+               </DialogDescription>
+             </DialogHeader>
+             <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2.5 sm:justify-end">
+               <TactileBoxButton 
+                 onClick={() => setDowngradeModalPlan(null)}
+                 disabled={isChangingPlan}
+                 className="h-10 px-5 rounded-xl font-semibold text-xs"
+               >
+                 Keep Current Plan
+               </TactileBoxButton>
+               <button 
+                 type="button" 
+                 disabled={isChangingPlan}
+                 onClick={() => downgradeModalPlan && applyPlanChange(downgradeModalPlan)}
+                 className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2"
+               >
+                 {isChangingPlan ? (
+                   <>
+                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                     Updating...
+                   </>
+                 ) : (
+                   'Confirm Downgrade'
+                 )}
+               </button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+
+</motion.div>
+      </DashboardLayout>
+   );
+}
+
