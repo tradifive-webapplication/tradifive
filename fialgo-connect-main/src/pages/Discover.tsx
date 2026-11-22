@@ -70,93 +70,6 @@ export const EXISTING_OFFICIAL_ALGOS: MarketplaceProduct[] = [
             "Sub-3ms execution speed with zero-lag socket streaming",
             "₹10,000 one-time setup fee + Daily 50/50% profit share"
         ]
-    },
-    {
-        id: "algo-alpha-momentum",
-        name: "Alpha Momentum Pro",
-        category: "Algo",
-        badge: "Quantitative EA",
-        version: "v2.1.0",
-        timeframe: "15 Min (M15)",
-        pairs: ["BTC/USD", "ETH/USD"],
-        winRate: "68%",
-        drawdown: "4.1%",
-        monthlyReturn: "+14–28%",
-        description: "Institutional trend-following and volatility expansion algorithm. Uses multi-timeframe ATR trailing stops and order-book liquidity sweeps. Fully automated risk management and trade execution for MT5.",
-        price: 8500,
-        currency: "₹",
-        thumbnailUrl: "",
-        creatorId: "tradifive-quant",
-        creatorName: "Tradifive Research",
-        isOfficial: true,
-        rating: 4.89,
-        reviewsCount: 310,
-        activeTraders: 1420,
-        features: [
-            "Dynamic ATR volatility band expansion logic",
-            "Multi-timeframe liquidity sweep confirmation",
-            "Proprietary dynamic position sizing engine",
-            "Pre-configured for major crypto and index pairs",
-            "Sub-second socket execution with MT5 integration"
-        ]
-    },
-    {
-        id: "strategy-london-breakout",
-        name: "London Breakout Master",
-        category: "Strategy",
-        badge: "Forex Strategy",
-        version: "v3.0.1",
-        timeframe: "5 Min (M5)",
-        pairs: ["GBP/USD", "EUR/USD"],
-        winRate: "71%",
-        drawdown: "2.8%",
-        monthlyReturn: "+12–24%",
-        description: "Systematic session breakout strategy targeting the Frankfurt and London open volatility windows. Incorporates Asian session high/low liquidity captures and automated news risk protection.",
-        price: 7500,
-        currency: "₹",
-        thumbnailUrl: "",
-        creatorId: "tradifive-forex",
-        creatorName: "Institutional FX",
-        isOfficial: true,
-        rating: 4.92,
-        reviewsCount: 440,
-        activeTraders: 1980,
-        features: [
-            "Asian session range auto-detection & bracket orders",
-            "Institutional session volume profiling",
-            "Hard stop-loss with dynamic breakeven triggers",
-            "Automatic news blackout during major central bank events",
-            "Full parameter customization for MT4 & MT5"
-        ]
-    },
-    {
-        id: "strategy-smc-suite",
-        name: "Institutional SMC Suite",
-        category: "Strategy",
-        badge: "Smart Money",
-        version: "v1.8.2",
-        timeframe: "Multi-TF (M15–H4)",
-        pairs: ["Indices", "Crypto", "Forex"],
-        winRate: "76%",
-        drawdown: "3.5%",
-        monthlyReturn: "+16–34%",
-        description: "Complete Smart Money Concepts institutional toolkit. Features automated Fair Value Gap (FVG) detection, Change of Character (CHoCH) alerts, premium/discount array mapping, and order flow mitigation.",
-        price: 6000,
-        currency: "₹",
-        thumbnailUrl: "",
-        creatorId: "tradifive-smc",
-        creatorName: "TradiFive Core",
-        isOfficial: true,
-        rating: 4.97,
-        reviewsCount: 680,
-        activeTraders: 3200,
-        features: [
-            "Automated Fair Value Gap (FVG) & mitigation tracker",
-            "Real-time Break of Structure (BOS) & CHoCH mapping",
-            "Institutional Order Block imbalance detection",
-            "Equilibrium & Premium/Discount fibonacci zones",
-            "Instant Discord and Telegram webhook alerts"
-        ]
     }
 ];
 
@@ -1486,37 +1399,64 @@ export default function Discover() {
 
                     {/* ── ALGO MARKETPLACE TAB ────────────────────────────────────────── */}
                     {(activeTab === "Marketplace") && !searchQuery && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-12">
-                            {/* Marketplace Filters */}
-                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
-                                {['All', 'Algo', 'Strategy', 'Indicator', 'Mentorship'].map(cat => {
-                                    const count = cat === 'All' ? storeListings.length : storeListings.filter(l => l.category === cat).length;
-                                    const isSel = marketplaceFilter === cat;
-                                    return (
-                                        <button
-                                            key={cat}
-                                            type="button"
-                                            onClick={() => setMarketplaceFilter(cat)}
-                                            className={`h-8 px-4 rounded-full text-xs font-semibold select-none inline-flex items-center gap-1.5 transition-all shrink-0 cursor-pointer ${
-                                                isSel
-                                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs'
-                                                    : 'tactile-white-pill'
-                                            }`}
-                                        >
-                                            <span>{cat}</span>
-                                            {count > 0 && (
-                                                <span className={`text-[10.5px] ${isSel ? 'text-slate-300 dark:text-zinc-600' : 'text-slate-400 dark:text-zinc-500'}`}>
-                                                    ({count})
-                                                </span>
-                                            )}
-                                        </button>
-                                    );
-                                })}
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-12 pt-2 sm:pt-4">
+                            {/* Marketplace Filters Dock (Consistent Tactile Segmented Style, No Clipping) */}
+                            <div className="pt-2 pb-1">
+                                <div className="inline-flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-white/[0.04] rounded-2xl border border-slate-200/70 dark:border-white/5 overflow-x-auto no-scrollbar max-w-full shadow-2xs">
+                                    {['All', 'Algo', 'Strategy', 'Indicator', 'Mentorship'].map(cat => {
+                                        const count = cat === 'All' ? storeListings.length : storeListings.filter(l => l.category === cat).length;
+                                        const isSel = marketplaceFilter === cat;
+                                        return (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                onClick={() => setMarketplaceFilter(cat)}
+                                                className={`h-[34px] px-3.5 sm:px-4 rounded-xl text-xs font-semibold select-none inline-flex items-center gap-2 transition-all shrink-0 cursor-pointer active:scale-95 ${
+                                                    isSel
+                                                        ? 'bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold'
+                                                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
+                                                }`}
+                                            >
+                                                <span>{cat}</span>
+                                                {count > 0 && (
+                                                    <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
+                                                        isSel 
+                                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' 
+                                                            : 'bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-zinc-300'
+                                                    }`}>
+                                                        {count}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
 
                             {/* Algos Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product) => renderAlgoCard(product))}
+                                {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).length === 0 ? (
+                                    <div className="py-14 px-6 max-w-md mx-auto my-6 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#18181b] shadow-2xs text-center col-span-full">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-white mx-auto mb-3 shadow-2xs">
+                                            <Cpu size={20} className="text-slate-500 dark:text-zinc-400" />
+                                        </div>
+                                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                                            No {marketplaceFilter} Listed Yet
+                                        </h3>
+                                        <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                                            There are currently no verified community items under this category.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMarketplaceFilter('All')}
+                                            className="mt-4 h-8 px-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[12px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+                                        >
+                                            <span>View All Products</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product) => renderAlgoCard(product))
+                                )}
                             </div>
                         </motion.div>
                     )}

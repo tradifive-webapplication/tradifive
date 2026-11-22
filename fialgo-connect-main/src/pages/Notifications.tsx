@@ -566,7 +566,7 @@ export default function Notifications() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.16 }}
-        className={`group relative rounded-[20px] border transition-all duration-200 overflow-hidden cursor-pointer ${
+        className={`group relative rounded-2xl border transition-all duration-200 overflow-hidden cursor-pointer ${
           !n.is_read
             ? 'bg-white dark:bg-[#17171A] border-blue-200/90 dark:border-blue-500/30 shadow-[0_2px_14px_rgba(37,99,235,0.06)]'
             : 'bg-white dark:bg-[#17171A] border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/15 shadow-xs'
@@ -809,29 +809,30 @@ export default function Notifications() {
     <DashboardLayout>
       <div className="max-w-[1300px] mx-auto pb-20 px-3 sm:px-6 md:px-8 py-3 font-sans select-none space-y-4">
 
-        {/* ── Top Header (Clean Tactile Consistency) ── */}
+        {/* ── Top Header (Unified App Consistency) ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/70 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
-              <Bell size={18} />
+            <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs flex items-center justify-center shrink-0">
+              <Bell size={18} strokeWidth={2.4} />
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                <h1 className="text-[19px] sm:text-[21px] font-bold tracking-tight text-slate-900 dark:text-white leading-none">
                   Notifications
                 </h1>
                 {unreadCount > 0 ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/20">
                     <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
                     <span>{unreadCount} Unread</span>
                   </span>
                 ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20">
-                    All Caught Up
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>All Caught Up</span>
                   </span>
                 )}
               </div>
-              <p className="text-slate-400 dark:text-neutral-500 text-xs font-medium mt-0.5">
+              <p className="text-slate-500 dark:text-zinc-400 text-[12px] font-medium mt-1">
                 Real-time trading alerts, risk guards, social interactions &amp; system updates
               </p>
             </div>
@@ -841,16 +842,16 @@ export default function Notifications() {
             <button
               type="button"
               onClick={markAllRead}
-              className="flex-1 sm:flex-initial h-9 px-3 sm:px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
+              className="flex-1 sm:flex-initial h-9 px-3.5 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-[12.5px] font-semibold text-slate-700 dark:text-zinc-200 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
             >
-              <CheckCheck size={14} className="text-blue-600 dark:text-blue-400" />
+              <CheckCheck size={14} className="text-slate-500 dark:text-zinc-400" />
               <span>Mark All Read</span>
             </button>
 
             <button
               type="button"
               onClick={clearAllNotifications}
-              className="flex-1 sm:flex-initial h-9 px-3 sm:px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-rose-50 dark:hover:bg-rose-500/10 border border-slate-200/80 dark:border-rose-500/20 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
+              className="flex-1 sm:flex-initial h-9 px-3.5 bg-white dark:bg-[#18181b] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 dark:hover:border-rose-900/30 border border-slate-200/90 dark:border-white/10 rounded-xl text-[12.5px] font-semibold text-slate-700 dark:text-zinc-200 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
             >
               <Trash2 size={13} />
               <span>Clear All</span>
@@ -860,92 +861,92 @@ export default function Notifications() {
               type="button"
               onClick={fetchNotifications}
               disabled={loading}
-              className="h-9 w-9 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center justify-center cursor-pointer shrink-0 active:scale-95"
+              className="h-9 w-9 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-slate-600 dark:text-zinc-300 shadow-2xs transition-all flex items-center justify-center cursor-pointer shrink-0 active:scale-95"
               title="Refresh notifications"
             >
-              <RefreshCw size={13} className={loading ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400 dark:text-neutral-400"} />
+              <RefreshCw size={13} className={loading ? "animate-spin text-slate-900 dark:text-white" : "text-slate-500 dark:text-zinc-400"} />
             </button>
           </div>
         </div>
 
-        {/* ── 4 KPI Stat Cards (Institutional Tactile Style) ── */}
+        {/* ── 4 KPI Stat Cards (Institutional Consistency) ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Card 1: Total Alerts */}
           <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between gap-2 mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Total Alerts
               </span>
-              <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                <Bell size={14} />
+              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-zinc-300 border border-slate-200/60 dark:border-white/10 flex items-center justify-center shrink-0">
+                <Bell size={13} />
               </div>
             </div>
-            <div className="text-[20px] sm:text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
+            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
               {notifications.length}
             </div>
-            <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 mt-1 truncate">
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               {grouped.today.length} Today · {grouped.archive.length} Earlier
             </div>
           </div>
 
           {/* Card 2: Unread Alerts */}
           <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between gap-2 mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Unread
               </span>
-              <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                <Sparkles size={14} />
+              <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center shrink-0">
+                <Sparkles size={13} />
               </div>
             </div>
-            <div className={`text-[20px] sm:text-[22px] font-extrabold tracking-tight tabular-nums ${unreadCount > 0 ? "text-blue-600 dark:text-blue-400" : "text-slate-900 dark:text-white"}`}>
+            <div className={`text-[22px] sm:text-[24px] font-extrabold tracking-tight tabular-nums ${unreadCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
               {unreadCount}
             </div>
-            <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 mt-1 truncate">
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               {unreadCount > 0 ? "Pending review" : "Inbox cleared"}
             </div>
           </div>
 
           {/* Card 3: Trading & Risk */}
           <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between gap-2 mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Trading &amp; Risk
               </span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                <TrendingUp size={14} />
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+                <TrendingUp size={13} />
               </div>
             </div>
-            <div className="text-[20px] sm:text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
+            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
               {tradeCount}
             </div>
-            <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 mt-1 truncate">
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               Fills &amp; risk guards
             </div>
           </div>
 
           {/* Card 4: Community Activity */}
           <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
-            <div className="flex items-center justify-between gap-2 mb-1.5">
-              <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Community
               </span>
-              <div className="w-7 h-7 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                <Users size={14} />
+              <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+                <Users size={13} />
               </div>
             </div>
-            <div className="text-[20px] sm:text-[22px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
+            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
               {socialCount}
             </div>
-            <div className="text-[11px] font-medium text-slate-500 dark:text-neutral-400 mt-1 truncate">
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               Follows, views &amp; mentions
             </div>
           </div>
         </div>
 
-        {/* ── Sub Navigation Tabs & Search ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 -mx-3 px-3 sm:mx-0 sm:px-0 touch-pan-x">
+        {/* ── Sub Navigation Tabs & Search (Segmented Consistency) ── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-white/[0.04] rounded-2xl border border-slate-200/70 dark:border-white/5 overflow-x-auto no-scrollbar max-w-full">
             {FILTER_TABS.map(t => {
               const active = filter === t.id;
               return (
@@ -953,15 +954,17 @@ export default function Notifications() {
                   key={t.id}
                   type="button"
                   onClick={() => setFilter(t.id)}
-                  className={`whitespace-nowrap px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
+                  className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-[12.5px] font-semibold transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
                     active
-                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                      : "bg-white dark:bg-[#18181b] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
+                      ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold"
+                      : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   <span>{t.label}</span>
-                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold tabular-nums ${
-                    active ? "bg-white/20 text-white dark:bg-black/20 dark:text-slate-900" : "bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-neutral-300"
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
+                    active 
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" 
+                      : "bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-zinc-300"
                   }`}>
                     {t.count}
                   </span>
@@ -970,15 +973,15 @@ export default function Notifications() {
             })}
           </div>
 
-          {/* Search Box matching Terminal Input Style */}
+          {/* Search Box matching Segmented Height & Border */}
           <div className="relative min-w-[240px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notifications..."
-              className="w-full h-9 bg-white dark:bg-[#18181b] border border-slate-200/80 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/25 rounded-xl pl-8 pr-8 text-[13px] text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-neutral-500 shadow-xs transition-colors"
+              className="w-full h-[38px] bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/25 rounded-xl pl-8 pr-8 text-[12.5px] text-slate-900 dark:text-white focus:outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500 shadow-2xs transition-colors"
             />
             {searchQuery && (
               <button
@@ -1003,7 +1006,7 @@ export default function Notifications() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {followRequests.map(req => (
-                <div key={req.id} className="flex items-center justify-between p-4 bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] rounded-[20px] shadow-xs">
+                <div key={req.id} className="flex items-center justify-between p-4 bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xs">
                   <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate(`/user/${req.requester_id}`)}>
                     {req.requester?.avatar_url ? (
                       <img src={req.requester.avatar_url} alt="Avatar" className="w-10 h-10 rounded-2xl object-cover border border-slate-200/80 dark:border-white/10" />
@@ -1023,7 +1026,7 @@ export default function Notifications() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {req.accepted ? (
-                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-2 py-1 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl">
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200/60 dark:border-emerald-500/20">
                         Accepted
                       </span>
                     ) : (
@@ -1031,14 +1034,14 @@ export default function Notifications() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); acceptFollowRequest(req.id, req.requester_id); }}
-                          className="h-8 px-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer"
+                          className="h-8 px-3.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer active:scale-95"
                         >
                           Accept
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); declineFollowRequest(req.id); }}
-                          className="h-8 px-3 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors cursor-pointer"
+                          className="h-8 px-3 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-zinc-300 shadow-2xs transition-colors cursor-pointer active:scale-95"
                         >
                           Decline
                         </button>
@@ -1055,28 +1058,39 @@ export default function Notifications() {
         {loading ? (
           <div className="space-y-3 pt-2">
             {Array(3).fill(0).map((_, i) => (
-              <div key={i} className="h-24 bg-white dark:bg-[#17171A] animate-pulse rounded-[20px] border border-slate-200/80 dark:border-white/[0.08]" />
+              <div key={i} className="h-24 bg-white dark:bg-[#18181b] animate-pulse rounded-2xl border border-slate-200/80 dark:border-white/[0.08]" />
             ))}
           </div>
         ) : filteredNotifs.length === 0 ? (
-          <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-12 text-center shadow-xs">
-            <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-white mx-auto mb-3.5 shadow-2xs">
-              <Bell size={24} className="text-blue-500 animate-pulse" />
+          <div className="py-14 px-6 max-w-lg mx-auto my-6 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#18181b] shadow-2xs text-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-white mx-auto mb-3 shadow-2xs">
+              <Bell size={20} className="text-slate-500 dark:text-zinc-400" />
             </div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
               All caught up!
             </h3>
-            <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 max-w-sm mx-auto leading-relaxed">
+            <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto leading-relaxed">
               There are no alerts matching your filter right now. Live market fills, risk guards, and community events will stream here automatically.
             </p>
-            {filter !== "ALL" && (
+            {filter !== "ALL" ? (
               <button
                 type="button"
                 onClick={() => { setFilter("ALL"); setSearchQuery(""); }}
-                className="mt-4 h-9 px-4 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs"
+                className="mt-4 h-8 px-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[12px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
               >
-                Show All Notifications
+                <span>Show All Alerts</span>
               </button>
+            ) : (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchNotifications}
+                  className="h-8 px-3.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-zinc-300 text-[11.5px] font-semibold hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs active:scale-95"
+                >
+                  <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+                  <span>Check for new alerts</span>
+                </button>
+              </div>
             )}
           </div>
         ) : (
