@@ -16,6 +16,10 @@ import confetti from "canvas-confetti";
 import { FlipText } from "@/components/ui/flip-text";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
 import EcosystemDeepDive from "../components/EcosystemDeepDive";
+import HeroDashboard from "../components/HeroDashboard";
+import WhatIsTradifive from "../components/WhatIsTradifive";
+import HowItWorks from "../components/HowItWorks";
+import MentorComparison from "../components/MentorComparison";
 import InstitutionalRoadmap from "../components/InstitutionalRoadmap";
 // SideRays removed for clean white mode
 import PlasmaWave from "@/components/PlasmaWave";
@@ -1845,6 +1849,8 @@ export default function TradiFive() {
       <main style={{ position: "relative", zIndex: 1 }}>
         <Hero onStart={handleStart} onSignIn={handleSignIn} />
         <PlatformPillars />
+        <Sep />
+        <MentorComparison onStart={handleStart} />
         <Sep />
         <WhatIsTradifive onStart={handleStart} />
         <Sep />
