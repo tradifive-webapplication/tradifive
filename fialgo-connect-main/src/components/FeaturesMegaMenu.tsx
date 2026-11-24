@@ -91,28 +91,27 @@ export default function FeaturesMegaMenu({
             left: dropdownLeft,
             width: "min(680px, calc(100vw - 32px))",
             maxWidth: 680,
-            background: "#ffffff",
+            /* ── Exact FAQ Box Settings (#171717, borderRadius 20, borderless) ── */
+            background: "#171717",
             borderRadius: 20,
-            boxShadow: "0 20px 40px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.06)",
-            border: "1px solid #e2e8f0",
+            boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.05), 0 24px 60px rgba(0, 0, 0, 0.85)",
+            border: "none",
             padding: "16px",
             zIndex: 2000,
-            color: "#0f172a",
+            color: "#fff",
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             WebkitFontSmoothing: "antialiased",
             textAlign: "left",
             pointerEvents: "auto",
-            userSelect: "none"
-          }}
+            userSelect: "none" }}
         >
-          {/* Main 2-Column Grid */}
+          {/* Main 2-Column Grid (FundingPips Style) */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr",
               gap: 16,
-              alignItems: "stretch"
-            }}
+              alignItems: "stretch" }}
           >
             {/* ══════════════════════════════════════════════════════
                 LEFT COLUMN: 5 FEATURE ITEMS (Vertical Stack)
@@ -122,8 +121,7 @@ export default function FeaturesMegaMenu({
                 display: "flex",
                 flexDirection: "column",
                 gap: 4,
-                justifyContent: "space-between"
-              }}
+                justifyContent: "space-between" }}
             >
               {FEATURES.map((feat) => {
                 const isHovered = hoveredId === feat.id;
@@ -137,8 +135,10 @@ export default function FeaturesMegaMenu({
                     }}
                     onMouseEnter={() => setHoveredId(feat.id)}
                     style={{
-                      background: isHovered ? "#f1f5f9" : "transparent",
-                      boxShadow: "none",
+                      background: isHovered ? "#222222" : "transparent",
+                      boxShadow: isHovered
+                        ? "inset 0 1px 0 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.05)"
+                        : "none",
                       border: "none",
                       borderRadius: 14,
                       padding: "11px 16px",
@@ -149,21 +149,19 @@ export default function FeaturesMegaMenu({
                       justifyContent: "center",
                       transition: "all 0.18s cubic-bezier(0.16, 1, 0.3, 1)",
                       width: "100%",
-                      outline: "none"
-                    }}
+                      outline: "none" }}
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, width: "100%" }}>
                       <div
                         style={{
                           fontSize: 14.5,
                           fontWeight: 700,
-                          color: isHovered ? "#0f172a" : "#1e293b",
+                          color: "#ffffff",
                           lineHeight: 1.25,
                           letterSpacing: "-0.01em",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
-                          textOverflow: "ellipsis"
-                        }}
+                          textOverflow: "ellipsis" }}
                       >
                         {feat.title}
                       </div>
@@ -175,9 +173,9 @@ export default function FeaturesMegaMenu({
                             padding: "2px 6px",
                             borderRadius: 6,
                             letterSpacing: "0.04em",
-                            background: feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.12)" : "rgba(100, 116, 139, 0.1)",
-                            color: feat.badge === "LIVE" ? "#059669" : "#64748b",
-                            border: `1px solid ${feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.25)" : "rgba(100, 116, 139, 0.2)"}`
+                            background: feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.08)",
+                            color: feat.badge === "LIVE" ? "#34d399" : "#94a3b8",
+                            border: `1px solid ${feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.1)"}`
                           }}
                         >
                           {feat.badge}
@@ -187,14 +185,13 @@ export default function FeaturesMegaMenu({
                     <div
                       style={{
                         fontSize: 12,
-                        color: isHovered ? "#475569" : "#64748b",
+                        color: isHovered ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.44)",
                         lineHeight: 1.35,
                         marginTop: 3,
                         transition: "color 0.18s ease",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
-                        textOverflow: "ellipsis"
-                      }}
+                        textOverflow: "ellipsis" }}
                     >
                       {feat.desc}
                     </div>
@@ -204,21 +201,20 @@ export default function FeaturesMegaMenu({
             </div>
 
             {/* ══════════════════════════════════════════════════════
-                RIGHT COLUMN: FEATURED VISUAL CARD
+                RIGHT COLUMN: FEATURED VISUAL CARD (FundingPips Style)
             ══════════════════════════════════════════════════════ */}
             <div
               style={{
-                background: "#f8fafc",
-                boxShadow: "0 1px 3px rgba(15, 23, 42, 0.05)",
-                border: "1px solid #e2e8f0",
+                background: "#1f1f1f",
+                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                border: "none",
                 borderRadius: 16,
                 padding: "14px",
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "space-between",
                 overflow: "hidden",
-                position: "relative"
-              }}
+                position: "relative" }}
             >
               {/* Top: 3D Visual Artwork Banner */}
               <div
@@ -228,14 +224,13 @@ export default function FeaturesMegaMenu({
                   overflow: "hidden",
                   height: 155,
                   width: "100%",
-                  background: "radial-gradient(ellipse at 50% 30%, #1e293b 0%, #0f172a 100%)",
+                  background: "radial-gradient(ellipse at 50% 30%, #1a223f 0%, #0c1022 100%)",
                   border: "none",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "flex-end",
                   padding: "16px",
-                  boxShadow: "inset 0 0 40px rgba(56, 189, 248, 0.15)"
-                }}
+                  boxShadow: "inset 0 0 40px rgba(56, 189, 248, 0.15)" }}
               >
                 {/* 3D artwork background image */}
                 <img
@@ -248,8 +243,7 @@ export default function FeaturesMegaMenu({
                     height: "100%",
                     objectFit: "cover",
                     opacity: 0.85,
-                    filter: "contrast(1.15) brightness(0.95)"
-                  }}
+                    filter: "contrast(1.15) brightness(0.95)" }}
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                   }}
@@ -262,8 +256,7 @@ export default function FeaturesMegaMenu({
                     inset: 0,
                     background:
                       "linear-gradient(180deg, rgba(8, 11, 22, 0.2) 0%, rgba(8, 11, 22, 0.85) 100%)",
-                    pointerEvents: "none"
-                  }}
+                    pointerEvents: "none" }}
                 />
 
                 {/* Bold headline on top of graphic */}
@@ -278,8 +271,7 @@ export default function FeaturesMegaMenu({
                       borderRadius: 100,
                       padding: "2.5px 8px",
                       marginBottom: 6,
-                      backdropFilter: "blur(8px)"
-                    }}
+                      backdropFilter: "blur(8px)" }}
                   >
                     <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#38bdf8", boxShadow: "0 0 6px #38bdf8" }} />
                     <span style={{ fontSize: 9.5, fontWeight: 800, color: "#38bdf8", letterSpacing: "0.08em", textTransform: "uppercase" }}>ALGO V1</span>
@@ -291,8 +283,7 @@ export default function FeaturesMegaMenu({
                       color: "#ffffff",
                       lineHeight: 1.15,
                       letterSpacing: "-0.03em",
-                      textShadow: "0 2px 10px rgba(0,0,0,0.8)"
-                    }}
+                      textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}
                   >
                     FiAlgo V1<br />
                     Quant Engine
@@ -307,20 +298,18 @@ export default function FeaturesMegaMenu({
                     style={{
                       fontSize: 13.5,
                       fontWeight: 700,
-                      color: "#0f172a",
+                      color: "#ffffff",
                       lineHeight: 1.3,
-                      letterSpacing: "-0.01em"
-                    }}
+                      letterSpacing: "-0.01em" }}
                   >
                     Automate trades with FiAlgo V1
                   </div>
                   <div
                     style={{
                       fontSize: 11,
-                      color: "#64748b",
+                      color: "rgba(255, 255, 255, 0.52)",
                       lineHeight: 1.45,
-                      marginTop: 3
-                    }}
+                      marginTop: 3 }}
                   >
                     Institutional MT5 Gold execution with built-in risk protection, automated news filtering & verified edge.
                   </div>
@@ -339,25 +328,28 @@ export default function FeaturesMegaMenu({
                     gap: 8,
                     padding: "9px 20px",
                     borderRadius: 999,
-                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                    border: "none",
-                    boxShadow: "0 2px 8px rgba(37, 99, 235, 0.35)",
-                    color: "#ffffff",
+                    background: "linear-gradient(135deg, #182236 0%, #0d1526 100%)",
+                    border: "1px solid rgba(56, 189, 248, 0.22)",
+                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)",
+                    color: "#60a5fa",
                     fontSize: 13,
                     fontWeight: 700,
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                     width: "100%",
-                    outline: "none"
-                  }}
+                    outline: "none" }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)";
-                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(37, 99, 235, 0.45)";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #22324f 0%, #111c34 100%)";
+                    e.currentTarget.style.color = "#93c5fd";
+                    e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.35)";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 4px 14px rgba(30, 58, 138, 0.4)";
                     e.currentTarget.style.transform = "translateY(-1px)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)";
-                    e.currentTarget.style.boxShadow = "0 2px 8px rgba(37, 99, 235, 0.35)";
+                    e.currentTarget.style.background = "linear-gradient(135deg, #182236 0%, #0d1526 100%)";
+                    e.currentTarget.style.color = "#60a5fa";
+                    e.currentTarget.style.borderColor = "rgba(56, 189, 248, 0.22)";
+                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)";
                     e.currentTarget.style.transform = "translateY(0px)";
                   }}
                 >
