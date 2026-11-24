@@ -442,10 +442,6 @@ export default function PublicNavbar({
                 />
               </div>
 
-              <div style={{ transform: "scale(0.85)", display: "flex", alignItems: "center" }}>
-                <AnimatedButton text="TradiFive AI" onClick={() => navigate("/features/tradifive-ai")} />
-              </div>
-
               <a href={isHome ? "#pricing" : "/#pricing"} onClick={(e) => handleScrollTo(e, "pricing")} className="nav-link-item" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                 <span>Pricing</span>
                 <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "rgba(255,255,255,0.08)", color: "#94a3b8" }}>SOON</span>
