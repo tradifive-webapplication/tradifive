@@ -217,28 +217,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
             </button>
           </motion.div>
 
-                    {/* Live System Pulse Bar */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.35 }}
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap", marginBottom: 30, width: "100%" }}
-          >
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 100, background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 600, color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981" }} />
-              <span>Risk Guard: <strong style={{ color: "#0f172a" }}>Active (0.02s)</strong></span>
-            </div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 100, background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 600, color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#3b82f6", boxShadow: "0 0 8px #3b82f6" }} />
-              <span>AI Journal: <strong style={{ color: "#0f172a" }}>Auto-Sync MT5</strong></span>
-            </div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 100, background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 600, color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", boxShadow: "0 0 8px #7c3aed" }} />
-              <span>FiAlgo Engine: <strong style={{ color: "#0f172a" }}>Gold M1</strong></span>
-            </div>
-          </motion.div>
-
-          {/* Trust Signals */}
+                    {/* Trust Signals */}
           <div style={{ width: "100%", maxWidth: 560 }}>
             <HeroTrustSignals />
           </div>
