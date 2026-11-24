@@ -114,7 +114,7 @@ export default function HowItWorks() {
           >
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", boxShadow: "0 0 8px #2563eb" }} />
             <span style={{ fontSize: 11, fontWeight: 700, color: "#2563eb", letterSpacing: "1px", textTransform: "uppercase" }}>
-              THE TRADIFIVE JOURNEY
+              THE CONSISTENCY PROTOCOL
             </span>
           </motion.div>
 

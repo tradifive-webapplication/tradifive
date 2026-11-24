@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion, useMotionValue, AnimatePresence } from "framer-motion";
 
 export type CursorStyleType = "3d" | "dot" | "system";
@@ -10,6 +11,32 @@ interface ClickRipple {
 }
 
 export function CustomCursor() {
+  const location = useLocation();
+
+  // Public/marketing routes (Landing page, features, legal, contact, auth)
+  // ALWAYS use the standard native browser mouse cursor.
+  // The custom cursor is strictly reserved for the authenticated web user app (dashboard, journal, settings, etc.).
+  const isLandingOrPublic =
+    location.pathname === "/" ||
+    location.pathname.startsWith("/features") ||
+    location.pathname.startsWith("/legal") ||
+    location.pathname === "/download" ||
+    location.pathname === "/contact" ||
+    location.pathname === "/login" ||
+    location.pathname === "/auth-callback" ||
+    location.pathname === "/forgot-password" ||
+    location.pathname === "/reset-password" ||
+    location.pathname === "/verify-email" ||
+    location.pathname === "/privacy-policy" ||
+    location.pathname === "/privacy" ||
+    location.pathname === "/terms-of-service" ||
+    location.pathname === "/terms" ||
+    location.pathname === "/refund-policy" ||
+    location.pathname === "/risk-disclosure" ||
+    location.pathname === "/cookie-policy" ||
+    location.pathname === "/aml-kyc-policy" ||
+    location.pathname === "/delete-account";
+
   const [isVisible, setIsVisible] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
@@ -27,6 +54,15 @@ export function CustomCursor() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+
+    // Immediately disable and remove custom cursor on landing page or public routes
+    if (isLandingOrPublic) {
+      document.documentElement.classList.remove("custom-cursor-active");
+      document.documentElement.classList.remove("cursor-style-system");
+      setIsEnabled(false);
+      return;
+    }
+
     const isFinePointer = window.matchMedia("(pointer: fine) and (hover: hover)").matches;
     if (!isFinePointer) return;
 
@@ -123,9 +159,9 @@ export function CustomCursor() {
       window.removeEventListener("tradifive_cursor_change", handleCursorChange);
       window.removeEventListener("storage", handleStorageChange);
     };
-  }, [cursorX, cursorY, isVisible, cursorStyle]);
+  }, [cursorX, cursorY, isVisible, cursorStyle, isLandingOrPublic]);
 
-  if (!isEnabled) return null;
+  if (!isEnabled || isLandingOrPublic) return null;
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[9999999] overflow-hidden select-none">
