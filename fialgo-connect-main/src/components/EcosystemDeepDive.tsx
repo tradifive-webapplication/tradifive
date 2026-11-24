@@ -24,9 +24,9 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
 
   const TABS = [
     { id: "risk", label: "Institutional Risk Guard", short: "Risk Guard", icon: ShieldCheck, color: "#2563eb", badge: "AUTONOMOUS LOCK" },
-    { id: "journal", label: "AI Trade Journal & Coach", short: "AI Journal", icon: BookOpen, color: "#7c3aed", badge: "AUTO-SYNC MT5" },
-    { id: "algo", label: "FiAlgo Automated Engine", short: "AutoTrade", icon: Cpu, color: "#0ea5e9", badge: "GOLD M1 .EX5" },
-    { id: "community", label: "Verified Social Network", short: "Community", icon: Users, color: "#10b981", badge: "VERIFIED P&L" },
+    { id: "journal", label: "AI Trade Journal & Coach", short: "AI Journal", icon: BookOpen, color: "#f97316", badge: "AUTO-SYNC MT5" },
+    { id: "algo", label: "FiAlgo Automated Engine", short: "AutoTrade", icon: Cpu, color: "#2563eb", badge: "GOLD M1 .EX5" },
+    { id: "community", label: "Verified Social Network", short: "Community", icon: Users, color: "#f97316", badge: "VERIFIED P&L" },
   ] as const;
 
   return (
@@ -201,7 +201,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 10px #10b981" }} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", letterSpacing: "0.5px" }}>RISK GUARD ENFORCER</span>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981", background: "#ecfdf5", border: "1px solid #a7f3d0", padding: "3px 10px", borderRadius: 100 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981", background: "#fff7ed", border: "1px solid #fed7aa", padding: "3px 10px", borderRadius: 100 }}>
                     ACTIVE & MONITORING
                   </span>
                 </div>
@@ -289,7 +289,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
             >
               {/* Left Column: AI Trade Journal Copy */}
               <div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 100, background: "rgba(124,58,237,0.08)", color: "#7c3aed", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 18 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 100, background: "rgba(249,115,22,0.08)", color: "#f97316", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 18 }}>
                   <Brain size={13} />
                   Automated Psychology & Analytics
                 </div>
@@ -312,7 +312,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     { title: "Session & Timeframe Analytics", desc: "Know with mathematical certainty whether London, New York, or Asian session generates your highest expectancy." }
                   ].map((feat, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <CheckCircle2 size={18} color="#7c3aed" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <CheckCircle2 size={18} color="#f97316" style={{ flexShrink: 0, marginTop: 2 }} />
                       <div>
                         <strong style={{ fontSize: 14, color: "#0f172a", fontWeight: 700, display: "block" }}>{feat.title}</strong>
                         <span style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5, display: "block", marginTop: 2 }}>{feat.desc}</span>
@@ -334,7 +334,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                   </div>
                   <div style={{ width: 1, height: 28, background: "#e2e8f0" }} />
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: "#7c3aed", letterSpacing: "-0.02em" }}>24/7</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: "#f97316", letterSpacing: "-0.02em" }}>24/7</div>
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>AI Psychology Coach</div>
                   </div>
                 </div>
@@ -345,10 +345,10 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                 {/* Header */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #e2e8f0" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#7c3aed" }} />
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#f97316" }} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>AI TRADE AUDIT</span>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: "#7c3aed", background: "#f5f3ff", border: "1px solid #ddd6fe", padding: "3px 10px", borderRadius: 100 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "#f97316", background: "#fff7ed", border: "1px solid #fed7aa", padding: "3px 10px", borderRadius: 100 }}>
                     GRADE: A+ (DISCIPLINE 98%)
                   </span>
                 </div>
@@ -358,7 +358,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
                     <div>
                       <span style={{ fontSize: 16, fontWeight: 800, color: "#0f172a" }}>XAU/USD (Gold)</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginLeft: 8, background: "#ecfdf5", padding: "2px 6px", borderRadius: 4 }}>BUY 0.50 LOT</span>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981", marginLeft: 8, background: "#fff7ed", padding: "2px 6px", borderRadius: 4 }}>BUY 0.50 LOT</span>
                     </div>
                     <span style={{ fontSize: 20, fontWeight: 900, color: "#10b981" }}>+₹18,450.00</span>
                   </div>
@@ -370,8 +370,8 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                 </div>
 
                 {/* AI Psychology Feedback */}
-                <div style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.04) 0%, rgba(37,99,235,0.04) 100%)", borderRadius: 16, border: "1px solid rgba(124,58,237,0.2)", padding: "16px", marginBottom: 18 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#7c3aed", fontSize: 11, fontWeight: 800, textTransform: "uppercase", marginBottom: 6 }}>
+                <div style={{ background: "linear-gradient(135deg, rgba(249,115,22,0.04) 0%, rgba(37,99,235,0.04) 100%)", borderRadius: 16, border: "1px solid rgba(249,115,22,0.25)", padding: "16px", marginBottom: 18 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#f97316", fontSize: 11, fontWeight: 800, textTransform: "uppercase", marginBottom: 6 }}>
                     <Sparkles size={13} />
                     AI Behavioral Analysis
                   </div>
@@ -411,7 +411,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
             >
               {/* Left Column: AutoTrade Copy */}
               <div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 100, background: "rgba(14,165,233,0.08)", color: "#0284c7", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 18 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 100, background: "rgba(37,99,235,0.08)", color: "#2563eb", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 18 }}>
                   <Cpu size={13} />
                   Algorithmic Execution
                 </div>
@@ -434,7 +434,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     { title: "High-Water Mark Loss Protection", desc: "On profit-sharing plans, prior losses are carried forward. You never pay a single rupee in fee until past losses are fully recovered." }
                   ].map((feat, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <CheckCircle2 size={18} color="#0284c7" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <CheckCircle2 size={18} color="#2563eb" style={{ flexShrink: 0, marginTop: 2 }} />
                       <div>
                         <strong style={{ fontSize: 14, color: "#0f172a", fontWeight: 700, display: "block" }}>{feat.title}</strong>
                         <span style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5, display: "block", marginTop: 2 }}>{feat.desc}</span>
@@ -456,7 +456,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                   </div>
                   <div style={{ width: 1, height: 28, background: "#e2e8f0" }} />
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: "#0284c7", letterSpacing: "-0.02em" }}>3 Days</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: "#2563eb", letterSpacing: "-0.02em" }}>3 Days</div>
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Free MT5 Demo Trial</div>
                   </div>
                 </div>
@@ -467,10 +467,10 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                 {/* Header */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid #e2e8f0" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#0ea5e9" }} />
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#2563eb" }} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>FIALGO ENGINE TELEMETRY</span>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: "#0284c7", background: "#f0f9ff", border: "1px solid #bae6fd", padding: "3px 10px", borderRadius: 100 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "#2563eb", background: "#eff6ff", border: "1px solid #bfdbfe", padding: "3px 10px", borderRadius: 100 }}>
                     PAIR: XAUUSD · M1
                   </span>
                 </div>
@@ -492,8 +492,8 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                 </div>
 
                 {/* Security Shield Banner */}
-                <div style={{ background: "#ecfdf5", border: "1px solid #a7f3d0", borderRadius: 16, padding: "16px", display: "flex", alignItems: "center", gap: 12 }}>
-                  <ShieldCheck size={24} color="#059669" style={{ flexShrink: 0 }} />
+                <div style={{ background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: 16, padding: "16px", display: "flex", alignItems: "center", gap: 12 }}>
+                  <ShieldCheck size={24} color="#ea580c" style={{ flexShrink: 0 }} />
                   <div>
                     <strong style={{ fontSize: 12.5, color: "#065f46", display: "block" }}>Zero Capital Access Guarantee</strong>
                     <span style={{ fontSize: 11.5, color: "#047857", lineHeight: 1.4, display: "block", marginTop: 2 }}>
@@ -527,7 +527,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
             >
               {/* Left Column: Community Copy */}
               <div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 100, background: "rgba(16,185,129,0.08)", color: "#059669", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 18 }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 100, background: "rgba(249,115,22,0.08)", color: "#ea580c", fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 18 }}>
                   <Users size={13} />
                   Verified Social Network
                 </div>
@@ -550,7 +550,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     { title: "24-Hour Trading Stories", desc: "Share charts, entry triggers, and daily milestones with a community that understands the trading journey." }
                   ].map((feat, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                      <CheckCircle2 size={18} color="#059669" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <CheckCircle2 size={18} color="#ea580c" style={{ flexShrink: 0, marginTop: 2 }} />
                       <div>
                         <strong style={{ fontSize: 14, color: "#0f172a", fontWeight: 700, display: "block" }}>{feat.title}</strong>
                         <span style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5, display: "block", marginTop: 2 }}>{feat.desc}</span>
@@ -572,7 +572,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                   </div>
                   <div style={{ width: 1, height: 28, background: "#e2e8f0" }} />
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 900, color: "#059669", letterSpacing: "-0.02em" }}>100%</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: "#ea580c", letterSpacing: "-0.02em" }}>100%</div>
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Verified Telemetry</div>
                   </div>
                 </div>
@@ -586,7 +586,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981" }} />
                     <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>LIVE LEADERBOARD · NOV CUP</span>
                   </div>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: "#059669", background: "#ecfdf5", border: "1px solid #a7f3d0", padding: "3px 10px", borderRadius: 100 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "#ea580c", background: "#fff7ed", border: "1px solid #fed7aa", padding: "3px 10px", borderRadius: 100 }}>
                     ₹5,00,000 PRIZE POOL
                   </span>
                 </div>

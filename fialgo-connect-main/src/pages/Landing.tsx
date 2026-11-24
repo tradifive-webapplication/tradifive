@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { PricingCards } from "@/components/PricingCards";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
-import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, Lock, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
 import PremiumBackground from "../components/PremiumBackground";
 import StarsBackground from "../components/StarsBackground";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import confetti from "canvas-confetti";
 import { FlipText } from "@/components/ui/flip-text";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
 import EcosystemDeepDive from "../components/EcosystemDeepDive";
+import InstitutionalRoadmap from "../components/InstitutionalRoadmap";
 // SideRays removed for clean white mode
 import PlasmaWave from "@/components/PlasmaWave";
 import BlurText from "@/components/BlurText";
@@ -78,7 +79,7 @@ function HeroTrustSignals() {
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <span className="text-[13px] sm:text-base font-extrabold text-slate-900 leading-none">4.9/5</span>
               <div style={{ display: "flex", gap: 2 }}>
-                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="#f59e0b" color="#f59e0b" />)}
+                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="#f97316" color="#f97316" />)}
               </div>
             </div>
             <div className="text-[9px] sm:text-[11px] text-slate-500">from 1,200+ reviews</div>
@@ -90,139 +91,400 @@ function HeroTrustSignals() {
 }
 
 /* ════════════════
-   HERO
+   HERO WITH 3D SCROLL DASHBOARD
 ════════════════ */
 function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void }) {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+
+  // 3D perspective transforms on scroll
+  const rotateX = useTransform(scrollYProgress, [0, 0.45], [16, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.45], [0.94, 1.02]);
+  const y = useTransform(scrollYProgress, [0, 0.45], [20, -10]);
+  const opacity = useTransform(scrollYProgress, [0, 0.85, 1], [1, 1, 0.6]);
+
   return (
-    <section className="hero-section" style={{ position: "relative", overflow: "hidden", width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-      {/* Radiant ambient glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.08),rgba(255,255,255,0))] pointer-events-none" />
+    <section 
+      ref={heroRef}
+      className="hero-section" 
+      style={{ 
+        position: "relative", 
+        overflow: "hidden", 
+        width: "100%", 
+        paddingTop: "120px",
+        paddingBottom: "80px",
+        display: "flex", 
+        flexDirection: "column", 
+        alignItems: "center", 
+        justifyContent: "center",
+        backgroundColor: "#ffffff"
+      }}
+    >
+      {/* Radiant ambient glow: subtle blue and orange field */}
+      <div 
+        style={{
+          position: "absolute",
+          top: "-10%",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "1100px",
+          height: "650px",
+          background: "radial-gradient(ellipse at 50% 30%, rgba(37,99,235,0.08) 0%, rgba(249,115,22,0.05) 45%, transparent 75%)",
+          pointerEvents: "none",
+          zIndex: 0
+        }}
+      />
 
-      <div className="hero-container" style={{ padding: "100px 24px 60px", width: "100%", maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-        <div style={{ width: "100%", maxWidth: 860, margin: "0 auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <div 
+        className="hero-container" 
+        style={{ 
+          maxWidth: 1200, 
+          width: "100%", 
+          margin: "0 auto", 
+          padding: "0 24px",
+          textAlign: "center", 
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center",
+          position: "relative",
+          zIndex: 2
+        }}
+      >
+        {/* Top Badge (Blue & Orange accent) */}
+        <motion.div 
+          initial={{ opacity: 0, y: 12 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.6 }}
+          style={{ 
+            display: "inline-flex", 
+            alignItems: "center", 
+            gap: 8, 
+            background: "#f8fafc", 
+            border: "1px solid #e2e8f0", 
+            padding: "6px 18px 6px 10px", 
+            borderRadius: 100, 
+            marginBottom: 24, 
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04)" 
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", background: "rgba(249,115,22,0.15)" }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f97316", boxShadow: "0 0 8px #f97316" }} />
+          </div>
+          <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", letterSpacing: "0.5px" }}>
+            AI-POWERED INSTITUTIONAL ECOSYSTEM
+          </span>
+        </motion.div>
 
-          {/* Badge */}
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="hero-badge" style={{ display: "inline-flex", width: "fit-content", alignItems: "center", gap: 8, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 16px 6px 8px", borderRadius: "100px", marginBottom: 28, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", background: "rgba(99,102,241,0.2)" }}><div className="pulse-dot" style={{ width: 4, height: 4, borderRadius: "50%", background: "#818cf8" }} /></div>
-            <span className="hero-badge-text" style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", letterSpacing: "0.5px" }}>AI-Powered Trading Ecosystem</span>
+        {/* Main Headline */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          style={{ 
+            fontSize: "clamp(36px, 5.8vw, 68px)", 
+            fontWeight: 900, 
+            lineHeight: 1.1, 
+            letterSpacing: "-0.04em", 
+            margin: "0 0 20px 0", 
+            color: "#0f172a",
+            maxWidth: 920
+          }}
+        >
+          The Ultimate Trading Terminal <br />
+          <span style={{ background: "linear-gradient(135deg, #2563eb 0%, #f97316 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            For Modern Consistent Traders.
+          </span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.18 }}
+          style={{ 
+            fontSize: "clamp(16px, 1.8vw, 18.5px)", 
+            color: "#475569", 
+            lineHeight: 1.6, 
+            maxWidth: 680, 
+            margin: "0 auto 36px", 
+            fontWeight: 400 
+          }}
+        >
+          Stop blowing accounts to emotional tilt. Tradifive combines <strong>Autonomous MT5 Risk Protection</strong>, an <strong>Automated AI Trade Journal</strong>, and institutional algorithmic execution into one high-discipline ecosystem.
+        </motion.p>
+
+        {/* CTA Group */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.25 }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap", marginBottom: 32, width: "100%" }}
+        >
+          <button
+            onClick={onStart}
+            style={{
+              background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+              color: "#ffffff",
+              border: "none",
+              boxShadow: "0 4px 18px rgba(37, 99, 235, 0.35)",
+              borderRadius: 100,
+              padding: "14px 34px",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "all 0.2s ease",
+              outline: "none",
+              whiteSpace: "nowrap"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow = "0 6px 24px rgba(37, 99, 235, 0.45)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 18px rgba(37, 99, 235, 0.35)";
+            }}
+          >
+            <span>Start Free</span>
+            <ArrowRight size={16} />
+          </button>
+
+          <button
+            onClick={() => {
+              const el = document.getElementById("technology") || document.getElementById("roadmap") || document.getElementById("pricing");
+              if (el) {
+                const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                window.scrollTo({ top: y, behavior: "smooth" });
+              } else {
+                onSignIn();
+              }
+            }}
+            style={{
+              background: "#ffffff",
+              color: "#0f172a",
+              border: "1.5px solid #e2e8f0",
+              borderRadius: 100,
+              padding: "13px 30px",
+              fontSize: 15,
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+              transition: "all 0.2s ease",
+              outline: "none",
+              whiteSpace: "nowrap"
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.borderColor = "#f97316";
+              e.currentTarget.style.color = "#ea580c";
+              e.currentTarget.style.boxShadow = "0 4px 14px rgba(249, 115, 22, 0.12)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.borderColor = "#e2e8f0";
+              e.currentTarget.style.color = "#0f172a";
+              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.04)";
+            }}
+          >
+            <span>Explore Architecture</span>
+          </button>
+        </motion.div>
+
+        {/* Trust Signals Rating Strip */}
+        <div style={{ width: "100%", maxWidth: 540, marginBottom: 54 }}>
+          <HeroTrustSignals />
+        </div>
+
+        {/* ══════════════════════════════════════════
+           3D SCROLL PERSPECTIVE DASHBOARD SHOWCASE
+        ══════════════════════════════════════════ */}
+        <div style={{ perspective: 1200, width: "100%", maxWidth: 1080, margin: "0 auto", position: "relative" }}>
+          <motion.div
+            style={{
+              rotateX,
+              scale,
+              y,
+              opacity,
+              transformStyle: "preserve-3d",
+              borderRadius: 24,
+              boxShadow: "0 30px 80px -20px rgba(37, 99, 235, 0.18), 0 0 0 1px #e2e8f0, 0 10px 30px rgba(0, 0, 0, 0.05)",
+              background: "#ffffff",
+              overflow: "hidden",
+              position: "relative"
+            }}
+          >
+            {/* macOS Chrome Header Bar */}
+            <div 
+              style={{ 
+                height: 42, 
+                background: "#f8fafc", 
+                borderBottom: "1px solid #e2e8f0", 
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "space-between", 
+                padding: "0 16px" 
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b" }} />
+                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981" }} />
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", marginLeft: 8 }} className="hide-sm">Tradifive Institutional Terminal</span>
+              </div>
+
+              {/* URL Address Pill */}
+              <div 
+                style={{ 
+                  display: "inline-flex", 
+                  alignItems: "center", 
+                  gap: 6, 
+                  background: "#ffffff", 
+                  border: "1px solid #e2e8f0", 
+                  padding: "3px 14px", 
+                  borderRadius: 100, 
+                  fontSize: 11, 
+                  fontWeight: 600, 
+                  color: "#0f172a" 
+                }}
+              >
+                <Lock size={10} color="#2563eb" />
+                <span>tradifive.com/terminal/live</span>
+              </div>
+
+              {/* Live Broker Ping */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", boxShadow: "0 0 8px #2563eb" }} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#2563eb" }}>0.02s MT5 Bridge</span>
+              </div>
+            </div>
+
+            {/* Dashboard Screenshot Image */}
+            <div style={{ position: "relative", width: "100%", background: "#0f172a" }}>
+              <img 
+                src="/dashboard-preview.png" 
+                alt="Tradifive Trading Dashboard" 
+                style={{ 
+                  width: "100%", 
+                  height: "auto", 
+                  display: "block",
+                  objectFit: "cover"
+                }} 
+                onError={(e) => {
+                  e.currentTarget.src = "/homedesktop.png";
+                }}
+              />
+              {/* Subtle glass reflection overlay */}
+              <div 
+                style={{ 
+                  position: "absolute", 
+                  inset: 0, 
+                  background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 40%, rgba(15,23,42,0.1) 100%)", 
+                  pointerEvents: "none" 
+                }} 
+              />
+            </div>
           </motion.div>
 
-          {/* Headline */}
-          <motion.h1
+          {/* Floating Parallax Badge 1: Top-Right (Electric Blue) */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            style={{
+              position: "absolute",
+              top: "-24px",
+              right: "24px",
+              background: "#ffffff",
+              border: "1.5px solid #2563eb",
+              borderRadius: 16,
+              padding: "10px 16px",
+              boxShadow: "0 12px 30px rgba(37,99,235,0.18), 0 2px 6px rgba(0,0,0,0.05)",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              zIndex: 10
+            }}
+            className="hide-sm"
+          >
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(37,99,235,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ShieldCheck size={18} color="#2563eb" />
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#2563eb", textTransform: "uppercase", letterSpacing: "0.5px" }}>Autonomous Risk Guard</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Daily Circuit Breaker: Active (0.02s)</div>
+            </div>
+          </motion.div>
+
+          {/* Floating Parallax Badge 2: Bottom-Left (Vivid Orange) */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6, duration: 0.6 }}
+            style={{
+              position: "absolute",
+              bottom: "-20px",
+              left: "24px",
+              background: "#ffffff",
+              border: "1.5px solid #f97316",
+              borderRadius: 16,
+              padding: "10px 16px",
+              boxShadow: "0 12px 30px rgba(249,115,22,0.18), 0 2px 6px rgba(0,0,0,0.05)",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              zIndex: 10
+            }}
+            className="hide-sm"
+          >
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(249,115,22,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Sparkles size={18} color="#f97316" />
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#ea580c", textTransform: "uppercase", letterSpacing: "0.5px" }}>AI Trade Journal</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Scored Grade: A+ · Discipline 98%</div>
+            </div>
+          </motion.div>
+
+          {/* Floating Parallax Badge 3: Bottom-Right (Blue & Black) */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="hero-title"
-            style={{ width: "100%", textAlign: "center", fontSize: "clamp(34px, 5.5vw, 62px)", fontWeight: 900, lineHeight: 1.12, letterSpacing: "-0.04em", marginTop: 0, marginBottom: 22, color: "#0f172a" }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+            style={{
+              position: "absolute",
+              bottom: "36px",
+              right: "-20px",
+              background: "#0f172a",
+              border: "1px solid #1e293b",
+              borderRadius: 14,
+              padding: "8px 14px",
+              boxShadow: "0 14px 34px rgba(0,0,0,0.25)",
+              display: "flex",
+              alignItems: "center",
+              gap: 9,
+              zIndex: 10
+            }}
+            className="hide-sm"
           >
-            <BlurText
-              text={"The Ultimate AI Ecosystem\nfor Modern Traders."}
-              gradient={["#0f172a", "#2563eb"]}
-            />
-          </motion.h1>
-
-          {/* Subheadline */}
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="hero-desc"
-            style={{ width: "100%", textAlign: "center", fontSize: 18, color: "#475569", lineHeight: 1.6, maxWidth: 640, marginBottom: 36, fontWeight: 400 }}
-          >
-            Tradifive is an AI-powered trading ecosystem that enforces risk rules, builds discipline, and tracks performance — so traders stop blowing accounts and start trading like professionals.
-          </motion.p>
-
-          {/* CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3 }}
-            className="hero-cta-group"
-            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap", marginBottom: 44, width: "100%" }}
-          >
-            <button
-              onClick={onStart}
-              style={{
-                background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-                color: "#ffffff",
-                border: "none",
-                boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
-                borderRadius: 100,
-                padding: "14px 30px",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                transition: "all 0.2s ease",
-                outline: "none",
-                whiteSpace: "nowrap"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.background = "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)";
-                e.currentTarget.style.boxShadow = "0 6px 20px rgba(37, 99, 235, 0.45)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.background = "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)";
-                e.currentTarget.style.boxShadow = "0 4px 14px rgba(37, 99, 235, 0.35)";
-              }}
-            >
-              <span>Start Free</span>
-              <ArrowRight size={16} />
-            </button>
-            <button
-              onClick={() => {
-                const el = document.getElementById("technology") || document.getElementById("how-it-works") || document.getElementById("pricing");
-                if (el) {
-                  const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                  window.scrollTo({ top: y, behavior: "smooth" });
-                } else {
-                  onSignIn();
-                }
-              }}
-              style={{
-                background: "#ffffff",
-                color: "#0f172a",
-                border: "1px solid #e2e8f0",
-                borderRadius: 100,
-                padding: "14px 28px",
-                fontSize: 15,
-                fontWeight: 600,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
-                transition: "all 0.2s ease",
-                outline: "none",
-                whiteSpace: "nowrap"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-1px)";
-                e.currentTarget.style.background = "#f8fafc";
-                e.currentTarget.style.borderColor = "#cbd5e1";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.06)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.background = "#ffffff";
-                e.currentTarget.style.borderColor = "#e2e8f0";
-                e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.05)";
-              }}
-            >
-              <span>Learn More</span>
-            </button>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(37,99,235,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Zap size={15} color="#60a5fa" />
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <div style={{ fontSize: 10, fontWeight: 800, color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.5px" }}>FiAlgo Engine</div>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#ffffff" }}>2ms Socket Relay · 100% Custody</div>
+            </div>
           </motion.div>
-
-                    {/* Trust Signals */}
-          <div style={{ width: "100%", maxWidth: 560 }}>
-            <HeroTrustSignals />
-          </div>
-
         </div>
+
       </div>
     </section>
   );
@@ -232,15 +494,15 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
    PLATFORM PILLARS TICKER
 ════════════════ */
 const CORE_FEATURES = [
-  { n: "Social Trading Feed", c: "#3b82f6" },
-  { n: "Live Trading Competitions", c: "#7c3aed" },
-  { n: "Institutional Risk Guard", c: "#3b82f6" },
-  { n: "AI Trade Journal", c: "#10b981" },
-  { n: "FiAlgo Engine", c: "#0ea5e9" },
-  { n: "24-Hour Trading Stories", c: "#7c3aed" },
-  { n: "Real-Time Leaderboards", c: "#3b82f6" },
-  { n: "Multi-Broker MT5 Bridge", c: "#10b981" },
-  { n: "Verified Performance Tracking", c: "#7c3aed" },
+  { n: "Social Trading Feed", c: "#2563eb" },
+  { n: "Live Trading Competitions", c: "#f97316" },
+  { n: "Institutional Risk Guard", c: "#2563eb" },
+  { n: "AI Trade Journal", c: "#f97316" },
+  { n: "FiAlgo Engine", c: "#2563eb" },
+  { n: "24-Hour Trading Stories", c: "#f97316" },
+  { n: "Real-Time Leaderboards", c: "#2563eb" },
+  { n: "Multi-Broker MT5 Bridge", c: "#f97316" },
+  { n: "Verified Performance Tracking", c: "#2563eb" },
 ];
 
 function PlatformPillars() {
@@ -262,263 +524,6 @@ function PlatformPillars() {
     </section>
   );
 }
-
-/* ════════════════
-   PROBLEM
-════════════════ */
-function Problem() {
-  const r1 = useReveal(), r2 = useReveal(), r3 = useReveal();
-  return (
-    <section id="problem" style={{ backgroundColor: "transparent", padding: "120px 28px", position: "relative" }}>
-      <div style={{ maxWidth: 900, margin: "0 auto" }} className="problem-grid">
-
-        {/* Centered Text and Compact Cards */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-          style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}
-        >
-          <div style={{ marginBottom: 20 }}>
-            <span style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", color: "#2563eb", padding: "6px 16px", borderRadius: "100px", textTransform: "uppercase", fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>WHY TRADIFIVE?</span>
-          </div>
-          <h2 style={{ fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 48 }}>
-            <BlurText
-              lines={[
-                { text: "Trading Is More Than Charts.", gradient: ["#0f172a", "#2563eb"] },
-                { text: "It's Psychology & Discipline.", style: { color: "#64748b", fontSize: "clamp(18px, 2.5vw, 28px)" } }
-              ]}
-            />
-          </h2>
-
-          <div style={{ width: "100%", maxWidth: 1200, margin: "0 auto", textAlign: "left" }}>
-            <AgentBentoGrid />
-          </div>
-        </motion.div>
-
-      </div>
-    </section>
-  );
-}
-
-/* ════════════════
-   HOW IT WORKS
-════════════════ */
-function HowItWorks() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: containerRef, offset: ["start center", "end center"] });
-  const [dim, setDim] = useState({ w: 0, h: 0 });
-
-  useEffect(() => {
-    const ob = new ResizeObserver(entries => {
-      if (entries[0]) setDim({ w: entries[0].contentRect.width, h: entries[0].contentRect.height });
-    });
-    if (containerRef.current) ob.observe(containerRef.current);
-    return () => ob.disconnect();
-  }, []);
-
-  const STEPS = [
-    {
-      num: "01",
-      icon: <Users size={26} strokeWidth={1.8} />,
-      color: "#6366f1", colorBg: "rgba(99,102,241,0.1)", colorBorder: "rgba(99,102,241,0.25)",
-      title: "Create Your Account",
-      desc: "Start your trading journey with Tradifive. Set up your profile, customize your experience, and unlock access to the complete trading ecosystem.",
-      tag: "Get Started",
-      side: "left"
-    },
-    {
-      num: "02",
-      icon: <Layers size={26} strokeWidth={1.8} />,
-      color: "#10b981", colorBg: "rgba(16,185,129,0.1)", colorBorder: "rgba(16,185,129,0.25)",
-      title: "Connect Your Broker",
-      desc: "Link any MT5 broker securely. Our bridge technology ensures zero-latency execution while keeping your funds completely secure on your broker's end.",
-      tag: "MT5 Integration",
-      side: "right"
-    },
-    {
-      num: "03",
-      icon: <ShieldCheck size={26} strokeWidth={1.8} />,
-      color: "#f59e0b", colorBg: "rgba(245,158,11,0.1)", colorBorder: "rgba(245,158,11,0.25)",
-      title: "Activate Risk Guard",
-      desc: "Set your daily loss limits and maximum trades. Once your rules are breached, Tradifive automatically locks your account for the day to prevent revenge trading.",
-      tag: "AI Protected",
-      side: "left"
-    },
-    {
-      num: "04",
-      icon: <Globe size={26} strokeWidth={1.8} />,
-      color: "#ec4899", colorBg: "rgba(236,72,153,0.1)", colorBorder: "rgba(236,72,153,0.25)",
-      title: "Join Community & Creators",
-      desc: "Follow verified traders, join public or private channels, share ideas, learn from creators, and grow alongside a community of traders.",
-      tag: "Start Growing",
-      side: "right"
-    },
-  ];
-
-  // Calculate dynamic responsive SVG path for the "crazy" snaking line
-  const { w, h } = dim;
-  let pathString = "";
-  if (w > 0 && h > 0) {
-    const isMobile = w < 768;
-    const cx = w / 2;
-
-    if (isMobile) {
-      const step = h / 4;
-      pathString = `M ${cx} 0 `;
-      pathString += `C ${cx} ${step * 0.1}, 15 ${step * 0.2}, 15 ${step * 0.5} `;
-      pathString += `S 45 ${step * 1.0}, 45 ${step * 1.5} `;
-      pathString += `S 15 ${step * 2.0}, 15 ${step * 2.5} `;
-      pathString += `S 45 ${step * 3.0}, 45 ${step * 3.5} `;
-      pathString += `S ${cx} ${h * 0.9}, ${cx} ${h}`;
-    } else {
-      const lx = w * 0.25; // 25% from left (center of left box)
-      const rx = w * 0.75; // 75% from left (center of right box)
-      const stepH = h / 4;
-
-      // Start at top center
-      pathString = `M ${cx} 0 `;
-
-      // Curve to Box 1 (Left)
-      pathString += `C ${cx} ${stepH * 0.2}, ${lx} ${stepH * 0.1}, ${lx} ${stepH * 0.5} `;
-
-      // Curve to Box 2 (Right)
-      pathString += `S ${rx} ${stepH * 0.8}, ${rx} ${stepH * 1.5} `;
-
-      // Curve to Box 3 (Left)
-      pathString += `S ${lx} ${stepH * 1.8}, ${lx} ${stepH * 2.5} `;
-
-      // Curve to Box 4 (Right)
-      pathString += `S ${rx} ${stepH * 2.8}, ${rx} ${stepH * 3.5} `;
-
-      // Curve to bottom center
-      pathString += `S ${cx} ${h * 0.95}, ${cx} ${h}`;
-    }
-  }
-
-  return (
-    <section id="how-it-works" style={{ backgroundColor: "transparent", padding: "100px 28px", position: "relative", overflow: "hidden" }}>
-      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 90 }}>
-          <motion.span
-            initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            style={{ display: "inline-block", background: "rgba(37,99,235,0.08)", color: "#2563eb", padding: "6px 18px", borderRadius: 100, fontSize: 11, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 24 }}
-          >
-            THE TRADIFIVE JOURNEY
-          </motion.span>
-          <motion.h2
-            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-            style={{ fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: "#0f172a", marginBottom: 16, lineHeight: 1.15 }}
-          >
-            <span style={{ background: "linear-gradient(to right, #0f172a, #2563eb)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-              From Beginner to Consistent Trader<br />
-              In Four Simple Steps.
-            </span>
-          </motion.h2>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 }}
-            style={{ fontSize: 17, color: "#475569", maxWidth: 480, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
-          >
-            Everything you need — learning, trading, discipline, AI guidance, and community — in one ecosystem.
-          </motion.p>
-        </div>
-
-        {/* 3D Crazy Timeline */}
-        <div ref={containerRef} style={{ position: "relative", padding: "40px 0" }}>
-
-          {/* Animated Winding SVG Line */}
-          {w > 0 && h > 0 && (
-            <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0, pointerEvents: "none" }}>
-              <path d={pathString} stroke="rgba(226, 232, 240, 0.9)" strokeWidth="4" fill="none" />
-              <motion.path
-                d={pathString}
-                stroke="url(#gradient)"
-                strokeWidth="4"
-                fill="none"
-                style={{ pathLength: scrollYProgress }}
-                strokeLinecap="round"
-                filter="drop-shadow(0 0 12px rgba(99,102,241,0.8))"
-              />
-              <defs>
-                <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#6366f1" />
-                  <stop offset="33%" stopColor="#10b981" />
-                  <stop offset="66%" stopColor="#f59e0b" />
-                  <stop offset="100%" stopColor="#ec4899" />
-                </linearGradient>
-              </defs>
-            </svg>
-          )}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 120 }}>
-            {STEPS.map((step, i) => {
-              const isRight = step.side === "right";
-              const isMobile = w < 768;
-              return (
-                <div key={i} style={{
-                  display: "flex",
-                  justifyContent: isMobile ? "flex-end" : (isRight ? "flex-end" : "flex-start"),
-                  position: "relative",
-                  zIndex: 2,
-                  paddingLeft: isMobile ? 60 : 0
-                }}>
-
-                  {/* Floating 3D Card */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 60, rotateY: isMobile ? 0 : (isRight ? -30 : 30), scale: 0.9 }}
-                    whileInView={{ opacity: 1, y: 0, rotateY: 0, scale: 1 }}
-                    viewport={{ once: true, amount: 0.5 }}
-                    transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-                    whileHover={{ y: -10, rotateY: isMobile ? 0 : (isRight ? 5 : -5), rotateX: 5, scale: 1.05 }}
-                    style={{
-                      perspective: 1200,
-                      width: "100%",
-                      maxWidth: isMobile ? "100%" : 400,
-                      background: "#ffffff", borderRadius: 24, padding: isMobile ? 20 : 32,
-                      border: "1px solid #e2e8f0",
-                      boxShadow: "0 10px 30px -5px rgba(0,0,0,0.06), 0 0 0 1px #e2e8f0" }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 16, marginBottom: isMobile ? 14 : 20 }}>
-                      <div style={{
-                        width: isMobile ? 48 : 56, height: isMobile ? 48 : 56, borderRadius: isMobile ? 14 : 18,
-                        background: "#f8fafc",
-                        border: `1.5px solid ${step.colorBorder}`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        color: step.color,
-                        boxShadow: `0 0 20px ${step.colorBg}` }}>
-                        {step.icon}
-                      </div>
-                      <div>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: step.color, textTransform: "uppercase", letterSpacing: 2 }}>STEP {step.num}</span>
-                        <h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: "#0f172a", marginTop: 4 }}>{step.title}</h3>
-                      </div>
-                    </div>
-                    <p style={{ fontSize: isMobile ? 13 : 14, color: "#64748b", lineHeight: 1.6, fontWeight: 400 }}>{step.desc}</p>
-
-                    <div style={{ marginTop: 24, display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", background: "#f1f5f9", borderRadius: 100, border: "1px solid #e2e8f0" }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: step.color, boxShadow: `0 0 10px ${step.color}` }} />
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "#475569" }}>{step.tag}</span>
-                    </div>
-                  </motion.div>
-
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-      </div>
-    </section>
-  );
-}
-
-/* ════════════════
-   PLATFORM CAPABILITIES
-════════════════ */
-
 
 /* ════════════════
    APP SHOWCASE
@@ -1305,21 +1310,21 @@ function Pricing({ onStart }: { onStart: () => void }) {
 ════════════════ */
 const TESTIS = [
   { name: "Priya Mehra", role: "Day Trader, Pune", init: "PM", grad: "linear-gradient(135deg,#3b82f6,#1d4ed8)", stars: 5, text: "The social feed changed my trading completely. Seeing real verified P&Ls from other traders keeps me accountable. My win rate jumped from 42% to 67% in 2 months." },
-  { name: "Rahul Sharma", role: "IIT Delhi Graduate", init: "RS", grad: "linear-gradient(135deg,#7c3aed,#4c1d95)", stars: 5, text: "Risk Guard is the real deal. It literally stopped me from revenge trading after a bad morning session. Saved my account more than once." },
+  { name: "Rahul Sharma", role: "IIT Delhi Graduate", init: "RS", grad: "linear-gradient(135deg,#f97316,#4c1d95)", stars: 5, text: "Risk Guard is the real deal. It literally stopped me from revenge trading after a bad morning session. Saved my account more than once." },
   { name: "Kavita Trivedi", role: "Swing Trader, Mumbai", init: "KT", grad: "linear-gradient(135deg,#10b981,#065f46)", stars: 5, text: "Love the trading competitions. Won the November contest and got a funded account. The leaderboard pushes you to perform better every single day." },
   { name: "Arjun Das", role: "Software Eng, Blr", init: "AD", grad: "linear-gradient(135deg,#f59e0b,#b45309)", stars: 5, text: "Auto-Sync Journal is a game changer. No more manual logging. The AI coach spotted that I was overleveraging on Mondays — something I never noticed." },
   { name: "Sneha Kapoor", role: "Forex Trader, Hyderabad", init: "SK", grad: "linear-gradient(135deg,#ec4899,#9d174d)", stars: 4, text: "Following top traders on the feed and seeing their actual trade setups has taught me more than any YouTube course. This is how trading education should work." },
-  { name: "Vikram Singh", role: "Business Owner, Delhi", init: "VS", grad: "linear-gradient(135deg,#3b82f6,#7c3aed)", stars: 5, text: "The community here is different. Everyone has their MT5 connected so you know the results are real. No fake gurus, no screenshot traders." },
+  { name: "Vikram Singh", role: "Business Owner, Delhi", init: "VS", grad: "linear-gradient(135deg,#3b82f6,#f97316)", stars: 5, text: "The community here is different. Everyone has their MT5 connected so you know the results are real. No fake gurus, no screenshot traders." },
   { name: "Ananya Iyer", role: "Options Trader, Chennai", init: "AI", grad: "linear-gradient(135deg,#10b981,#3b82f6)", stars: 5, text: "Set my max daily loss and walked away. Tradifive enforced my rules better than I ever could myself. My discipline improved massively in just 6 weeks." },
   { name: "Zaid Khan", role: "Crypto Trader, Dubai", init: "ZK", grad: "linear-gradient(135deg,#f59e0b,#ec4899)", stars: 4, text: "Joined a competition for the first time last month. Finished 8th place. The competitive element makes you sharper. Already climbing the leaderboard." },
-  { name: "Meera Nair", role: "Banker turned Trader, Kochi", init: "MN", grad: "linear-gradient(135deg,#7c3aed,#10b981)", stars: 5, text: "Finally a platform where I can show my real track record. My verified profile has attracted followers who genuinely want to learn from my strategy." },
+  { name: "Meera Nair", role: "Banker turned Trader, Kochi", init: "MN", grad: "linear-gradient(135deg,#f97316,#10b981)", stars: 5, text: "Finally a platform where I can show my real track record. My verified profile has attracted followers who genuinely want to learn from my strategy." },
 ];
 
 const STATS = [
   { val: "50M+", label: "Global Retail Traders", color: "#3b82f6" },
-  { val: "3-in-1", label: "Social + Trade + Risk", color: "#7c3aed" },
-  { val: "24h", label: "Trading Stories", color: "#10b981" },
-  { val: "Live", label: "MT5 Integration", color: "#3b82f6" },
+  { val: "3-in-1", label: "Social + Trade + Risk", color: "#f97316" },
+  { val: "24h", label: "Trading Stories", color: "#f97316" },
+  { val: "Live", label: "MT5 Integration", color: "#2563eb" },
 ];
 
 function Social() {
@@ -1368,7 +1373,7 @@ function Social() {
           {[...TESTIS, ...TESTIS].map((t, i) => (
             <div key={i} className="feat-card-premium testimonial-card" style={{ width: 320, padding: "22px", flexShrink: 0, borderRadius: 20, background: "#ffffff", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
               <div className="testimonial-stars" style={{ display: "flex", gap: 3, marginBottom: 14 }}>
-                {Array(t.stars).fill(0).map((_, j) => (<svg key={j} width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
+                {Array(t.stars).fill(0).map((_, j) => (<svg key={j} width="11" height="11" viewBox="0 0 24 24" fill="#f97316" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
                 {Array(5 - t.stars).fill(0).map((_, j) => (<svg key={j + t.stars} width="11" height="11" viewBox="0 0 24 24" fill="#e2e8f0" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
               </div>
               <p className="testimonial-text" style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.6, marginBottom: 20, fontWeight: 400 }}>"{t.text}"</p>
@@ -1493,7 +1498,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
 
   const stats = [
     { value: "12,400+", label: "Active Traders", color: "#3b82f6" },
-    { value: "₹2.8M", label: "Prizes Awarded", color: "#7c3aed" },
+    { value: "₹2.8M", label: "Prizes Awarded", color: "#f97316" },
     { value: "94%", label: "Satisfaction Rate", color: "#10b981" },
     { value: "47", label: "Countries", color: "#3b82f6" },
   ];
@@ -1507,7 +1512,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
     {
       title: "Signal Channels",
       desc: "Subscribe to elite trader broadcast rooms and get live signals pushed directly to your dashboard.",
-      color: "#7c3aed"
+      color: "#f97316"
     },
     {
       title: "Direct Messages",
@@ -1532,7 +1537,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ position: "relative", zIndex: 1 }}>
             {/* Premium Pill */}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)", padding: "6px 16px", borderRadius: 100, marginBottom: 24, backdropFilter: "blur(10px)" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", boxShadow: "0 0 10px #6366f1" }} />
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f97316", boxShadow: "0 0 10px #f97316" }} />
               <span style={{ color: "#2563eb", fontWeight: 600, fontSize: 13, letterSpacing: 1, textTransform: "uppercase" }}>Global Network</span>
             </div>
 
@@ -1540,7 +1545,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
               <BlurText
                 lines={[
                   { text: "Thousands of traders are using", gradient: ["#0f172a", "#2563eb"] },
-                  { text: "TradiFive to learn, collab & grow.", gradient: ["#7c3aed", "#2563eb"] }
+                  { text: "TradiFive to learn, collab & grow.", gradient: ["#f97316", "#2563eb"] }
                 ]}
               />
             </h2>
@@ -1651,11 +1656,11 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                   <motion.circle
                     key={`flow-inner-${n.id}`}
                     r="3.5"
-                    fill="#a855f7"
+                    fill="#f97316"
                     initial={{ cx: start.x, cy: start.y, opacity: 0 }}
                     animate={{ cx: [start.x, cx], cy: [start.y, cy], opacity: [0, 1, 0] }}
                     transition={{ duration: 2, repeat: Infinity, delay: i * 0.4, ease: "easeInOut" }}
-                    style={{ filter: "drop-shadow(0 0 5px #a855f7)" }}
+                    style={{ filter: "drop-shadow(0 0 5px #f97316)" }}
                   />
                 );
               })}
@@ -2007,7 +2012,7 @@ export default function TradiFive() {
         <Sep />
         <EcosystemDeepDive onStart={handleStart} />
         <Sep />
-        <HowItWorks />
+        <InstitutionalRoadmap onStart={handleStart} />
         <Sep />
         <CommunityNetwork onStart={handleStart} />
         <Sep />

@@ -49,9 +49,9 @@ export default function PublicNavbar({
       desc: "Verified social trader network",
       path: "/features/community-hub",
       icon: Users,
-      color: "#818cf8",
-      bgColor: "rgba(129, 140, 248, 0.12)",
-      borderColor: "rgba(129, 140, 248, 0.25)",
+      color: "#2563eb",
+      bgColor: "rgba(37, 99, 235, 0.1)",
+      borderColor: "rgba(37, 99, 235, 0.2)",
       badge: "LIVE",
     },
     {
@@ -59,9 +59,9 @@ export default function PublicNavbar({
       desc: "Drawdown kill-switch & daily limits",
       path: "/features/risk-guard",
       icon: Shield,
-      color: "#34d399",
-      bgColor: "rgba(52, 211, 153, 0.12)",
-      borderColor: "rgba(52, 211, 153, 0.25)",
+      color: "#f97316",
+      bgColor: "rgba(249, 115, 22, 0.1)",
+      borderColor: "rgba(249, 115, 22, 0.2)",
       badge: "SOON",
     },
     {
@@ -69,9 +69,9 @@ export default function PublicNavbar({
       desc: "Auto broker sync & 40+ metrics",
       path: "/features/smart-journal",
       icon: BookOpen,
-      color: "#f472b6",
-      bgColor: "rgba(244, 114, 182, 0.12)",
-      borderColor: "rgba(244, 114, 182, 0.25)",
+      color: "#2563eb",
+      bgColor: "rgba(37, 99, 235, 0.1)",
+      borderColor: "rgba(37, 99, 235, 0.2)",
       badge: "SOON",
     },
     {
@@ -79,9 +79,9 @@ export default function PublicNavbar({
       desc: "Broadcast rooms & verified signals",
       path: "/features/channels",
       icon: Radio,
-      color: "#fb7185",
-      bgColor: "rgba(251, 113, 133, 0.12)",
-      borderColor: "rgba(251, 113, 133, 0.25)",
+      color: "#f97316",
+      bgColor: "rgba(249, 115, 22, 0.1)",
+      borderColor: "rgba(249, 115, 22, 0.2)",
       badge: "SOON",
     },
     {
@@ -89,9 +89,9 @@ export default function PublicNavbar({
       desc: "AI trading engine & market copilot",
       path: "/features/tradifive-ai",
       icon: Brain,
-      color: "#c084fc",
-      bgColor: "rgba(192, 132, 252, 0.14)",
-      borderColor: "rgba(192, 132, 252, 0.3)",
+      color: "#2563eb",
+      bgColor: "rgba(37, 99, 235, 0.1)",
+      borderColor: "rgba(37, 99, 235, 0.2)",
       badge: "SOON",
     },
   ];
@@ -465,7 +465,7 @@ export default function PublicNavbar({
                     left: 0,
                     right: 0,
                     height: 2,
-                    background: "#6366f1",
+                    background: "#2563eb",
                     borderRadius: 2
                   }} />
                 )}
@@ -483,7 +483,7 @@ export default function PublicNavbar({
                     left: 0,
                     right: 0,
                     height: 2,
-                    background: "#6366f1",
+                    background: "#2563eb",
                     borderRadius: 2
                   }} />
                 )}
