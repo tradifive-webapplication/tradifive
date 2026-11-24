@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import confetti from "canvas-confetti";
 import { FlipText } from "@/components/ui/flip-text";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
+import EcosystemDeepDive from "../components/EcosystemDeepDive";
 // SideRays removed for clean white mode
 import PlasmaWave from "@/components/PlasmaWave";
 import BlurText from "@/components/BlurText";
@@ -174,7 +175,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
             </button>
             <button
               onClick={() => {
-                const el = document.getElementById("features") || document.getElementById("how-it-works") || document.getElementById("problem");
+                const el = document.getElementById("technology") || document.getElementById("how-it-works") || document.getElementById("pricing");
                 if (el) {
                   const y = el.getBoundingClientRect().top + window.scrollY - 100;
                   window.scrollTo({ top: y, behavior: "smooth" });
@@ -214,6 +215,27 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
             >
               <span>Learn More</span>
             </button>
+          </motion.div>
+
+                    {/* Live System Pulse Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap", marginBottom: 30, width: "100%" }}
+          >
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 100, background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 600, color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981" }} />
+              <span>Risk Guard: <strong style={{ color: "#0f172a" }}>Active (0.02s)</strong></span>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 100, background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 600, color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#3b82f6", boxShadow: "0 0 8px #3b82f6" }} />
+              <span>AI Journal: <strong style={{ color: "#0f172a" }}>Auto-Sync MT5</strong></span>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "7px 16px", borderRadius: 100, background: "#f8fafc", border: "1px solid #e2e8f0", fontSize: 12, fontWeight: 600, color: "#0f172a", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7c3aed", boxShadow: "0 0 8px #7c3aed" }} />
+              <span>FiAlgo Engine: <strong style={{ color: "#0f172a" }}>Gold M1</strong></span>
+            </div>
           </motion.div>
 
           {/* Trust Signals */}
@@ -517,73 +539,7 @@ function HowItWorks() {
 /* ════════════════
    PLATFORM CAPABILITIES
 ════════════════ */
-const CAPABILITIES = [
-  {
-    id: "01", tag: "RISK GUARD", title: "Autonomous Risk Protection",
-    desc: "Set daily loss limits, max drawdown rules, and trading restrictions. Tradifive automatically protects your capital and enforces discipline.",
-    m: "0.1s", mt: "Protection Speed", icon: Shield, color: "#7c3aed"
-  },
-  {
-    id: "02", tag: "AUTO-SYNC JOURNAL", title: "Smart Trade Journal",
-    desc: "Every trade is automatically imported, analyzed, and organized. Discover patterns, mistakes, and opportunities without manual journaling.",
-    m: "100%", mt: "Automated", icon: Layers, color: "#3b82f6"
-  },
-  {
-    id: "03", tag: "COMMUNITY & CHANNELS", title: "Verified Trading Network",
-    desc: "Join public and private channels, follow creators, chat with traders, and learn from verified performance.",
-    m: "24/7", mt: "Active Community", icon: Users, color: "#10b981"
-  },
-  {
-    id: "04", tag: "AI COACH", title: "Personal Trading Mentor",
-    desc: "Get personalized feedback, psychology coaching, trade reviews, and actionable insights based on your trading behavior.",
-    m: "24/7", mt: "AI Support", icon: Zap, color: "#f59e0b"
-  },
-  {
-    id: "05", tag: "CREATOR HUB", title: "Monetize Your Expertise",
-    desc: "Launch premium channels, grow your audience, share signals, teach strategies, and earn from your trading knowledge.",
-    m: "Creator", mt: "Earnings", icon: Trophy, color: "#ec4899"
-  },
-  {
-    id: "06", tag: "TRADING DASHBOARD", title: "All Your Trading Data",
-    desc: "Monitor performance, analytics, broker accounts, risk metrics, and growth from one powerful dashboard.",
-    m: "Real", mt: "Time Analytics", icon: TrendingUp, color: "#3b82f6"
-  }
-];
 
-function Features() {
-  const r1 = useReveal(), r2 = useReveal();
-  return (
-    <section id="capabilities" style={{ backgroundColor: "transparent", padding: "100px 24px", position: "relative" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <div ref={r1} className="rv" style={{ marginBottom: 18 }}>
-            <span style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", color: "#3b82f6", padding: "6px 16px", borderRadius: "100px", textTransform: "uppercase", fontSize: 10, fontWeight: 700, letterSpacing: 1.5 }}>THE TRADIFIVE ECOSYSTEM</span>
-          </div>
-          <h2 className="capabilities-title" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 900, color: "#0f172a", letterSpacing: "-0.04em", lineHeight: 1.15, marginBottom: 16 }}>
-            <BlurText
-              lines={[
-                { text: "Everything You Need To", gradient: ["#0f172a", "#2563eb"] },
-                { text: "Trade, Learn & Grow.", gradient: ["#0f172a", "#2563eb"] }
-              ]}
-            />
-          </h2>
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            style={{ fontSize: 17, color: "#475569", maxWidth: 520, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
-          >
-            AI-powered tools, verified traders, risk management, social communities, and performance analytics—all in one platform.
-          </motion.p>
-        </div>
-
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }} className="capabilities-grid-wrapper">
-          <AgentBentoGrid />
-        </div>
-      </div>
-    </section>
-  );
-}
 
 /* ════════════════
    APP SHOWCASE
@@ -2070,7 +2026,7 @@ export default function TradiFive() {
         <Hero onStart={handleStart} onSignIn={handleSignIn} />
         <PlatformPillars />
         <Sep />
-        <Problem />
+        <EcosystemDeepDive onStart={handleStart} />
         <Sep />
         <HowItWorks />
         <Sep />
