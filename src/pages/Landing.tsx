@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { PricingCards } from "@/components/PricingCards";
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
-import { ShieldDone, Graph, Activity as IconlyActivity, TwoUsers } from "react-iconly";
 import PremiumBackground from "../components/PremiumBackground";
 import StarsBackground from "../components/StarsBackground";
 import { toast } from "sonner";
@@ -38,42 +37,15 @@ function useReveal() {
    3D HERO DASHBOARD VISUAL
 ════════════════ */
 function HeroTrustSignals() {
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.4 }}
-      style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 20, width: "100%" }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 8, width: "100%" }}
     >
-      {/* 4 Feature Items */}
-      <div className="trust-features-grid" style={{ gap: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ color: "#3b82f6" }}><ShieldDone set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Risk First</div>
-          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>AI risk guard protects your capital in real-time.</div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ color: "#7c3aed" }}><Graph set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Data Driven</div>
-          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Advanced analytics for smarter decisions.</div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ color: "#8b5cf6" }}><IconlyActivity set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Lightning Fast</div>
-          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Blazing fast execution with low latency.</div>
-        </div>
-        <div 
-          style={{ display: "flex", flexDirection: "column", gap: 8 }}
-        >
-          <div style={{ color: "#6366f1" }}><TwoUsers set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Built Together</div>
-          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Join a transparent community of traders.</div>
-        </div>
-      </div>
-
       {/* Social Proof Card */}
-      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-white border border-slate-200 shadow-sm rounded-2xl w-full">
+      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-white border border-slate-200 shadow-sm rounded-2xl w-full max-w-[560px]">
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div className="text-[10px] sm:text-xs text-slate-600 font-medium">Trusted by traders worldwide</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -82,13 +54,12 @@ function HeroTrustSignals() {
                 <div key={i} className="w-5 h-5 sm:w-[26px] sm:h-[26px]" style={{
                   borderRadius: "50%",
                   border: "2px solid #ffffff",
-                  marginLeft: i === 0 ? 0 : (i === 1 ? -4 : -6), // Slightly tighter overlap on mobile
+                  marginLeft: i === 0 ? 0 : (i === 1 ? -4 : -6),
                   overflow: "hidden",
                   zIndex: 5 - i,
                   position: "relative",
                   background: "#111"
                 }}>
-                  {/* Using placeholder colors if image missing */}
                   <img src={src} alt="User" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }} onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
                 </div>
               ))}
@@ -100,7 +71,6 @@ function HeroTrustSignals() {
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
-          {/* Divider */}
           <div style={{ width: 1, height: 28, background: "#e2e8f0" }} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -247,7 +217,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
           </motion.div>
 
           {/* Trust Signals */}
-          <div style={{ width: "100%", maxWidth: 780 }}>
+          <div style={{ width: "100%", maxWidth: 560 }}>
             <HeroTrustSignals />
           </div>
 
