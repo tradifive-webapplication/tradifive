@@ -1566,3 +1566,13 @@ svg.recharts-surface:focus-visible {
     display: none !important;
   }
 }
+
+
+@media (max-width: 1024px) {
+  .hide-below-lg {
+    display: none !important;
+  }
+  .show-below-lg {
+    display: flex !important;
+  }
+}

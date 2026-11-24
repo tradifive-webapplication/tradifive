@@ -20,6 +20,7 @@ import HeroDashboard from "../components/HeroDashboard";
 import WhatIsTradifive from "../components/WhatIsTradifive";
 import HowItWorks from "../components/HowItWorks";
 import MentorComparison from "../components/MentorComparison";
+import InteractiveAppSwitcher from "../components/InteractiveAppSwitcher";
 import InstitutionalRoadmap from "../components/InstitutionalRoadmap";
 // SideRays removed for clean white mode
 import PlasmaWave from "@/components/PlasmaWave";
@@ -1850,9 +1851,9 @@ export default function TradiFive() {
         <Hero onStart={handleStart} onSignIn={handleSignIn} />
         <PlatformPillars />
         <Sep />
-        <MentorComparison onStart={handleStart} />
+        <InteractiveAppSwitcher onStart={handleStart} />
         <Sep />
-        <WhatIsTradifive onStart={handleStart} />
+        <MentorComparison onStart={handleStart} />
         <Sep />
         <HowItWorks />
         <Sep />
