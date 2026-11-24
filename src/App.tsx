@@ -8,10 +8,13 @@ import { TradingProvider } from "@/contexts/TradingContext";
 import { AuthGuard } from "@/components/AuthGuard";
 import { MaintenanceGuard } from "@/components/MaintenanceGuard";
 import { ProtectedLayout } from "./components/ProtectedLayout";
+import CommunityShell from "./components/CommunityShell";
 import { CustomCursor } from "./components/CustomCursor";
 import { NetworkNotifier } from "@/components/NetworkNotifier";
+import { AppUpdateBanner } from "@/components/AppUpdateBanner";
 import { AdminRoute } from "./components/AdminRoute";
 import FloatingHelpButton from "./components/FloatingHelpButton";
+import GlobalPushNotificationListener from "@/components/notifications/GlobalPushNotificationListener";
 
 // ── All pages are lazy-loaded to split the bundle into per-route chunks.
 // Helper to automatically recover if a chunk fails to load due to a new deployment:
@@ -48,7 +51,6 @@ const Login = lazy(() => import("./pages/Login"));
 const AuthCallback = lazy(() => import("./pages/AuthCallback"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Portfolio = lazy(() => import("./pages/dashboard/Portfolio"));
-const Brokers = lazy(() => import("./pages/dashboard/Brokers"));
 const Reports = lazy(() => import("./pages/dashboard/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const BrokerConnect = lazy(() => import("./pages/BrokerConnect"));
@@ -75,7 +77,6 @@ const AutoTradeDashboardPage = lazy(() => import('./pages/AutoTradeDashboardPage
 const MyRobots = lazy(() => import('./pages/MyRobots'));
 const StrategyBuilderPage = lazy(() => import('./pages/StrategyBuilderPage'));
 const TradeHistory = lazy(() => import('./pages/TradeHistory'));
-const MistakeTracking = lazy(() => import("./pages/MistakeTracking"));
 const EASetup = lazy(() => import('./pages/EASetup'));
 const ChallengeConsole = lazy(() => import("./pages/ChallengeConsole"));
 const Payouts = lazy(() => import("./pages/Payouts"));
@@ -84,9 +85,9 @@ const Referrals = lazy(() => import("./pages/Referrals"));
 const CreatorAnalytics = lazy(() => import("./pages/CreatorAnalytics"));
 const MentorshipHub = lazy(() => import("./pages/MentorshipHub"));
 const MyStore = lazy(() => import("./pages/creator/MyStore"));
-const LiveSessions = lazy(() => import("./pages/creator/LiveSessions"));
 const Create = lazy(() => import("./pages/create"));
 const Home = lazyWithRetry(() => import("./pages/Home"));
+const PostDetail = lazyWithRetry(() => import("./pages/PostDetail"));
 const Discover = lazy(() => import("./pages/Discover"));
 const DiscoverPublic = lazy(() => import("./pages/DiscoverPublic"));
 const ChannelsPublic = lazy(() => import("./pages/ChannelsPublic"));
@@ -97,6 +98,7 @@ const SmartJournalPublic = lazy(() => import("./pages/SmartJournalPublic"));
 const CommunityHubPublic = lazy(() => import("./pages/CommunityHubPublic"));
 const CompetitionsPublic = lazy(() => import("./pages/CompetitionsPublic"));
 const TradifiveAIPublic = lazy(() => import("./pages/TradifiveAIPublic"));
+const AutoTradeLocked = lazy(() => import("./pages/AutoTradeLocked"));
 const AutoTradePublic = lazy(() => import("./pages/AutoTradePublic"));
 const PrivacyPolicyPublic = lazy(() => import("./pages/PrivacyPolicyPublic"));
 const TermsOfServicePublic = lazy(() => import("./pages/TermsOfServicePublic"));
@@ -144,6 +146,10 @@ const App = () => {
       import("./pages/UserProfilePublic");
       import("./pages/Profile");
       import("./pages/Home");
+      import("./pages/PostDetail");
+      import("./pages/Discover");
+      import("./pages/Inbox");
+      import("./pages/Channel");
     };
 
     if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
@@ -161,10 +167,12 @@ const App = () => {
       <Toaster />
       <Sonner />
       <NetworkNotifier />
+      <AppUpdateBanner />
       <MarketProvider>
         <TradingProvider>
           <PresenceProvider>
           <AppRouter>
+            <GlobalPushNotificationListener />
             <WorkspaceProvider>
             <CustomCursor />
             <Suspense fallback={<div style={{ minHeight: '100vh', width: '100%', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>}>
@@ -205,26 +213,37 @@ const App = () => {
                 <Route path="/broker-auth/:brokerId" element={<BrokerAuth />} />
                 {/* Protected Routes Wrapper */}
                 <Route element={<ProtectedLayout />}>
-                  <Route path="/home" element={<Home />} />
-                  <Route path="/discover" element={<Discover />} />
-                  <Route path="/marketplace" element={<Discover />} />
-                  <Route path="/auto-trade/marketplace" element={<Discover />} />
-                  <Route path="/marketplace/store" element={<Discover />} />
-                  <Route path="/marketplace/signals" element={<Discover />} />
-                  <Route path="/store" element={<Discover />} />
+                  {/* Persistent Community Shell: Top Logo, Profile/Bell, and 5-Icon Bar stay fixed while lower content animates */}
+                  <Route element={<CommunityShell />}>
+                    <Route path="/home" element={<Home />} />
+                    <Route path="/discover" element={<Discover />} />
+                    <Route path="/marketplace" element={<Discover />} />
+                    <Route path="/auto-trade/marketplace" element={<Discover />} />
+                    <Route path="/marketplace/store" element={<Discover />} />
+                    <Route path="/marketplace/signals" element={<Discover />} />
+                    <Route path="/store" element={<Discover />} />
+                    <Route path="/learning" element={<Discover />} />
+                    <Route path="/courses" element={<Discover />} />
+                    <Route path="/creator/live" element={<Navigate to="/home" replace />} />
+                    <Route path="/channel" element={<Channel />} />
+                    <Route path="/channel/:channelId" element={<Channel />} />
+                  </Route>
+                  <Route path="/inbox" element={<Inbox />} />
+                  <Route path="/post/:postId" element={<PostDetail />} />
                   <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/dashboard/portfolio" element={<Portfolio />} />
-                  <Route path="/dashboard/brokers" element={<Brokers />} />
-                  <Route path="/dashboard/reports" element={<Reports />} />
+                  <Route path="/dashboard/portfolio" element={<Navigate to="/dashboard?tab=portfolio" replace />} />
+                  <Route path="/dashboard/brokers" element={<Navigate to="/settings?tab=trading" replace />} />
+                  <Route path="/dashboard/reports" element={<Navigate to="/dashboard?tab=reports" replace />} />
+                  <Route path="/reports" element={<Navigate to="/dashboard?tab=reports" replace />} />
                   <Route path="/broker-connect" element={<Navigate to="/settings?tab=trading" replace />} />
                   <Route path="/journal" element={<Journal />} />
                   <Route path="/charts" element={<Navigate to="/journal" replace />} />
                   <Route path="/chart" element={<Navigate to="/journal" replace />} />
                   <Route path="/analytics" element={<Navigate to="/journal" replace />} />
                   <Route path="/journal/history" element={<TradeHistory />} />
-                  <Route path="/journal/mistakes" element={<MistakeTracking />} />
-                  <Route path="/mistakes" element={<MistakeTracking />} />
-                  <Route path="/mistake-tracking" element={<MistakeTracking />} />
+                  <Route path="/journal/mistakes" element={<Navigate to="/journal" replace />} />
+                  <Route path="/mistakes" element={<Navigate to="/journal" replace />} />
+                  <Route path="/mistake-tracking" element={<Navigate to="/journal" replace />} />
                   <Route path="/journal/tags" element={<Navigate to="/journal" replace />} />
                   <Route path="/risk-guard" element={<RiskGuard />} />
                   <Route path="/risk-guard/limits" element={<Navigate to="/risk-guard" replace />} />
@@ -237,35 +256,34 @@ const App = () => {
                   <Route path="/ai-coach/goals" element={<Navigate to="/ai-coach" replace />} />
                   <Route path="/fialgo" element={<FiAlgoWorkspace />} />
                   <Route path="/fialgo/autotrade" element={<FiAlgoWorkspace defaultTab="autotrade" />} />
-                  <Route path="/fialgo/backtesting" element={<FiAlgoWorkspace defaultTab="backtesting" />} />
+                  <Route path="/fialgo/backtesting" element={<Navigate to="/auto-trade/active-bots" replace />} />
                   <Route path="/fialgo/strategy" element={<FiAlgoWorkspace defaultTab="strategy" />} />
                   <Route path="/fialgo/bots" element={<FiAlgoWorkspace defaultTab="bots" />} />
                   <Route path="/fialgo/logs" element={<FiAlgoWorkspace defaultTab="logs" />} />
-                  <Route path="/auto-trade/setup" element={<AITrading />} />
-                  <Route path="/auto-trade/dashboard" element={<AutoTradeDashboardPage />} />
-                  <Route path="/auto-trade/active-bots" element={<MyRobots />} />
-                  <Route path="/auto-trade/builder" element={<StrategyBuilderPage />} />
-                  <Route path="/strategy-builder" element={<StrategyBuilderPage />} />
-                  <Route path="/strategy" element={<StrategyBuilderPage />} />
+                  <Route path="/autotrade" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/setup" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/dashboard" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/active-bots" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/builder" element={<AutoTradeLocked />} />
+                  <Route path="/strategy-builder" element={<AutoTradeLocked />} />
+                  <Route path="/strategy" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/backtest" element={<AutoTradeLocked />} />
+                  <Route path="/backtest" element={<AutoTradeLocked />} />
                   <Route path="/auto-trade/history" element={<TradeHistory />} />
                   <Route path="/history" element={<TradeHistory />} />
                   <Route path="/order-history" element={<TradeHistory />} />
                   <Route path="/auto-trade/license" element={<EASetup />} />
                   <Route path="/license" element={<EASetup />} />
                   <Route path="/activation" element={<EASetup />} />
-                  <Route path="/ai-trading" element={<Navigate to="/auto-trade/setup" replace />} />
+                  <Route path="/ai-trading" element={<AutoTradeLocked />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:username" element={<UserProfilePublic />} />
-                  <Route path="/channel" element={<Channel />} />
                   <Route path="/channels" element={<Navigate to="/channel" replace />} />
                   <Route path="/channels/all" element={<Navigate to="/channel" replace />} />
-                  <Route path="/channel/:channelId" element={<Channel />} />
-                  <Route path="/inbox" element={<Inbox />} />
                   <Route path="/messages" element={<Navigate to="/inbox" replace />} />
                   <Route path="/channels/messages" element={<Navigate to="/inbox" replace />} />
-                  <Route path="/learning" element={<Discover />} />
-                  <Route path="/courses" element={<Discover />} />
                   <Route path="/discover/strategies" element={<Navigate to="/discover" replace />} />
                   <Route path="/discover/traders" element={<Navigate to="/discover" replace />} />
                   <Route path="/finance" element={<Navigate to="/dashboard/portfolio" replace />} />
@@ -285,7 +303,6 @@ const App = () => {
                   <Route path="/creator/analytics" element={<CreatorAnalytics />} />
                   <Route path="/creator/mentorship" element={<MentorshipHub />} />
                   <Route path="/creator/store" element={<MyStore />} />
-                  <Route path="/creator/live" element={<LiveSessions />} />
                 </Route>
 
                 {/* Admin Routes */}

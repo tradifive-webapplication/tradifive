@@ -383,7 +383,7 @@ const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
     { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Trade Journal", defaultPath: "/journal", isLive: true },
     { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard Protection", defaultPath: "/risk-guard", isLive: true },
     { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach & Copilot", defaultPath: "/ai-coach", isLive: true },
-    { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "AutoTrade (FiAlgo)", defaultPath: "/auto-trade/setup", isLive: true },
+    { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "AutoTrade (Locked)", defaultPath: "/auto-trade/setup", isLive: true, isLocked: true },
     ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub", defaultPath: "/creator/analytics", isLive: true }] : []),
   ];
 };
@@ -1327,7 +1327,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
   const mobilePillars = [
     { id: "home", label: "Home Feed", icon: WrappedIconly(Home), isLive: true },
     { id: "dashboard", label: "Dashboard", icon: WrappedIconly(Category), isLive: true },
-    { id: "autoTrade", label: "AutoTrade", icon: WrappedIconly(Activity), isLive: true },
+    { id: "autoTrade", label: "AutoTrade", icon: WrappedIconly(Activity), isLive: true, isLocked: true },
     { id: "community", label: "Channels", icon: WrappedIconly(Chat), isLive: true },
     { id: "journal", label: "Journal", icon: WrappedIconly(Document), isLive: true },
     { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone), isLive: true },
@@ -1784,12 +1784,21 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                 {/* Pillars */}
                 {getPillars(isCreator, isFiAlgo).map((pillar) => {
                   const isActive = activePillar === pillar.id;
+                  const isLocked = (pillar as any).isLocked;
 
                   return (
                     <Tooltip delayDuration={0} key={pillar.id}>
                       <TooltipTrigger asChild>
                         <div
                           onClick={() => {
+                            if (isLocked) {
+                              playSound('tab');
+                              toast.info("AutoTrade is locked for maintenance & upgrades.", {
+                                description: "Our team is updating the trading engine. This feature will return shortly.",
+                                icon: "🔒",
+                              });
+                              return;
+                            }
                             playSound('tab');
                             setActivePillar(pillar.id);
                             if (pillar.defaultPath) {
@@ -1800,15 +1809,22 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                           className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${isActive
                             ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10'
                             : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
-                            }`}
+                            } ${isLocked ? 'opacity-85' : ''}`}
                         >
                           <pillar.icon size={18} set="curved" stroke="bold" primaryColor="currentColor" strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
+                          {isLocked && (
+                            <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs z-20">
+                              <Lock size={8} className="stroke-[2.5]" />
+                            </div>
+                          )}
                           {isActive && (
                             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
                           )}
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">{pillar.tooltip}</TooltipContent>
+                      <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">
+                        {isLocked ? `${pillar.tooltip}` : pillar.tooltip}
+                      </TooltipContent>
                     </Tooltip>
                   );
                 })}
@@ -2118,43 +2134,38 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                 <div className="p-1 bg-slate-200/60 dark:bg-white/[0.06] rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-hide no-scrollbar border border-slate-200/50 dark:border-white/[0.04]">
 
                   {mobilePillars.map((p) => {
-
                     const isActive = activePillar === p.id;
+                    const isLocked = (p as any).isLocked;
 
                     return (
-
                       <button
-
                         key={p.id}
-
                         type="button"
-
                         onClick={() => {
-
+                          if (isLocked) {
+                            toast.info("AutoTrade is locked for maintenance & upgrades.", {
+                              description: "Our team is updating the trading engine. This feature will return shortly.",
+                              icon: "🔒",
+                            });
+                            return;
+                          }
                           setActivePillar(p.id);
-
                         }}
-
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] whitespace-nowrap shrink-0 transition-all cursor-pointer select-none active:scale-95 ${
-
                           isActive
-
                             ? 'bg-white dark:bg-[#202025] text-blue-600 dark:text-blue-400 font-bold shadow-xs border border-slate-200/70 dark:border-white/10'
-
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium hover:bg-white/40 dark:hover:bg-white/5'
-
                         }`}
-
                       >
-
                         <p.icon size={13} primaryColor="currentColor" stroke="bold" />
-
                         <span>{p.label}</span>
-
+                        {isLocked && (
+                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                            <Lock size={8} className="stroke-[2.5]" />
+                          </span>
+                        )}
                       </button>
-
                     );
-
                   })}
 
                 </div>

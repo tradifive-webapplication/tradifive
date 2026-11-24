@@ -7,7 +7,8 @@ import {
   Bookmark, TicketStar, 
   ChevronRight 
 } from "react-iconly";
-import { Sparkles, ArrowUp, X, MoreHorizontal, HelpCircle, Trophy } from "lucide-react";
+import { Sparkles, ArrowUp, X, MoreHorizontal, HelpCircle, Trophy, Lock } from "lucide-react";
+import { toast } from "sonner";
 
 export default function BottomNav() {
   const location = useLocation();
@@ -317,23 +318,41 @@ export default function BottomNav() {
                     </div>
                   </button>
 
-                  {/* AutoTrade */}
+                  {/* AutoTrade (Locked) */}
                   <button
                     type="button"
-                    onClick={() => handleNavigate(autoTradePath)}
-                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                    onClick={() => {
+                      toast.info("AutoTrade is locked for maintenance & upgrades.", {
+                        description: "Our team is updating the trading engine. This feature will return shortly.",
+                        icon: "🔒",
+                      });
+                    }}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left opacity-80"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                      <div className="relative w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
                         <Activity set="curved" stroke="bold" primaryColor="currentColor" size={18} />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
+                          <Lock size={9} className="stroke-[3]" />
+                        </div>
                       </div>
-                      <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
-                        AutoTrade
-                      </span>
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                            AutoTrade
+                          </span>
+                          <span className="px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                            Locked
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-slate-400 dark:text-neutral-500">
+                          Maintenance & upgrades
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-neutral-500 text-[12.5px] font-normal">
-                      <span>Algo & bots</span>
-                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                    <div className="flex items-center gap-1.5 text-amber-500 text-[11px] font-semibold">
+                      <Lock size={12} />
+                      <span>Locked</span>
                     </div>
                   </button>
 

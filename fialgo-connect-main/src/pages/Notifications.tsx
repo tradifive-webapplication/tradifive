@@ -364,118 +364,167 @@ export default function Notifications() {
     markRead(notifId);
   };
 
-  // ── Icon & color helpers ──────────────────────────────────────────────────
-  const getTypeConfig = (type: string) => {
-    switch (type) {
-      case 'SOCIAL':
-        return {
-          icon: Heart,
-          color: 'text-rose-500',
-          bg: 'bg-rose-50 dark:bg-rose-500/10',
-          badge: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200/60 dark:border-rose-500/20',
-          label: 'Social',
-          dot: 'bg-rose-500'
-        };
-      case 'RISK_GUARD':
-        return {
-          icon: ShieldAlert,
-          color: 'text-amber-500',
-          bg: 'bg-amber-50 dark:bg-amber-500/10',
-          badge: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20',
-          label: 'Risk Guard',
-          dot: 'bg-amber-500'
-        };
-      case 'AI_COACH':
-        return {
-          icon: Sparkles,
-          color: 'text-violet-500',
-          bg: 'bg-violet-50 dark:bg-violet-500/10',
-          badge: 'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400 border-violet-200/60 dark:border-violet-500/20',
-          label: 'AI Coach',
-          dot: 'bg-violet-500'
-        };
-      case 'SYSTEM':
-        return {
-          icon: Activity,
-          color: 'text-emerald-500',
-          bg: 'bg-emerald-50 dark:bg-emerald-500/10',
-          badge: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20',
-          label: 'System',
-          dot: 'bg-emerald-500'
-        };
-      case 'SECURITY':
-        return {
-          icon: ShieldAlert,
-          color: 'text-red-500',
-          bg: 'bg-red-50 dark:bg-red-500/10',
-          badge: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border-red-200/60 dark:border-red-500/20',
-          label: 'Security',
-          dot: 'bg-red-500'
-        };
-      case 'PAYMENT':
-        return {
-          icon: CreditCard,
-          color: 'text-emerald-600',
-          bg: 'bg-emerald-50 dark:bg-emerald-500/10',
-          badge: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-500/20',
-          label: 'Payment',
-          dot: 'bg-emerald-600'
-        };
-      case 'TRADE':
-        return {
-          icon: TrendingUp,
-          color: 'text-blue-500',
-          bg: 'bg-blue-50 dark:bg-blue-500/10',
-          badge: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200/60 dark:border-blue-500/20',
-          label: 'Trade',
-          dot: 'bg-blue-500'
-        };
-      case 'FOLLOW':
-        return {
-          icon: UserPlus,
-          color: 'text-indigo-500',
-          bg: 'bg-indigo-50 dark:bg-indigo-500/10',
-          badge: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border-indigo-200/60 dark:border-indigo-500/20',
-          label: 'Follow',
-          dot: 'bg-indigo-500'
-        };
-      case 'PROFILE_VIEW':
-        return {
-          icon: Eye,
-          color: 'text-cyan-600',
-          bg: 'bg-cyan-50 dark:bg-cyan-500/10',
-          badge: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400 border-cyan-200/60 dark:border-cyan-500/20',
-          label: 'Profile View',
-          dot: 'bg-cyan-500'
-        };
-      case 'MENTION':
-        return {
-          icon: AtSign,
-          color: 'text-sky-500',
-          bg: 'bg-sky-50 dark:bg-sky-500/10',
-          badge: 'bg-sky-50 text-sky-600 dark:bg-sky-500/10 dark:text-sky-400 border-sky-200/60 dark:border-sky-500/20',
-          label: 'Mention',
-          dot: 'bg-sky-500'
-        };
-      case 'ACHIEVEMENT':
-        return {
-          icon: Award,
-          color: 'text-amber-500',
-          bg: 'bg-amber-50 dark:bg-amber-500/10',
-          badge: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200/60 dark:border-amber-500/20',
-          label: 'Achievement',
-          dot: 'bg-amber-500'
-        };
-      default:
-        return {
-          icon: Bell,
-          color: 'text-slate-600 dark:text-neutral-400',
-          bg: 'bg-slate-100 dark:bg-white/[0.05]',
-          badge: 'bg-slate-100 text-slate-700 dark:bg-white/[0.05] dark:text-neutral-300 border-slate-200/80 dark:border-white/10',
-          label: type ? type.replace(/_/g, ' ') : 'General',
-          dot: 'bg-blue-500'
-        };
+  // ── Icon & color helpers (Case-Insensitive & Type-Safe) ───────────────────
+  const normalizeType = (type?: string, title?: string) => {
+    const raw = (type || '').trim();
+    const t = raw.toUpperCase().replace(/[-\s]/g, '_');
+    if (t) return t;
+    const titleUpper = (title || '').toUpperCase();
+    if (titleUpper.includes('PROFILE VIEW') || titleUpper.includes('PROFILE VISITOR')) return 'PROFILE_VIEW';
+    if (titleUpper.includes('FOLLOW')) return 'FOLLOW';
+    if (titleUpper.includes('RISK GUARD') || titleUpper.includes('DRAWDOWN')) return 'RISK_GUARD';
+    if (titleUpper.includes('TRADE') || titleUpper.includes('ORDER')) return 'TRADE';
+    return 'GENERAL';
+  };
+
+  const isTradeType = (type?: string, title?: string) => {
+    const t = normalizeType(type, title);
+    return t === 'TRADE' || t === 'RISK_GUARD' || t === 'ORDER' || t === 'POSITION' || t === 'CIRCUIT_BREAKER' || t === 'DRAWDOWN_ALERT';
+  };
+
+  const isSocialType = (type?: string, title?: string) => {
+    const t = normalizeType(type, title);
+    return t === 'SOCIAL' || t === 'FOLLOW' || t === 'PROFILE_VIEW' || t === 'PROFILE_VISIT' || t === 'PROFILE_VISITOR' || t === 'MENTION' || t === 'COMMENT' || t === 'LIKE';
+  };
+
+  const isSystemType = (type?: string, title?: string) => {
+    const t = normalizeType(type, title);
+    return t === 'SYSTEM' || t === 'SECURITY' || t === 'PAYMENT' || t === 'AI_COACH' || t === 'ACHIEVEMENT' || t === 'AUTH' || t === 'SUBSCRIPTION';
+  };
+
+  const getTypeConfig = (type: string, title?: string) => {
+    const t = normalizeType(type, title);
+    const titleUpper = (title || '').toUpperCase();
+
+    if (t === 'PROFILE_VIEW' || t === 'PROFILE_VISIT' || t === 'PROFILE_VISITOR' || titleUpper.includes('PROFILE VIEW') || titleUpper.includes('PROFILE VISITOR')) {
+      return {
+        icon: Eye,
+        color: 'text-cyan-600 dark:text-cyan-400',
+        bg: 'bg-cyan-50 dark:bg-cyan-500/15',
+        badge: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300 border-cyan-200/80 dark:border-cyan-500/30',
+        label: 'Profile View',
+        dot: 'bg-cyan-500'
+      };
     }
+
+    if (t === 'RISK_GUARD' || t === 'CIRCUIT_BREAKER' || t === 'DRAWDOWN_ALERT' || titleUpper.includes('RISK GUARD')) {
+      return {
+        icon: ShieldAlert,
+        color: 'text-amber-600 dark:text-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-500/15',
+        badge: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border-amber-200/80 dark:border-amber-500/30',
+        label: 'Risk Guard',
+        dot: 'bg-amber-500'
+      };
+    }
+
+    if (t === 'AI_COACH' || t === 'COPILOT' || titleUpper.includes('AI COACH')) {
+      return {
+        icon: Sparkles,
+        color: 'text-violet-600 dark:text-violet-400',
+        bg: 'bg-violet-50 dark:bg-violet-500/15',
+        badge: 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 border-violet-200/80 dark:border-violet-500/30',
+        label: 'AI Coach',
+        dot: 'bg-violet-500'
+      };
+    }
+
+    if (t === 'TRADE' || t === 'ORDER' || t === 'POSITION' || titleUpper.includes('TRADE')) {
+      return {
+        icon: TrendingUp,
+        color: 'text-blue-600 dark:text-blue-400',
+        bg: 'bg-blue-50 dark:bg-blue-500/15',
+        badge: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 border-blue-200/80 dark:border-blue-500/30',
+        label: 'Trade Fill',
+        dot: 'bg-blue-500'
+      };
+    }
+
+    if (t === 'FOLLOW' || t === 'FOLLOWER' || titleUpper.includes('FOLLOW')) {
+      return {
+        icon: UserPlus,
+        color: 'text-indigo-600 dark:text-indigo-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-500/15',
+        badge: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-500/30',
+        label: 'Follow',
+        dot: 'bg-indigo-500'
+      };
+    }
+
+    if (t === 'MENTION' || titleUpper.includes('MENTION')) {
+      return {
+        icon: AtSign,
+        color: 'text-sky-600 dark:text-sky-400',
+        bg: 'bg-sky-50 dark:bg-sky-500/15',
+        badge: 'bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300 border-sky-200/80 dark:border-sky-500/30',
+        label: 'Mention',
+        dot: 'bg-sky-500'
+      };
+    }
+
+    if (t === 'ACHIEVEMENT' || t === 'REWARD' || t === 'XP' || titleUpper.includes('ACHIEVEMENT') || titleUpper.includes('XP')) {
+      return {
+        icon: Award,
+        color: 'text-amber-500 dark:text-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-500/15',
+        badge: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border-amber-200/80 dark:border-amber-500/30',
+        label: 'Achievement',
+        dot: 'bg-amber-500'
+      };
+    }
+
+    if (t === 'PAYMENT' || t === 'SETTLEMENT' || t === 'WITHDRAWAL' || t === 'SUBSCRIPTION') {
+      return {
+        icon: CreditCard,
+        color: 'text-emerald-600 dark:text-emerald-400',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/15',
+        badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/30',
+        label: 'Payment',
+        dot: 'bg-emerald-500'
+      };
+    }
+
+    if (t === 'SECURITY' || t === 'AUTH' || t === 'PASSWORD') {
+      return {
+        icon: ShieldAlert,
+        color: 'text-rose-600 dark:text-rose-400',
+        bg: 'bg-rose-50 dark:bg-rose-500/15',
+        badge: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 border-rose-200/80 dark:border-rose-500/30',
+        label: 'Security',
+        dot: 'bg-rose-500'
+      };
+    }
+
+    if (t === 'SOCIAL' || t === 'COMMENT' || t === 'LIKE') {
+      return {
+        icon: Heart,
+        color: 'text-rose-500 dark:text-rose-400',
+        bg: 'bg-rose-50 dark:bg-rose-500/15',
+        badge: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 border-rose-200/80 dark:border-rose-500/30',
+        label: 'Community',
+        dot: 'bg-rose-500'
+      };
+    }
+
+    if (t === 'SYSTEM' || t === 'ANNOUNCEMENT' || t === 'UPDATE') {
+      return {
+        icon: Activity,
+        color: 'text-emerald-600 dark:text-emerald-400',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/15',
+        badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/30',
+        label: 'System',
+        dot: 'bg-emerald-500'
+      };
+    }
+
+    return {
+      icon: Bell,
+      color: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-blue-50 dark:bg-blue-500/15',
+      badge: 'bg-slate-100 text-slate-700 dark:bg-white/[0.08] dark:text-neutral-300 border-slate-200/80 dark:border-white/10',
+      label: type ? type.replace(/_/g, ' ') : 'General',
+      dot: 'bg-blue-500'
+    };
   };
 
   const timeAgo = (dateStr: string) => {
@@ -488,9 +537,9 @@ export default function Notifications() {
 
   // ── Tab Counts & Grouping ────────────────────────────────────────────────
   const unreadCount = notifications.filter(n => !n.is_read).length;
-  const tradeCount = notifications.filter(n => n.type === "TRADE" || n.type === "RISK_GUARD").length;
-  const socialCount = notifications.filter(n => n.type === "SOCIAL" || n.type === "FOLLOW" || n.type === "PROFILE_VIEW" || n.type === "MENTION").length;
-  const systemCount = notifications.filter(n => n.type === "SYSTEM" || n.type === "SECURITY" || n.type === "PAYMENT" || n.type === "AI_COACH" || n.type === "ACHIEVEMENT").length;
+  const tradeCount = notifications.filter(n => isTradeType(n.type, n.title)).length;
+  const socialCount = notifications.filter(n => isSocialType(n.type, n.title)).length;
+  const systemCount = notifications.filter(n => isSystemType(n.type, n.title)).length;
 
   const FILTER_TABS = [
     { id: "ALL", label: "All Alerts", count: notifications.length },
@@ -505,10 +554,10 @@ export default function Notifications() {
     .filter(n => {
       if (filter === "ALL") return true;
       if (filter === "UNREAD") return !n.is_read;
-      if (filter === "TRADE") return n.type === "TRADE" || n.type === "RISK_GUARD";
-      if (filter === "SOCIAL") return n.type === "SOCIAL" || n.type === "FOLLOW" || n.type === "PROFILE_VIEW" || n.type === "MENTION";
-      if (filter === "SYSTEM") return n.type === "SYSTEM" || n.type === "SECURITY" || n.type === "PAYMENT" || n.type === "AI_COACH" || n.type === "ACHIEVEMENT";
-      return n.type === filter;
+      if (filter === "TRADE") return isTradeType(n.type, n.title);
+      if (filter === "SOCIAL") return isSocialType(n.type, n.title);
+      if (filter === "SYSTEM") return isSystemType(n.type, n.title);
+      return normalizeType(n.type, n.title) === filter;
     })
     .filter(n => {
       if (!searchQuery.trim()) return true;
@@ -536,14 +585,16 @@ export default function Notifications() {
   // ── Card Renderer ────────────────────────────────────────────────────────
   function renderCard(n: any) {
     const isExpanded = expandedId === n.id;
-    const cfg = getTypeConfig(n.type);
+    const cfg = getTypeConfig(n.type, n.title);
     const IconComp = cfg.icon;
     const hasActor = !!(n.sender_username || n.actor_username || n.from_username || n.sender_id || n.actor_id || n.from_user_id || n.metadata?.sender_username || n.metadata?.sender_id);
     const actorName = n.sender_name || n.actor_name || n.from_name || n.metadata?.sender_name || n.sender_username || n.actor_username || n.from_username || n.metadata?.sender_username || null;
     const actorAvatar = n.sender_avatar || n.actor_avatar || n.avatar || n.metadata?.sender_avatar || null;
 
-    const isFollowNotif = n.type === 'FOLLOW' || n.title?.toLowerCase().includes('follow');
-    const isCommentNotif = n.type === 'SOCIAL' && (n.title?.toLowerCase().includes('comment') || n.title?.toLowerCase().includes('replied'));
+    const normType = normalizeType(n.type, n.title);
+    const isFollowNotif = normType === 'FOLLOW';
+    const isCommentNotif = normType === 'SOCIAL' && (n.title?.toLowerCase().includes('comment') || n.title?.toLowerCase().includes('replied'));
+    const isProfileView = normType === 'PROFILE_VIEW';
 
     let extractedUsername = null;
     if (!hasActor && isFollowNotif && n.message) {
@@ -556,7 +607,13 @@ export default function Notifications() {
 
     const targetId = n.sender_id || n.actor_id || n.from_user_id || extractedUsername;
     const isFollowedBack = targetId && followedBackIds.has(targetId);
-    const hasExpandedContent = !!n.details || !!n.actionLabel || (n.type === "SOCIAL" && isCommentNotif);
+    const hasExpandedContent = !!n.details || !!n.actionLabel || (normType === "SOCIAL" && isCommentNotif);
+
+    // Contextual message upgrade
+    let displayMessage = n.message;
+    if (isProfileView && (!n.message || n.message === 'viewed your profile' || n.message.trim() === '')) {
+      displayMessage = "Viewed your trading profile, performance stats, and public journal.";
+    }
 
     return (
       <motion.div
@@ -564,54 +621,59 @@ export default function Notifications() {
         key={n.id}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.98 }}
-        transition={{ duration: 0.16 }}
-        className={`group relative rounded-2xl border transition-all duration-200 overflow-hidden cursor-pointer ${
+        exit={{ opacity: 0, scale: 0.97 }}
+        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+        className={`group relative rounded-[18px] border transition-all duration-200 overflow-hidden cursor-pointer ${
           !n.is_read
-            ? 'bg-white dark:bg-[#17171A] border-blue-200/90 dark:border-blue-500/30 shadow-[0_2px_14px_rgba(37,99,235,0.06)]'
-            : 'bg-white dark:bg-[#17171A] border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/15 shadow-xs'
+            ? 'bg-gradient-to-r from-blue-50/50 via-white to-white dark:from-blue-950/20 dark:via-[#17171A] dark:to-[#17171A] border-blue-200/90 dark:border-blue-500/30 shadow-[0_2px_12px_rgba(37,99,235,0.06)] hover:border-blue-300 dark:hover:border-blue-500/45'
+            : 'bg-white dark:bg-[#17171A] border-slate-200/70 dark:border-white/[0.07] hover:border-slate-300 dark:hover:border-white/15 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)] dark:hover:shadow-none'
         }`}
         onClick={() => {
           setExpandedId(isExpanded ? null : n.id);
           if (!n.is_read) markRead(n.id);
         }}
       >
-        <div className="p-4 sm:p-5 flex items-start gap-3.5 sm:gap-4">
+        {/* Unread Left Glowing Indicator Bar */}
+        {!n.is_read && (
+          <div className="absolute left-0 top-3 bottom-3 w-[3.5px] rounded-r-full bg-blue-600 dark:bg-blue-400 shadow-[0_0_8px_rgba(37,99,235,0.45)]" />
+        )}
+
+        <div className="p-3.5 sm:p-4 pl-4 sm:pl-4.5 flex items-start gap-3 sm:gap-3.5">
           {/* Avatar / Icon Container */}
-          <div className="shrink-0 relative">
+          <div className="shrink-0 relative mt-0.5">
             {actorAvatar ? (
               <div
-                className="w-11 h-11 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={(e) => { e.stopPropagation(); if (hasActor) handleUserClick(n, e); }}
               >
                 <img src={actorAvatar} alt={actorName || ''} className="w-full h-full object-cover" />
               </div>
             ) : actorName ? (
               <div
-                className="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center border border-slate-700/50 shadow-xs cursor-pointer hover:opacity-90 transition-opacity text-white font-bold text-sm"
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center border border-slate-700/50 shadow-xs cursor-pointer hover:opacity-90 transition-opacity text-white font-bold text-xs"
                 onClick={(e) => { e.stopPropagation(); if (hasActor) handleUserClick(n, e); }}
               >
                 {actorName[0]?.toUpperCase()}
               </div>
             ) : (
-              <div className={`w-11 h-11 rounded-2xl ${cfg.bg} flex items-center justify-center border border-slate-200/70 dark:border-white/5 shadow-xs`}>
+              <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center border border-slate-200/60 dark:border-white/10 shadow-xs`}>
                 <IconComp size={18} className={cfg.color} />
               </div>
             )}
 
             {/* Small icon badge on avatar */}
             {(actorAvatar || actorName) && (
-              <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full ${cfg.bg} border-2 border-white dark:border-[#17171A] flex items-center justify-center shadow-xs`}>
-                <IconComp size={10} className={cfg.color} />
+              <div className={`absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full ${cfg.bg} border-2 border-white dark:border-[#17171A] flex items-center justify-center shadow-xs`}>
+                <IconComp size={9} className={cfg.color} />
               </div>
             )}
           </div>
 
           {/* Content Area */}
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-3">
+            <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 flex-wrap min-w-0">
-                <span className={`text-sm ${!n.is_read ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-800 dark:text-neutral-200'}`}>
+                <span className={`text-[13.5px] tracking-tight leading-snug ${!n.is_read ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-800 dark:text-neutral-200'}`}>
                   {actorName && hasActor ? (
                     <span
                       className="hover:underline cursor-pointer font-bold text-slate-900 dark:text-white"
@@ -624,33 +686,58 @@ export default function Notifications() {
                   )}
                 </span>
 
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+                <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${cfg.badge}`}>
                   {cfg.label}
                 </span>
 
                 {n.priority === 'high' && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/20">
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
                     High Priority
+                  </span>
+                )}
+
+                {!n.is_read && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 px-1.5 py-0.2 rounded-full bg-blue-50 dark:bg-blue-500/15">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                    New
                   </span>
                 )}
               </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="text-[11px] font-medium text-slate-400 dark:text-neutral-500 flex items-center gap-1">
+              {/* Timestamp & Quick Action Buttons */}
+              <div className="flex items-center gap-1.5 shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="text-[11px] font-medium text-slate-400 dark:text-neutral-500 flex items-center gap-1 whitespace-nowrap">
                   <Clock size={11} />
                   <span>{timeAgo(n.created_at)}</span>
                 </div>
 
-                {!n.is_read && (
-                  <span className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" title="Unread" />
-                )}
+                <div className="flex items-center gap-0.5 opacity-80 sm:opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                  {!n.is_read && (
+                    <button
+                      type="button"
+                      onClick={(e) => markRead(n.id, e)}
+                      className="p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/15 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                      title="Mark as read"
+                    >
+                      <Check size={13} strokeWidth={2.5} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => deleteNotif(n.id, e)}
+                    className="p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/15 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    title="Delete notification"
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Message Body */}
-            {n.message && (
-              <p className="text-[13px] text-slate-600 dark:text-neutral-300 mt-1 leading-relaxed line-clamp-2">
-                {extractedUsername && n.message.startsWith(extractedUsername) ? (
+            {displayMessage && (
+              <p className="text-[12.5px] text-slate-600 dark:text-neutral-300 mt-1 leading-relaxed">
+                {extractedUsername && displayMessage.startsWith(extractedUsername) ? (
                   <>
                     <span
                       className="font-bold text-slate-900 dark:text-white hover:underline cursor-pointer"
@@ -658,17 +745,17 @@ export default function Notifications() {
                     >
                       {extractedUsername}
                     </span>
-                    {n.message.slice(extractedUsername.length)}
+                    {displayMessage.slice(extractedUsername.length)}
                   </>
                 ) : (
-                  n.message
+                  displayMessage
                 )}
               </p>
             )}
 
-            {/* Bottom Controls / Inline Actions */}
-            <div className="flex items-center justify-between gap-2 mt-3 pt-2.5 border-t border-slate-100 dark:border-white/[0.05] flex-wrap">
-              <div className="flex items-center gap-2 flex-wrap">
+            {/* Bottom Actions if relevant */}
+            {(hasFollowTarget || hasActor || hasExpandedContent || isProfileView) && (
+              <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.04] flex-wrap" onClick={(e) => e.stopPropagation()}>
                 {isFollowNotif && hasFollowTarget && (
                   <FollowButton
                     isFollowing={isFollowedBack}
@@ -688,41 +775,35 @@ export default function Notifications() {
                   <button
                     type="button"
                     onClick={(e) => handleUserClick(n, e)}
-                    className="h-7 px-3 rounded-full text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.1] text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
+                    className="h-6.5 px-2.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer inline-flex items-center gap-1"
                   >
-                    View Profile
+                    <Eye size={11} />
+                    <span>View Profile</span>
+                  </button>
+                )}
+
+                {isProfileView && !hasActor && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/channel")}
+                    className="h-6.5 px-2.5 rounded-lg text-[11px] font-semibold bg-cyan-50 hover:bg-cyan-100/70 dark:bg-cyan-500/10 dark:hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 transition-colors cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <Users size={11} />
+                    <span>Explore Community</span>
                   </button>
                 )}
 
                 {hasExpandedContent && (
-                  <span className="text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                    {isExpanded ? "Hide details" : "View details"}
-                  </span>
-                )}
-              </div>
-
-              {/* Quick Actions (Mark Read & Delete) */}
-              <div className="flex items-center gap-1">
-                {!n.is_read && (
                   <button
                     type="button"
-                    onClick={(e) => markRead(n.id, e)}
-                    className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-white/[0.08] text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
-                    title="Mark as read"
+                    onClick={() => setExpandedId(isExpanded ? null : n.id)}
+                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-auto"
                   >
-                    <Check size={14} />
+                    {isExpanded ? "Hide details" : "View details"}
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={(e) => deleteNotif(n.id, e)}
-                  className="p-1.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/10 text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                  title="Delete notification"
-                >
-                  <Trash2 size={14} />
-                </button>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -736,9 +817,9 @@ export default function Notifications() {
               transition={{ duration: 0.18 }}
               className="overflow-hidden border-t border-slate-100 dark:border-white/[0.05] bg-slate-50/70 dark:bg-black/20"
             >
-              <div className="p-4 sm:p-5 space-y-3">
+              <div className="p-3.5 sm:p-4 space-y-2.5">
                 {n.details && (
-                  <p className="text-[13px] text-slate-600 dark:text-neutral-300 leading-relaxed font-sans">
+                  <p className="text-[12.5px] text-slate-600 dark:text-neutral-300 leading-relaxed font-sans">
                     {n.details}
                   </p>
                 )}
@@ -751,7 +832,7 @@ export default function Notifications() {
                     <button
                       type="button"
                       onClick={() => toast.success(`Executed: "${n.actionLabel}"`)}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
+                      className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
                     >
                       <span>{n.actionLabel}</span>
                       <ArrowRight size={11} />
@@ -760,14 +841,14 @@ export default function Notifications() {
                 </div>
 
                 {/* Inline Reply for Comments */}
-                {n.type === "SOCIAL" && isCommentNotif && (
+                {normType === "SOCIAL" && isCommentNotif && (
                   <div className="flex items-center gap-2 pt-2 border-t border-slate-200/70 dark:border-white/[0.06]">
                     <input
                       type="text"
                       placeholder="Write a quick reply..."
                       value={replyText}
                       onChange={e => setReplyText(e.target.value)}
-                      className="flex-1 h-9 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
+                      className="flex-1 h-8.5 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
                       onKeyDown={e => { if (e.key === 'Enter') handleSendReply(n.id, actorName || 'them'); }}
                       onClick={e => e.stopPropagation()}
                     />
@@ -775,7 +856,7 @@ export default function Notifications() {
                       type="button"
                       disabled={submittingReply}
                       onClick={(e) => { e.stopPropagation(); handleSendReply(n.id, actorName || 'them'); }}
-                      className="h-9 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+                      className="h-8.5 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer"
                     >
                       <Send size={11} />
                       <span>Reply</span>
@@ -793,14 +874,16 @@ export default function Notifications() {
   const renderSectionHeader = (title: string, count: number) => {
     if (count === 0) return null;
     return (
-      <div className="flex items-center justify-between pt-3 pb-1">
-        <span className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-neutral-500 uppercase">
-          {title}
-        </span>
-        <div className="h-px flex-1 bg-slate-200/70 dark:border-white/5 mx-3" />
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-neutral-400 tabular-nums">
-          {count}
-        </span>
+      <div className="flex items-center justify-between pt-2.5 pb-1 px-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-neutral-500 uppercase">
+            {title}
+          </span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-neutral-400 tabular-nums">
+            {count}
+          </span>
+        </div>
+        <div className="h-px flex-1 bg-slate-200/60 dark:bg-white/[0.06] ml-3" />
       </div>
     );
   };
@@ -869,10 +952,18 @@ export default function Notifications() {
           </div>
         </div>
 
-        {/* ── 4 KPI Stat Cards (Institutional Consistency) ── */}
+        {/* ── 4 KPI Stat Cards (Institutional Consistency & Interactive Filter) ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {/* Card 1: Total Alerts */}
-          <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
+          <button
+            type="button"
+            onClick={() => setFilter("ALL")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "ALL"
+                ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Total Alerts
@@ -887,10 +978,18 @@ export default function Notifications() {
             <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               {grouped.today.length} Today · {grouped.archive.length} Earlier
             </div>
-          </div>
+          </button>
 
           {/* Card 2: Unread Alerts */}
-          <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
+          <button
+            type="button"
+            onClick={() => setFilter("UNREAD")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "UNREAD"
+                ? "border-amber-500 dark:border-amber-400 ring-2 ring-amber-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Unread
@@ -905,10 +1004,18 @@ export default function Notifications() {
             <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               {unreadCount > 0 ? "Pending review" : "Inbox cleared"}
             </div>
-          </div>
+          </button>
 
           {/* Card 3: Trading & Risk */}
-          <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
+          <button
+            type="button"
+            onClick={() => setFilter("TRADE")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "TRADE"
+                ? "border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Trading &amp; Risk
@@ -923,10 +1030,18 @@ export default function Notifications() {
             <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               Fills &amp; risk guards
             </div>
-          </div>
+          </button>
 
           {/* Card 4: Community Activity */}
-          <div className="bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all">
+          <button
+            type="button"
+            onClick={() => setFilter("SOCIAL")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "SOCIAL"
+                ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
             <div className="flex items-center justify-between gap-2 mb-2">
               <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
                 Community
@@ -941,7 +1056,7 @@ export default function Notifications() {
             <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
               Follows, views &amp; mentions
             </div>
-          </div>
+          </button>
         </div>
 
         {/* ── Sub Navigation Tabs & Search (Segmented Consistency) ── */}
@@ -954,14 +1069,21 @@ export default function Notifications() {
                   key={t.id}
                   type="button"
                   onClick={() => setFilter(t.id)}
-                  className={`whitespace-nowrap px-3.5 py-1.5 rounded-xl text-[12.5px] font-semibold transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
+                  className={`relative whitespace-nowrap px-3.5 py-1.5 rounded-xl text-[12.5px] font-semibold transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
                     active
-                      ? "bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold"
+                      ? "text-slate-900 dark:text-white font-bold"
                       : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
-                  <span>{t.label}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
+                  {active && (
+                    <motion.div
+                      layoutId="active-notif-filter"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white dark:bg-[#1E1E22] rounded-xl shadow-xs"
+                    />
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                  <span className={`relative z-10 text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
                     active 
                       ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" 
                       : "bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-zinc-300"

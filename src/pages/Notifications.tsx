@@ -20,19 +20,20 @@ import {
   Clock,
   Send,
   UserPlus,
+  Users,
   AtSign,
   TrendingUp,
   Award,
+  Eye,
+  Check,
+  RefreshCw
 } from "lucide-react";
-import { TickSquare as IconlyTickSquare, Delete as IconlyDelete, Search as IconlySearch, AddUser as IconlyAddUser, Notification as IconlyNotification } from "react-iconly";
-import LeaderboardPanel from "@/components/LeaderboardPanel";
 import { FollowButton } from "@/components/ui/FollowButton";
 import DashboardLayout from "@/components/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
-
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export default function Notifications() {
@@ -55,12 +56,9 @@ export default function Notifications() {
   const fetchNotifications = async () => {
     setLoading(true);
 
-
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-
         const [requestsRes, notifsRes] = await Promise.all([
           supabase
             .from("social_follow_requests")
@@ -86,14 +84,14 @@ export default function Notifications() {
         } else {
           setNotifications(data ?? []);
 
-          // --- Hydrate initial 'Following' state for Follow notifications ---
+          // Hydrate initial 'Following' state for Follow notifications
           const targetIdsToLoad = new Set<string>();
           const usernamesToLookup = new Set<string>();
 
           for (const n of data ?? []) {
             const isFollowNotif = n.type === 'FOLLOW' || n.title?.toLowerCase().includes('follow');
             if (isFollowNotif) {
-              const tId = n.sender_id || n.actor_id || n.from_user_id;
+              const tId = n.sender_id || n.actor_id || n.from_user_id || n.metadata?.sender_id;
               if (tId) {
                 targetIdsToLoad.add(tId);
               } else if (n.message) {
@@ -108,34 +106,34 @@ export default function Notifications() {
           const idToUsernameMap: Record<string, string> = {};
           const namesArray = Array.from(usernamesToLookup);
 
-          // Try to find them all in a single query by username
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('id, username, display_name, full_name')
-            .in('username', namesArray);
-
-          if (profiles) {
-            profiles.forEach(profile => {
-              targetIdsToLoad.add(profile.id);
-              idToUsernameMap[profile.id] = profile.username || '';
-            });
-          }
-
-          // If some weren't found, try by display_name (fallback)
-          const foundUsernames = new Set(profiles?.map(p => p.username));
-          const missingNames = namesArray.filter(n => !foundUsernames.has(n));
-
-          if (missingNames.length > 0) {
-            const { data: displayProfiles } = await supabase
+          if (namesArray.length > 0) {
+            const { data: profiles } = await supabase
               .from('profiles')
-              .select('id, username, display_name')
-              .in('display_name', missingNames);
+              .select('id, username, display_name, full_name')
+              .in('username', namesArray);
 
-            if (displayProfiles) {
-              displayProfiles.forEach(profile => {
+            if (profiles) {
+              profiles.forEach(profile => {
                 targetIdsToLoad.add(profile.id);
-                idToUsernameMap[profile.id] = profile.display_name || '';
+                idToUsernameMap[profile.id] = profile.username || '';
               });
+            }
+
+            const foundUsernames = new Set(profiles?.map(p => p.username));
+            const missingNames = namesArray.filter(n => !foundUsernames.has(n));
+
+            if (missingNames.length > 0) {
+              const { data: displayProfiles } = await supabase
+                .from('profiles')
+                .select('id, username, display_name')
+                .in('display_name', missingNames);
+
+              if (displayProfiles) {
+                displayProfiles.forEach(profile => {
+                  targetIdsToLoad.add(profile.id);
+                  idToUsernameMap[profile.id] = profile.display_name || '';
+                });
+              }
             }
           }
 
@@ -151,13 +149,12 @@ export default function Notifications() {
               followedData.forEach(d => {
                 followedIds.add(d.following_id);
                 if (idToUsernameMap[d.following_id]) {
-                  followedIds.add(idToUsernameMap[d.following_id]); // Map back to text string so JSX match works
+                  followedIds.add(idToUsernameMap[d.following_id]);
                 }
               });
               setFollowedBackIds(followedIds);
             }
           }
-          // ----------------------------------------------------------------
         }
       } else {
         setNotifications([]);
@@ -169,19 +166,14 @@ export default function Notifications() {
     }
   };
 
-
   const acceptFollowRequest = async (requestId: string, requesterId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Delete request
       await supabase.from("social_follow_requests").delete().eq("id", requestId);
-
-      // Create follow
       await supabase.from("social_follows").insert([{ follower_id: requesterId, following_id: user.id }]);
 
-      // Mark as accepted locally instead of filtering it out immediately
       setFollowRequests(prev => prev.map(r => r.id === requestId ? { ...r, accepted: true } : r));
       toast.success("Follow request accepted");
     } catch (e: any) {
@@ -199,20 +191,24 @@ export default function Notifications() {
     }
   };
 
-  const markRead = async (id: string) => {
+  const markRead = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     try {
       await supabase.from("notifications").update({ is_read: true }).eq("id", id);
-    } catch (e) { }
+    } catch (e) {}
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
   };
 
   const markAllRead = async () => {
     const unread = notifications.filter(n => !n.is_read);
-    if (unread.length === 0) { toast.info("All caught up!"); return; }
+    if (unread.length === 0) {
+      toast.info("All notifications are already marked as read");
+      return;
+    }
     const unreadIds = unread.map(n => n.id);
     try {
       await supabase.from("notifications").update({ is_read: true }).in("id", unreadIds);
-    } catch (e) { }
+    } catch (e) {}
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     toast.success("All notifications marked as read");
   };
@@ -221,13 +217,16 @@ export default function Notifications() {
     e?.stopPropagation();
     try {
       await supabase.from("notifications").delete().eq("id", id);
-    } catch (e) { }
+    } catch (e) {}
     setNotifications(prev => prev.filter(n => n.id !== id));
     if (expandedId === id) setExpandedId(null);
   };
 
   const clearAllNotifications = () => {
-    if (notifications.length === 0) return;
+    if (notifications.length === 0) {
+      toast.info("No notifications to clear");
+      return;
+    }
     setShowClearHistoryModal(true);
   };
 
@@ -249,7 +248,6 @@ export default function Notifications() {
 
   const handleUserClick = async (notif: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Use explicit IDs if available
     const actorId = notif.sender_id || notif.actor_id || notif.from_user_id;
     if (actorId) {
       navigate(`/user/${actorId}`);
@@ -257,8 +255,6 @@ export default function Notifications() {
     }
 
     let actorName = notif.sender_username || notif.actor_username || notif.from_username;
-
-    // Extract from message if it's a follow notification
     if (!actorName && (notif.type === 'FOLLOW' || notif.title?.toLowerCase().includes('follow'))) {
       const match = notif.message?.match(/^(.*?)\s+started following you!/i);
       if (match) {
@@ -267,8 +263,6 @@ export default function Notifications() {
     }
 
     if (actorName) {
-      // It might be a username or a full name. Navigate to it, UserProfilePublic handles basic username lookups.
-      // But if it's a full name with spaces, it might fail. Let's try to lookup the real username or ID first.
       try {
         const { data: profile } = await supabase.from('profiles').select('id, username').eq('username', actorName).maybeSingle();
         if (profile) {
@@ -276,7 +270,6 @@ export default function Notifications() {
           return;
         }
 
-        // Try looking up by display_name or full_name
         const { data: profileByName } = await supabase.from('profiles')
           .select('id')
           .or(`display_name.ilike.%${actorName}%,full_name.ilike.%${actorName}%`)
@@ -287,9 +280,8 @@ export default function Notifications() {
           navigate(`/user/${profileByName.id}`);
           return;
         }
-      } catch (e) { }
+      } catch (e) {}
 
-      // Fallback
       navigate(`/user/${actorName}`);
     }
   };
@@ -297,8 +289,8 @@ export default function Notifications() {
   const handleFollowBack = async (notif: any, e: React.MouseEvent) => {
     e.stopPropagation();
 
-    let targetId = notif.sender_id || notif.actor_id || notif.from_user_id;
-    let targetUsername = notif.sender_username || notif.actor_username || notif.from_username;
+    let targetId = notif.sender_id || notif.actor_id || notif.from_user_id || notif.metadata?.sender_id;
+    let targetUsername = notif.sender_username || notif.actor_username || notif.from_username || notif.metadata?.sender_username;
 
     if (!targetId && !targetUsername && (notif.type === 'FOLLOW' || notif.title?.toLowerCase().includes('follow'))) {
       const match = notif.message?.match(/^(.*?)\s+started following you!/i);
@@ -334,7 +326,6 @@ export default function Notifications() {
         return;
       }
 
-      // Check if already following
       const { data: existing } = await supabase.from('social_follows')
         .select('id')
         .eq('follower_id', user.id)
@@ -361,7 +352,10 @@ export default function Notifications() {
   };
 
   const handleSendReply = (notifId: string, recipient: string) => {
-    if (!replyText.trim()) { toast.error("Write something first"); return; }
+    if (!replyText.trim()) {
+      toast.error("Write something first");
+      return;
+    }
     setSubmittingReply(true);
     toast.success(`Replied to ${recipient}`);
     setReplyText("");
@@ -370,32 +364,167 @@ export default function Notifications() {
     markRead(notifId);
   };
 
-  // ── Icon & colour helpers ──────────────────────────────────────────────────
-  const getTypeConfig = (type: string) => {
-    switch (type) {
-      case 'SOCIAL':
-        return { icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-500/10', badge: 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border-rose-200 dark:border-rose-500/20', label: 'Social', dot: 'bg-rose-500' };
-      case 'RISK_GUARD':
-        return { icon: ShieldAlert, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10', badge: 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400 border-amber-200 dark:border-amber-500/20', label: 'Risk Guard', dot: 'bg-amber-500' };
-      case 'AI_COACH':
-        return { icon: Sparkles, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-500/10', badge: 'bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400 border-violet-200 dark:border-violet-500/20', label: 'AI Coach', dot: 'bg-violet-500' };
-      case 'SYSTEM':
-        return { icon: Activity, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10', badge: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20', label: 'System', dot: 'bg-emerald-500' };
-      case 'SECURITY':
-        return { icon: ShieldAlert, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-500/10', badge: 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 border-red-200 dark:border-red-500/20', label: 'Security', dot: 'bg-red-500' };
-      case 'PAYMENT':
-        return { icon: CreditCard, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-500/10', badge: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20', label: 'Payment', dot: 'bg-emerald-600' };
-      case 'TRADE':
-        return { icon: TrendingUp, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10', badge: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border-blue-200 dark:border-blue-500/20', label: 'Trade', dot: 'bg-blue-500' };
-      case 'FOLLOW':
-        return { icon: UserPlus, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10', badge: 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/20', label: 'Follow', dot: 'bg-indigo-500' };
-      case 'MENTION':
-        return { icon: AtSign, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-500/10', badge: 'bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-400 border-cyan-200 dark:border-cyan-500/20', label: 'Mention', dot: 'bg-cyan-500' };
-      case 'ACHIEVEMENT':
-        return { icon: Award, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-500/10', badge: 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400 border-yellow-200 dark:border-yellow-500/20', label: 'Achievement', dot: 'bg-yellow-500' };
-      default:
-        return { icon: Bell, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-[#1E1E1E]', badge: 'bg-slate-50 text-slate-600 dark:bg-[#1E1E1E] dark:text-[#999] border-slate-200 dark:border-white/5', label: type || 'General', dot: 'bg-slate-400' };
+  // ── Icon & color helpers (Case-Insensitive & Type-Safe) ───────────────────
+  const normalizeType = (type?: string, title?: string) => {
+    const raw = (type || '').trim();
+    const t = raw.toUpperCase().replace(/[-\s]/g, '_');
+    if (t) return t;
+    const titleUpper = (title || '').toUpperCase();
+    if (titleUpper.includes('PROFILE VIEW') || titleUpper.includes('PROFILE VISITOR')) return 'PROFILE_VIEW';
+    if (titleUpper.includes('FOLLOW')) return 'FOLLOW';
+    if (titleUpper.includes('RISK GUARD') || titleUpper.includes('DRAWDOWN')) return 'RISK_GUARD';
+    if (titleUpper.includes('TRADE') || titleUpper.includes('ORDER')) return 'TRADE';
+    return 'GENERAL';
+  };
+
+  const isTradeType = (type?: string, title?: string) => {
+    const t = normalizeType(type, title);
+    return t === 'TRADE' || t === 'RISK_GUARD' || t === 'ORDER' || t === 'POSITION' || t === 'CIRCUIT_BREAKER' || t === 'DRAWDOWN_ALERT';
+  };
+
+  const isSocialType = (type?: string, title?: string) => {
+    const t = normalizeType(type, title);
+    return t === 'SOCIAL' || t === 'FOLLOW' || t === 'PROFILE_VIEW' || t === 'PROFILE_VISIT' || t === 'PROFILE_VISITOR' || t === 'MENTION' || t === 'COMMENT' || t === 'LIKE';
+  };
+
+  const isSystemType = (type?: string, title?: string) => {
+    const t = normalizeType(type, title);
+    return t === 'SYSTEM' || t === 'SECURITY' || t === 'PAYMENT' || t === 'AI_COACH' || t === 'ACHIEVEMENT' || t === 'AUTH' || t === 'SUBSCRIPTION';
+  };
+
+  const getTypeConfig = (type: string, title?: string) => {
+    const t = normalizeType(type, title);
+    const titleUpper = (title || '').toUpperCase();
+
+    if (t === 'PROFILE_VIEW' || t === 'PROFILE_VISIT' || t === 'PROFILE_VISITOR' || titleUpper.includes('PROFILE VIEW') || titleUpper.includes('PROFILE VISITOR')) {
+      return {
+        icon: Eye,
+        color: 'text-cyan-600 dark:text-cyan-400',
+        bg: 'bg-cyan-50 dark:bg-cyan-500/15',
+        badge: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-500/15 dark:text-cyan-300 border-cyan-200/80 dark:border-cyan-500/30',
+        label: 'Profile View',
+        dot: 'bg-cyan-500'
+      };
     }
+
+    if (t === 'RISK_GUARD' || t === 'CIRCUIT_BREAKER' || t === 'DRAWDOWN_ALERT' || titleUpper.includes('RISK GUARD')) {
+      return {
+        icon: ShieldAlert,
+        color: 'text-amber-600 dark:text-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-500/15',
+        badge: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border-amber-200/80 dark:border-amber-500/30',
+        label: 'Risk Guard',
+        dot: 'bg-amber-500'
+      };
+    }
+
+    if (t === 'AI_COACH' || t === 'COPILOT' || titleUpper.includes('AI COACH')) {
+      return {
+        icon: Sparkles,
+        color: 'text-violet-600 dark:text-violet-400',
+        bg: 'bg-violet-50 dark:bg-violet-500/15',
+        badge: 'bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-300 border-violet-200/80 dark:border-violet-500/30',
+        label: 'AI Coach',
+        dot: 'bg-violet-500'
+      };
+    }
+
+    if (t === 'TRADE' || t === 'ORDER' || t === 'POSITION' || titleUpper.includes('TRADE')) {
+      return {
+        icon: TrendingUp,
+        color: 'text-blue-600 dark:text-blue-400',
+        bg: 'bg-blue-50 dark:bg-blue-500/15',
+        badge: 'bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300 border-blue-200/80 dark:border-blue-500/30',
+        label: 'Trade Fill',
+        dot: 'bg-blue-500'
+      };
+    }
+
+    if (t === 'FOLLOW' || t === 'FOLLOWER' || titleUpper.includes('FOLLOW')) {
+      return {
+        icon: UserPlus,
+        color: 'text-indigo-600 dark:text-indigo-400',
+        bg: 'bg-indigo-50 dark:bg-indigo-500/15',
+        badge: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300 border-indigo-200/80 dark:border-indigo-500/30',
+        label: 'Follow',
+        dot: 'bg-indigo-500'
+      };
+    }
+
+    if (t === 'MENTION' || titleUpper.includes('MENTION')) {
+      return {
+        icon: AtSign,
+        color: 'text-sky-600 dark:text-sky-400',
+        bg: 'bg-sky-50 dark:bg-sky-500/15',
+        badge: 'bg-sky-50 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300 border-sky-200/80 dark:border-sky-500/30',
+        label: 'Mention',
+        dot: 'bg-sky-500'
+      };
+    }
+
+    if (t === 'ACHIEVEMENT' || t === 'REWARD' || t === 'XP' || titleUpper.includes('ACHIEVEMENT') || titleUpper.includes('XP')) {
+      return {
+        icon: Award,
+        color: 'text-amber-500 dark:text-amber-400',
+        bg: 'bg-amber-50 dark:bg-amber-500/15',
+        badge: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 border-amber-200/80 dark:border-amber-500/30',
+        label: 'Achievement',
+        dot: 'bg-amber-500'
+      };
+    }
+
+    if (t === 'PAYMENT' || t === 'SETTLEMENT' || t === 'WITHDRAWAL' || t === 'SUBSCRIPTION') {
+      return {
+        icon: CreditCard,
+        color: 'text-emerald-600 dark:text-emerald-400',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/15',
+        badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/30',
+        label: 'Payment',
+        dot: 'bg-emerald-500'
+      };
+    }
+
+    if (t === 'SECURITY' || t === 'AUTH' || t === 'PASSWORD') {
+      return {
+        icon: ShieldAlert,
+        color: 'text-rose-600 dark:text-rose-400',
+        bg: 'bg-rose-50 dark:bg-rose-500/15',
+        badge: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 border-rose-200/80 dark:border-rose-500/30',
+        label: 'Security',
+        dot: 'bg-rose-500'
+      };
+    }
+
+    if (t === 'SOCIAL' || t === 'COMMENT' || t === 'LIKE') {
+      return {
+        icon: Heart,
+        color: 'text-rose-500 dark:text-rose-400',
+        bg: 'bg-rose-50 dark:bg-rose-500/15',
+        badge: 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300 border-rose-200/80 dark:border-rose-500/30',
+        label: 'Community',
+        dot: 'bg-rose-500'
+      };
+    }
+
+    if (t === 'SYSTEM' || t === 'ANNOUNCEMENT' || t === 'UPDATE') {
+      return {
+        icon: Activity,
+        color: 'text-emerald-600 dark:text-emerald-400',
+        bg: 'bg-emerald-50 dark:bg-emerald-500/15',
+        badge: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300 border-emerald-200/80 dark:border-emerald-500/30',
+        label: 'System',
+        dot: 'bg-emerald-500'
+      };
+    }
+
+    return {
+      icon: Bell,
+      color: 'text-blue-600 dark:text-blue-400',
+      bg: 'bg-blue-50 dark:bg-blue-500/15',
+      badge: 'bg-slate-100 text-slate-700 dark:bg-white/[0.08] dark:text-neutral-300 border-slate-200/80 dark:border-white/10',
+      label: type ? type.replace(/_/g, ' ') : 'General',
+      dot: 'bg-blue-500'
+    };
   };
 
   const timeAgo = (dateStr: string) => {
@@ -406,22 +535,32 @@ export default function Notifications() {
     }
   };
 
-  const formatNotifTime = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      const hrs = String(d.getHours()).padStart(2, '0');
-      const mins = String(d.getMinutes()).padStart(2, '0');
-      return `${hrs}:${mins}`;
-    } catch {
-      return '';
-    }
-  };
+  // ── Tab Counts & Grouping ────────────────────────────────────────────────
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const tradeCount = notifications.filter(n => isTradeType(n.type, n.title)).length;
+  const socialCount = notifications.filter(n => isSocialType(n.type, n.title)).length;
+  const systemCount = notifications.filter(n => isSystemType(n.type, n.title)).length;
 
-  // ── Filtering ──────────────────────────────────────────────────────────────
+  const FILTER_TABS = [
+    { id: "ALL", label: "All Alerts", count: notifications.length },
+    { id: "UNREAD", label: "Unread", count: unreadCount },
+    { id: "TRADE", label: "Trading & Risk", count: tradeCount },
+    { id: "SOCIAL", label: "Community", count: socialCount },
+    { id: "SYSTEM", label: "System", count: systemCount },
+  ];
+
+  // ── Filtering ────────────────────────────────────────────────────────────
   const filteredNotifs = notifications
-    .filter(n => filter === "ALL" || n.type === filter)
     .filter(n => {
-      if (!searchQuery) return true;
+      if (filter === "ALL") return true;
+      if (filter === "UNREAD") return !n.is_read;
+      if (filter === "TRADE") return isTradeType(n.type, n.title);
+      if (filter === "SOCIAL") return isSocialType(n.type, n.title);
+      if (filter === "SYSTEM") return isSystemType(n.type, n.title);
+      return normalizeType(n.type, n.title) === filter;
+    })
+    .filter(n => {
+      if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
         n.title?.toLowerCase().includes(q) ||
@@ -430,11 +569,9 @@ export default function Notifications() {
       );
     });
 
-  const getCount = (type: string) => type === "ALL" ? notifications.length : notifications.filter(n => n.type === type).length;
-  const unreadCount = notifications.filter(n => !n.is_read).length;
-
   const grouped = (() => {
-    const today: any[] = [], archive: any[] = [];
+    const today: any[] = [];
+    const archive: any[] = [];
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     filteredNotifs.forEach(n => {
@@ -445,21 +582,19 @@ export default function Notifications() {
     return { today, archive };
   })();
 
-  const FILTER_TABS = ["ALL", "AI_COACH", "SOCIAL", "RISK_GUARD", "SYSTEM"];
-
-  // ── Card renderer ──────────────────────────────────────────────────────────
+  // ── Card Renderer ────────────────────────────────────────────────────────
   function renderCard(n: any) {
     const isExpanded = expandedId === n.id;
-    const cfg = getTypeConfig(n.type);
+    const cfg = getTypeConfig(n.type, n.title);
     const IconComp = cfg.icon;
-    const hasActor = !!(n.sender_username || n.actor_username || n.from_username || n.sender_id || n.actor_id || n.from_user_id);
-    const actorName = n.sender_name || n.actor_name || n.from_name || n.sender_username || n.actor_username || n.from_username || null;
-    const actorAvatar = n.sender_avatar || n.actor_avatar || n.avatar || null;
+    const hasActor = !!(n.sender_username || n.actor_username || n.from_username || n.sender_id || n.actor_id || n.from_user_id || n.metadata?.sender_username || n.metadata?.sender_id);
+    const actorName = n.sender_name || n.actor_name || n.from_name || n.metadata?.sender_name || n.sender_username || n.actor_username || n.from_username || n.metadata?.sender_username || null;
+    const actorAvatar = n.sender_avatar || n.actor_avatar || n.avatar || n.metadata?.sender_avatar || null;
 
-    // Determine if this is a "follower" style notification
-    const isFollowNotif = n.type === 'FOLLOW' || n.title?.toLowerCase().includes('follow');
-    const isLikeNotif = n.type === 'SOCIAL' && (n.title?.toLowerCase().includes('like') || n.title?.toLowerCase().includes('liked'));
-    const isCommentNotif = n.type === 'SOCIAL' && (n.title?.toLowerCase().includes('comment') || n.title?.toLowerCase().includes('replied'));
+    const normType = normalizeType(n.type, n.title);
+    const isFollowNotif = normType === 'FOLLOW';
+    const isCommentNotif = normType === 'SOCIAL' && (n.title?.toLowerCase().includes('comment') || n.title?.toLowerCase().includes('replied'));
+    const isProfileView = normType === 'PROFILE_VIEW';
 
     let extractedUsername = null;
     if (!hasActor && isFollowNotif && n.message) {
@@ -470,143 +605,164 @@ export default function Notifications() {
     }
     const hasFollowTarget = hasActor || !!extractedUsername;
 
-    // Resolve targetId for Follow Back button state
     const targetId = n.sender_id || n.actor_id || n.from_user_id || extractedUsername;
     const isFollowedBack = targetId && followedBackIds.has(targetId);
+    const hasExpandedContent = !!n.details || !!n.actionLabel || (normType === "SOCIAL" && isCommentNotif);
 
-    // Determine if expanded content is completely empty
-    const hasExpandedContent = !!n.details || !!n.actionLabel || (n.type === "SOCIAL" && isCommentNotif);
+    // Contextual message upgrade
+    let displayMessage = n.message;
+    if (isProfileView && (!n.message || n.message === 'viewed your profile' || n.message.trim() === '')) {
+      displayMessage = "Viewed your trading profile, performance stats, and public journal.";
+    }
 
     return (
       <motion.div
         layout
         key={n.id}
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.97 }}
-        transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
-        className={`group relative rounded-2xl border transition-all duration-200 overflow-hidden cursor-pointer ${!n.is_read
-            ? 'bg-white dark:bg-[#1E1E1E] border-slate-200 dark:border-white/5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] dark:shadow-none'
-            : 'bg-slate-50/50 dark:bg-[#1E1E1E] border-slate-100 dark:border-white/5 hover:bg-white dark:hover:bg-[#111318]'
-          }`}
+        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+        className={`group relative rounded-[18px] border transition-all duration-200 overflow-hidden cursor-pointer ${
+          !n.is_read
+            ? 'bg-gradient-to-r from-blue-50/50 via-white to-white dark:from-blue-950/20 dark:via-[#17171A] dark:to-[#17171A] border-blue-200/90 dark:border-blue-500/30 shadow-[0_2px_12px_rgba(37,99,235,0.06)] hover:border-blue-300 dark:hover:border-blue-500/45'
+            : 'bg-white dark:bg-[#17171A] border-slate-200/70 dark:border-white/[0.07] hover:border-slate-300 dark:hover:border-white/15 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)] dark:hover:shadow-none'
+        }`}
         onClick={() => {
           setExpandedId(isExpanded ? null : n.id);
           if (!n.is_read) markRead(n.id);
         }}
       >
-        {/* Unread left accent bar */}
+        {/* Unread Left Glowing Indicator Bar */}
         {!n.is_read && (
-          <div className={`absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full ${cfg.dot}`} />
+          <div className="absolute left-0 top-3 bottom-3 w-[3.5px] rounded-r-full bg-blue-600 dark:bg-blue-400 shadow-[0_0_8px_rgba(37,99,235,0.45)]" />
         )}
 
-        <div className="p-4 sm:p-5 flex items-start gap-4">
-          {/* Avatar / Icon */}
-          <div className="shrink-0 relative">
+        <div className="p-3.5 sm:p-4 pl-4 sm:pl-4.5 flex items-start gap-3 sm:gap-3.5">
+          {/* Avatar / Icon Container */}
+          <div className="shrink-0 relative mt-0.5">
             {actorAvatar ? (
               <div
-                className="w-11 h-11 rounded-full overflow-hidden border-2 border-white dark:border-white/5 shadow-sm cursor-pointer ring-2 ring-transparent hover:ring-slate-400/40 transition-all"
+                className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={(e) => { e.stopPropagation(); if (hasActor) handleUserClick(n, e); }}
               >
                 <img src={actorAvatar} alt={actorName || ''} className="w-full h-full object-cover" />
               </div>
             ) : actorName ? (
               <div
-                className="w-11 h-11 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center border-2 border-white dark:border-white/5 shadow-sm cursor-pointer ring-2 ring-transparent hover:ring-slate-400/40 transition-all text-white font-bold text-sm"
+                className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center border border-slate-700/50 shadow-xs cursor-pointer hover:opacity-90 transition-opacity text-white font-bold text-xs"
                 onClick={(e) => { e.stopPropagation(); if (hasActor) handleUserClick(n, e); }}
               >
                 {actorName[0]?.toUpperCase()}
               </div>
             ) : (
-              <div className={`w-11 h-11 rounded-full ${cfg.bg} flex items-center justify-center border border-slate-200 dark:border-white/5 shadow-sm`}>
-                <IconComp size={20} className={cfg.color} />
+              <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center border border-slate-200/60 dark:border-white/10 shadow-xs`}>
+                <IconComp size={18} className={cfg.color} />
               </div>
             )}
 
-            {/* Badge icon on avatar */}
+            {/* Small icon badge on avatar */}
             {(actorAvatar || actorName) && (
-              <div className={`absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full ${cfg.bg} border-2 border-white dark:border-white/5 flex items-center justify-center shadow-sm`}>
-                <IconComp size={10} className={cfg.color} />
+              <div className={`absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full ${cfg.bg} border-2 border-white dark:border-[#17171A] flex items-center justify-center shadow-xs`}>
+                <IconComp size={9} className={cfg.color} />
               </div>
             )}
           </div>
 
-          {/* Content */}
+          {/* Content Area */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                {/* Title */}
-                <p className={`text-[14px] leading-snug ${!n.is_read ? 'font-semibold text-slate-900 dark:text-white' : 'font-medium text-slate-700 dark:text-[#CCC]'}`}>
+              <div className="flex items-center gap-2 flex-wrap min-w-0">
+                <span className={`text-[13.5px] tracking-tight leading-snug ${!n.is_read ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-800 dark:text-neutral-200'}`}>
                   {actorName && hasActor ? (
-                    <>
-                      <span
-                        className="font-bold hover:underline cursor-pointer"
-                        onClick={(e) => handleUserClick(n, e)}
-                      >
-                        {actorName}
-                      </span>{' '}
-                      <span className={n.is_read ? 'text-slate-500 dark:text-[#999]' : 'text-slate-700 dark:text-[#EEE]'}>
-                        {/* Strip the actor name from title if it's already included */}
-                        {n.title?.replace(actorName, '').trim() || n.title}
-                      </span>
-                    </>
+                    <span
+                      className="hover:underline cursor-pointer font-bold text-slate-900 dark:text-white"
+                      onClick={(e) => handleUserClick(n, e)}
+                    >
+                      {actorName}
+                    </span>
                   ) : (
-                    n.title
+                    n.title || "Notification"
                   )}
-                </p>
+                </span>
 
-                {/* Message */}
-                {n.message && (
-                  <p className="text-[13px] text-slate-500 dark:text-[#999] mt-0.5 leading-relaxed line-clamp-2">
-                    {extractedUsername && n.message.startsWith(extractedUsername) ? (
-                      <>
-                        <span
-                          className="font-bold text-slate-700 dark:text-[#CCC] hover:underline cursor-pointer"
-                          onClick={(e) => handleUserClick(n, e)}
-                        >
-                          {extractedUsername}
-                        </span>
-                        {n.message.slice(extractedUsername.length)}
-                      </>
-                    ) : (
-                      n.message
-                    )}
-                  </p>
+                <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+                  {cfg.label}
+                </span>
+
+                {n.priority === 'high' && (
+                  <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
+                    High Priority
+                  </span>
                 )}
 
-                {/* Time + type badge */}
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`text-[11px] font-semibold ${!n.is_read ? 'text-slate-700 dark:text-[#EEE]' : 'text-slate-400 dark:text-slate-400'}`}>
-                    {timeAgo(n.created_at)}
+                {!n.is_read && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 px-1.5 py-0.2 rounded-full bg-blue-50 dark:bg-blue-500/15">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                    New
                   </span>
-                  {!isFollowNotif && (
-                    <>
-                      <span className="text-slate-200 dark:text-slate-300">·</span>
-                      <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md border ${cfg.badge}`}>
-                        {cfg.label}
-                      </span>
-                    </>
-                  )}
-                  {n.priority === 'high' && (
-                    <>
-                      <span className="text-slate-200 dark:text-slate-300">·</span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-red-50 dark:bg-red-500/10 text-red-500 border border-red-200 dark:border-red-500/20">
-                        Priority
-                      </span>
-                    </>
-                  )}
-                </div>
+                )}
               </div>
 
-              {/* Right side: actions */}
-              <div className="flex flex-row items-center gap-3 shrink-0" onClick={e => e.stopPropagation()}>
-                {/* Follow Back Button (Always visible) */}
+              {/* Timestamp & Quick Action Buttons */}
+              <div className="flex items-center gap-1.5 shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="text-[11px] font-medium text-slate-400 dark:text-neutral-500 flex items-center gap-1 whitespace-nowrap">
+                  <Clock size={11} />
+                  <span>{timeAgo(n.created_at)}</span>
+                </div>
+
+                <div className="flex items-center gap-0.5 opacity-80 sm:opacity-0 group-hover:opacity-100 transition-opacity ml-1">
+                  {!n.is_read && (
+                    <button
+                      type="button"
+                      onClick={(e) => markRead(n.id, e)}
+                      className="p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/15 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                      title="Mark as read"
+                    >
+                      <Check size={13} strokeWidth={2.5} />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => deleteNotif(n.id, e)}
+                    className="p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/15 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                    title="Delete notification"
+                  >
+                    <Trash2 size={13} strokeWidth={2} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Message Body */}
+            {displayMessage && (
+              <p className="text-[12.5px] text-slate-600 dark:text-neutral-300 mt-1 leading-relaxed">
+                {extractedUsername && displayMessage.startsWith(extractedUsername) ? (
+                  <>
+                    <span
+                      className="font-bold text-slate-900 dark:text-white hover:underline cursor-pointer"
+                      onClick={(e) => handleUserClick(n, e)}
+                    >
+                      {extractedUsername}
+                    </span>
+                    {displayMessage.slice(extractedUsername.length)}
+                  </>
+                ) : (
+                  displayMessage
+                )}
+              </p>
+            )}
+
+            {/* Bottom Actions if relevant */}
+            {(hasFollowTarget || hasActor || hasExpandedContent || isProfileView) && (
+              <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.04] flex-wrap" onClick={(e) => e.stopPropagation()}>
                 {isFollowNotif && hasFollowTarget && (
                   <FollowButton
                     isFollowing={isFollowedBack}
                     onToggleFollow={(e) => {
                       if (isFollowedBack) {
                         e.stopPropagation();
-                        return; // Do nothing if already followed
+                        return;
                       }
                       handleFollowBack(n, e);
                     }}
@@ -615,89 +771,96 @@ export default function Notifications() {
                   />
                 )}
 
-                <div className="flex flex-col items-end gap-2">
-                  {/* Unread dot */}
-                  {!n.is_read && (
-                    <div className={`w-2 h-2 rounded-full ${cfg.dot} mt-1`} />
-                  )}
+                {hasActor && (
+                  <button
+                    type="button"
+                    onClick={(e) => handleUserClick(n, e)}
+                    className="h-6.5 px-2.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <Eye size={11} />
+                    <span>View Profile</span>
+                  </button>
+                )}
 
-                  {/* Action buttons (show on hover) */}
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {!n.is_read && (
-                      <button
-                        onClick={() => markRead(n.id)}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
-                        title="Mark as read"
-                      >
-                        <IconlyTickSquare set="curved" primaryColor="currentColor" size={14} />
-                      </button>
-                    )}
-                    <button
-                      onClick={(e) => deleteNotif(n.id, e)}
-                      className="p-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 text-slate-400 hover:text-red-500 transition-colors"
-                      title="Delete"
-                    >
-                      <IconlyDelete set="curved" primaryColor="currentColor" size={14} />
-                    </button>
-                  </div>
-                </div>
+                {isProfileView && !hasActor && (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/channel")}
+                    className="h-6.5 px-2.5 rounded-lg text-[11px] font-semibold bg-cyan-50 hover:bg-cyan-100/70 dark:bg-cyan-500/10 dark:hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 transition-colors cursor-pointer inline-flex items-center gap-1"
+                  >
+                    <Users size={11} />
+                    <span>Explore Community</span>
+                  </button>
+                )}
+
+                {hasExpandedContent && (
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(isExpanded ? null : n.id)}
+                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-auto"
+                  >
+                    {isExpanded ? "Hide details" : "View details"}
+                  </button>
+                )}
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Expanded details panel */}
+        {/* Expanded Details Panel */}
         <AnimatePresence>
           {isExpanded && hasExpandedContent && (
             <motion.div
-              initial={{ height: 0 }}
-              animate={{ height: "auto" }}
-              exit={{ height: 0 }}
-              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-              className="overflow-hidden"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="overflow-hidden border-t border-slate-100 dark:border-white/[0.05] bg-slate-50/70 dark:bg-black/20"
             >
-              <div className="mx-4 sm:mx-5 mb-4 p-4 rounded-xl bg-slate-50 dark:bg-[#1E1E1E] border border-slate-100 dark:border-white/5 space-y-3">
+              <div className="p-3.5 sm:p-4 space-y-2.5">
                 {n.details && (
-                  <p className="text-[13px] text-slate-600 dark:text-[#999] leading-relaxed">{n.details}</p>
+                  <p className="text-[12.5px] text-slate-600 dark:text-neutral-300 leading-relaxed font-sans">
+                    {n.details}
+                  </p>
                 )}
 
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-slate-100 dark:border-white/5">
-                  <span className="text-[11px] text-slate-400 dark:text-slate-400 font-medium">
-                    {new Date(n.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}
+                <div className="flex items-center justify-between text-[11px] font-medium tabular-nums text-slate-400 dark:text-neutral-500 pt-1">
+                  <span>
+                    Timestamp: {new Date(n.created_at).toLocaleString()}
                   </span>
-
                   {n.actionLabel && (
                     <button
+                      type="button"
                       onClick={() => toast.success(`Executed: "${n.actionLabel}"`)}
-                      className="px-3.5 py-1.5 rounded-full text-[11px] font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition-all flex items-center gap-1 active:scale-95"
+                      className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
                     >
-                      {n.actionLabel}
-                      <ArrowRight size={10} />
+                      <span>{n.actionLabel}</span>
+                      <ArrowRight size={11} />
                     </button>
                   )}
                 </div>
 
-                {/* Inline reply for SOCIAL comment notifications */}
-                {n.type === "SOCIAL" && isCommentNotif && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-white/5">
-                    <div className="flex-1 bg-white dark:bg-[#1E1E1E] rounded-xl border border-slate-200 dark:border-white/5 flex items-center gap-2 px-3 py-2">
-                      <input
-                        type="text"
-                        placeholder="Write a reply…"
-                        value={replyText}
-                        onChange={e => setReplyText(e.target.value)}
-                        className="flex-1 bg-transparent text-[13px] text-slate-800 dark:text-[#EEE] placeholder:text-slate-400 focus:outline-none"
-                        onKeyDown={e => { if (e.key === 'Enter') handleSendReply(n.id, actorName || 'them'); }}
-                        onClick={e => e.stopPropagation()}
-                      />
-                      <button
-                        disabled={submittingReply}
-                        onClick={(e) => { e.stopPropagation(); handleSendReply(n.id, actorName || 'them'); }}
-                        className="p-1.5 bg-slate-900 dark:bg-white hover:opacity-80 text-white dark:text-slate-900 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center"
-                      >
-                        <Send size={12} />
-                      </button>
-                    </div>
+                {/* Inline Reply for Comments */}
+                {normType === "SOCIAL" && isCommentNotif && (
+                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200/70 dark:border-white/[0.06]">
+                    <input
+                      type="text"
+                      placeholder="Write a quick reply..."
+                      value={replyText}
+                      onChange={e => setReplyText(e.target.value)}
+                      className="flex-1 h-8.5 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
+                      onKeyDown={e => { if (e.key === 'Enter') handleSendReply(n.id, actorName || 'them'); }}
+                      onClick={e => e.stopPropagation()}
+                    />
+                    <button
+                      type="button"
+                      disabled={submittingReply}
+                      onClick={(e) => { e.stopPropagation(); handleSendReply(n.id, actorName || 'them'); }}
+                      className="h-8.5 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+                    >
+                      <Send size={11} />
+                      <span>Reply</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -711,152 +874,351 @@ export default function Notifications() {
   const renderSectionHeader = (title: string, count: number) => {
     if (count === 0) return null;
     return (
-      <div className="flex items-center justify-between pt-4 pb-2">
-        <span className="text-[10px] font-black tracking-widest text-slate-450 dark:text-slate-400 uppercase">{title}</span>
-        <div className="h-px flex-1 bg-slate-100 dark:bg-[#1E1E1E]/60 mx-4" />
-        <span className="w-5 h-5 flex items-center justify-center rounded-full bg-slate-100 dark:bg-[#1E1E1E] text-[9.5px] font-black text-slate-505 dark:text-[#999] border border-slate-200/50 dark:border-white/5 shrink-0">{count}</span>
+      <div className="flex items-center justify-between pt-2.5 pb-1 px-1">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-neutral-500 uppercase">
+            {title}
+          </span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-neutral-400 tabular-nums">
+            {count}
+          </span>
+        </div>
+        <div className="h-px flex-1 bg-slate-200/60 dark:bg-white/[0.06] ml-3" />
       </div>
     );
   };
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto pb-20 px-3 sm:px-4 font-sans select-none">
+      <div className="max-w-[1300px] mx-auto pb-20 px-3 sm:px-6 md:px-8 py-3 font-sans select-none space-y-4">
 
-        {/* ── HEADER ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-4 sm:py-8 mb-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5 sm:gap-3">
-              Tactical Command
-              {unreadCount > 0 && (
-                <span className="px-2.5 py-0.5 rounded-md bg-rose-500/10 text-[11px] font-bold text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                  {unreadCount} UNREAD
-                </span>
-              )}
-            </h1>
-            <p className="text-[13px] sm:text-[14px] text-slate-500 dark:text-[#888] mt-1.5 font-medium">Real-time alerts, system risk guards, and institutional updates.</p>
+        {/* ── Top Header (Unified App Consistency) ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs flex items-center justify-center shrink-0">
+              <Bell size={18} strokeWidth={2.4} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-[19px] sm:text-[21px] font-bold tracking-tight text-slate-900 dark:text-white leading-none">
+                  Notifications
+                </h1>
+                {unreadCount > 0 ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
+                    <span>{unreadCount} Unread</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/20">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                    <span>All Caught Up</span>
+                  </span>
+                )}
+              </div>
+              <p className="text-slate-500 dark:text-zinc-400 text-[12px] font-medium mt-1">
+                Real-time trading alerts, risk guards, social interactions &amp; system updates
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5">
             <button
+              type="button"
               onClick={markAllRead}
-              className="px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold bg-white hover:bg-slate-50 text-slate-800 hover:text-blue-600 border border-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,1),0_1px_3px_rgba(0,0,0,0.06)] dark:bg-gradient-to-r dark:from-[#1e293b] dark:to-[#0f172a] dark:text-[#60a5fa] dark:hover:text-[#93c5fd] dark:border-none dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_2px_6px_rgba(0,0,0,0.25)] transition-all duration-150 active:scale-[0.985] flex items-center gap-1.5 sm:gap-2 cursor-pointer">
-              <IconlyTickSquare set="curved" primaryColor="currentColor" size={16} />
-              <span>Verify All</span>
-            </button>
-            <button
-              onClick={clearAllNotifications}
-              className="px-4 py-2 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] font-bold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 border border-rose-200 dark:border-rose-500/20 transition-all duration-150 active:scale-[0.985] flex items-center gap-1.5 sm:gap-2 cursor-pointer shadow-xs"
-              title="Purge Archive"
+              className="flex-1 sm:flex-initial h-9 px-3.5 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-[12.5px] font-semibold text-slate-700 dark:text-zinc-200 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
             >
-              <IconlyDelete set="curved" primaryColor="currentColor" size={16} />
-              <span>Purge Archive</span>
+              <CheckCheck size={14} className="text-slate-500 dark:text-zinc-400" />
+              <span>Mark All Read</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={clearAllNotifications}
+              className="flex-1 sm:flex-initial h-9 px-3.5 bg-white dark:bg-[#18181b] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 dark:hover:border-rose-900/30 border border-slate-200/90 dark:border-white/10 rounded-xl text-[12.5px] font-semibold text-slate-700 dark:text-zinc-200 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
+            >
+              <Trash2 size={13} />
+              <span>Clear All</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={fetchNotifications}
+              disabled={loading}
+              className="h-9 w-9 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-slate-600 dark:text-zinc-300 shadow-2xs transition-all flex items-center justify-center cursor-pointer shrink-0 active:scale-95"
+              title="Refresh notifications"
+            >
+              <RefreshCw size={13} className={loading ? "animate-spin text-slate-900 dark:text-white" : "text-slate-500 dark:text-zinc-400"} />
             </button>
           </div>
         </div>
 
-        {/* ── SEARCH + FILTER TABS ── */}
-        <div className="p-1.5 sm:p-2 bg-slate-50 dark:bg-[#1E1E1E]/80 rounded-2xl md:rounded-full flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-3 mb-6 sm:mb-8 border border-slate-200/60 dark:border-white/5 shadow-sm">
-          {/* Search */}
-          <div className="relative w-full md:flex-1 md:max-w-md shrink-0">
-            <IconlySearch set="curved" primaryColor="currentColor" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-            <input
-              type="text"
-              placeholder="Search directives..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-white dark:bg-[#1E1E1E] border border-slate-100 dark:border-white/5 rounded-full pl-9 pr-8 py-2 text-[13px] text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium shadow-sm"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                <X size={13} />
-              </button>
-            )}
-          </div>
+        {/* ── 4 KPI Stat Cards (Institutional Consistency & Interactive Filter) ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Card 1: Total Alerts */}
+          <button
+            type="button"
+            onClick={() => setFilter("ALL")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "ALL"
+                ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
+                Total Alerts
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-zinc-300 border border-slate-200/60 dark:border-white/10 flex items-center justify-center shrink-0">
+                <Bell size={13} />
+              </div>
+            </div>
+            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              {notifications.length}
+            </div>
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
+              {grouped.today.length} Today · {grouped.archive.length} Earlier
+            </div>
+          </button>
 
-          {/* Filter tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto w-full md:w-auto min-w-0 scrollbar-hide py-1 pr-1">
+          {/* Card 2: Unread Alerts */}
+          <button
+            type="button"
+            onClick={() => setFilter("UNREAD")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "UNREAD"
+                ? "border-amber-500 dark:border-amber-400 ring-2 ring-amber-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
+                Unread
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center shrink-0">
+                <Sparkles size={13} />
+              </div>
+            </div>
+            <div className={`text-[22px] sm:text-[24px] font-extrabold tracking-tight tabular-nums ${unreadCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
+              {unreadCount}
+            </div>
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
+              {unreadCount > 0 ? "Pending review" : "Inbox cleared"}
+            </div>
+          </button>
+
+          {/* Card 3: Trading & Risk */}
+          <button
+            type="button"
+            onClick={() => setFilter("TRADE")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "TRADE"
+                ? "border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
+                Trading &amp; Risk
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
+                <TrendingUp size={13} />
+              </div>
+            </div>
+            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              {tradeCount}
+            </div>
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
+              Fills &amp; risk guards
+            </div>
+          </button>
+
+          {/* Card 4: Community Activity */}
+          <button
+            type="button"
+            onClick={() => setFilter("SOCIAL")}
+            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
+              filter === "SOCIAL"
+                ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20"
+                : "border-slate-200/90 dark:border-white/10"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
+                Community
+              </span>
+              <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+                <Users size={13} />
+              </div>
+            </div>
+            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
+              {socialCount}
+            </div>
+            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
+              Follows, views &amp; mentions
+            </div>
+          </button>
+        </div>
+
+        {/* ── Sub Navigation Tabs & Search (Segmented Consistency) ── */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
+          <div className="flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-white/[0.04] rounded-2xl border border-slate-200/70 dark:border-white/5 overflow-x-auto no-scrollbar max-w-full">
             {FILTER_TABS.map(t => {
-              const active = filter === t;
+              const active = filter === t.id;
               return (
                 <button
-                  key={t}
-                  onClick={() => setFilter(t)}
-                  className={`shrink-0 text-[12px] capitalize tracking-wide px-4 py-1.5 rounded-full transition-all ${active
-                      ? 'bg-white dark:bg-[#222] text-[#1e293b] dark:text-white font-bold shadow-[0_1px_3px_rgba(0,0,0,0.05)] border border-slate-200/80 dark:border-white/5'
-                      : 'text-slate-500 dark:text-slate-400 font-semibold hover:text-slate-800 dark:hover:text-slate-200 border border-transparent hover:bg-slate-200/30 dark:hover:bg-white/5'
-                    }`}
+                  key={t.id}
+                  type="button"
+                  onClick={() => setFilter(t.id)}
+                  className={`relative whitespace-nowrap px-3.5 py-1.5 rounded-xl text-[12.5px] font-semibold transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
+                    active
+                      ? "text-slate-900 dark:text-white font-bold"
+                      : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                  }`}
                 >
-                  {t === "ALL" ? "All" : t.toLowerCase().replace('_', ' ')}
+                  {active && (
+                    <motion.div
+                      layoutId="active-notif-filter"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white dark:bg-[#1E1E22] rounded-xl shadow-xs"
+                    />
+                  )}
+                  <span className="relative z-10">{t.label}</span>
+                  <span className={`relative z-10 text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
+                    active 
+                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" 
+                      : "bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-zinc-300"
+                  }`}>
+                    {t.count}
+                  </span>
                 </button>
               );
             })}
           </div>
+
+          {/* Search Box matching Segmented Height & Border */}
+          <div className="relative min-w-[240px]">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search notifications..."
+              className="w-full h-[38px] bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/25 rounded-xl pl-8 pr-8 text-[12.5px] text-slate-900 dark:text-white focus:outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500 shadow-2xs transition-colors"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
         </div>
 
-
-        {/* ── FOLLOW REQUESTS ── */}
+        {/* ── Follow Requests Box (if any) ── */}
         {followRequests.length > 0 && (
-          <div className="mb-6 space-y-3">
-            <div className="flex items-center gap-2 mb-4 px-1">
-              <IconlyAddUser set="curved" primaryColor="currentColor" size={16} className="text-slate-500 dark:text-[#999]" />
-              <h2 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Follow Requests ({followRequests.length})</h2>
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center gap-2 px-1">
+              <UserPlus size={15} className="text-blue-600 dark:text-blue-400" />
+              <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
+                Follow Requests ({followRequests.length})
+              </h2>
             </div>
-            {followRequests.map(req => (
-              <div key={req.id} className="flex items-center justify-between p-4 bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.08)] dark:shadow-none">
-                <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate(`/user/${req.requester_id}`)}>
-                  {req.requester?.avatar_url ? (
-                    <img src={req.requester.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1E1E1E] flex items-center justify-center">
-                      <IconlyAddUser set="curved" primaryColor="currentColor" size={16} className="text-slate-400" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {followRequests.map(req => (
+                <div key={req.id} className="flex items-center justify-between p-4 bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xs">
+                  <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate(`/user/${req.requester_id}`)}>
+                    {req.requester?.avatar_url ? (
+                      <img src={req.requester.avatar_url} alt="Avatar" className="w-10 h-10 rounded-2xl object-cover border border-slate-200/80 dark:border-white/10" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-neutral-400 font-bold text-sm">
+                        {(req.requester?.display_name || req.requester?.username || "U")[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <div className="truncate">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                        {req.requester?.display_name || req.requester?.username}
+                      </p>
+                      <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">
+                        Wants to connect with you
+                      </p>
                     </div>
-                  )}
-                  <div>
-                    <p className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight">{req.requester?.display_name || req.requester?.username}</p>
-                    <p className="text-[12px] font-semibold text-slate-500 dark:text-[#999] mt-0.5">Wants to follow you</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    {req.accepted ? (
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200/60 dark:border-emerald-500/20">
+                        Accepted
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); acceptFollowRequest(req.id, req.requester_id); }}
+                          className="h-8 px-3.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer active:scale-95"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); declineFollowRequest(req.id); }}
+                          className="h-8 px-3 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-zinc-300 shadow-2xs transition-colors cursor-pointer active:scale-95"
+                        >
+                          Decline
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {req.accepted ? (
-                    <>
-                      <span className="text-[12px] font-bold text-slate-500 dark:text-[#999] px-2">Accepted</span>
-                      <button onClick={(e) => { e.stopPropagation(); setFollowRequests(prev => prev.filter(r => r.id !== req.id)); }} className="px-4 py-1.5 bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-[#CCC] text-[12px] font-bold rounded-full transition-all">Delete</button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={(e) => { e.stopPropagation(); acceptFollowRequest(req.id, req.requester_id); }} className="px-4 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_5px_rgba(37,99,235,0.3)] text-[12px] font-bold rounded-full transition-all duration-150 active:scale-[0.985] border-none">Accept</button>
-                      <button onClick={(e) => { e.stopPropagation(); declineFollowRequest(req.id); }} className="px-4 py-1.5 bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-[#CCC] text-[12px] font-bold rounded-full transition-all">Decline</button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
-        {/* ── NOTIFICATIONS LIST ── */}
+        {/* ── Main Notifications List ── */}
         {loading ? (
-          <div className="space-y-4">
+          <div className="space-y-3 pt-2">
             {Array(3).fill(0).map((_, i) => (
-              <div key={i} className="h-24 bg-slate-50/50 dark:bg-[#1E1E1E]/50 animate-pulse rounded-[20px] border border-slate-100 dark:border-white/5" />
+              <div key={i} className="h-24 bg-white dark:bg-[#18181b] animate-pulse rounded-2xl border border-slate-200/80 dark:border-white/[0.08]" />
             ))}
           </div>
         ) : filteredNotifs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="relative">
-              <div className="absolute inset-0 bg-indigo-500/20 blur-xl rounded-full" />
-              <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:bg-none dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 flex items-center justify-center mb-6 shadow-xl shadow-slate-200/50 dark:shadow-none rotate-3">
-                <IconlyNotification set="curved" primaryColor="currentColor" size={32} className="text-slate-400 dark:text-slate-400 -rotate-3" />
-              </div>
+          <div className="py-14 px-6 max-w-lg mx-auto my-6 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#18181b] shadow-2xs text-center">
+            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-white mx-auto mb-3 shadow-2xs">
+              <Bell size={20} className="text-slate-500 dark:text-zinc-400" />
             </div>
-            <h3 className="text-lg font-bold text-slate-800 dark:text-white">You're all caught up!</h3>
-            <p className="text-[14px] text-slate-500 dark:text-[#888] mt-2 max-w-xs font-medium">There are no critical directives or new alerts requiring your attention at this time.</p>
+            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+              All caught up!
+            </h3>
+            <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto leading-relaxed">
+              There are no alerts matching your filter right now. Live market fills, risk guards, and community events will stream here automatically.
+            </p>
+            {filter !== "ALL" ? (
+              <button
+                type="button"
+                onClick={() => { setFilter("ALL"); setSearchQuery(""); }}
+                className="mt-4 h-8 px-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[12px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+              >
+                <span>Show All Alerts</span>
+              </button>
+            ) : (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchNotifications}
+                  className="h-8 px-3.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-zinc-300 text-[11.5px] font-semibold hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs active:scale-95"
+                >
+                  <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
+                  <span>Check for new alerts</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-4 pt-1">
             {grouped.today.length > 0 && (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {renderSectionHeader("Today", grouped.today.length)}
                 <AnimatePresence initial={false}>
                   {grouped.today.map(n => renderCard(n))}
@@ -864,8 +1226,8 @@ export default function Notifications() {
               </div>
             )}
             {grouped.archive.length > 0 && (
-              <div className="space-y-3">
-                {renderSectionHeader("Archive History", grouped.archive.length)}
+              <div className="space-y-2.5">
+                {renderSectionHeader("Earlier", grouped.archive.length)}
                 <AnimatePresence initial={false}>
                   {grouped.archive.map(n => renderCard(n))}
                 </AnimatePresence>
@@ -873,32 +1235,36 @@ export default function Notifications() {
             )}
           </div>
         )}
+
       </div>
 
-      {/* Clear All Modal */}
+      {/* ── Clear All Confirmation Modal ── */}
       <Dialog open={showClearHistoryModal} onOpenChange={setShowClearHistoryModal}>
-        <DialogContent className="sm:max-w-[340px] p-0 rounded-3xl overflow-hidden border border-slate-200 dark:border-white/5 bg-white dark:bg-[#1E1E1E] [&>button]:hidden">
-          <div className="flex flex-col items-center text-center p-8 space-y-5">
-            <div className="relative w-16 h-16">
-              <div className="absolute inset-0 rounded-full bg-red-100 dark:bg-red-500/10 animate-pulse" />
-              <div className="relative w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 flex items-center justify-center">
-                <IconlyDelete set="curved" primaryColor="currentColor" size={24} className="text-red-500" />
-              </div>
+        <DialogContent className="sm:max-w-[360px] p-0 rounded-[24px] overflow-hidden border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#17171A] [&>button]:hidden shadow-lg">
+          <div className="flex flex-col items-center text-center p-6 sm:p-7 space-y-4 font-sans">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-xs">
+              <Trash2 size={22} />
             </div>
             <div>
-              <DialogTitle className="text-[18px] font-bold text-slate-900 dark:text-white">Clear all notifications?</DialogTitle>
-              <p className="text-[13.5px] text-slate-500 dark:text-[#999] mt-2 leading-relaxed">This will permanently delete all your notifications. This action cannot be undone.</p>
+              <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">
+                Clear all notifications?
+              </DialogTitle>
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
+                This will remove all notifications from your ledger. This action cannot be undone.
+              </p>
             </div>
-            <div className="flex w-full gap-2.5">
+            <div className="flex w-full gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setShowClearHistoryModal(false)}
-                className="flex-1 py-3 rounded-full font-semibold text-[14px] text-slate-700 dark:text-[#CCC] bg-slate-100 dark:bg-[#1E1E1E] hover:bg-slate-200 dark:hover:bg-slate-700 transition-all active:scale-95"
+                className="flex-1 h-9 rounded-xl font-semibold text-xs text-slate-700 dark:text-neutral-300 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 transition-all cursor-pointer shadow-xs"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmClearAllNotifications}
-                className="flex-1 py-3 rounded-full font-semibold text-[14px] text-white bg-gradient-to-r from-red-500 to-rose-500 shadow-lg shadow-red-500/25 hover:brightness-110 transition-all active:scale-95"
+                className="flex-1 h-9 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-700 shadow-xs transition-all cursor-pointer"
               >
                 Clear All
               </button>

@@ -47,6 +47,8 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { playSound } from "@/utils/soundEffects";
+import { performAppLogout } from "@/utils/logout";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -214,16 +216,20 @@ const wrapLucide = (IconComponent: any) => {
 
 
 
-// Dynamic communicationMenu will be defined inside AppSidebar component
+// Stable module-scoped icon components (never recreated on render!)
+const SidebarIconHome = WrappedIconly(Home);
+const SidebarIconDiscovery = WrappedIconly(Discovery);
+const SidebarIconPlay = WrappedIconly(Play);
+const SidebarIconTwoUsers = WrappedIconly(TwoUsers);
+const SidebarIconBookmark = WrappedIconly(Bookmark);
+const SidebarIconMessage = WrappedIconly(Message);
+const SidebarIconNotification = WrappedIconly(Notification);
 
 const homeMenu = [
-
-  { path: "/home", icon: WrappedIconly(Home), label: "Feed" },
-
-  { path: "/home?tab=saved", icon: WrappedIconly(Bookmark), label: "Saved" },
-
-  { path: "/home?tab=calendar", icon: wrapLucide(Clock), label: "Economic Calendar" },
-
+  { path: "/home", icon: SidebarIconHome, label: "Home" },
+  { path: "/discover", icon: SidebarIconDiscovery, label: "Discover" },
+  { path: "/channel", icon: SidebarIconTwoUsers, label: "Channels" },
+  { path: "/home?tab=saved", icon: SidebarIconBookmark, label: "Saved" },
 ];
 
 
@@ -246,15 +252,15 @@ const discoverMenu = [
 
 
 
-const getAutoTradeMenu = () => {
+const getAutoTradeMenu = (isLifetimePlan = false) => {
   return [
-    { path: "/fialgo", icon: WrappedIconly(Category), label: "Dashboard" },
-    { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement" },
-    { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
+    { path: "/auto-trade/setup", icon: wrapLucide(Cpu), label: "Algo Engine Dashboard" },
+    { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement", isLocked: isLifetimePlan, lockedBadge: isLifetimePlan ? "0% Share" : undefined },
+    { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots" },
     { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-    { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
-    { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
-    { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
+    { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder" },
+    { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History" },
+    { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "EA License & Keys" },
   ];
 };
 
@@ -285,15 +291,8 @@ const riskGuardMenu = [
 
 
 const dashboardMenu = [
-
   { path: "/dashboard", icon: WrappedIconly(Category), label: "Main Dashboard" },
-
-  { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings" },
-
-  { path: "/dashboard?tab=brokers", icon: wrapLucide(Server), label: "Connected Brokers" },
-
   { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
-
 ];
 
 
@@ -303,8 +302,6 @@ const journalMenu = [
   { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
 
   { path: "/journal/history", icon: wrapLucide(Clock), label: "Trade History" },
-
-  { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking" },
 
 ];
 
@@ -365,39 +362,29 @@ const channelsMenu = [
 
 
 const creatorHubMenu = [
-
   { path: "/creator/analytics", icon: WrappedIconly(Graph), label: "Creator Dashboard" },
-
   { path: "/creator/store", icon: WrappedIconly(Bag), label: "My Store" },
-
-  { path: "/creator/live", icon: WrappedIconly(IconlyVideo), label: "Live Sessions" },
-
 ];
 
 
 
-const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
-  if (isFiAlgo) {
-    return [
-      { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "Auto Trade Dashboard", defaultPath: "/fialgo", isLive: true },
-      { id: "strategyBuilder", icon: WrappedIconly(Setting), tooltip: "Strategy Builder", defaultPath: "/strategy-builder", isLive: true },
-      { id: "activeBots", icon: WrappedIconly(Activity), tooltip: "Active Bots", defaultPath: "/auto-trade/active-bots", isLive: true },
-      { id: "marketplace", icon: WrappedIconly(Bag), tooltip: "Algo Marketplace", defaultPath: "/auto-trade/marketplace", isLive: true },
-      { id: "history", icon: WrappedIconly(Document), tooltip: "Order History", defaultPath: "/auto-trade/history", isLive: true },
-      { id: "license", icon: WrappedIconly(ShieldDone), tooltip: "License & Activation", defaultPath: "/auto-trade/license", isLive: true },
-    ];
-  }
+const rewardsMenu = [
+  { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
+];
 
-  // TradiFive Workspace Pillars (Auto Trade completely removed)
+const referralsMenu = [
+  { path: "/referrals", icon: WrappedIconly(AddUser), label: "Referral Program" },
+];
+
+const getPillars = (isCreator: boolean, isFiAlgo: boolean = false) => {
   return [
-    { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed (Live)", defaultPath: "/home", isLive: true },
-    { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Dashboard (Soon)", defaultPath: "/dashboard", isLocked: true },
-    { id: "community", icon: WrappedIconly(Chat), tooltip: "Channels (Soon)", defaultPath: "/channel", isLocked: true },
-    { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Journal (Soon)", defaultPath: "/journal", isLocked: true },
-    { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard (Soon)", defaultPath: "/risk-guard", isLocked: true },
-    { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach (Soon)", defaultPath: "/ai-coach", isLocked: true },
-    { id: "discover", icon: WrappedIconly(Discovery), tooltip: "Discover", defaultPath: "/discover", isLive: true },
-    ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub (Soon)", defaultPath: "/creator/analytics", isLocked: true }] : []),
+    { id: "home", icon: WrappedIconly(Home), tooltip: "Home Feed", defaultPath: "/home", isLive: true },
+    { id: "dashboard", icon: WrappedIconly(Category), tooltip: "Trading Dashboard", defaultPath: "/dashboard", isLive: true },
+    { id: "journal", icon: WrappedIconly(Document), tooltip: "Smart Trade Journal", defaultPath: "/journal", isLive: true },
+    { id: "riskGuard", icon: WrappedIconly(ShieldDone), tooltip: "Risk Guard Protection", defaultPath: "/risk-guard", isLive: true },
+    { id: "aiCoach", icon: WrappedSparkles, tooltip: "AI Coach & Copilot", defaultPath: "/ai-coach", isLive: true },
+    { id: "autoTrade", icon: WrappedIconly(Activity), tooltip: "AutoTrade (Locked)", defaultPath: "/auto-trade/setup", isLive: true, isLocked: true },
+    ...(isCreator ? [{ id: "creatorHub", icon: WrappedIconly(Star), tooltip: "Creator Hub", defaultPath: "/creator/analytics", isLive: true }] : []),
   ];
 };
 
@@ -554,49 +541,73 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
   const { activeMarket, setActiveMarket } = useMarket();
   const { isFiAlgo, isTradiFive, switchWorkspace } = useWorkspace();
 
+  useEffect(() => {
+    const handleOpenModal = () => {
+      setActivePillar("autoTrade");
+      navigate("/auto-trade/setup");
+    };
+    window.addEventListener("open-autotrade-confirm", handleOpenModal);
+    return () => window.removeEventListener("open-autotrade-confirm", handleOpenModal);
+  }, [navigate]);
 
 
-  const getInitialPillar = () => {
 
+  const getInitialPillar = (currentPillar?: string) => {
     const path = location.pathname;
 
-    if (path.startsWith("/home")) return "home";
+    // Direct communications routes don't change the active pillar
+    if (path.startsWith("/inbox") || path.startsWith("/notifications")) {
+      const saved = typeof window !== "undefined" ? sessionStorage.getItem("tf_active_pillar") : null;
+      return currentPillar || saved || "dashboard";
+    }
 
-    if (path.startsWith("/dashboard")) return "dashboard";
+    let pillar = "dashboard";
+    if (
+      path.startsWith("/home") ||
+      path.startsWith("/post/") ||
+      path.startsWith("/discover") ||
+      path.startsWith("/marketplace") ||
+      path.startsWith("/store") ||
+      path.startsWith("/learning") ||
+      path.startsWith("/courses") ||
+      path.startsWith("/channel")
+    ) pillar = "home";
+    else if (path.startsWith("/dashboard")) pillar = "dashboard";
+    else if (path.startsWith("/journal")) pillar = "journal";
+    else if (path.startsWith("/risk-guard")) pillar = "riskGuard";
+    else if (path.startsWith("/ai-coach")) pillar = "aiCoach";
+    else if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) pillar = "autoTrade";
+    else if (path.startsWith("/community")) pillar = "home";
+    else if (path.startsWith("/rewards")) pillar = "rewards";
+    else if (path.startsWith("/referrals")) pillar = "referrals";
+    else if (path.startsWith("/settings") || path.startsWith("/profile") || path.startsWith("/upgrade")) pillar = "settings";
+    else if (path.startsWith("/creator")) pillar = "creatorHub";
 
-    if (path.startsWith("/journal")) return "journal";
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("tf_active_pillar", pillar);
+      } catch (e) {}
+    }
 
-    if (path.startsWith("/risk-guard")) return "riskGuard";
-
-    if (path.startsWith("/ai-coach")) return "aiCoach";
-
-    if (path.startsWith("/fialgo") || path.startsWith("/auto-trade") || path.startsWith("/strategy-builder") || path.startsWith("/weekly-settlements") || path.startsWith("/settlements")) return "autoTrade";
-
-    if (path.startsWith("/discover") || path.startsWith("/marketplace")) return "discover";
-
-    if (path.startsWith("/channel") || path.startsWith("/inbox") || path.startsWith("/notifications") || path.startsWith("/community")) return "community";
-
-    if (path.startsWith("/rewards") || path.startsWith("/referrals")) return "rewards";
-
-    if (path.startsWith("/settings") || path.startsWith("/profile") || path.startsWith("/upgrade")) return "settings";
-
-    if (path.startsWith("/creator")) return "creatorHub";
-
-    return "dashboard";
-
+    return pillar;
   };
 
-
-
-  const [activePillar, setActivePillar] = useState(getInitialPillar());
-
-
+  const [activePillar, setActivePillar] = useState(() => getInitialPillar());
 
   useEffect(() => {
-
-    setActivePillar(getInitialPillar());
-
+    const nextPillar = getInitialPillar(activePillar);
+    if (nextPillar && nextPillar !== activePillar) {
+      setActivePillar(nextPillar);
+    }
   }, [location.pathname]);
+
+  useEffect(() => {
+    if (activePillar && typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("tf_active_pillar", activePillar);
+      } catch (e) {}
+    }
+  }, [activePillar]);
 
 
 
@@ -1259,42 +1270,21 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
   const handleLogout = async () => {
-
     setShowLogoutConfirm(false);
-
     const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length);
-
     setSelectedQuote(MOTIVATIONAL_MESSAGES[randomIndex]);
-
     setIsLoggingOut(true);
-
-    await new Promise((resolve) => setTimeout(resolve, 4000));
-
-    Object.keys(localStorage).forEach((k) => {
-
-      if (k.startsWith("tradifive_")) {
-
-        localStorage.removeItem(k);
-
-      }
-
-    });
-
-    await supabase.auth.signOut();
-
-    setIsLoggingOut(false);
-
-    navigate("/login");
-
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await performAppLogout("/login?logout=true");
   };
 
 
 
   const communicationMenu = [
 
-    { path: "/inbox", icon: WrappedIconly(Message), label: "Inbox", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
+    { path: "/inbox", icon: SidebarIconMessage, label: "Inbox", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
 
-    { path: "/notifications", icon: WrappedIconly(Notification), label: "Notifications", badge: (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
+    { path: "/notifications", icon: SidebarIconNotification, label: "Notifications", badge: (unreadNotifications > 0 ? (unreadNotifications > 15 ? "15+" : String(unreadNotifications)) : undefined) },
 
   ];
 
@@ -1302,22 +1292,48 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
   const isAutoTradeSetup = typeof window !== 'undefined' && localStorage.getItem("tradifive_auto_trade_setup") === "true";
 
+  const [isLifetimePlan, setIsLifetimePlan] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        if (localStorage.getItem("tradifive_is_lifetime_plan") === "true") return true;
+        const tier = localStorage.getItem("tradifive_payment_tier") || localStorage.getItem("tradifive_selected_tier");
+        if (tier === "three_years" || tier === "lifetime") return true;
+        const req = localStorage.getItem("tradifive_payment_request");
+        if (req) {
+          const p = JSON.parse(req);
+          if (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000) return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  });
+
+  useEffect(() => {
+    const handleTierUpdate = () => {
+      const isLt = localStorage.getItem("tradifive_is_lifetime_plan") === "true" ||
+                   localStorage.getItem("tradifive_payment_tier") === "three_years";
+      setIsLifetimePlan(isLt);
+    };
+    window.addEventListener("tradifive_tier_update", handleTierUpdate);
+    window.addEventListener("storage", handleTierUpdate);
+    return () => {
+      window.removeEventListener("tradifive_tier_update", handleTierUpdate);
+      window.removeEventListener("storage", handleTierUpdate);
+    };
+  }, []);
 
 
-  const mobilePillars = isFiAlgo ? [
-    { id: "autoTrade", label: "Auto Trade", icon: WrappedIconly(Activity), isLive: true },
-    { id: "strategyBuilder", label: "Strategy", icon: WrappedIconly(Setting), isLive: true },
-    { id: "activeBots", label: "Bots", icon: WrappedIconly(Activity), isLive: true },
-    { id: "history", label: "History", icon: WrappedIconly(Document), isLive: true },
-  ] : [
+
+  const mobilePillars = [
     { id: "home", label: "Home Feed", icon: WrappedIconly(Home), isLive: true },
-    { id: "dashboard", label: "Dashboard (Soon)", icon: WrappedIconly(Category), isLocked: true },
-    { id: "community", label: "Channels (Soon)", icon: WrappedIconly(Chat), isLocked: true },
-    { id: "journal", label: "Journal (Soon)", icon: WrappedIconly(Document), isLocked: true },
-    { id: "riskGuard", label: "Risk Guard (Soon)", icon: WrappedIconly(ShieldDone), isLocked: true },
-    { id: "aiCoach", label: "AI Coach (Soon)", icon: WrappedIconly(Chat), isLocked: true },
+    { id: "dashboard", label: "Dashboard", icon: WrappedIconly(Category), isLive: true },
+    { id: "autoTrade", label: "AutoTrade", icon: WrappedIconly(Activity), isLive: true, isLocked: true },
+    { id: "community", label: "Channels", icon: WrappedIconly(Chat), isLive: true },
+    { id: "journal", label: "Journal", icon: WrappedIconly(Document), isLive: true },
+    { id: "riskGuard", label: "Risk Guard", icon: WrappedIconly(ShieldDone), isLive: true },
+    { id: "aiCoach", label: "AI Coach", icon: WrappedIconly(Chat), isLive: true },
     { id: "discover", label: "Discover", icon: WrappedIconly(Discovery), isLive: true },
-    ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star), isLocked: true }] : [])
+    ...(isCreator ? [{ id: "creatorHub", label: "Creator Hub", icon: WrappedIconly(Star), isLive: true }] : [])
   ];
 
 
@@ -1328,39 +1344,21 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       case "home":
 
-        return [
-
-          { path: "/home", icon: WrappedIconly(Home), label: "Home Feed" },
-
-          { path: "/home?tab=saved", icon: WrappedIconly(Bookmark), label: "Saved Posts" },
-
-          { path: "/home?tab=calendar", icon: WrappedIconly(TimeCircle), label: "Economic Calendar" },
-
-        ];
+        return homeMenu;
 
       case "dashboard":
-
         return [
-
-          { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard", isLocked: true },
-
-          { path: "/dashboard?tab=portfolio", icon: WrappedIconly(Wallet), label: "Portfolio & Holdings", isLocked: true },
-
-          { path: "/broker-connect", icon: WrappedIconly(Activity), label: "Connected Brokers", isLocked: true },
-
-          { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements", isLocked: true },
-
+          { path: "/dashboard", icon: WrappedIconly(Category), label: "Dashboard" },
+          { path: "/dashboard?tab=reports", icon: WrappedIconly(Document), label: "Reports & Statements" },
         ];
 
       case "journal":
 
         return [
 
-          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal", isLocked: true },
+          { path: "/journal", icon: WrappedIconly(Document), label: "Daily Journal" },
 
-          { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History", isLocked: true },
-
-          { path: "/journal/mistakes", icon: WrappedIconly(ShieldDone), label: "Mistake Tracking", isLocked: true },
+          { path: "/journal/history", icon: WrappedIconly(TimeCircle), label: "Trade History" },
 
         ];
 
@@ -1368,13 +1366,13 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard", isLocked: true },
+          { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard" },
 
-          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits", isLocked: true },
+          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits" },
 
-          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure", isLocked: true },
+          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure" },
 
-          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true, isLocked: true },
+          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true },
 
         ];
 
@@ -1390,9 +1388,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           { path: "/discover?tab=People", icon: WrappedIconly(TwoUsers), label: "Top Traders" },
 
-          { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Contests", isLocked: true },
+          { path: "/competitions/dashboard", icon: WrappedIconly(Scan), label: "Contests" },
 
-          { path: "/learning", icon: wrapLucide(GraduationCap), label: "Courses", isLocked: true },
+          { path: "/learning", icon: wrapLucide(GraduationCap), label: "Courses" },
 
         ];
 
@@ -1400,71 +1398,52 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights", isLocked: true },
+          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights" },
 
-          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat", isLocked: true },
+          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat" },
 
-          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback", isLocked: true },
+          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback" },
 
-          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals", isLocked: true },
+          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals" },
 
-          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics", isLocked: true },
+          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics" },
 
         ];
 
       case "autoTrade":
-
-
-
         return [
-
-
-
           { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Dashboard" },
-
-          { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "Weekly Profit Settlement" },
-
-
-
-          { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots", isLocked: true },
-
-
-
+          { 
+            path: "/weekly-settlements", 
+            icon: wrapLucide(ReceiptText), 
+            label: "Weekly Profit Settlement", 
+            isLocked: isLifetimePlan, 
+            lockedBadge: isLifetimePlan ? "0% Share" : undefined 
+          },
+          { path: "/auto-trade/active-bots", icon: WrappedIconly(Activity), label: "Active Bots" },
           { path: "/auto-trade/marketplace", icon: WrappedIconly(Bag), label: "Algo Marketplace" },
-
-
-
-          { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder", isLocked: true },
-
-
-
-          { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History", isLocked: true },
-
-
-
-          { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation", isLocked: true },
-
-
-
+          { path: "/strategy-builder", icon: WrappedIconly(Setting), label: "Strategy Builder" },
+          { path: "/auto-trade/history", icon: WrappedIconly(Document), label: "Order History" },
+          { path: "/auto-trade/license", icon: WrappedIconly(ShieldDone), label: "License & Activation" },
         ];
 
-
-
       case "settlements":
-
         return [
-
-          { path: "/weekly-settlements", icon: wrapLucide(ReceiptText), label: "My Settlements" },
-
+          { 
+            path: "/weekly-settlements", 
+            icon: wrapLucide(ReceiptText), 
+            label: "My Settlements", 
+            isLocked: isLifetimePlan, 
+            lockedBadge: isLifetimePlan ? "0% Share" : undefined 
+          },
           { path: isAutoTradeSetup ? "/auto-trade/dashboard" : "/auto-trade/setup", icon: WrappedIconly(Category), label: "Auto Trade Dashboard" },
-
         ];
 
       case "community":
 
         return [
 
-          { path: "/channel", icon: WrappedIconly(Chat), label: "Channels & Chat", isLocked: true },
+          { path: "/channel", icon: WrappedIconly(Chat), label: "Channels & Chat" },
 
           { path: "/inbox", icon: WrappedIconly(Message), label: "Direct Messages", badge: (unreadDMs > 0 ? String(unreadDMs) : undefined) },
 
@@ -1475,16 +1454,16 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         ];
 
       case "creatorHub":
-
         return [
-
           { path: "/creator/analytics", icon: WrappedIconly(Graph), label: "Creator Dashboard" },
-
           { path: "/creator/store", icon: WrappedIconly(Bag), label: "My Store" },
-
-          { path: "/creator/live", icon: WrappedIconly(IconlyVideo), label: "Live Sessions" },
-
         ];
+
+      case "rewards":
+        return rewardsMenu;
+
+      case "referrals":
+        return referralsMenu;
 
       default:
 
@@ -1508,9 +1487,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     ...mobilePillars.flatMap(p => getSecondaryPagesForPillar(p.id)),
 
-    { path: "/referrals", icon: WrappedIconly(AddUser), label: "Refer & Earn" },
+    { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub" },
 
-    { path: "/rewards", icon: WrappedIconly(TicketStar), label: "Rewards Hub (Soon)", isLocked: true },
+    { path: "/referrals", icon: WrappedIconly(AddUser), label: "Referral Program" },
 
     { path: "/settings", icon: WrappedIconly(Setting), label: "Settings" },
 
@@ -1558,7 +1537,15 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       (location.pathname === '/' && item.path === '/dashboard') ||
 
-      ((item.path === '/home' || item.path === '/home') && location.pathname === '/home' && (!location.search || location.search === ''))
+      (item.path === '/home' && location.pathname === '/home' && (!location.search || location.search === '')) ||
+
+      (item.path === '/channel' && location.pathname.startsWith('/channel')) ||
+
+      (item.path === '/discover' && location.pathname.startsWith('/discover')) ||
+
+      (item.path === '/inbox' && location.pathname.startsWith('/inbox')) ||
+
+      (item.path === '/notifications' && location.pathname.startsWith('/notifications'))
 
     );
 
@@ -1568,10 +1555,21 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       <button
         key={item.label}
+        type="button"
 
         id={`tour-nav-${item.label.toLowerCase().replace(/[\s\/]+/g, '-')}`}
 
         onClick={(e) => {
+          if (item.isLocked) {
+            if (item.path === "/weekly-settlements") {
+              toast.info("Weekly Settlements are locked for ₹1,00,000 Lifetime Plan members.", {
+                description: "You have 0% profit share—100% of all profits remain directly in your broker account!"
+              });
+            } else {
+              toast.info(`${item.label} will be available soon!`);
+            }
+            return;
+          }
 
           if (item.isAction && item.action) {
 
@@ -1589,7 +1587,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           if (item.path && item.path !== "#") {
 
-            React.startTransition(() => navigate(item.path));
+            React.startTransition(() => {
+              navigate(item.path);
+            });
 
             if (isMobile) {
 
@@ -1671,13 +1671,17 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           <div className={`flex items-center gap-1 overflow-hidden transition-all duration-300 ${isCollapsed ? "max-w-0 opacity-0" : "ml-2"}`}>
 
-            <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-500/20 px-2 py-[3px] rounded-full shrink-0 shadow-sm">
-
-              <Lock size={10} className="text-indigo-500 shrink-0" />
-
-              <span className="text-[8.5px] font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400 leading-none">Soon</span>
-
-            </div>
+            {item.lockedBadge ? (
+              <div className="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/30 px-2 py-[3px] rounded-full shrink-0 shadow-sm">
+                <Lock size={10} className="text-emerald-500 shrink-0" />
+                <span className="text-[8.5px] font-black uppercase tracking-[0.1em] text-emerald-600 dark:text-emerald-400 leading-none">{item.lockedBadge}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 bg-gradient-to-r from-indigo-500/10 to-blue-500/10 border border-indigo-500/20 px-2 py-[3px] rounded-full shrink-0 shadow-sm">
+                <Lock size={10} className="text-indigo-500 shrink-0" />
+                <span className="text-[8.5px] font-black uppercase tracking-[0.15em] text-indigo-600 dark:text-indigo-400 leading-none">Soon</span>
+              </div>
+            )}
 
           </div>
 
@@ -1751,7 +1755,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
           : `fixed left-0 top-0 z-40 flex h-screen flex-row bg-transparent dark:bg-transparent ${isMounted ? "transition-[width] duration-300" : ""
 
-          } ${isCollapsed ? "w-[90px]" : isFiAlgo ? "w-[260px] xl:w-[274px]" : "w-[90px] xl:w-[340px]"}`
+          } ${isCollapsed ? "w-[90px]" : "w-[340px]"}`
 
           }`}
 
@@ -1759,172 +1763,136 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
       >
 
-        {!isMobile && !isFiAlgo && (
+        {!isMobile && (
 
           <div className="w-[74px] h-[calc(100vh-24px)] flex flex-col items-center justify-between py-2 m-3 mr-0 shrink-0 z-50 relative gap-2">
 
 
 
             {/* Top Outer Pill */}
-
             <div className="w-full flex-1 flex flex-col items-center py-2 bg-white dark:bg-[#1E1E1E] rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-none">
-
-              {/* Top Dark Pill - Navigation Icons */}
-
-              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-5 pb-5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none gap-3.5 relative">
-
-
-
+              {/* Top Dark Pill - Navigation Icons Only */}
+              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-3.5 pb-3.5 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none gap-3 relative">
                 {/* Asterisk / Logo */}
-
                 <div onClick={toggleCollapse} title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"} className="w-12 h-12 flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 mb-0">
-
                   <img src="/tf-logo.png" alt="Logo" className="w-10 h-10 object-contain" />
-
                 </div>
 
-
-
                 {/* Divider */}
-
-                <div className="w-6 h-[1px] bg-slate-200 dark:bg-white/10 mb-2 mt-[-4px]" />
-
-
+                <div className="w-6 h-[1px] bg-slate-200 dark:bg-white/10 mb-0.5 mt-[-4px]" />
 
                 {/* Pillars */}
-
                 {getPillars(isCreator, isFiAlgo).map((pillar) => {
-
                   const isActive = activePillar === pillar.id;
+                  const isLocked = (pillar as any).isLocked;
 
                   return (
-
-                    <Tooltip delayDuration={0}>
-
+                    <Tooltip delayDuration={0} key={pillar.id}>
                       <TooltipTrigger asChild>
-
-                    <div
-
-                      key={pillar.id}
-
-                      
-
-                      onClick={() => {
-
-                        setActivePillar(pillar.id);
-
-                        if (pillar.defaultPath) {
-
-                          React.startTransition(() => navigate(pillar.defaultPath));
-
-                        }
-
-                        if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
-
-                      }}
-
-                      className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${isActive
-
-                        ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10'
-
-                        : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
-
-                        }`}
-
-                    >
-
-                      <pillar.icon size={18} set="curved" stroke="bold" primaryColor="currentColor" strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
-
-                      {isActive && (
-
-                        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
-
-                      )}
-
-                    </div>
-
+                        <div
+                          onClick={() => {
+                            if (isLocked) {
+                              playSound('tab');
+                              toast.info("AutoTrade is locked for maintenance & upgrades.", {
+                                description: "Our team is updating the trading engine. This feature will return shortly.",
+                                icon: "🔒",
+                              });
+                              return;
+                            }
+                            playSound('tab');
+                            setActivePillar(pillar.id);
+                            if (pillar.defaultPath) {
+                              React.startTransition(() => navigate(pillar.defaultPath));
+                            }
+                            if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+                          }}
+                          className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${isActive
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10'
+                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
+                            } ${isLocked ? 'opacity-85' : ''}`}
+                        >
+                          <pillar.icon size={18} set="curved" stroke="bold" primaryColor="currentColor" strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
+                          {isLocked && (
+                            <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs z-20">
+                              <Lock size={8} className="stroke-[2.5]" />
+                            </div>
+                          )}
+                          {isActive && (
+                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />
+                          )}
+                        </div>
                       </TooltipTrigger>
-
-                      <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">{pillar.tooltip}</TooltipContent>
-
-                                          </Tooltip>
-
-                    );
-
-                  })}
-
-                  </div>
-
-
-
-                  {/* App Version */}
-
-                  <div className="flex-1 w-full flex items-center justify-center min-h-[120px] mb-4">
-
-                    <span className="text-[10px] font-extrabold tracking-[0.2em] text-slate-400 dark:text-[#8C8C8E]/80 rotate-[-90deg] whitespace-nowrap uppercase">
-
-                      TRADIFIVE v1.2
-
-                    </span>
-
-                  </div>
-
-
-
-
-
-            </div>
-
-
-
-            {/* Bottom Rewards & Referrals Pill */}
-
-            <div className="w-full flex-shrink-0 flex flex-col items-center p-2 bg-white dark:bg-[#1E1E1E] rounded-[37px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-none relative mt-auto">
-
-              {/* Inner Grey Pill */}
-
-              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-3 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none gap-2 relative">
-
-                 <Tooltip delayDuration={0}>
-
-                    <TooltipTrigger asChild>
-
-                      <div onClick={() => navigate('/rewards')} className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${window.location.pathname.startsWith('/rewards') ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'}`}>
-
-                        <TicketStar size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
-
-                        {window.location.pathname.startsWith('/rewards') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
-
-                      </div>
-
-                    </TooltipTrigger>
-
-                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub (Soon)</TooltipContent>
-
-                 </Tooltip>
-
-
-
-                 <Tooltip delayDuration={0}>
-
-                    <TooltipTrigger asChild>
-
-                      <div onClick={() => navigate('/referrals')} className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${window.location.pathname.startsWith('/referrals') ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'}`}>
-
-                        <AddUser size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
-
-                        {window.location.pathname.startsWith('/referrals') && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
-
-                      </div>
-
-                    </TooltipTrigger>
-
-                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Referrals</TooltipContent>
-
-                 </Tooltip>
-
+                      <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">
+                        {isLocked ? `${pillar.tooltip}` : pillar.tooltip}
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
               </div>
 
+              {/* First Layer Vertical Text: TRADIFIVE v1.2 */}
+              <div 
+                onClick={() => {
+                  if (isFiAlgo) {
+                    switchWorkspace("tradifive");
+                    setActivePillar("dashboard");
+                    navigate("/dashboard");
+                  }
+                }}
+                className={`flex-1 w-full flex items-center justify-center min-h-[90px] mb-3 select-none ${isFiAlgo ? 'cursor-pointer group' : ''}`}
+              >
+                <span className="text-[10px] font-extrabold tracking-[0.2em] text-slate-400 dark:text-[#8C8C8E]/80 group-hover:text-slate-700 dark:group-hover:text-white rotate-[-90deg] whitespace-nowrap uppercase">
+                  TRADIFIVE v1.2
+                </span>
+              </div>
+            </div>
+
+            {/* Bottom Rewards & Referrals Capsule (Restored like before) */}
+            <div className="w-full flex-shrink-0 flex flex-col items-center p-2 bg-white dark:bg-[#1E1E1E] rounded-[37px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-none relative mt-auto">
+              {/* Inner Grey Pill */}
+              <div className="w-[58px] rounded-[29px] bg-[#f4f7fb] dark:bg-[#1A1A1C] flex flex-col items-center py-2 shadow-[inset_0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-[inset_0_2px_4px_rgba(255,255,255,0.08),0_8px_20px_rgba(0,0,0,0.4)] border-none relative space-y-2">
+                 <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div 
+                        onClick={() => {
+                          setActivePillar("rewards");
+                          React.startTransition(() => navigate('/rewards'));
+                          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+                        }} 
+                        className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${
+                          (activePillar === "rewards" || location.pathname.startsWith('/rewards')) 
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' 
+                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <TicketStar size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
+                        {(activePillar === "rewards" || location.pathname.startsWith('/rewards')) && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Rewards Hub</TooltipContent>
+                 </Tooltip>
+
+                 <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                      <div 
+                        onClick={() => {
+                          setActivePillar("referrals");
+                          React.startTransition(() => navigate('/referrals'));
+                          if (scrollContainerRef.current) scrollContainerRef.current.scrollTop = 0;
+                        }} 
+                        className={`relative overflow-hidden w-[42px] h-[42px] rounded-[14px] flex items-center justify-center cursor-pointer transition-all ${
+                          (activePillar === "referrals" || location.pathname.startsWith('/referrals')) 
+                            ? 'bg-white dark:bg-white/10 text-slate-800 dark:text-white shadow-sm border border-slate-200/50 dark:border-white/10' 
+                            : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100 dark:text-white/40 dark:hover:text-white dark:hover:bg-white/5'
+                        }`}
+                      >
+                        <AddUser size={18} primaryColor="currentColor" set="curved" stroke="bold" className="relative z-10" />
+                        {(activePillar === "referrals" || location.pathname.startsWith('/referrals')) && <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-[20px] bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.4)]" />}
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" sideOffset={20} className="bg-[#2B2B2F] border border-white/10 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg shadow-xl">Referral Program</TooltipContent>
+                 </Tooltip>
+              </div>
             </div>
 
 
@@ -1939,9 +1907,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         {/* SECONDARY SIDEBAR */}
 
-        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0 pointer-events-none' : isFiAlgo ? 'w-[260px] xl:w-[274px] opacity-100' : 'w-[274px] opacity-100'} shrink-0 relative`}>
+        <div className={`flex flex-col h-full bg-transparent border-transparent transition-all duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isCollapsed ? 'w-0 overflow-hidden opacity-0 pointer-events-none' : 'w-[274px] opacity-100'} shrink-0 relative`}>
 
-          <div className={`flex flex-col h-full shrink-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : isFiAlgo ? 'w-[260px] xl:w-[274px]' : 'w-[274px]'} ${isCollapsed && !isMobile ? '-translate-x-12' : 'translate-x-0'}`}>
+          <div className={`flex flex-col h-full shrink-0 transition-transform duration-[400ms] ease-[cubic-bezier(0.2,0.8,0.2,1)] ${isMobile ? 'w-full' : 'w-[274px]'} ${isCollapsed && !isMobile ? '-translate-x-12' : 'translate-x-0'}`}>
 
 
 
@@ -1957,7 +1925,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
             {/* Logo & Workspace Switcher */}
 
-            <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : isFiAlgo ? 'mt-3.5 px-0.5' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
+            <div className={`transition-all duration-300 flex items-center justify-between h-[54px] ${isMobile ? 'mt-0.5 pl-1 pr-12' : 'mt-[48px] pr-2'} ${isCollapsed ? "max-w-0 opacity-0 overflow-hidden" : "max-w-full opacity-100"}`}>
 
               <div className="flex items-center gap-2 min-w-0 flex-1">
 
@@ -2166,43 +2134,38 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                 <div className="p-1 bg-slate-200/60 dark:bg-white/[0.06] rounded-2xl flex items-center gap-1 overflow-x-auto scrollbar-hide no-scrollbar border border-slate-200/50 dark:border-white/[0.04]">
 
                   {mobilePillars.map((p) => {
-
                     const isActive = activePillar === p.id;
+                    const isLocked = (p as any).isLocked;
 
                     return (
-
                       <button
-
                         key={p.id}
-
                         type="button"
-
                         onClick={() => {
-
+                          if (isLocked) {
+                            toast.info("AutoTrade is locked for maintenance & upgrades.", {
+                              description: "Our team is updating the trading engine. This feature will return shortly.",
+                              icon: "🔒",
+                            });
+                            return;
+                          }
                           setActivePillar(p.id);
-
                         }}
-
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] whitespace-nowrap shrink-0 transition-all cursor-pointer select-none active:scale-95 ${
-
                           isActive
-
                             ? 'bg-white dark:bg-[#202025] text-blue-600 dark:text-blue-400 font-bold shadow-xs border border-slate-200/70 dark:border-white/10'
-
                             : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium hover:bg-white/40 dark:hover:bg-white/5'
-
                         }`}
-
                       >
-
                         <p.icon size={13} primaryColor="currentColor" stroke="bold" />
-
                         <span>{p.label}</span>
-
+                        {isLocked && (
+                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                            <Lock size={8} className="stroke-[2.5]" />
+                          </span>
+                        )}
                       </button>
-
                     );
-
                   })}
 
                 </div>
@@ -2342,7 +2305,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
               <>
 
                 {/* COMMUNICATION SECTION */}
-
                 <div className={isCollapsed ? "mx-2 border-t border-slate-200 dark:border-white/5" : "mx-6 border-t border-slate-200 dark:border-white/5"} />
 
                 <div className="pb-3 pt-3">
@@ -2373,7 +2335,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                     <h3 className="text-slate-400 dark:text-neutral-400 text-[10px] font-extrabold uppercase tracking-[0.15em] px-6 font-sans whitespace-nowrap">
 
-                      {isFiAlgo ? "FIALGO ALGO ENGINE" : (getPillars(isCreator, isFiAlgo).find(p => p.id === activePillar)?.tooltip || "Menu")}
+                      {activePillar === "autoTrade" ? "FIALGO AUTOTRADE" : activePillar === "rewards" ? "REWARDS HUB" : activePillar === "referrals" ? "REFERRAL PROGRAM" : (getPillars(isCreator).find(p => p.id === activePillar)?.tooltip || "Menu")}
 
                     </h3>
 
@@ -2382,7 +2344,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   <div className="flex flex-col gap-1">
 
                     {
-                      isFiAlgo ? getAutoTradeMenu().filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                      activePillar === "autoTrade" ? getAutoTradeMenu(isLifetimePlan).filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                      activePillar === "rewards" ? rewardsMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
+                      activePillar === "referrals" ? referralsMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
                       activePillar === "home" ? homeMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                         activePillar === "dashboard" ? dashboardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
@@ -2392,8 +2356,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                             activePillar === "riskGuard" ? riskGuardMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                               activePillar === "aiCoach" ? aiCoachMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
-
-                                activePillar === "autoTrade" ? getAutoTradeMenu().filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
                                   activePillar === "discover" ? discoverMenu.filter(m => m.label.toLowerCase().includes(navSearchQuery.toLowerCase())).map(renderMenuItem) :
 
@@ -2414,8 +2376,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
             )}
 
           </div>
-
-
 
           {/* UPGRADE CARDS */}
 
@@ -2581,92 +2541,49 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
             <div className="shrink-0 pt-2.5 pb-3 px-3 bg-[#f4f7fb] dark:bg-[#121214] border-t border-slate-200/80 dark:border-white/10 flex flex-col gap-2.5 select-none">
 
-              {/* Dual Action Tiles: Refer & Earn and Rewards Hub */}
-
+              {/* Action Tiles: Rewards Hub & Referral Program */}
               <div className="grid grid-cols-2 gap-2">
-
                 <button
-
                   type="button"
-
                   onClick={() => {
-
-                    React.startTransition(() => navigate("/referrals"));
-
-                    toggleCollapse?.();
-
-                  }}
-
-                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
-
-                >
-
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-500/20 group-hover:scale-105 transition-transform">
-
-                    <AddUser set="curved" primaryColor="currentColor" size={17} stroke="bold" />
-
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-
-                    <div className="text-[12px] font-bold text-slate-800 dark:text-slate-100 leading-tight truncate">
-
-                      Refer & Earn
-
-                    </div>
-
-                    <div className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 leading-tight mt-0.5 truncate">
-
-                      +500 XP / 20%
-
-                    </div>
-
-                  </div>
-
-                </button>
-
-
-
-                <button
-
-                  type="button"
-
-                  onClick={() => {
-
                     React.startTransition(() => navigate("/rewards"));
-
                     toggleCollapse?.();
-
                   }}
-
                   className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
-
                 >
-
                   <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-amber-500/20 group-hover:scale-105 transition-transform">
-
                     <TicketStar set="curved" primaryColor="currentColor" size={17} stroke="bold" />
-
                   </div>
-
                   <div className="min-w-0 flex-1">
-
                     <div className="text-[12px] font-bold text-slate-800 dark:text-slate-100 leading-tight truncate">
-
-                      Rewards
-
+                      Rewards Hub
                     </div>
-
                     <div className="text-[10px] font-semibold text-amber-600 dark:text-amber-400 leading-tight mt-0.5 truncate">
-
-                      Claim perks
-
+                      Score & Perks
                     </div>
-
                   </div>
-
                 </button>
 
+                <button
+                  type="button"
+                  onClick={() => {
+                    React.startTransition(() => navigate("/referrals"));
+                    toggleCollapse?.();
+                  }}
+                  className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-white dark:bg-[#1E1E22] hover:bg-slate-100/80 dark:hover:bg-[#26262B] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none transition-all active:scale-[0.98] text-left cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                    <AddUser set="curved" primaryColor="currentColor" size={17} stroke="bold" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[12px] font-bold text-slate-800 dark:text-slate-100 leading-tight truncate">
+                      Referral Program
+                    </div>
+                    <div className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 leading-tight mt-0.5 truncate">
+                      +500 XP / Cash
+                    </div>
+                  </div>
+                </button>
               </div>
 
 
@@ -2990,31 +2907,14 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                         </div>
 
                         <div className="relative h-[16px] w-full overflow-hidden mt-0.5 select-none">
-
-                          {isFiAlgo ? (
-                            <span className="text-[12px] text-purple-600 dark:text-purple-400 font-bold truncate block font-sans">
-                              {mt5Acc ? `MT5 #${mt5Acc} · Live` : "FiAlgo Engine Active"}
-                            </span>
-                          ) : (
-                            <>
-                              <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-0 -translate-y-2.5 pointer-events-none" : "opacity-100 translate-y-0"
-
-                                }`}>
-
-                                {userStatus}
-
-                              </span>
-
-                              <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2.5 pointer-events-none"
-
-                                }`}>
-
-                                @{username || "alextrades"}
-
-                              </span>
-                            </>
-                          )}
-
+                          <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-0 -translate-y-2.5 pointer-events-none" : "opacity-100 translate-y-0"
+                            }`}>
+                            {userStatus}
+                          </span>
+                          <span className={`absolute inset-0 text-[12px] text-slate-450 dark:text-slate-400 font-semibold truncate transition-all duration-300 ease-out transform font-sans ${isHoveredProfile ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2.5 pointer-events-none"
+                            }`}>
+                            @{username || "alextrades"}
+                          </span>
                         </div>
 
                       </div>
@@ -3034,99 +2934,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="start" side="top" sideOffset={12} className="w-[325px] rounded-[18px] p-0 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/5 shadow-[0_12px_40px_rgba(0,0,0,0.06),0_1px_4px_rgba(0,0,0,0.02)] overflow-visible font-sans relative">
-
-                {isFiAlgo ? (
-                  <div className="p-3 select-none font-sans space-y-2">
-                    {/* MT5 Account & Algo Status Header */}
-                    <div className="p-2.5 rounded-xl bg-purple-500/10 dark:bg-purple-500/15 border border-purple-500/20 flex items-center justify-between">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-500/30 flex items-center justify-center shrink-0">
-                          <Cpu size={16} className="text-purple-400" />
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[13px] font-bold text-slate-900 dark:text-white truncate">
-                            {mt5Acc ? `MT5 #${mt5Acc}` : "FiAlgo V1 Engine"}
-                          </span>
-                          <span className="text-[10px] font-medium text-emerald-500 flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            Bridge Socket Active
-                          </span>
-                        </div>
-                      </div>
-                      <span className="px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                        LIVE
-                      </span>
-                    </div>
-
-                    {/* AutoTrade Menu Items */}
-                    <div className="space-y-0.5 pt-1">
-                      <button
-                        onClick={() => { navigate("/auto-trade/license"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <ShieldCheck size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">EA License & Activation</span>
-                      </button>
-
-                      <button
-                        onClick={() => { navigate("/auto-trade/active-bots"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <Activity size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Active Execution Bots</span>
-                      </button>
-
-                      <button
-                        onClick={() => { navigate("/strategy-builder"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <Setting size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Strategy Builder</span>
-                      </button>
-
-                      <button
-                        onClick={() => { navigate("/weekly-settlements"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <ReceiptText size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Weekly Profit Settlement</span>
-                      </button>
-
-                      <button
-                        onClick={() => { navigate("/auto-trade/history"); }}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer text-left text-slate-700 dark:text-slate-200"
-                      >
-                        <Document size={16} className="text-slate-400 shrink-0" />
-                        <span className="text-[13px] font-semibold flex-1 truncate">Order Audit History</span>
-                      </button>
-
-                      <div className="my-1.5 border-t border-slate-100 dark:border-white/10" />
-
-                      {/* Switch to TradiFive Workspace */}
-                      <button
-                        onClick={() => { switchWorkspace("tradifive"); }}
-                        className="w-full flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl hover:bg-blue-50/80 dark:hover:bg-blue-500/10 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer text-left"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <img src="/tf-logo.png" alt="TradiFive" className="w-4 h-4 object-contain shrink-0" />
-                          <span className="text-[13px] font-bold truncate">Switch to TradiFive Workspace</span>
-                        </div>
-                        <ArrowRight size={14} className="shrink-0" />
-                      </button>
-
-                      {/* Sign Out */}
-                      <button
-                        onClick={handleLogoutClick}
-                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-rose-50 dark:hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 transition-colors cursor-pointer text-left"
-                      >
-                        <LogOut size={16} className="shrink-0" />
-                        <span className="text-[13px] font-semibold truncate">Sign Out</span>
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Cover Banner (Discord style with smooth bottom fade) */}
+                {/* Cover Banner (Discord style with smooth bottom fade) */}
 
                 {bannerUrl ? (
 
@@ -3672,9 +3480,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                   </DropdownMenuItem>
 
                 </div>
-
-                  </>
-                )}
 
               </DropdownMenuContent>
 

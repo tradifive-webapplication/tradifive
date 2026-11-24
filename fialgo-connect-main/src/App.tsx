@@ -98,6 +98,7 @@ const SmartJournalPublic = lazy(() => import("./pages/SmartJournalPublic"));
 const CommunityHubPublic = lazy(() => import("./pages/CommunityHubPublic"));
 const CompetitionsPublic = lazy(() => import("./pages/CompetitionsPublic"));
 const TradifiveAIPublic = lazy(() => import("./pages/TradifiveAIPublic"));
+const AutoTradeLocked = lazy(() => import("./pages/AutoTradeLocked"));
 const AutoTradePublic = lazy(() => import("./pages/AutoTradePublic"));
 const PrivacyPolicyPublic = lazy(() => import("./pages/PrivacyPolicyPublic"));
 const TermsOfServicePublic = lazy(() => import("./pages/TermsOfServicePublic"));
@@ -259,23 +260,23 @@ const App = () => {
                   <Route path="/fialgo/strategy" element={<FiAlgoWorkspace defaultTab="strategy" />} />
                   <Route path="/fialgo/bots" element={<FiAlgoWorkspace defaultTab="bots" />} />
                   <Route path="/fialgo/logs" element={<FiAlgoWorkspace defaultTab="logs" />} />
-                  <Route path="/autotrade" element={<Navigate to="/auto-trade/dashboard" replace />} />
-                  <Route path="/auto-trade" element={<Navigate to="/auto-trade/dashboard" replace />} />
-                  <Route path="/auto-trade/setup" element={<AITrading />} />
-                  <Route path="/auto-trade/dashboard" element={<AutoTradeDashboardPage />} />
-                  <Route path="/auto-trade/active-bots" element={<MyRobots />} />
-                  <Route path="/auto-trade/builder" element={<StrategyBuilderPage />} />
-                  <Route path="/strategy-builder" element={<StrategyBuilderPage />} />
-                  <Route path="/strategy" element={<StrategyBuilderPage />} />
-                  <Route path="/auto-trade/backtest" element={<Navigate to="/auto-trade/active-bots" replace />} />
-                  <Route path="/backtest" element={<Navigate to="/auto-trade/active-bots" replace />} />
+                  <Route path="/autotrade" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/setup" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/dashboard" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/active-bots" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/builder" element={<AutoTradeLocked />} />
+                  <Route path="/strategy-builder" element={<AutoTradeLocked />} />
+                  <Route path="/strategy" element={<AutoTradeLocked />} />
+                  <Route path="/auto-trade/backtest" element={<AutoTradeLocked />} />
+                  <Route path="/backtest" element={<AutoTradeLocked />} />
                   <Route path="/auto-trade/history" element={<TradeHistory />} />
                   <Route path="/history" element={<TradeHistory />} />
                   <Route path="/order-history" element={<TradeHistory />} />
                   <Route path="/auto-trade/license" element={<EASetup />} />
                   <Route path="/license" element={<EASetup />} />
                   <Route path="/activation" element={<EASetup />} />
-                  <Route path="/ai-trading" element={<Navigate to="/auto-trade/setup" replace />} />
+                  <Route path="/ai-trading" element={<AutoTradeLocked />} />
                   <Route path="/rewards" element={<Rewards />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/user/:username" element={<UserProfilePublic />} />
