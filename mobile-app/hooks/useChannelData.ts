@@ -47,15 +47,42 @@ export function useChannelData(activeChannelId: string | null = null) {
       try {
         const { data, error } = await supabase
           .from('channel_messages')
-          .select('*, profiles(full_name, avatar_url, username)')
+          .select('*')
           .eq('channel_id', activeChannelId)
           .order('created_at', { ascending: true });
 
         if (error) throw error;
+
+        const rawMessages = data ?? [];
+        const userIds = [...new Set(rawMessages.map((m: any) => m.user_id).filter(Boolean))];
+        let profilesMap: Record<string, any> = {};
+
+        if (userIds.length > 0) {
+          try {
+            const { data: profilesData } = await supabase
+              .from('profiles')
+              .select('id, full_name, avatar_url, username')
+              .in('id', userIds);
+
+            if (profilesData) {
+              profilesMap = profilesData.reduce((acc: any, p: any) => {
+                acc[p.id] = p;
+                return acc;
+              }, {});
+            }
+          } catch (pe) {
+            console.warn('Profiles load error in channel:', pe);
+          }
+        }
         
-        const validMessages = (data ?? []).filter(m => {
-          try { return !m.content.includes('"type":"deleted"'); } catch { return true; }
-        });
+        const validMessages = rawMessages
+          .filter((m: any) => {
+            try { return !m.content.includes('"type":"deleted"'); } catch { return true; }
+          })
+          .map((m: any) => ({
+            ...m,
+            profiles: profilesMap[m.user_id] ?? null
+          }));
 
         setMessages(validMessages);
         
@@ -119,18 +146,35 @@ export function useChannelData(activeChannelId: string | null = null) {
           user_id: userId,
           content: content.trim()
         })
-        .select('*, profiles(full_name, avatar_url, username)')
+        .select('*')
         .single();
 
       if (error) throw error;
+
+      let authorProfile = null;
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url, username')
+          .eq('id', userId)
+          .maybeSingle();
+        authorProfile = prof;
+      } catch (e) {
+        console.warn('Profile fetch warning:', e);
+      }
+
+      const fullMsg = {
+        ...(data as any),
+        profiles: authorProfile
+      };
       
       if (data) {
         setMessages(prev => {
           if (prev.some(m => m.id === data.id)) return prev;
-          return [...prev, data];
+          return [...prev, fullMsg];
         });
       }
-      return data;
+      return fullMsg;
     } catch (err) {
       console.error('Send message failed:', err);
       return null;

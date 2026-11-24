@@ -39,9 +39,9 @@ export default function PublicNavbar({
       desc: "Automated MT5 Gold trading bots",
       path: "/features/auto-trade",
       icon: Cpu,
-      color: "#38bdf8",
-      bgColor: "rgba(56, 189, 248, 0.12)",
-      borderColor: "rgba(56, 189, 248, 0.25)",
+      color: "#2563eb",
+      bgColor: "rgba(37, 99, 235, 0.08)",
+      borderColor: "rgba(37, 99, 235, 0.2)",
       badge: "LIVE",
     },
     {
@@ -49,9 +49,9 @@ export default function PublicNavbar({
       desc: "Verified social trader network",
       path: "/features/community-hub",
       icon: Users,
-      color: "#2563eb",
-      bgColor: "rgba(37, 99, 235, 0.1)",
-      borderColor: "rgba(37, 99, 235, 0.2)",
+      color: "#4f46e5",
+      bgColor: "rgba(79, 70, 229, 0.08)",
+      borderColor: "rgba(79, 70, 229, 0.2)",
       badge: "LIVE",
     },
     {
@@ -59,9 +59,9 @@ export default function PublicNavbar({
       desc: "Drawdown kill-switch & daily limits",
       path: "/features/risk-guard",
       icon: Shield,
-      color: "#f97316",
-      bgColor: "rgba(249, 115, 22, 0.1)",
-      borderColor: "rgba(249, 115, 22, 0.2)",
+      color: "#059669",
+      bgColor: "rgba(5, 150, 105, 0.08)",
+      borderColor: "rgba(5, 150, 105, 0.2)",
       badge: "SOON",
     },
     {
@@ -69,9 +69,9 @@ export default function PublicNavbar({
       desc: "Auto broker sync & 40+ metrics",
       path: "/features/smart-journal",
       icon: BookOpen,
-      color: "#2563eb",
-      bgColor: "rgba(37, 99, 235, 0.1)",
-      borderColor: "rgba(37, 99, 235, 0.2)",
+      color: "#db2777",
+      bgColor: "rgba(219, 39, 119, 0.08)",
+      borderColor: "rgba(219, 39, 119, 0.2)",
       badge: "SOON",
     },
     {
@@ -79,9 +79,9 @@ export default function PublicNavbar({
       desc: "Broadcast rooms & verified signals",
       path: "/features/channels",
       icon: Radio,
-      color: "#f97316",
-      bgColor: "rgba(249, 115, 22, 0.1)",
-      borderColor: "rgba(249, 115, 22, 0.2)",
+      color: "#e11d48",
+      bgColor: "rgba(225, 29, 72, 0.08)",
+      borderColor: "rgba(225, 29, 72, 0.2)",
       badge: "SOON",
     },
     {
@@ -89,9 +89,9 @@ export default function PublicNavbar({
       desc: "AI trading engine & market copilot",
       path: "/features/tradifive-ai",
       icon: Brain,
-      color: "#2563eb",
-      bgColor: "rgba(37, 99, 235, 0.1)",
-      borderColor: "rgba(37, 99, 235, 0.2)",
+      color: "#7c3aed",
+      bgColor: "rgba(124, 58, 237, 0.08)",
+      borderColor: "rgba(124, 58, 237, 0.2)",
       badge: "SOON",
     },
   ];
@@ -187,23 +187,20 @@ export default function PublicNavbar({
       let isActive = false;
       if (deepDives) {
         const rect = deepDives.getBoundingClientRect();
-        // active when deep-dives has reached top of viewport and is still scrolling
         if (rect.top <= 0 && rect.bottom > 0) isActive = true;
       }
       if (hideNavZone) {
         const rect = hideNavZone.getBoundingClientRect();
-        // active when the image starts taking up space in the viewport
         if (rect.top <= window.innerHeight * 0.7 && rect.bottom > 0) isActive = true;
       }
       setInDeepDives(isActive);
     };
     window.addEventListener("scroll", h);
-    h(); // initial check
+    h();
     return () => window.removeEventListener("scroll", h);
   }, []);
 
   useEffect(() => {
-    // Preload the heavy login page chunk in the background 1 second after navbar mount
     const timer = setTimeout(() => {
       import("../pages/Login").catch(() => { });
     }, 1000);
@@ -244,11 +241,11 @@ export default function PublicNavbar({
     <>
       <style>{`
         .nav-link-item {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 500;
           text-decoration: none;
           color: #475569;
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
         }
         .nav-link-item:hover {
@@ -261,13 +258,13 @@ export default function PublicNavbar({
         }
 
         .ai-nav-btn {
-          box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 12px rgba(168, 85, 247, 0.15) !important;
-          background: linear-gradient(145deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%) !important;
+          box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15) !important;
+          background: linear-gradient(145deg, rgba(124, 58, 237, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%) !important;
         }
         .ai-nav-btn:hover {
-          transform: translateY(-2px) scale(1.02) !important;
-          box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3) !important;
-          background: linear-gradient(145deg, rgba(168, 85, 247, 0.25) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
+          transform: translateY(-1px) scale(1.02) !important;
+          box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+          background: linear-gradient(145deg, rgba(124, 58, 237, 0.18) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
         }
         
         .nav-btn-signin {
@@ -284,11 +281,11 @@ export default function PublicNavbar({
           outline: none;
         }
         .nav-btn-signin:hover {
-          color: #000;
+          color: #000000;
           background: #f8fafc;
           border-color: #cbd5e1;
           transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
         }
         .nav-btn-signin:active {
           transform: scale(0.985) !important;
@@ -303,7 +300,7 @@ export default function PublicNavbar({
           border: none;
           cursor: pointer;
           transition: all 0.2s ease;
-          box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+          box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
           position: relative;
           overflow: hidden;
           outline: none;
@@ -311,8 +308,7 @@ export default function PublicNavbar({
         .nav-btn-get-started:hover {
           transform: translateY(-1px);
           background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%);
-          color: #ffffff;
-          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.45);
+          box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
         }
         .nav-btn-get-started:active {
           transform: scale(0.985) !important;
@@ -336,7 +332,8 @@ export default function PublicNavbar({
             background: rgba(255, 255, 255, 0.95) !important;
             backdrop-filter: blur(24px) !important;
             -webkit-backdrop-filter: blur(24px) !important;
-            border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
           }
         }
       `}</style>
@@ -370,16 +367,16 @@ export default function PublicNavbar({
           maxWidth: 1280,
           height: 64,
           borderRadius: scrolled ? 999 : 0,
-          background: scrolled ? "rgba(255, 255, 255, 0.88)" : "rgba(255, 255, 255, 0.72)",
+          background: scrolled ? "rgba(255, 255, 255, 0.92)" : (isHome ? "rgba(255, 255, 255, 0.75)" : "rgba(255, 255, 255, 0.95)"),
           backdropFilter: "blur(24px) saturate(1.2)",
           WebkitBackdropFilter: "blur(24px) saturate(1.2)",
-          border: scrolled ? "1px solid rgba(226, 232, 240, 0.9)" : "1px solid rgba(226, 232, 240, 0.5)",
+          border: scrolled ? "1px solid rgba(226, 232, 240, 0.85)" : "1px solid transparent",
           boxShadow: scrolled
-            ? "0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03)"
+            ? "0 8px 30px -6px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04)"
             : "none",
           display: "flex", alignItems: "center", justifyContent: "center",
           zIndex: 1000,
-          transition: "all 0.65s cubic-bezier(0.4, 0, 0.2, 1)"
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)"
         }}>
         <div className="public-nav-container" style={{ width: "100%", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
           <div
@@ -404,7 +401,7 @@ export default function PublicNavbar({
                   onClick={handleToggleFeaturesDropdown}
                   className={`nav-link-item ${featuresDropdownOpen || isFeaturesActive ? "active" : ""}`}
                   style={{
-                    background: featuresDropdownOpen ? "rgba(255, 255, 255, 0.08)" : "transparent",
+                    background: featuresDropdownOpen ? "#f1f5f9" : "transparent",
                     border: "none",
                     cursor: "pointer",
                     display: "inline-flex",
@@ -442,11 +439,14 @@ export default function PublicNavbar({
                 />
               </div>
 
+              <div style={{ transform: "scale(0.85)", display: "flex", alignItems: "center" }}>
+                <AnimatedButton text="TradiFive AI" onClick={() => navigate("/features/tradifive-ai")} />
+              </div>
+
               <a href={isHome ? "#pricing" : "/#pricing"} onClick={(e) => handleScrollTo(e, "pricing")} className="nav-link-item" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                 <span>Pricing</span>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "rgba(255,255,255,0.08)", color: "#94a3b8" }}>SOON</span>
+                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "#f1f5f9", color: "#64748b", border: "1px solid #e2e8f0" }}>SOON</span>
               </a>
-
 
               <Link
                 to="/download"
@@ -490,7 +490,7 @@ export default function PublicNavbar({
               </Link>
             </div>
 
-            <div style={{ width: 1, height: 16, background: "rgba(226, 232, 240, 0.9)" }} className="hide-sm hide-on-mobile" />
+            <div style={{ width: 1, height: 16, background: "#e2e8f0" }} className="hide-sm hide-on-mobile" />
 
             {/* Desktop Auth Buttons */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }} className="hide-on-mobile hide-sm">
@@ -529,8 +529,8 @@ export default function PublicNavbar({
               style={{
                 position: "fixed", inset: 0,
                 background: "rgba(15, 23, 42, 0.4)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
+                backdropFilter: "blur(6px)",
+                WebkitBackdropFilter: "blur(6px)",
                 zIndex: 10000
               }}
               onClick={() => setMobileMenuOpen(false)}
@@ -546,29 +546,17 @@ export default function PublicNavbar({
                 position: "fixed", top: 0, right: 0, bottom: 0,
                 width: "85%", maxWidth: 360,
                 background: "#ffffff",
-                borderLeft: "1px solid rgba(226, 232, 240, 0.9)",
+                borderLeft: "1px solid #e2e8f0",
                 zIndex: 10001,
                 display: "flex", flexDirection: "column",
-                boxShadow: "-20px 0 50px rgba(0,0,0,0.1)",
+                boxShadow: "-20px 0 60px rgba(15, 23, 42, 0.12)",
                 overflow: "hidden",
                 borderTopLeftRadius: "28px",
                 borderBottomLeftRadius: "28px",
                 borderTopRightRadius: "0px",
                 borderBottomRightRadius: "0px" }}
             >
-              {/* Subtle top accent line */}
-              <div style={{
-                position: "absolute", top: 0, left: "15%", right: "15%", height: 1,
-                background: "linear-gradient(to right, transparent, rgba(37,99,235,0.4), transparent)" }} />
-
-              {/* Ambient glow */}
-              <div style={{
-                position: "absolute", top: -80, right: -80,
-                width: 260, height: 260,
-                background: "radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%)",
-                pointerEvents: "none" }} />
-
-              {/* ── Header ── */}
+              {/* Header */}
               <div style={{ padding: "24px 24px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <img src="/Logo_only.png" style={{ height: 28, width: "auto" }} alt="Icon" />
@@ -585,14 +573,14 @@ export default function PublicNavbar({
                     color: "#475569", cursor: "pointer",
                     transition: "all 0.15s" }}
                 >
-                  <X size={14} />
+                  <X size={16} />
                 </motion.button>
               </div>
 
-              {/* ── Divider ── */}
+              {/* Divider */}
               <div style={{ height: 1, background: "#f1f5f9", marginLeft: 24, marginRight: 24 }} />
 
-              {/* â”€â”€ Scrollable Content â”€â”€ */}
+              {/* Scrollable Content */}
               <div
                 style={{
                   flex: 1,
@@ -603,7 +591,6 @@ export default function PublicNavbar({
                   gap: 4,
                   WebkitOverflowScrolling: "touch" }}
               >
-
                 {/* Collapsible Features Dropdown Header */}
                 <button
                   onClick={() => setMobileFeaturesOpen((prev) => !prev)}
@@ -616,17 +603,17 @@ export default function PublicNavbar({
                     background: "transparent",
                     border: "none",
                     cursor: "pointer",
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: 700,
-                    color: "#64748b",
-                    letterSpacing: "0.16em",
+                    color: "#94a3b8",
+                    letterSpacing: "0.12em",
                     textTransform: "uppercase" }}
                 >
                   <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     Features
                     <span
                       style={{
-                        fontSize: 9,
+                        fontSize: 9.5,
                         background: "rgba(37, 99, 235, 0.1)",
                         color: "#2563eb",
                         padding: "1px 6px",
@@ -668,7 +655,6 @@ export default function PublicNavbar({
                             textAlign: "left",
                             background: "#f8fafc",
                             border: "1px solid #e2e8f0",
-                            boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
                             borderRadius: 16,
                             padding: "11px 14px",
                             cursor: "pointer",
@@ -713,9 +699,9 @@ export default function PublicNavbar({
                                     fontWeight: 800,
                                     padding: "2px 6px",
                                     borderRadius: 4,
-                                    background: feat.bgColor,
-                                    border: `1px solid ${feat.borderColor}`,
-                                    color: feat.color,
+                                    background: feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.12)" : "rgba(100, 116, 139, 0.1)",
+                                    border: `1px solid ${feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.25)" : "rgba(100, 116, 139, 0.2)"}`,
+                                    color: feat.badge === "LIVE" ? "#059669" : "#64748b",
                                     letterSpacing: 0.4 }}
                                 >
                                   {feat.badge}
@@ -742,7 +728,7 @@ export default function PublicNavbar({
                 )}
 
                 {/* Section Label */}
-                <div style={{ padding: "12px 8px 8px", fontSize: 10, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                <div style={{ padding: "12px 8px 8px", fontSize: 10.5, fontWeight: 700, color: "#94a3b8", letterSpacing: "0.12em", textTransform: "uppercase" }}>
                   Navigation
                 </div>
 
@@ -764,7 +750,6 @@ export default function PublicNavbar({
                           borderRadius: 16,
                           background: "#f8fafc",
                           border: "1px solid #e2e8f0",
-                          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
                           transition: "all 0.2s ease",
                           cursor: "pointer" }}
                         onMouseEnter={(e) => {
@@ -810,7 +795,7 @@ export default function PublicNavbar({
                 </div>
               </div>
 
-              {/* ── Bottom CTA ── */}
+              {/* Bottom CTA */}
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -839,7 +824,7 @@ export default function PublicNavbar({
                     justifyContent: "center",
                     gap: "8px",
                     cursor: "pointer",
-                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+                    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.05)",
                     transition: "all 0.2s ease",
                     outline: "none" }}
                   onMouseEnter={(e) => {
@@ -875,9 +860,11 @@ export default function PublicNavbar({
                     outline: "none" }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)";
+                    e.currentTarget.style.boxShadow = "0 6px 20px rgba(37, 99, 235, 0.45)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)";
+                    e.currentTarget.style.boxShadow = "0 4px 14px rgba(37, 99, 235, 0.35)";
                   }}
                 >
                   <Sparkles size={15} />

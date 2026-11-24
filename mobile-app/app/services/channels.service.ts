@@ -36,7 +36,7 @@ export class ChannelsService {
   static async getMessages(channelId: string): Promise<ChannelMessage[]> {
     const { data, error } = await supabase
       .from('channel_messages')
-      .select('*, profiles(*)')
+      .select('*')
       .eq('channel_id', channelId)
       .order('created_at', { ascending: true });
       
@@ -44,7 +44,21 @@ export class ChannelsService {
       console.error('[ChannelsService] Error fetching messages:', error.message);
       return [];
     }
-    return data || [];
+    const msgs = data || [];
+    const userIds = [...new Set(msgs.map(m => m.user_id).filter(Boolean))];
+    if (userIds.length > 0) {
+      try {
+        const { data: profs } = await supabase
+          .from('profiles')
+          .select('*')
+          .in('id', userIds);
+        const profMap = (profs || []).reduce((acc: any, p: any) => { acc[p.id] = p; return acc; }, {});
+        return msgs.map(m => ({ ...m, profiles: profMap[m.user_id] || null }));
+      } catch (pe) {
+        console.warn('[ChannelsService] Profiles load warning:', pe);
+      }
+    }
+    return msgs;
   }
 
   static async sendMessage(channelId: string, userId: string, content: string): Promise<void> {
