@@ -702,17 +702,112 @@
   animation: ticker 32s linear infinite;
 }
 
+.br-track:hover {
+  animation-play-state: paused;
+}
+
+.testimonials-track:hover {
+  animation-play-state: paused;
+}
+
 .br-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 100px;
   white-space: nowrap;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.br-chip:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* ═══════════════════════════════════
+   SHIMMER & BEAM ANIMATIONS
+═══════════════════════════════════ */
+@keyframes shimmer-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  50%, 100% {
+    transform: translateX(250%) skewX(-20deg);
+  }
+}
+
+.shimmer-btn-fx {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-btn-fx::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: shimmer-sweep 3.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes laser-beam-travel {
+  0% {
+    left: -20%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: 120%;
+    opacity: 0;
+  }
+}
+
+.sep-laser-beam {
+  position: absolute;
+  top: 0;
+  width: 140px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #3b82f6, #a855f7, transparent);
+  animation: laser-beam-travel 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: blur(1px);
+}
+
+@keyframes radar-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-ring-fx {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
 }
 
 /* ═══════════════════════════════════
