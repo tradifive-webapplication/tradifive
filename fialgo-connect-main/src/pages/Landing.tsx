@@ -38,51 +38,78 @@ function useReveal() {
 /* ════════════════
    3D HERO DASHBOARD VISUAL
 ════════════════ */
+/* ════════════════
+   HERO TRUST SIGNALS
+════════════════ */
 function HeroTrustSignals() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.4 }}
-      style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginTop: 8, width: "100%" }}
+      transition={{ duration: 0.6, delay: 0.3 }}
+      style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", marginTop: 4 }}
     >
+      {/* 4 Feature Items */}
+      <div className="trust-features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{ color: "#2563eb" }}><Shield size={18} strokeWidth={2.2} /></div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Risk First</div>
+          <div style={{ fontSize: 10.5, color: "#64748b", lineHeight: 1.35 }}>AI risk guard protects your capital.</div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{ color: "#f97316" }}><TrendingUp size={18} strokeWidth={2.2} /></div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Data Driven</div>
+          <div style={{ fontSize: 10.5, color: "#64748b", lineHeight: 1.35 }}>Advanced analytics for smarter trades.</div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{ color: "#2563eb" }}><Activity size={18} strokeWidth={2.2} /></div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Lightning Fast</div>
+          <div style={{ fontSize: 10.5, color: "#64748b", lineHeight: 1.35 }}>Blazing fast execution with low latency.</div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          <div style={{ color: "#f97316" }}><Users size={18} strokeWidth={2.2} /></div>
+          <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Built Together</div>
+          <div style={{ fontSize: 10.5, color: "#64748b", lineHeight: 1.35 }}>Join a transparent trader community.</div>
+        </div>
+      </div>
+
       {/* Social Proof Card */}
-      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-white border border-slate-200 shadow-sm rounded-2xl w-full max-w-[560px] mx-auto">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 bg-white border border-slate-200 shadow-sm rounded-2xl w-full">
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <div className="text-[10px] sm:text-xs text-slate-600 font-medium">Trusted by traders worldwide</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ display: "flex" }}>
               {["/avatars/men_1.jpg", "/avatars/women_1.jpg", "/avatars/men_2.jpg", "/avatars/women_2.jpg", "/nikil_avatar.jpg"].map((src, i) => (
-                <div key={i} className="w-5 h-5 sm:w-[26px] sm:h-[26px]" style={{
+                <div key={i} className="w-5 h-5 sm:w-[24px] sm:h-[24px]" style={{
                   borderRadius: "50%",
                   border: "2px solid #ffffff",
-                  marginLeft: i === 0 ? 0 : (i === 1 ? -4 : -6),
+                  marginLeft: i === 0 ? 0 : -5,
                   overflow: "hidden",
                   zIndex: 5 - i,
                   position: "relative",
                   background: "#111"
                 }}>
-                  <img src={src} alt="User" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }} onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
+                  <img src={src} alt="User" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }} onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
                 </div>
               ))}
             </div>
-            <div className="px-2 py-1 bg-slate-100 rounded-full text-[9px] sm:text-[11px] font-bold text-slate-700 tracking-wide">
+            <div className="px-2 py-0.5 bg-slate-100 rounded-full text-[9px] sm:text-[10.5px] font-bold text-slate-700 tracking-wide">
               +2.4K
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3 sm:gap-4">
-          <div style={{ width: 1, height: 28, background: "#e2e8f0" }} />
+          <div style={{ width: 1, height: 26, background: "#e2e8f0" }} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span className="text-[13px] sm:text-base font-extrabold text-slate-900 leading-none">4.9/5</span>
+              <span className="text-[13px] sm:text-sm font-extrabold text-slate-900 leading-none">4.9/5</span>
               <div style={{ display: "flex", gap: 2 }}>
-                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="#f97316" color="#f97316" />)}
+                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3" fill="#f97316" color="#f97316" />)}
               </div>
             </div>
-            <div className="text-[9px] sm:text-[11px] text-slate-500">from 1,200+ reviews</div>
+            <div className="text-[9px] sm:text-[10.5px] text-slate-500">from 1,200+ reviews</div>
           </div>
         </div>
       </div>
@@ -91,400 +118,209 @@ function HeroTrustSignals() {
 }
 
 /* ════════════════
-   HERO WITH 3D SCROLL DASHBOARD
+   HERO WITH 3D DASHBOARD
 ════════════════ */
 function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void }) {
-  const heroRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ["start start", "end start"]
-  });
-
-  // 3D perspective transforms on scroll
-  const rotateX = useTransform(scrollYProgress, [0, 0.45], [16, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.45], [0.94, 1.02]);
-  const y = useTransform(scrollYProgress, [0, 0.45], [20, -10]);
-  const opacity = useTransform(scrollYProgress, [0, 0.85, 1], [1, 1, 0.6]);
-
   return (
     <section 
-      ref={heroRef}
       className="hero-section" 
       style={{ 
         position: "relative", 
         overflow: "hidden", 
         width: "100%", 
-        paddingTop: "120px",
-        paddingBottom: "80px",
-        display: "flex", 
-        flexDirection: "column", 
-        alignItems: "center", 
-        justifyContent: "center",
+        paddingTop: "60px",
+        paddingBottom: "40px",
         backgroundColor: "#ffffff"
       }}
     >
-      {/* Radiant ambient glow: subtle blue and orange field */}
+      {/* Radiant ambient glow */}
       <div 
         style={{
           position: "absolute",
           top: "-10%",
           left: "50%",
           transform: "translateX(-50%)",
-          width: "1100px",
-          height: "650px",
-          background: "radial-gradient(ellipse at 50% 30%, rgba(37,99,235,0.08) 0%, rgba(249,115,22,0.05) 45%, transparent 75%)",
+          width: "1200px",
+          height: "600px",
+          background: "radial-gradient(ellipse at 50% 30%, rgba(37,99,235,0.07) 0%, rgba(249,115,22,0.04) 45%, transparent 70%)",
           pointerEvents: "none",
           zIndex: 0
         }}
       />
 
-      <div 
-        className="hero-container" 
-        style={{ 
-          maxWidth: 1200, 
-          width: "100%", 
-          margin: "0 auto", 
-          padding: "0 24px",
-          textAlign: "center", 
-          display: "flex", 
-          flexDirection: "column", 
-          alignItems: "center",
-          position: "relative",
-          zIndex: 2
-        }}
-      >
-        {/* Top Badge (Blue & Orange accent) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 12 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.6 }}
-          style={{ 
-            display: "inline-flex", 
-            alignItems: "center", 
-            gap: 8, 
-            background: "#f8fafc", 
-            border: "1px solid #e2e8f0", 
-            padding: "6px 18px 6px 10px", 
-            borderRadius: 100, 
-            marginBottom: 24, 
-            boxShadow: "0 1px 3px rgba(0,0,0,0.04)" 
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", background: "rgba(249,115,22,0.15)" }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f97316", boxShadow: "0 0 8px #f97316" }} />
-          </div>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a", letterSpacing: "0.5px" }}>
-            AI-POWERED INSTITUTIONAL ECOSYSTEM
-          </span>
-        </motion.div>
+      <div className="hero-container" style={{ maxWidth: 1200, width: "100%", margin: "0 auto", padding: "0 24px", position: "relative", zIndex: 2 }}>
+        <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "1.05fr 0.95fr", gap: "40px", alignItems: "center" }}>
 
-        {/* Main Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          style={{ 
-            fontSize: "clamp(36px, 5.8vw, 68px)", 
-            fontWeight: 900, 
-            lineHeight: 1.1, 
-            letterSpacing: "-0.04em", 
-            margin: "0 0 20px 0", 
-            color: "#0f172a",
-            maxWidth: 920
-          }}
-        >
-          The Ultimate Trading Terminal <br />
-          <span style={{ background: "linear-gradient(135deg, #2563eb 0%, #f97316 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            For Modern Consistent Traders.
-          </span>
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.18 }}
-          style={{ 
-            fontSize: "clamp(16px, 1.8vw, 18.5px)", 
-            color: "#475569", 
-            lineHeight: 1.6, 
-            maxWidth: 680, 
-            margin: "0 auto 36px", 
-            fontWeight: 400 
-          }}
-        >
-          Stop blowing accounts to emotional tilt. Tradifive combines <strong>Autonomous MT5 Risk Protection</strong>, an <strong>Automated AI Trade Journal</strong>, and institutional algorithmic execution into one high-discipline ecosystem.
-        </motion.p>
-
-        {/* CTA Group */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.25 }}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, flexWrap: "wrap", marginBottom: 32, width: "100%" }}
-        >
-          <button
-            onClick={onStart}
-            style={{
-              background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
-              color: "#ffffff",
-              border: "none",
-              boxShadow: "0 4px 18px rgba(37, 99, 235, 0.35)",
-              borderRadius: 100,
-              padding: "14px 34px",
-              fontSize: 15,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              transition: "all 0.2s ease",
-              outline: "none",
-              whiteSpace: "nowrap"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.boxShadow = "0 6px 24px rgba(37, 99, 235, 0.45)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 18px rgba(37, 99, 235, 0.35)";
-            }}
-          >
-            <span>Start Free</span>
-            <ArrowRight size={16} />
-          </button>
-
-          <button
-            onClick={() => {
-              const el = document.getElementById("technology") || document.getElementById("roadmap") || document.getElementById("pricing");
-              if (el) {
-                const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                window.scrollTo({ top: y, behavior: "smooth" });
-              } else {
-                onSignIn();
-              }
-            }}
-            style={{
-              background: "#ffffff",
-              color: "#0f172a",
-              border: "1.5px solid #e2e8f0",
-              borderRadius: 100,
-              padding: "13px 30px",
-              fontSize: 15,
-              fontWeight: 600,
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-              transition: "all 0.2s ease",
-              outline: "none",
-              whiteSpace: "nowrap"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.borderColor = "#f97316";
-              e.currentTarget.style.color = "#ea580c";
-              e.currentTarget.style.boxShadow = "0 4px 14px rgba(249, 115, 22, 0.12)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.borderColor = "#e2e8f0";
-              e.currentTarget.style.color = "#0f172a";
-              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.04)";
-            }}
-          >
-            <span>Explore Architecture</span>
-          </button>
-        </motion.div>
-
-        {/* Trust Signals Rating Strip */}
-        <div style={{ width: "100%", maxWidth: 540, marginBottom: 54 }}>
-          <HeroTrustSignals />
-        </div>
-
-        {/* ══════════════════════════════════════════
-           3D SCROLL PERSPECTIVE DASHBOARD SHOWCASE
-        ══════════════════════════════════════════ */}
-        <div style={{ perspective: 1200, width: "100%", maxWidth: 1080, margin: "0 auto", position: "relative" }}>
-          <motion.div
-            style={{
-              rotateX,
-              scale,
-              y,
-              opacity,
-              transformStyle: "preserve-3d",
-              borderRadius: 24,
-              boxShadow: "0 30px 80px -20px rgba(37, 99, 235, 0.18), 0 0 0 1px #e2e8f0, 0 10px 30px rgba(0, 0, 0, 0.05)",
-              background: "#ffffff",
-              overflow: "hidden",
-              position: "relative"
-            }}
-          >
-            {/* macOS Chrome Header Bar */}
-            <div 
+          {/* LEFT: Content */}
+          <div className="hero-content-left" style={{ width: "100%", maxWidth: 580 }}>
+            {/* Badge */}
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.5 }}
               style={{ 
-                height: 42, 
-                background: "#f8fafc", 
-                borderBottom: "1px solid #e2e8f0", 
-                display: "flex", 
+                display: "inline-flex", 
                 alignItems: "center", 
-                justifyContent: "space-between", 
-                padding: "0 16px" 
+                gap: 7, 
+                background: "rgba(37,99,235,0.06)", 
+                border: "1px solid rgba(37,99,235,0.18)", 
+                padding: "4px 14px 4px 8px", 
+                borderRadius: 100, 
+                marginBottom: 20 
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444" }} />
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b" }} />
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981" }} />
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#64748b", marginLeft: 8 }} className="hide-sm">Tradifive Institutional Terminal</span>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", background: "rgba(249,115,22,0.15)" }}>
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#f97316", boxShadow: "0 0 6px #f97316" }} />
               </div>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: "#2563eb", letterSpacing: "0.5px" }}>
+                MT5 RISK & DISCIPLINE TERMINAL
+              </span>
+            </motion.div>
 
-              {/* URL Address Pill */}
-              <div 
-                style={{ 
-                  display: "inline-flex", 
-                  alignItems: "center", 
-                  gap: 6, 
-                  background: "#ffffff", 
-                  border: "1px solid #e2e8f0", 
-                  padding: "3px 14px", 
-                  borderRadius: 100, 
-                  fontSize: 11, 
-                  fontWeight: 600, 
-                  color: "#0f172a" 
+            {/* Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              style={{ 
+                fontSize: "clamp(30px, 4.2vw, 48px)", 
+                fontWeight: 900, 
+                lineHeight: 1.15, 
+                letterSpacing: "-0.035em", 
+                margin: "0 0 16px 0", 
+                color: "#0f172a" 
+              }}
+            >
+              Stop Blowing Accounts. <br />
+              <span style={{ background: "linear-gradient(135deg, #2563eb 0%, #f97316 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                Trade With Hard Risk Protection.
+              </span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.16 }}
+              style={{ 
+                fontSize: "clamp(15px, 1.6vw, 17px)", 
+                color: "#475569", 
+                lineHeight: 1.55, 
+                maxWidth: 540, 
+                margin: "0 0 24px 0", 
+                fontWeight: 400 
+              }}
+            >
+              Tradifive connects directly to your MT5 broker to enforce hard daily loss limits, auto-journal every trade in real-time, and eliminate emotional revenge trading.
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.22 }}
+              style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", marginBottom: 20 }}
+            >
+              <button
+                onClick={onStart}
+                style={{
+                  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                  color: "#ffffff",
+                  border: "none",
+                  boxShadow: "0 4px 18px rgba(37, 99, 235, 0.35)",
+                  borderRadius: 100,
+                  padding: "13px 30px",
+                  fontSize: 14.5,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  transition: "all 0.2s ease",
+                  outline: "none",
+                  whiteSpace: "nowrap"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.boxShadow = "0 6px 24px rgba(37, 99, 235, 0.45)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 18px rgba(37, 99, 235, 0.35)";
                 }}
               >
-                <Lock size={10} color="#2563eb" />
-                <span>tradifive.com/terminal/live</span>
-              </div>
+                <span>Start Free</span>
+                <ArrowRight size={15} />
+              </button>
 
-              {/* Live Broker Ping */}
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", boxShadow: "0 0 8px #2563eb" }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#2563eb" }}>0.02s MT5 Bridge</span>
-              </div>
-            </div>
-
-            {/* Dashboard Screenshot Image */}
-            <div style={{ position: "relative", width: "100%", background: "#0f172a" }}>
-              <img 
-                src="/dashboard-preview.png" 
-                alt="Tradifive Trading Dashboard" 
-                style={{ 
-                  width: "100%", 
-                  height: "auto", 
-                  display: "block",
-                  objectFit: "cover"
-                }} 
-                onError={(e) => {
-                  e.currentTarget.src = "/homedesktop.png";
+              <button
+                onClick={() => {
+                  const el = document.getElementById("what-is-tradifive") || document.getElementById("how-it-works");
+                  if (el) {
+                    const y = el.getBoundingClientRect().top + window.scrollY - 80;
+                    window.scrollTo({ top: y, behavior: "smooth" });
+                  } else {
+                    onSignIn();
+                  }
                 }}
-              />
-              {/* Subtle glass reflection overlay */}
-              <div 
-                style={{ 
-                  position: "absolute", 
-                  inset: 0, 
-                  background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 40%, rgba(15,23,42,0.1) 100%)", 
-                  pointerEvents: "none" 
-                }} 
-              />
-            </div>
-          </motion.div>
+                style={{
+                  background: "#ffffff",
+                  color: "#0f172a",
+                  border: "1.5px solid #e2e8f0",
+                  borderRadius: 100,
+                  padding: "12px 24px",
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                  transition: "all 0.2s ease",
+                  outline: "none",
+                  whiteSpace: "nowrap"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                  e.currentTarget.style.borderColor = "#f97316";
+                  e.currentTarget.style.color = "#ea580c";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.borderColor = "#e2e8f0";
+                  e.currentTarget.style.color = "#0f172a";
+                }}
+              >
+                <span>How It Works</span>
+              </button>
+            </motion.div>
 
-          {/* Floating Parallax Badge 1: Top-Right (Electric Blue) */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            style={{
-              position: "absolute",
-              top: "-24px",
-              right: "24px",
-              background: "#ffffff",
-              border: "1.5px solid #2563eb",
-              borderRadius: 16,
-              padding: "10px 16px",
-              boxShadow: "0 12px 30px rgba(37,99,235,0.18), 0 2px 6px rgba(0,0,0,0.05)",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              zIndex: 10
-            }}
-            className="hide-sm"
-          >
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(37,99,235,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <ShieldCheck size={18} color="#2563eb" />
+            {/* Feature Pills */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", marginBottom: 24 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(37,99,235,0.06)", border: "1px solid rgba(37,99,235,0.18)", padding: "4px 12px", borderRadius: 100, fontSize: 11.5, fontWeight: 600, color: "#0f172a" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
+                <span>Risk Guard: <strong style={{ color: "#0f172a" }}>Active (0.02s)</strong></span>
+              </div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(37,99,235,0.06)", border: "1px solid rgba(37,99,235,0.18)", padding: "4px 12px", borderRadius: 100, fontSize: 11.5, fontWeight: 600, color: "#0f172a" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", boxShadow: "0 0 6px #2563eb" }} />
+                <span>AI Journal: <strong style={{ color: "#0f172a" }}>Auto-Sync MT5</strong></span>
+              </div>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(249,115,22,0.06)", border: "1px solid rgba(249,115,22,0.18)", padding: "4px 12px", borderRadius: 100, fontSize: 11.5, fontWeight: 600, color: "#0f172a" }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f97316", boxShadow: "0 0 6px #f97316" }} />
+                <span>FiAlgo Engine: <strong style={{ color: "#0f172a" }}>Gold M1</strong></span>
+              </div>
             </div>
-            <div style={{ textAlign: "left" }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#2563eb", textTransform: "uppercase", letterSpacing: "0.5px" }}>Autonomous Risk Guard</div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Daily Circuit Breaker: Active (0.02s)</div>
-            </div>
-          </motion.div>
 
-          {/* Floating Parallax Badge 2: Bottom-Left (Vivid Orange) */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            style={{
-              position: "absolute",
-              bottom: "-20px",
-              left: "24px",
-              background: "#ffffff",
-              border: "1.5px solid #f97316",
-              borderRadius: 16,
-              padding: "10px 16px",
-              boxShadow: "0 12px 30px rgba(249,115,22,0.18), 0 2px 6px rgba(0,0,0,0.05)",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              zIndex: 10
-            }}
-            className="hide-sm"
-          >
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(249,115,22,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Sparkles size={18} color="#f97316" />
-            </div>
-            <div style={{ textAlign: "left" }}>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#ea580c", textTransform: "uppercase", letterSpacing: "0.5px" }}>AI Trade Journal</div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>Scored Grade: A+ · Discipline 98%</div>
-            </div>
-          </motion.div>
+            {/* Trust Signals: 4 Features + Review strip */}
+            <HeroTrustSignals />
+          </div>
 
-          {/* Floating Parallax Badge 3: Bottom-Right (Blue & Black) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            style={{
-              position: "absolute",
-              bottom: "36px",
-              right: "-20px",
-              background: "#0f172a",
-              border: "1px solid #1e293b",
-              borderRadius: 14,
-              padding: "8px 14px",
-              boxShadow: "0 14px 34px rgba(0,0,0,0.25)",
-              display: "flex",
-              alignItems: "center",
-              gap: 9,
-              zIndex: 10
-            }}
-            className="hide-sm"
-          >
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(37,99,235,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Zap size={15} color="#60a5fa" />
-            </div>
-            <div style={{ textAlign: "left" }}>
-              <div style={{ fontSize: 10, fontWeight: 800, color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.5px" }}>FiAlgo Engine</div>
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: "#ffffff" }}>2ms Socket Relay · 100% Custody</div>
-            </div>
-          </motion.div>
+          {/* RIGHT: Live Interactive Dashboard (Image 1) */}
+          <div className="hero-right" style={{ position: "relative", perspective: 1200 }}>
+            <HeroDashboard />
+          </div>
+
         </div>
-
       </div>
     </section>
   );
@@ -2010,9 +1846,9 @@ export default function TradiFive() {
         <Hero onStart={handleStart} onSignIn={handleSignIn} />
         <PlatformPillars />
         <Sep />
-        <EcosystemDeepDive onStart={handleStart} />
+        <WhatIsTradifive onStart={handleStart} />
         <Sep />
-        <InstitutionalRoadmap onStart={handleStart} />
+        <HowItWorks />
         <Sep />
         <CommunityNetwork onStart={handleStart} />
         <Sep />

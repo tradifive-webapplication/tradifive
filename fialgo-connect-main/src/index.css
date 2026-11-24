@@ -743,9 +743,9 @@
 ═══════════════════════════════════ */
 .hero-dashboard-container {
   position: relative;
-  width: 115%;
-  height: 530px;
-  margin-left: 5%;
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
 }
 
 .trust-features-grid {
@@ -790,7 +790,9 @@
   }
 
   .hero-right {
-    display: none !important;
+    width: 100%;
+    margin-top: 20px;
+    min-height: auto;
   }
 
   .hero-title {
@@ -1557,3 +1559,10 @@ svg.recharts-surface:focus-visible {
   border-radius: 8px;
 }
 
+
+
+@media (max-width: 580px) {
+  .hide-xs {
+    display: none !important;
+  }
+}
