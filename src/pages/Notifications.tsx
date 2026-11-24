@@ -582,8 +582,8 @@ export default function Notifications() {
     return { today, archive };
   })();
 
-  // ── Card Renderer ────────────────────────────────────────────────────────
-  function renderCard(n: any) {
+  // ── High-Craft Big-Tech Row Renderer ─────────────────────────────────────
+  function renderItem(n: any) {
     const isExpanded = expandedId === n.id;
     const cfg = getTypeConfig(n.type, n.title);
     const IconComp = cfg.icon;
@@ -599,148 +599,98 @@ export default function Notifications() {
     let extractedUsername = null;
     if (!hasActor && isFollowNotif && n.message) {
       const match = n.message.match(/^(.*?)\s+started following you!/i);
-      if (match) {
-        extractedUsername = match[1];
-      }
+      if (match) extractedUsername = match[1];
     }
     const hasFollowTarget = hasActor || !!extractedUsername;
-
     const targetId = n.sender_id || n.actor_id || n.from_user_id || extractedUsername;
     const isFollowedBack = targetId && followedBackIds.has(targetId);
     const hasExpandedContent = !!n.details || !!n.actionLabel || (normType === "SOCIAL" && isCommentNotif);
 
-    // Contextual message upgrade
+    // Natural human phrasing
     let displayMessage = n.message;
     if (isProfileView && (!n.message || n.message === 'viewed your profile' || n.message.trim() === '')) {
       displayMessage = "Viewed your trading profile, performance stats, and public journal.";
     }
 
     return (
-      <motion.div
-        layout
+      <div
         key={n.id}
-        initial={{ opacity: 0, y: 6 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.97 }}
-        transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-        className={`group relative rounded-[18px] border transition-all duration-200 overflow-hidden cursor-pointer ${
-          !n.is_read
-            ? 'bg-gradient-to-r from-blue-50/50 via-white to-white dark:from-blue-950/20 dark:via-[#17171A] dark:to-[#17171A] border-blue-200/90 dark:border-blue-500/30 shadow-[0_2px_12px_rgba(37,99,235,0.06)] hover:border-blue-300 dark:hover:border-blue-500/45'
-            : 'bg-white dark:bg-[#17171A] border-slate-200/70 dark:border-white/[0.07] hover:border-slate-300 dark:hover:border-white/15 shadow-[0_1px_3px_rgba(15,23,42,0.03)] hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)] dark:hover:shadow-none'
-        }`}
         onClick={() => {
-          setExpandedId(isExpanded ? null : n.id);
+          if (hasExpandedContent) setExpandedId(isExpanded ? null : n.id);
           if (!n.is_read) markRead(n.id);
         }}
+        className={`group relative px-4 sm:px-5 py-3.5 sm:py-4 transition-colors cursor-pointer ${
+          !n.is_read
+            ? 'bg-blue-50/[0.22] dark:bg-blue-950/[0.12] hover:bg-blue-50/40 dark:hover:bg-blue-950/20'
+            : 'bg-white dark:bg-[#151518] hover:bg-slate-50/80 dark:hover:bg-white/[0.02]'
+        }`}
       >
-        {/* Unread Left Glowing Indicator Bar */}
-        {!n.is_read && (
-          <div className="absolute left-0 top-3 bottom-3 w-[3.5px] rounded-r-full bg-blue-600 dark:bg-blue-400 shadow-[0_0_8px_rgba(37,99,235,0.45)]" />
-        )}
+        <div className="flex items-start gap-3 sm:gap-3.5">
+          {/* Unread Status Dot */}
+          <div className="w-2 flex items-center justify-center shrink-0 pt-2.5">
+            {!n.is_read ? (
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full opacity-0" />
+            )}
+          </div>
 
-        <div className="p-3.5 sm:p-4 pl-4 sm:pl-4.5 flex items-start gap-3 sm:gap-3.5">
-          {/* Avatar / Icon Container */}
-          <div className="shrink-0 relative mt-0.5">
+          {/* Icon or Avatar */}
+          <div className="shrink-0 relative">
             {actorAvatar ? (
               <div
-                className="w-10 h-10 rounded-xl overflow-hidden border border-slate-200/80 dark:border-white/10 shadow-xs cursor-pointer hover:opacity-90 transition-opacity"
+                className="w-8 h-8 rounded-lg overflow-hidden border border-slate-200 dark:border-white/10 shrink-0 cursor-pointer"
                 onClick={(e) => { e.stopPropagation(); if (hasActor) handleUserClick(n, e); }}
               >
                 <img src={actorAvatar} alt={actorName || ''} className="w-full h-full object-cover" />
               </div>
             ) : actorName ? (
               <div
-                className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-950 flex items-center justify-center border border-slate-700/50 shadow-xs cursor-pointer hover:opacity-90 transition-opacity text-white font-bold text-xs"
+                className="w-8 h-8 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer"
                 onClick={(e) => { e.stopPropagation(); if (hasActor) handleUserClick(n, e); }}
               >
                 {actorName[0]?.toUpperCase()}
               </div>
             ) : (
-              <div className={`w-10 h-10 rounded-xl ${cfg.bg} flex items-center justify-center border border-slate-200/60 dark:border-white/10 shadow-xs`}>
-                <IconComp size={18} className={cfg.color} />
-              </div>
-            )}
-
-            {/* Small icon badge on avatar */}
-            {(actorAvatar || actorName) && (
-              <div className={`absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full ${cfg.bg} border-2 border-white dark:border-[#17171A] flex items-center justify-center shadow-xs`}>
-                <IconComp size={9} className={cfg.color} />
+              <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0 border border-slate-200/60 dark:border-white/[0.06]">
+                <IconComp size={15} strokeWidth={1.75} />
               </div>
             )}
           </div>
 
-          {/* Content Area */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2 flex-wrap min-w-0">
-                <span className={`text-[13.5px] tracking-tight leading-snug ${!n.is_read ? 'font-bold text-slate-900 dark:text-white' : 'font-semibold text-slate-800 dark:text-neutral-200'}`}>
-                  {actorName && hasActor ? (
-                    <span
-                      className="hover:underline cursor-pointer font-bold text-slate-900 dark:text-white"
-                      onClick={(e) => handleUserClick(n, e)}
-                    >
-                      {actorName}
-                    </span>
-                  ) : (
-                    n.title || "Notification"
-                  )}
-                </span>
-
-                <span className={`text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${cfg.badge}`}>
-                  {cfg.label}
-                </span>
-
-                {n.priority === 'high' && (
-                  <span className="text-[9.5px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30">
-                    High Priority
-                  </span>
-                )}
-
-                {!n.is_read && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-600 dark:text-blue-400 px-1.5 py-0.2 rounded-full bg-blue-50 dark:bg-blue-500/15">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-                    New
-                  </span>
-                )}
-              </div>
-
-              {/* Timestamp & Quick Action Buttons */}
-              <div className="flex items-center gap-1.5 shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
-                <div className="text-[11px] font-medium text-slate-400 dark:text-neutral-500 flex items-center gap-1 whitespace-nowrap">
-                  <Clock size={11} />
-                  <span>{timeAgo(n.created_at)}</span>
-                </div>
-
-                <div className="flex items-center gap-0.5 opacity-80 sm:opacity-0 group-hover:opacity-100 transition-opacity ml-1">
-                  {!n.is_read && (
-                    <button
-                      type="button"
-                      onClick={(e) => markRead(n.id, e)}
-                      className="p-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-500/15 text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
-                      title="Mark as read"
-                    >
-                      <Check size={13} strokeWidth={2.5} />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={(e) => deleteNotif(n.id, e)}
-                    className="p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-500/15 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer"
-                    title="Delete notification"
+          {/* Content */}
+          <div className="flex-1 min-w-0 pr-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[13px] font-semibold text-slate-900 dark:text-white leading-tight">
+                {actorName && hasActor ? (
+                  <span
+                    className="hover:underline cursor-pointer"
+                    onClick={(e) => handleUserClick(n, e)}
                   >
-                    <Trash2 size={13} strokeWidth={2} />
-                  </button>
-                </div>
-              </div>
+                    {actorName}
+                  </span>
+                ) : (
+                  n.title || "Alert"
+                )}
+              </span>
+
+              <span className="text-[11px] font-medium text-slate-400 dark:text-neutral-500">
+                · {cfg.label}
+              </span>
+
+              {n.priority === 'high' && (
+                <span className="text-[10px] font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 px-1.5 py-0.2 rounded border border-rose-200/60 dark:border-rose-500/20">
+                  Priority
+                </span>
+              )}
             </div>
 
-            {/* Message Body */}
             {displayMessage && (
               <p className="text-[12.5px] text-slate-600 dark:text-neutral-300 mt-1 leading-relaxed">
                 {extractedUsername && displayMessage.startsWith(extractedUsername) ? (
                   <>
                     <span
-                      className="font-bold text-slate-900 dark:text-white hover:underline cursor-pointer"
+                      className="font-medium text-slate-900 dark:text-white hover:underline cursor-pointer"
                       onClick={(e) => handleUserClick(n, e)}
                     >
                       {extractedUsername}
@@ -753,9 +703,9 @@ export default function Notifications() {
               </p>
             )}
 
-            {/* Bottom Actions if relevant */}
+            {/* Inline Action Buttons */}
             {(hasFollowTarget || hasActor || hasExpandedContent || isProfileView) && (
-              <div className="flex items-center gap-2 mt-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.04] flex-wrap" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-2 mt-2 pt-1 flex-wrap" onClick={(e) => e.stopPropagation()}>
                 {isFollowNotif && hasFollowTarget && (
                   <FollowButton
                     isFollowing={isFollowedBack}
@@ -775,10 +725,9 @@ export default function Notifications() {
                   <button
                     type="button"
                     onClick={(e) => handleUserClick(n, e)}
-                    className="h-6.5 px-2.5 rounded-lg text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/[0.1] text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer inline-flex items-center gap-1"
+                    className="h-6 px-2.5 rounded-md text-[11px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
                   >
-                    <Eye size={11} />
-                    <span>View Profile</span>
+                    View profile
                   </button>
                 )}
 
@@ -786,10 +735,10 @@ export default function Notifications() {
                   <button
                     type="button"
                     onClick={() => navigate("/channel")}
-                    className="h-6.5 px-2.5 rounded-lg text-[11px] font-semibold bg-cyan-50 hover:bg-cyan-100/70 dark:bg-cyan-500/10 dark:hover:bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 transition-colors cursor-pointer inline-flex items-center gap-1"
+                    className="h-6 px-2.5 rounded-md text-[11px] font-medium bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.06] dark:hover:bg-white/10 text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer inline-flex items-center gap-1"
                   >
                     <Users size={11} />
-                    <span>Explore Community</span>
+                    <span>Explore community</span>
                   </button>
                 )}
 
@@ -797,271 +746,129 @@ export default function Notifications() {
                   <button
                     type="button"
                     onClick={() => setExpandedId(isExpanded ? null : n.id)}
-                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer ml-auto"
+                    className="text-[11px] font-medium text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer ml-auto"
                   >
-                    {isExpanded ? "Hide details" : "View details"}
+                    {isExpanded ? "Hide details" : "Details"}
                   </button>
                 )}
               </div>
             )}
           </div>
+
+          {/* Right Timestamp & Hover Actions */}
+          <div className="flex items-center gap-2 shrink-0 pt-0.5" onClick={(e) => e.stopPropagation()}>
+            <span className="text-[11.5px] font-mono text-slate-400 dark:text-neutral-500 whitespace-nowrap">
+              {timeAgo(n.created_at)}
+            </span>
+
+            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+              {!n.is_read && (
+                <button
+                  type="button"
+                  onClick={(e) => markRead(n.id, e)}
+                  className="p-1 rounded text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
+                  title="Mark as read"
+                >
+                  <Check size={13} strokeWidth={2} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={(e) => deleteNotif(n.id, e)}
+                className="p-1 rounded text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors cursor-pointer"
+                title="Delete notification"
+              >
+                <Trash2 size={13} strokeWidth={1.75} />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Expanded Details Panel */}
+        {/* Expanded Panel */}
         <AnimatePresence>
           {isExpanded && hasExpandedContent && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.18 }}
-              className="overflow-hidden border-t border-slate-100 dark:border-white/[0.05] bg-slate-50/70 dark:bg-black/20"
+              transition={{ duration: 0.16 }}
+              className="overflow-hidden mt-3 pt-3 border-t border-slate-100 dark:border-white/[0.06] text-xs text-slate-600 dark:text-neutral-300"
             >
-              <div className="p-3.5 sm:p-4 space-y-2.5">
-                {n.details && (
-                  <p className="text-[12.5px] text-slate-600 dark:text-neutral-300 leading-relaxed font-sans">
-                    {n.details}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between text-[11px] font-medium tabular-nums text-slate-400 dark:text-neutral-500 pt-1">
-                  <span>
-                    Timestamp: {new Date(n.created_at).toLocaleString()}
-                  </span>
-                  {n.actionLabel && (
-                    <button
-                      type="button"
-                      onClick={() => toast.success(`Executed: "${n.actionLabel}"`)}
-                      className="px-3 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:opacity-90 transition-all flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>{n.actionLabel}</span>
-                      <ArrowRight size={11} />
-                    </button>
-                  )}
-                </div>
-
-                {/* Inline Reply for Comments */}
-                {normType === "SOCIAL" && isCommentNotif && (
-                  <div className="flex items-center gap-2 pt-2 border-t border-slate-200/70 dark:border-white/[0.06]">
-                    <input
-                      type="text"
-                      placeholder="Write a quick reply..."
-                      value={replyText}
-                      onChange={e => setReplyText(e.target.value)}
-                      className="flex-1 h-8.5 bg-white dark:bg-[#1E1E1E] border border-slate-200/80 dark:border-white/10 rounded-xl px-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none"
-                      onKeyDown={e => { if (e.key === 'Enter') handleSendReply(n.id, actorName || 'them'); }}
-                      onClick={e => e.stopPropagation()}
-                    />
-                    <button
-                      type="button"
-                      disabled={submittingReply}
-                      onClick={(e) => { e.stopPropagation(); handleSendReply(n.id, actorName || 'them'); }}
-                      className="h-8.5 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-1 cursor-pointer"
-                    >
-                      <Send size={11} />
-                      <span>Reply</span>
-                    </button>
-                  </div>
+              {n.details && <p className="leading-relaxed">{n.details}</p>}
+              <div className="flex items-center justify-between text-[11px] text-slate-400 dark:text-neutral-500 pt-2 font-mono">
+                <span>{new Date(n.created_at).toLocaleString()}</span>
+                {n.actionLabel && (
+                  <button
+                    type="button"
+                    onClick={() => toast.success(`Executed: "${n.actionLabel}"`)}
+                    className="px-2.5 py-1 rounded bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-semibold text-xs"
+                  >
+                    {n.actionLabel}
+                  </button>
                 )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     );
   }
 
-  const renderSectionHeader = (title: string, count: number) => {
-    if (count === 0) return null;
-    return (
-      <div className="flex items-center justify-between pt-2.5 pb-1 px-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-bold tracking-wider text-slate-400 dark:text-neutral-500 uppercase">
-            {title}
-          </span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-neutral-400 tabular-nums">
-            {count}
-          </span>
-        </div>
-        <div className="h-px flex-1 bg-slate-200/60 dark:bg-white/[0.06] ml-3" />
-      </div>
-    );
-  };
-
   return (
     <DashboardLayout>
-      <div className="max-w-[1300px] mx-auto pb-20 px-3 sm:px-6 md:px-8 py-3 font-sans select-none space-y-4">
+      <div className="max-w-[940px] mx-auto pb-20 px-4 sm:px-6 py-4 font-sans select-none space-y-4">
 
-        {/* ── Top Header (Unified App Consistency) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs flex items-center justify-center shrink-0">
-              <Bell size={18} strokeWidth={2.4} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-[19px] sm:text-[21px] font-bold tracking-tight text-slate-900 dark:text-white leading-none">
-                  Notifications
-                </h1>
-                {unreadCount > 0 ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 animate-pulse" />
-                    <span>{unreadCount} Unread</span>
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-500/20">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span>All Caught Up</span>
-                  </span>
-                )}
-              </div>
-              <p className="text-slate-500 dark:text-zinc-400 text-[12px] font-medium mt-1">
-                Real-time trading alerts, risk guards, social interactions &amp; system updates
-              </p>
-            </div>
+        {/* ── Top Header (Big-Tech Minimalist & Calm) ── */}
+        <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-[18px] sm:text-[20px] font-semibold tracking-tight text-slate-900 dark:text-white leading-none">
+              Notifications
+            </h1>
+            {unreadCount > 0 ? (
+              <span className="text-[11.5px] font-medium text-slate-500 dark:text-neutral-400 tabular-nums">
+                ({unreadCount} unread)
+              </span>
+            ) : (
+              <span className="text-[11.5px] font-medium text-slate-400 dark:text-neutral-500">
+                · All caught up
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar pb-0.5">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={markAllRead}
-              className="flex-1 sm:flex-initial h-9 px-3.5 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-[12.5px] font-semibold text-slate-700 dark:text-zinc-200 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
+              className="h-8 px-2.5 rounded-lg text-xs font-medium text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1.5"
             >
-              <CheckCheck size={14} className="text-slate-500 dark:text-zinc-400" />
-              <span>Mark All Read</span>
+              <CheckCheck size={13} />
+              <span className="hidden sm:inline">Mark all as read</span>
             </button>
 
             <button
               type="button"
               onClick={clearAllNotifications}
-              className="flex-1 sm:flex-initial h-9 px-3.5 bg-white dark:bg-[#18181b] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 dark:hover:bg-rose-950/20 dark:hover:text-rose-400 dark:hover:border-rose-900/30 border border-slate-200/90 dark:border-white/10 rounded-xl text-[12.5px] font-semibold text-slate-700 dark:text-zinc-200 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer shrink-0 active:scale-95"
+              className="h-8 px-2.5 rounded-lg text-xs font-medium text-slate-500 hover:text-rose-600 dark:text-neutral-400 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors cursor-pointer inline-flex items-center gap-1"
             >
-              <Trash2 size={13} />
-              <span>Clear All</span>
+              <Trash2 size={12} />
+              <span className="hidden sm:inline">Clear</span>
             </button>
 
             <button
               type="button"
               onClick={fetchNotifications}
               disabled={loading}
-              className="h-9 w-9 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-slate-600 dark:text-zinc-300 shadow-2xs transition-all flex items-center justify-center cursor-pointer shrink-0 active:scale-95"
-              title="Refresh notifications"
+              className="h-8 w-8 rounded-lg text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-colors flex items-center justify-center cursor-pointer"
+              title="Refresh"
             >
-              <RefreshCw size={13} className={loading ? "animate-spin text-slate-900 dark:text-white" : "text-slate-500 dark:text-zinc-400"} />
+              <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             </button>
           </div>
         </div>
 
-        {/* ── 4 KPI Stat Cards (Institutional Consistency & Interactive Filter) ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Card 1: Total Alerts */}
-          <button
-            type="button"
-            onClick={() => setFilter("ALL")}
-            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
-              filter === "ALL"
-                ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20"
-                : "border-slate-200/90 dark:border-white/10"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
-                Total Alerts
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-zinc-300 border border-slate-200/60 dark:border-white/10 flex items-center justify-center shrink-0">
-                <Bell size={13} />
-              </div>
-            </div>
-            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
-              {notifications.length}
-            </div>
-            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
-              {grouped.today.length} Today · {grouped.archive.length} Earlier
-            </div>
-          </button>
-
-          {/* Card 2: Unread Alerts */}
-          <button
-            type="button"
-            onClick={() => setFilter("UNREAD")}
-            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
-              filter === "UNREAD"
-                ? "border-amber-500 dark:border-amber-400 ring-2 ring-amber-500/20"
-                : "border-slate-200/90 dark:border-white/10"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
-                Unread
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20 flex items-center justify-center shrink-0">
-                <Sparkles size={13} />
-              </div>
-            </div>
-            <div className={`text-[22px] sm:text-[24px] font-extrabold tracking-tight tabular-nums ${unreadCount > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
-              {unreadCount}
-            </div>
-            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
-              {unreadCount > 0 ? "Pending review" : "Inbox cleared"}
-            </div>
-          </button>
-
-          {/* Card 3: Trading & Risk */}
-          <button
-            type="button"
-            onClick={() => setFilter("TRADE")}
-            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
-              filter === "TRADE"
-                ? "border-emerald-500 dark:border-emerald-400 ring-2 ring-emerald-500/20"
-                : "border-slate-200/90 dark:border-white/10"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
-                Trading &amp; Risk
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 flex items-center justify-center shrink-0">
-                <TrendingUp size={13} />
-              </div>
-            </div>
-            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
-              {tradeCount}
-            </div>
-            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
-              Fills &amp; risk guards
-            </div>
-          </button>
-
-          {/* Card 4: Community Activity */}
-          <button
-            type="button"
-            onClick={() => setFilter("SOCIAL")}
-            className={`text-left bg-white dark:bg-[#18181b] border rounded-2xl p-4 sm:p-4.5 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 transition-all cursor-pointer select-none active:scale-[0.98] ${
-              filter === "SOCIAL"
-                ? "border-blue-500 dark:border-blue-400 ring-2 ring-blue-500/20"
-                : "border-slate-200/90 dark:border-white/10"
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[11.5px] font-semibold text-slate-500 dark:text-zinc-400">
-                Community
-              </span>
-              <div className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-500/20 flex items-center justify-center shrink-0">
-                <Users size={13} />
-              </div>
-            </div>
-            <div className="text-[22px] sm:text-[24px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums">
-              {socialCount}
-            </div>
-            <div className="text-[11.5px] font-medium text-slate-500 dark:text-zinc-400 mt-1 truncate">
-              Follows, views &amp; mentions
-            </div>
-          </button>
-        </div>
-
-        {/* ── Sub Navigation Tabs & Search (Segmented Consistency) ── */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-1 p-1 bg-slate-100/90 dark:bg-white/[0.04] rounded-2xl border border-slate-200/70 dark:border-white/5 overflow-x-auto no-scrollbar max-w-full">
+        {/* ── Filter Bar & Search ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
             {FILTER_TABS.map(t => {
               const active = filter === t.id;
               return (
@@ -1069,25 +876,14 @@ export default function Notifications() {
                   key={t.id}
                   type="button"
                   onClick={() => setFilter(t.id)}
-                  className={`relative whitespace-nowrap px-3.5 py-1.5 rounded-xl text-[12.5px] font-semibold transition-all flex items-center gap-2 cursor-pointer active:scale-95 ${
+                  className={`relative px-3 py-1.5 rounded-lg text-[12.5px] font-medium transition-colors cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                     active
-                      ? "text-slate-900 dark:text-white font-bold"
-                      : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
+                      ? "text-slate-900 dark:text-white bg-slate-100 dark:bg-white/10"
+                      : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200"
                   }`}
                 >
-                  {active && (
-                    <motion.div
-                      layoutId="active-notif-filter"
-                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                      className="absolute inset-0 bg-white dark:bg-[#1E1E22] rounded-xl shadow-xs"
-                    />
-                  )}
-                  <span className="relative z-10">{t.label}</span>
-                  <span className={`relative z-10 text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
-                    active 
-                      ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" 
-                      : "bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-zinc-300"
-                  }`}>
+                  <span>{t.label}</span>
+                  <span className="text-[10px] tabular-nums font-mono opacity-70">
                     {t.count}
                   </span>
                 </button>
@@ -1095,23 +891,22 @@ export default function Notifications() {
             })}
           </div>
 
-          {/* Search Box matching Segmented Height & Border */}
-          <div className="relative min-w-[240px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-500" />
+          <div className="relative min-w-[200px] sm:min-w-[220px]">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search notifications..."
-              className="w-full h-[38px] bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/25 rounded-xl pl-8 pr-8 text-[12.5px] text-slate-900 dark:text-white focus:outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500 shadow-2xs transition-colors"
+              placeholder="Filter alerts..."
+              className="w-full h-8 bg-slate-100/70 dark:bg-white/[0.05] border border-transparent focus:border-slate-300 dark:focus:border-white/15 rounded-lg pl-7 pr-7 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
-                <X size={13} />
+                <X size={12} />
               </button>
             )}
           </div>
@@ -1119,26 +914,23 @@ export default function Notifications() {
 
         {/* ── Follow Requests Box (if any) ── */}
         {followRequests.length > 0 && (
-          <div className="space-y-3 pt-1">
-            <div className="flex items-center gap-2 px-1">
-              <UserPlus size={15} className="text-blue-600 dark:text-blue-400" />
-              <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-                Follow Requests ({followRequests.length})
-              </h2>
+          <div className="space-y-2 pt-1">
+            <div className="text-[11px] font-semibold tracking-wider text-slate-400 dark:text-neutral-500 uppercase px-1">
+              Follow Requests ({followRequests.length})
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#151518] divide-y divide-slate-100 dark:divide-white/[0.06] overflow-hidden shadow-xs">
               {followRequests.map(req => (
-                <div key={req.id} className="flex items-center justify-between p-4 bg-white dark:bg-[#18181b] border border-slate-200/90 dark:border-white/10 rounded-2xl shadow-2xs">
+                <div key={req.id} className="flex items-center justify-between p-3.5 sm:px-4">
                   <div className="flex items-center gap-3 cursor-pointer min-w-0" onClick={() => navigate(`/user/${req.requester_id}`)}>
                     {req.requester?.avatar_url ? (
-                      <img src={req.requester.avatar_url} alt="Avatar" className="w-10 h-10 rounded-2xl object-cover border border-slate-200/80 dark:border-white/10" />
+                      <img src={req.requester.avatar_url} alt="Avatar" className="w-8 h-8 rounded-lg object-cover border border-slate-200 dark:border-white/10" />
                     ) : (
-                      <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-600 dark:text-neutral-400 font-bold text-sm">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center text-slate-700 dark:text-neutral-300 font-semibold text-xs">
                         {(req.requester?.display_name || req.requester?.username || "U")[0]?.toUpperCase()}
                       </div>
                     )}
                     <div className="truncate">
-                      <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-white truncate">
                         {req.requester?.display_name || req.requester?.username}
                       </p>
                       <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">
@@ -1148,7 +940,7 @@ export default function Notifications() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {req.accepted ? (
-                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-200/60 dark:border-emerald-500/20">
+                      <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                         Accepted
                       </span>
                     ) : (
@@ -1156,14 +948,14 @@ export default function Notifications() {
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); acceptFollowRequest(req.id, req.requester_id); }}
-                          className="h-8 px-3.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 font-bold rounded-xl text-xs shadow-xs transition-colors cursor-pointer active:scale-95"
+                          className="h-7 px-3 bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-900 font-medium rounded-md text-xs transition-colors cursor-pointer"
                         >
                           Accept
                         </button>
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); declineFollowRequest(req.id); }}
-                          className="h-8 px-3 bg-white dark:bg-[#18181b] hover:bg-slate-50 dark:hover:bg-white/5 border border-slate-200/90 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-zinc-300 shadow-2xs transition-colors cursor-pointer active:scale-95"
+                          className="h-7 px-2.5 text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white text-xs transition-colors cursor-pointer"
                         >
                           Decline
                         </button>
@@ -1178,59 +970,47 @@ export default function Notifications() {
 
         {/* ── Main Notifications List ── */}
         {loading ? (
-          <div className="space-y-3 pt-2">
+          <div className="rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#151518] divide-y divide-slate-100 dark:divide-white/[0.06] overflow-hidden">
             {Array(3).fill(0).map((_, i) => (
-              <div key={i} className="h-24 bg-white dark:bg-[#18181b] animate-pulse rounded-2xl border border-slate-200/80 dark:border-white/[0.08]" />
+              <div key={i} className="h-16 bg-slate-50/50 dark:bg-white/[0.02] animate-pulse" />
             ))}
           </div>
         ) : filteredNotifs.length === 0 ? (
-          <div className="py-14 px-6 max-w-lg mx-auto my-6 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#18181b] shadow-2xs text-center">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-white mx-auto mb-3 shadow-2xs">
-              <Bell size={20} className="text-slate-500 dark:text-zinc-400" />
+          <div className="py-16 px-6 text-center rounded-xl border border-dashed border-slate-200 dark:border-white/10 bg-white dark:bg-[#151518]">
+            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-400 dark:text-neutral-500 flex items-center justify-center mx-auto mb-2.5">
+              <Check size={18} />
             </div>
-            <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
-              All caught up!
-            </h3>
-            <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto leading-relaxed">
-              There are no alerts matching your filter right now. Live market fills, risk guards, and community events will stream here automatically.
+            <p className="text-sm font-medium text-slate-800 dark:text-neutral-200">
+              No notifications
             </p>
-            {filter !== "ALL" ? (
-              <button
-                type="button"
-                onClick={() => { setFilter("ALL"); setSearchQuery(""); }}
-                className="mt-4 h-8 px-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[12px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
-              >
-                <span>Show All Alerts</span>
-              </button>
-            ) : (
-              <div className="mt-4 flex items-center justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={fetchNotifications}
-                  className="h-8 px-3.5 rounded-xl border border-slate-200/90 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-700 dark:text-zinc-300 text-[11.5px] font-semibold hover:bg-slate-100 dark:hover:bg-white/10 transition-all cursor-pointer inline-flex items-center gap-1.5 shadow-2xs active:scale-95"
-                >
-                  <RefreshCw size={12} className={loading ? "animate-spin" : ""} />
-                  <span>Check for new alerts</span>
-                </button>
-              </div>
-            )}
+            <p className="text-xs text-slate-400 dark:text-neutral-500 mt-1 max-w-sm mx-auto">
+              {filter !== "ALL"
+                ? "No alerts found in this filter."
+                : "Activity, execution fills, and risk triggers will show up here."}
+            </p>
           </div>
         ) : (
           <div className="space-y-4 pt-1">
             {grouped.today.length > 0 && (
-              <div className="space-y-2.5">
-                {renderSectionHeader("Today", grouped.today.length)}
-                <AnimatePresence initial={false}>
-                  {grouped.today.map(n => renderCard(n))}
-                </AnimatePresence>
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-semibold tracking-wider text-slate-400 dark:text-neutral-500 uppercase px-1 flex items-center justify-between">
+                  <span>Today</span>
+                  <span className="font-mono text-[10px]">{grouped.today.length}</span>
+                </div>
+                <div className="rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#151518] divide-y divide-slate-100 dark:divide-white/[0.06] shadow-xs overflow-hidden">
+                  {grouped.today.map(n => renderItem(n))}
+                </div>
               </div>
             )}
             {grouped.archive.length > 0 && (
-              <div className="space-y-2.5">
-                {renderSectionHeader("Earlier", grouped.archive.length)}
-                <AnimatePresence initial={false}>
-                  {grouped.archive.map(n => renderCard(n))}
-                </AnimatePresence>
+              <div className="space-y-1.5">
+                <div className="text-[11px] font-semibold tracking-wider text-slate-400 dark:text-neutral-500 uppercase px-1 flex items-center justify-between">
+                  <span>Earlier</span>
+                  <span className="font-mono text-[10px]">{grouped.archive.length}</span>
+                </div>
+                <div className="rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#151518] divide-y divide-slate-100 dark:divide-white/[0.06] shadow-xs overflow-hidden">
+                  {grouped.archive.map(n => renderItem(n))}
+                </div>
               </div>
             )}
           </div>
@@ -1240,16 +1020,16 @@ export default function Notifications() {
 
       {/* ── Clear All Confirmation Modal ── */}
       <Dialog open={showClearHistoryModal} onOpenChange={setShowClearHistoryModal}>
-        <DialogContent className="sm:max-w-[360px] p-0 rounded-[24px] overflow-hidden border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#17171A] [&>button]:hidden shadow-lg">
-          <div className="flex flex-col items-center text-center p-6 sm:p-7 space-y-4 font-sans">
-            <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 shadow-xs">
-              <Trash2 size={22} />
+        <DialogContent className="sm:max-w-[360px] p-0 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#17171A] [&>button]:hidden shadow-lg">
+          <div className="flex flex-col items-center text-center p-6 space-y-3 font-sans">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200/70 dark:border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+              <Trash2 size={18} />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold text-slate-900 dark:text-white">
+              <DialogTitle className="text-sm font-semibold text-slate-900 dark:text-white">
                 Clear all notifications?
               </DialogTitle>
-              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
+              <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
                 This will remove all notifications from your ledger. This action cannot be undone.
               </p>
             </div>
@@ -1257,16 +1037,16 @@ export default function Notifications() {
               <button
                 type="button"
                 onClick={() => setShowClearHistoryModal(false)}
-                className="flex-1 h-9 rounded-xl font-semibold text-xs text-slate-700 dark:text-neutral-300 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 transition-all cursor-pointer shadow-xs"
+                className="flex-1 h-8 rounded-lg font-medium text-xs text-slate-700 dark:text-neutral-300 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 transition-colors cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmClearAllNotifications}
-                className="flex-1 h-9 rounded-xl font-bold text-xs text-white bg-rose-600 hover:bg-rose-700 shadow-xs transition-all cursor-pointer"
+                className="flex-1 h-8 rounded-lg font-medium text-xs text-white bg-rose-600 hover:bg-rose-700 transition-colors cursor-pointer"
               >
-                Clear All
+                Clear all
               </button>
             </div>
           </div>
