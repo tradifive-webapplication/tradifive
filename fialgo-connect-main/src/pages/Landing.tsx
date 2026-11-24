@@ -667,7 +667,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
               borderRadius: 100,
               background: "#f1f5f9",
               border: "1px solid #e2e8f0",
-              boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.4)",
+              boxShadow: "none",
               gap: 4
             }}
           >
@@ -688,7 +688,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   ? "#2563eb"
                   : "#64748b",
                 boxShadow: pricingCategory === "autotrade"
-                  ? "inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.35)"
+                  ? "0 2px 8px rgba(37, 99, 235, 0.15), 0 1px 2px rgba(0, 0, 0, 0.04)"
                   : "none",
                 display: "inline-flex",
                 alignItems: "center",
@@ -723,7 +723,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                   ? "#2563eb"
                   : "#64748b",
                 boxShadow: pricingCategory === "platform"
-                  ? "inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.35)"
+                  ? "0 2px 8px rgba(37, 99, 235, 0.15), 0 1px 2px rgba(0, 0, 0, 0.04)"
                   : "none",
                 display: "inline-flex",
                 alignItems: "center",
@@ -1532,7 +1532,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 100, position: "relative" }}>
           {/* Soft Background Glow */}
-          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "100%", maxWidth: 800, height: 400, background: "radial-gradient(circle at center, rgba(99,102,241,0.15) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none", zIndex: 0 }} />
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "100%", maxWidth: 800, height: 400, background: "radial-gradient(circle at center, rgba(37,99,235,0.15) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none", zIndex: 0 }} />
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ position: "relative", zIndex: 1 }}>
             {/* Premium Pill */}
@@ -1601,24 +1601,24 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
             <svg viewBox="0 0 680 600" style={{ width: "100%", height: "100%" }}>
               <defs>
                 <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="rgba(99,102,241,0.3)" />
-                  <stop offset="100%" stopColor="rgba(99,102,241,0)" />
+                  <stop offset="0%" stopColor="rgba(37,99,235,0.25)" />
+                  <stop offset="100%" stopColor="rgba(37,99,235,0)" />
                 </radialGradient>
                 {/* animated dash pattern */}
                 <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor="rgba(99,102,241,0)" />
-                  <stop offset="50%" stopColor="rgba(99,102,241,0.5)" />
-                  <stop offset="100%" stopColor="rgba(99,102,241,0)" />
+                  <stop offset="0%" stopColor="rgba(37,99,235,0)" />
+                  <stop offset="50%" stopColor="rgba(37,99,235,0.4)" />
+                  <stop offset="100%" stopColor="rgba(37,99,235,0)" />
                 </linearGradient>
               </defs>
 
               {/* Orbit rings */}
-              <motion.circle cx={cx} cy={cy} r={140} fill="none" stroke="rgba(168,85,247,0.3)" strokeWidth="1" strokeDasharray="4 8" animate={{ rotate: 360 }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "center" }} />
-              <motion.circle cx={cx} cy={cy} r={260} fill="none" stroke="rgba(99,102,241,0.2)" strokeWidth="1" strokeDasharray="4 12" animate={{ rotate: -360 }} transition={{ duration: 80, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "center" }} />
+              <motion.circle cx={cx} cy={cy} r={140} fill="none" stroke="rgba(249,115,22,0.3)" strokeWidth="1" strokeDasharray="4 8" animate={{ rotate: 360 }} transition={{ duration: 60, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "center" }} />
+              <motion.circle cx={cx} cy={cy} r={260} fill="none" stroke="rgba(37,99,235,0.25)" strokeWidth="1" strokeDasharray="4 12" animate={{ rotate: -360 }} transition={{ duration: 80, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "center" }} />
 
               {/* Center glow */}
               <motion.circle cx={cx} cy={cy} r={90} fill="url(#centerGlow)" animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} />
-              <circle cx={cx} cy={cy} r={48} fill="#ffffff" stroke="rgba(168,85,247,0.6)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 15px rgba(168,85,247,0.5))" }} />
+              <circle cx={cx} cy={cy} r={48} fill="#ffffff" stroke="rgba(249,115,22,0.6)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 15px rgba(249,115,22,0.5))" }} />
 
               {/* Spoke lines: inner ring → center */}
               {innerRing.map(n => {
@@ -1626,7 +1626,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                 return (
                   <line key={`spoke-${n.id}`}
                     x1={cx} y1={cy} x2={p.x} y2={p.y}
-                    stroke="rgba(168,85,247,0.25)" strokeWidth="1.5"
+                    stroke="rgba(249,115,22,0.25)" strokeWidth="1.5"
                     strokeDasharray="4 4"
                   />
                 );
@@ -1644,7 +1644,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                 return (
                   <line key={`outer-conn-${n.id}`}
                     x1={outer.x} y1={outer.y} x2={inner.x} y2={inner.y}
-                    stroke="rgba(99,102,241,0.2)" strokeWidth="1.5"
+                    stroke="rgba(37,99,235,0.2)" strokeWidth="1.5"
                   />
                 );
               })}
@@ -1695,13 +1695,13 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                   <motion.g key={n.id} animate={{ y: [-5, 5, -5] }} transition={{ duration: 4 + (n.id % 3), repeat: Infinity, ease: "easeInOut", delay: n.id * 0.2 }}>
                     <motion.circle
                       cx={p.x} cy={p.y} r={size + 6}
-                      fill={`rgba(${n.r === 140 ? '168,85,247' : '99,102,241'}, 0.08)`}
-                      stroke={`rgba(${n.r === 140 ? '168,85,247' : '99,102,241'}, 0.4)`}
+                      fill={`rgba(${n.r === 140 ? '249,115,22' : '37,99,235'}, 0.08)`}
+                      stroke={`rgba(${n.r === 140 ? '249,115,22' : '37,99,235'}, 0.4)`}
                       strokeWidth="1.5"
                       initial={{ opacity: 0.5, scale: 0.95 }}
                       animate={{ opacity: [0.5, 1, 0.5], scale: [0.95, 1.05, 0.95] }}
                       transition={{ duration: 3 + (n.id % 2), repeat: Infinity, delay: n.id * 0.3 }}
-                      style={{ filter: `drop-shadow(0 0 10px rgba(${n.r === 140 ? '168,85,247' : '99,102,241'}, 0.3))` }}
+                      style={{ filter: `drop-shadow(0 0 10px rgba(${n.r === 140 ? '249,115,22' : '37,99,235'}, 0.3))` }}
                     />
                     <clipPath id={`clip-${n.id}`}>
                       <circle cx={p.x} cy={p.y} r={size} />
@@ -1713,7 +1713,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                       clipPath={`url(#clip-${n.id})`}
                       preserveAspectRatio="xMidYMid slice"
                     />
-                    <circle cx={p.x} cy={p.y} r={size} fill="none" stroke={`rgba(${n.r === 140 ? '168,85,247' : '99,102,241'}, 0.6)`} strokeWidth="2" />
+                    <circle cx={p.x} cy={p.y} r={size} fill="none" stroke={`rgba(${n.r === 140 ? '249,115,22' : '37,99,235'}, 0.6)`} strokeWidth="2" />
                   </motion.g>
                 );
               })}
@@ -1814,14 +1814,14 @@ function CTA({ onStart }: { onStart: () => void }) {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
-              e.currentTarget.style.color = "#93c5fd";
+              e.currentTarget.style.background = "#f8fafc";
+              e.currentTarget.style.color = "#1e40af";
               e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-              e.currentTarget.style.color = "#60a5fa";
+              e.currentTarget.style.background = "#ffffff";
+              e.currentTarget.style.color = "#1d4ed8";
               e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)";
             }}
           >
@@ -1850,7 +1850,7 @@ function CTA({ onStart }: { onStart: () => void }) {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.background = "#1e1e1e";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.22)";
               e.currentTarget.style.color = "#ffffff";
               e.currentTarget.style.boxShadow =
                 "inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25)";

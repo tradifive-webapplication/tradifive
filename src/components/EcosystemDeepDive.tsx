@@ -128,7 +128,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 background: "#ffffff",
-                borderRadius: 28,
+                borderRadius: 24,
                 border: "1px solid #e2e8f0",
                 boxShadow: "0 15px 45px -10px rgba(0,0,0,0.05), 0 0 0 1px #f1f5f9",
                 padding: "44px 40px",
@@ -190,6 +190,32 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     <div style={{ fontSize: 22, fontWeight: 900, color: "#2563eb", letterSpacing: "-0.02em" }}>8 Modules</div>
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Active Protection</div>
                   </div>
+                </div>
+
+                <div style={{ marginTop: 24 }}>
+                  <button
+                    onClick={onStart}
+                    style={{
+                      background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "12px 28px",
+                      borderRadius: 100,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      boxShadow: "0 4px 18px rgba(37, 99, 235, 0.35)",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(37, 99, 235, 0.45)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 18px rgba(37, 99, 235, 0.35)"; }}
+                  >
+                    <span>Configure Risk Guard</span>
+                    <ArrowRight size={15} />
+                  </button>
                 </div>
               </div>
 
@@ -276,7 +302,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 background: "#ffffff",
-                borderRadius: 28,
+                borderRadius: 24,
                 border: "1px solid #e2e8f0",
                 boxShadow: "0 15px 45px -10px rgba(0,0,0,0.05), 0 0 0 1px #f1f5f9",
                 padding: "44px 40px",
@@ -338,6 +364,32 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>AI Psychology Coach</div>
                   </div>
                 </div>
+
+                <div style={{ marginTop: 24 }}>
+                  <button
+                    onClick={onStart}
+                    style={{
+                      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "12px 28px",
+                      borderRadius: 100,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      boxShadow: "0 4px 18px rgba(249, 115, 22, 0.35)",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(249, 115, 22, 0.45)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 18px rgba(249, 115, 22, 0.35)"; }}
+                  >
+                    <span>Launch AI Trade Journal</span>
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
               </div>
 
               {/* Right Column: AI Journal Trade Audit Mockup */}
@@ -398,7 +450,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 background: "#ffffff",
-                borderRadius: 28,
+                borderRadius: 24,
                 border: "1px solid #e2e8f0",
                 boxShadow: "0 15px 45px -10px rgba(0,0,0,0.05), 0 0 0 1px #f1f5f9",
                 padding: "44px 40px",
@@ -460,6 +512,32 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Free MT5 Demo Trial</div>
                   </div>
                 </div>
+
+                <div style={{ marginTop: 24 }}>
+                  <button
+                    onClick={onStart}
+                    style={{
+                      background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "12px 28px",
+                      borderRadius: 100,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      boxShadow: "0 4px 18px rgba(37, 99, 235, 0.35)",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(37, 99, 235, 0.45)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 18px rgba(37, 99, 235, 0.35)"; }}
+                  >
+                    <span>Connect MT5 Broker</span>
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
               </div>
 
               {/* Right Column: AutoTrade Engine Telemetry Mockup */}
@@ -514,7 +592,7 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
               style={{
                 background: "#ffffff",
-                borderRadius: 28,
+                borderRadius: 24,
                 border: "1px solid #e2e8f0",
                 boxShadow: "0 15px 45px -10px rgba(0,0,0,0.05), 0 0 0 1px #f1f5f9",
                 padding: "44px 40px",
@@ -575,6 +653,32 @@ export default function EcosystemDeepDive({ onStart }: EcosystemDeepDiveProps) {
                     <div style={{ fontSize: 22, fontWeight: 900, color: "#ea580c", letterSpacing: "-0.02em" }}>100%</div>
                     <div style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Verified Telemetry</div>
                   </div>
+                </div>
+
+                <div style={{ marginTop: 24 }}>
+                  <button
+                    onClick={onStart}
+                    style={{
+                      background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)",
+                      color: "#ffffff",
+                      border: "none",
+                      padding: "12px 28px",
+                      borderRadius: 100,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      boxShadow: "0 4px 18px rgba(249, 115, 22, 0.35)",
+                      transition: "all 0.2s ease"
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(249, 115, 22, 0.45)"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 18px rgba(249, 115, 22, 0.35)"; }}
+                  >
+                    <span>Explore Social Leaderboards</span>
+                    <ArrowRight size={15} />
+                  </button>
                 </div>
               </div>
 

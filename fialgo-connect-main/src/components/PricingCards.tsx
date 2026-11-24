@@ -166,7 +166,7 @@ export function PricingCards({
       return {
         label: 'Upgrade to Pro',
         disabled: false,
-        className: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md shadow-indigo-600/25 active:scale-[0.99]'
+        className: 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold shadow-md shadow-blue-600/30 active:scale-[0.985] rounded-full'
       };
     }
 
@@ -174,14 +174,14 @@ export function PricingCards({
       return {
         label: 'Upgrade to Elite',
         disabled: false,
-        className: 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold shadow-md active:scale-[0.99]'
+        className: 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold shadow-md shadow-orange-500/30 active:scale-[0.985] rounded-full'
       };
     }
 
     return {
       label: 'Get Started Free',
       disabled: false,
-      className: 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 font-bold shadow-sm'
+      className: 'bg-white hover:bg-slate-50 text-slate-800 border-1.5 border-slate-200 hover:border-orange-500 font-bold shadow-sm active:scale-[0.985] rounded-full'
     };
   };
 
@@ -255,7 +255,7 @@ export function PricingCards({
             e.stopPropagation();
             onToggle();
           }}
-          className="mt-5 text-[12px] font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors text-left"
+          className="mt-5 text-[12px] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-500 dark:hover:text-indigo-300 transition-colors text-left"
         >
           {isExpanded ? 'Show fewer features' : `View all features (${features.filter(f => f.type === 'feature').length})`}
         </button>
@@ -330,7 +330,7 @@ export function PricingCards({
             <button
               onClick={() => handleAction('starter')}
               disabled={getButtonConfig('starter').disabled}
-              className={`w-full py-3.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 px-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                 getButtonConfig('starter').className
               }`}
             >
@@ -347,12 +347,12 @@ export function PricingCards({
           onClick={() => onSelectPlan?.('pro')}
           className={`bg-white dark:bg-[#161618] rounded-3xl border-2 transition-all duration-200 flex flex-col justify-between p-7 sm:p-8 relative ${
             selectedPlan === 'pro' || !selectedPlan
-              ? 'border-indigo-600 shadow-xl ring-4 ring-indigo-50 dark:ring-indigo-950/30 md:-translate-y-1'
+              ? 'border-blue-600 shadow-xl ring-4 ring-blue-50 dark:ring-blue-950/30 md:-translate-y-1'
               : 'border-slate-200/90 dark:border-white/10 shadow-sm hover:shadow-md'
           }`}
         >
           {/* Badge */}
-          <div className="absolute -top-3.5 right-6 px-3 py-1 bg-indigo-600 text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-sm flex items-center gap-1">
+          <div className="absolute -top-3.5 right-6 px-3 py-1 bg-blue-600 text-white text-[11px] font-bold uppercase tracking-wider rounded-full shadow-sm flex items-center gap-1">
             <Sparkles size={12} /> Most Popular
           </div>
 
@@ -380,7 +380,7 @@ export function PricingCards({
               />
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{prices.pro.period}</span>
             </div>
-            <div className="text-xs text-indigo-600 dark:text-indigo-400 mb-6 font-semibold flex items-center gap-1">
+            <div className="text-xs text-blue-600 dark:text-blue-500 mb-6 font-semibold flex items-center gap-1">
               {billingInterval === 'monthly' ? (
                 <span>Billed monthly</span>
               ) : (
@@ -393,7 +393,7 @@ export function PricingCards({
             <button
               onClick={() => handleAction('pro')}
               disabled={getButtonConfig('pro').disabled}
-              className={`w-full py-3.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 px-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                 getButtonConfig('pro').className
               }`}
             >
@@ -410,7 +410,7 @@ export function PricingCards({
           onClick={() => onSelectPlan?.('elite')}
           className={`bg-white dark:bg-[#161618] rounded-3xl border transition-all duration-200 flex flex-col justify-between p-7 sm:p-8 relative ${
             selectedPlan === 'elite'
-              ? 'border-slate-900 dark:border-purple-400 shadow-xl ring-2 ring-slate-200 dark:ring-purple-950/30'
+              ? 'border-slate-900 dark:border-orange-500 shadow-xl ring-2 ring-slate-200 dark:ring-orange-950/30'
               : 'border-slate-200/90 dark:border-white/10 shadow-sm hover:shadow-md hover:border-slate-300'
           }`}
         >
@@ -440,7 +440,7 @@ export function PricingCards({
               />
               <span className="text-sm font-medium text-slate-500 dark:text-slate-400">{prices.elite.period}</span>
             </div>
-            <div className="text-xs text-purple-600 dark:text-purple-400 mb-6 font-semibold flex items-center gap-1">
+            <div className="text-xs text-orange-600 dark:text-orange-500 mb-6 font-semibold flex items-center gap-1">
               {billingInterval === 'monthly' ? (
                 <span>Billed monthly</span>
               ) : (
@@ -453,7 +453,7 @@ export function PricingCards({
             <button
               onClick={() => handleAction('elite')}
               disabled={getButtonConfig('elite').disabled}
-              className={`w-full py-3.5 px-4 rounded-xl text-sm transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-3.5 px-4 rounded-full text-sm font-bold transition-all flex items-center justify-center gap-2 ${
                 getButtonConfig('elite').className
               }`}
             >

@@ -312,11 +312,11 @@ export default function InstitutionalRoadmap({ onStart }: InstitutionalRoadmapPr
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 8,
-                        boxShadow: `0 4px 14px ${current.accentBg}`,
+                        boxShadow: current.accent === "#f97316" ? "0 4px 18px rgba(249, 115, 22, 0.35)" : "0 4px 18px rgba(37, 99, 235, 0.35)",
                         transition: "all 0.2s ease"
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = current.accent === "#f97316" ? "0 6px 24px rgba(249, 115, 22, 0.45)" : "0 6px 24px rgba(37, 99, 235, 0.45)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = current.accent === "#f97316" ? "0 4px 18px rgba(249, 115, 22, 0.35)" : "0 4px 18px rgba(37, 99, 235, 0.35)"; }}
                     >
                       <span>Get Started with Step {current.num}</span>
                       <ArrowRight size={15} />
