@@ -43,10 +43,10 @@ function HeroTrustSignals() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: 0.4 }}
-      style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 8, width: "100%" }}
+      style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", marginTop: 8, width: "100%" }}
     >
       {/* Social Proof Card */}
-      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-white border border-slate-200 shadow-sm rounded-2xl w-full max-w-[560px]">
+      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-white border border-slate-200 shadow-sm rounded-2xl w-full max-w-[560px] mx-auto">
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div className="text-[10px] sm:text-xs text-slate-600 font-medium">Trusted by traders worldwide</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -94,12 +94,12 @@ function HeroTrustSignals() {
 ════════════════ */
 function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void }) {
   return (
-    <section className="hero-section" style={{ position: 'relative', overflow: 'hidden' }}>
+    <section className="hero-section" style={{ position: "relative", overflow: "hidden", width: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
       {/* Radiant ambient glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.08),rgba(255,255,255,0))] pointer-events-none" />
 
-      <div className="hero-container" style={{ padding: "110px 24px 60px", maxWidth: 1040, margin: "0 auto" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <div className="hero-container" style={{ padding: "100px 24px 60px", width: "100%", maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+        <div style={{ width: "100%", maxWidth: 860, margin: "0 auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
           {/* Badge */}
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="hero-badge" style={{ display: "inline-flex", width: "fit-content", alignItems: "center", gap: 8, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 16px 6px 8px", borderRadius: "100px", marginBottom: 28, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
@@ -113,7 +113,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.1 }}
             className="hero-title"
-            style={{ fontSize: "clamp(34px, 5.5vw, 62px)", fontWeight: 900, lineHeight: 1.12, letterSpacing: "-0.04em", marginTop: 0, marginBottom: 22, color: "#0f172a" }}
+            style={{ width: "100%", textAlign: "center", fontSize: "clamp(34px, 5.5vw, 62px)", fontWeight: 900, lineHeight: 1.12, letterSpacing: "-0.04em", marginTop: 0, marginBottom: 22, color: "#0f172a" }}
           >
             <BlurText
               text={"The Ultimate AI Ecosystem\nfor Modern Traders."}
@@ -127,7 +127,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.2 }}
             className="hero-desc"
-            style={{ fontSize: 18, color: "#475569", lineHeight: 1.6, maxWidth: 640, marginBottom: 36, fontWeight: 400 }}
+            style={{ width: "100%", textAlign: "center", fontSize: 18, color: "#475569", lineHeight: 1.6, maxWidth: 640, marginBottom: 36, fontWeight: 400 }}
           >
             Tradifive is an AI-powered trading ecosystem that enforces risk rules, builds discipline, and tracks performance — so traders stop blowing accounts and start trading like professionals.
           </motion.p>

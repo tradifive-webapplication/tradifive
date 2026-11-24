@@ -41,7 +41,7 @@ export default function BlurText({ text, lines, className, style, delay = 0, gra
         hidden: {}
       }}
       className={className}
-      style={{ ...style, display: 'inline-block' }}
+      style={{ display: 'inline-block', textAlign: 'center', width: '100%', ...style }}
     >
       {parsedLines.map((line, lineIndex) => {
         const words = line.text.split(' ').filter(w => w.length > 0);
