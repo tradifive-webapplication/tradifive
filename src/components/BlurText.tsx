@@ -17,7 +17,7 @@ function hexToRgb(hex: string) {
     parseInt(result[1], 16),
     parseInt(result[2], 16),
     parseInt(result[3], 16)
-  ] : [255, 255, 255];
+  ] : [15, 23, 42]; // Slate 900
 }
 
 export default function BlurText({ text, lines, className, style, delay = 0, gradient }: BlurTextProps) {
@@ -48,9 +48,15 @@ export default function BlurText({ text, lines, className, style, delay = 0, gra
         
         // Use line gradient or global gradient
         const activeGradient = line.gradient || gradient;
-        let c1 = [255,255,255], c2 = [255,255,255];
+        let c1 = [15, 23, 42], c2 = [37, 99, 235]; // Default: slate-900 to royal blue
         if (activeGradient) {
-          c1 = hexToRgb(activeGradient[0]);
+          const startHex = activeGradient[0].toLowerCase();
+          // Remap pure white start in white mode to high-contrast slate-900
+          if (startHex === '#ffffff' || startHex === '#fff') {
+            c1 = [15, 23, 42];
+          } else {
+            c1 = hexToRgb(activeGradient[0]);
+          }
           c2 = hexToRgb(activeGradient[1]);
         }
 

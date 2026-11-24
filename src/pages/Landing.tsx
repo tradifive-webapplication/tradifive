@@ -312,10 +312,10 @@ function Problem() {
           <div style={{ marginBottom: 20 }}>
             <span style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", color: "#2563eb", padding: "6px 16px", borderRadius: "100px", textTransform: "uppercase", fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>WHY TRADIFIVE?</span>
           </div>
-          <h2 style={{ fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 48 }}>
+          <h2 style={{ fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.02em", lineHeight: 1.15, marginBottom: 48 }}>
             <BlurText
               lines={[
-                { text: "Trading Is More Than Charts.", gradient: ["#ffffff", "#3b82f6"] },
+                { text: "Trading Is More Than Charts.", gradient: ["#0f172a", "#2563eb"] },
                 { text: "It's Psychology & Discipline.", style: { color: "#64748b", fontSize: "clamp(18px, 2.5vw, 28px)" } }
               ]}
             />
@@ -440,7 +440,7 @@ function HowItWorks() {
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
-            style={{ fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: "#fff", marginBottom: 16, lineHeight: 1.1 }}
+            style={{ fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: "#0f172a", marginBottom: 16, lineHeight: 1.15 }}
           >
             <span style={{ background: "linear-gradient(to right, #0f172a, #2563eb)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               From Beginner to Consistent Trader<br />
@@ -449,7 +449,7 @@ function HowItWorks() {
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 }}
-            style={{ fontSize: 17, color: "#64748b", maxWidth: 460, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
+            style={{ fontSize: 17, color: "#475569", maxWidth: 480, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
           >
             Everything you need — learning, trading, discipline, AI guidance, and community — in one ecosystem.
           </motion.p>
@@ -508,7 +508,7 @@ function HowItWorks() {
                       maxWidth: isMobile ? "100%" : 400,
                       background: "#ffffff", borderRadius: 24, padding: isMobile ? 20 : 32,
                       border: "1px solid #e2e8f0",
-                      boxShadow: `inset 0 1px 0 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.5), 0 0 40px ${step.colorBg}` }}
+                      boxShadow: "0 10px 30px -5px rgba(0,0,0,0.06), 0 0 0 1px #e2e8f0" }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 16, marginBottom: isMobile ? 14 : 20 }}>
                       <div style={{
@@ -589,11 +589,11 @@ function Features() {
           <div ref={r1} className="rv" style={{ marginBottom: 18 }}>
             <span style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", color: "#3b82f6", padding: "6px 16px", borderRadius: "100px", textTransform: "uppercase", fontSize: 10, fontWeight: 700, letterSpacing: 1.5 }}>THE TRADIFIVE ECOSYSTEM</span>
           </div>
-          <h2 className="capabilities-title" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: 16 }}>
+          <h2 className="capabilities-title" style={{ fontSize: "clamp(28px, 4vw, 44px)", fontWeight: 900, color: "#0f172a", letterSpacing: "-0.04em", lineHeight: 1.15, marginBottom: 16 }}>
             <BlurText
               lines={[
-                { text: "Everything You Need To", gradient: ["#ffffff", "#3b82f6"] },
-                { text: "Trade, Learn & Grow.", gradient: ["#ffffff", "#3b82f6"] }
+                { text: "Everything You Need To", gradient: ["#0f172a", "#2563eb"] },
+                { text: "Trade, Learn & Grow.", gradient: ["#0f172a", "#2563eb"] }
               ]}
             />
           </h2>
@@ -601,7 +601,7 @@ function Features() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            style={{ fontSize: 17, color: "rgba(255,255,255,0.4)", maxWidth: 500, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
+            style={{ fontSize: 17, color: "#475569", maxWidth: 520, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
           >
             AI-powered tools, verified traders, risk management, social communities, and performance analytics—all in one platform.
           </motion.p>
@@ -735,17 +735,17 @@ function Pricing({ onStart }: { onStart: () => void }) {
             </span>
           </div>
 
-          <h2 style={{ fontSize: "clamp(30px, 4.2vw, 48px)", fontWeight: 900, letterSpacing: "-0.04em", color: "#fff", marginBottom: 14, lineHeight: 1.15 }}>
+          <h2 style={{ fontSize: "clamp(30px, 4.2vw, 48px)", fontWeight: 900, letterSpacing: "-0.04em", color: "#0f172a", marginBottom: 14, lineHeight: 1.15 }}>
             <BlurText
               lines={[
                 { text: "Two Clear Options." },
                 { text: "Zero Hidden Deductions." }
               ]}
-              gradient={["#ffffff", "#3b82f6"]}
+              gradient={["#0f172a", "#2563eb"]}
             />
           </h2>
           <p ref={useReveal()} className="rv d2" style={{ fontSize: 16, color: "#64748b", maxWidth: 640, margin: "0 auto 30px", fontWeight: 500, lineHeight: 1.6 }}>
-            Choose between a <strong style={{ color: "#60a5fa" }}>0% profit-sharing 3-year enterprise license</strong> or our <strong style={{ color: "#34d399" }}>performance partner plan</strong> where you pay only when you make profits.
+            Choose between a <strong style={{ color: "#2563eb" }}>0% profit-sharing 3-year enterprise license</strong> or our <strong style={{ color: "#059669" }}>performance partner plan</strong> where you pay only when you make profits.
           </p>
 
           {/* Primary Category Switcher */}
@@ -786,10 +786,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 outline: "none"
               }}
               onMouseEnter={(e) => {
-                if (pricingCategory !== "autotrade") e.currentTarget.style.color = "#ffffff";
+                if (pricingCategory !== "autotrade") e.currentTarget.style.color = "#0f172a";
               }}
               onMouseLeave={(e) => {
-                if (pricingCategory !== "autotrade") e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)";
+                if (pricingCategory !== "autotrade") e.currentTarget.style.color = "#64748b";
               }}
             >
               <Zap size={14} />
@@ -821,10 +821,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 outline: "none"
               }}
               onMouseEnter={(e) => {
-                if (pricingCategory !== "platform") e.currentTarget.style.color = "#ffffff";
+                if (pricingCategory !== "platform") e.currentTarget.style.color = "#0f172a";
               }}
               onMouseLeave={(e) => {
-                if (pricingCategory !== "platform") e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)";
+                if (pricingCategory !== "platform") e.currentTarget.style.color = "#64748b";
               }}
             >
               <ShieldCheck size={14} />
@@ -857,12 +857,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     <div style={{
                       width: 42,
                       height: 42,
-                      borderRadius: 100, background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)", boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
-                      border: "none",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#60a5fa",
+                      borderRadius: 100, background: "rgba(37, 99, 235, 0.1)", border: "1px solid rgba(37, 99, 235, 0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563eb",
                       flexShrink: 0
                     }}>
                       <Crown size={20} />
@@ -905,20 +900,14 @@ function Pricing({ onStart }: { onStart: () => void }) {
 
                   <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
                     <div className="hidden sm:block" style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: 16, fontWeight: 900, color: "#fff" }}>₹1,00,000</span>
-                      <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.45)", display: "block" }}>one-time (~₹2,777/mo)</span>
+                      <span style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>₹1,00,000</span>
+                      <span style={{ fontSize: 11, color: "#64748b", display: "block" }}>one-time (~₹2,777/mo)</span>
                     </div>
                     <div style={{
                       width: 32,
                       height: 32,
                       borderRadius: 10,
-                      background: "rgba(255, 255, 255, 0.04)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transform: enterpriseExpanded ? "rotate(180deg)" : "none",
-                      transition: "transform 0.3s ease",
-                      color: "rgba(255, 255, 255, 0.5)"
+                      background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", transform: enterpriseExpanded ? "rotate(180deg)" : "none", transition: "transform 0.3s ease", color: "#64748b"
                     }}>
                       <ChevronDown size={18} />
                     </div>
@@ -962,7 +951,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                               <span style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.03em" }}>
                                 ₹1,00,000
                               </span>
-                              <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", fontWeight: 600 }}>
+                              <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
                                 one-time upfront license (~₹2,777/month)
                               </span>
                             </div>
@@ -1088,7 +1077,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           SETUP + 50/50%
                         </span>
                       </div>
-                      <p style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", margin: 0, fontWeight: 500 }}>
+                      <p style={{ fontSize: 13, color: "#64748b", margin: 0, fontWeight: 500 }}>
                         Split 50% weekly only when your account is in green. Zero fee on flat or red weeks.
                       </p>
                     </div>
@@ -1103,13 +1092,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       width: 32,
                       height: 32,
                       borderRadius: 10,
-                      background: "rgba(255, 255, 255, 0.04)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transform: performanceExpanded ? "rotate(180deg)" : "none",
-                      transition: "transform 0.3s ease",
-                      color: "rgba(255, 255, 255, 0.5)"
+                      background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", transform: enterpriseExpanded ? "rotate(180deg)" : "none", transition: "transform 0.3s ease", color: "#64748b"
                     }}>
                       <ChevronDown size={18} />
                     </div>
@@ -1153,7 +1136,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                               <span style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.03em" }}>
                                 ₹10,000
                               </span>
-                              <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", fontWeight: 600 }}>
+                              <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
                                 one-time setup fee + 50% weekly net profit share
                               </span>
                             </div>
@@ -1201,7 +1184,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
 
                         {/* Action Row */}
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, paddingTop: 14, borderTop: "1px solid #e2e8f0" }}>
-                          <div style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.4)" }}>
+                          <div style={{ fontSize: 11.5, color: "#64748b" }}>
                             🛡️ Zero Broker Account Deductions · Invoices cleared weekly via UPI / Bank
                           </div>
                           <button
@@ -1283,13 +1266,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       width: 32,
                       height: 32,
                       borderRadius: 10,
-                      background: "rgba(255, 255, 255, 0.04)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      transform: comparisonTableExpanded ? "rotate(180deg)" : "none",
-                      transition: "transform 0.3s ease",
-                      color: "rgba(255, 255, 255, 0.5)"
+                      background: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", transform: enterpriseExpanded ? "rotate(180deg)" : "none", transition: "transform 0.3s ease", color: "#64748b"
                     }}>
                       <ChevronDown size={18} />
                     </div>
@@ -1327,7 +1304,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                             <tbody>
                               {comparisonRows.map((row, idx) => (
                                 <tr key={idx} style={{ borderBottom: "1px solid #f1f5f9" }}>
-                                  <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 600, color: "rgba(255, 255, 255, 0.8)" }}>
+                                  <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 600, color: "#334155" }}>
                                     {row.label}
                                   </td>
                                   <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "#1d4ed8" }}>
@@ -1471,10 +1448,10 @@ function Social() {
           <div ref={useReveal()} className="rv" style={{ marginBottom: 18 }}>
             <span style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)", color: "#2563eb", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>From the Community</span>
           </div>
-          <h2 style={{ fontSize: "clamp(22px, 5vw, 40px)", fontWeight: 900, letterSpacing: "-0.04em", color: "#fff", marginBottom: 14, lineHeight: 1.1 }}>
+          <h2 style={{ fontSize: "clamp(22px, 5vw, 40px)", fontWeight: 900, letterSpacing: "-0.04em", color: "#0f172a", marginBottom: 14, lineHeight: 1.15 }}>
             <BlurText
               text="Traders who chose to grow together."
-              gradient={["#ffffff", "#3b82f6"]}
+              gradient={["#0f172a", "#2563eb"]}
             />
           </h2>
         </div>
@@ -1487,7 +1464,7 @@ function Social() {
             <div key={i} className="feat-card-premium testimonial-card" style={{ width: 320, padding: "22px", flexShrink: 0, borderRadius: 20, background: "#ffffff", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
               <div className="testimonial-stars" style={{ display: "flex", gap: 3, marginBottom: 14 }}>
                 {Array(t.stars).fill(0).map((_, j) => (<svg key={j} width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
-                {Array(5 - t.stars).fill(0).map((_, j) => (<svg key={j + t.stars} width="11" height="11" viewBox="0 0 24 24" fill="rgba(255,255,255,0.08)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
+                {Array(5 - t.stars).fill(0).map((_, j) => (<svg key={j + t.stars} width="11" height="11" viewBox="0 0 24 24" fill="#e2e8f0" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
               </div>
               <p className="testimonial-text" style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.6, marginBottom: 20, fontWeight: 400 }}>"{t.text}"</p>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -1563,10 +1540,10 @@ function FAQ() {
           <div ref={useReveal()} className="rv" style={{ marginBottom: 18 }}>
             <span style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)", color: "#2563eb", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>FAQ</span>
           </div>
-          <h2 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.1 }}>
+          <h2 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.15, color: "#0f172a" }}>
             <BlurText
               text="Frequently Asked Questions"
-              gradient={["#ffffff", "#3b82f6"]}
+              gradient={["#0f172a", "#2563eb"]}
             />
           </h2>
           <p ref={useReveal()} className="rv d2" style={{ fontSize: 15, color: "#64748b", marginTop: 12, fontWeight: 500 }}>Everything you need to know about Tradifive.</p>
@@ -1654,16 +1631,16 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
               <span style={{ color: "#2563eb", fontWeight: 600, fontSize: 13, letterSpacing: 1, textTransform: "uppercase" }}>Global Network</span>
             </div>
 
-            <h2 className="community-title" style={{ fontSize: "clamp(24px, 6vw, 56px)", fontWeight: 800, color: "#fff", lineHeight: 1.1, marginBottom: 24, letterSpacing: "-0.04em" }}>
+            <h2 className="community-title" style={{ fontSize: "clamp(24px, 6vw, 56px)", fontWeight: 800, color: "#0f172a", lineHeight: 1.15, marginBottom: 24, letterSpacing: "-0.04em" }}>
               <BlurText
                 lines={[
-                  { text: "Thousands of traders are using", gradient: ["#ffffff", "#3b82f6"] },
-                  { text: "TradiFive to learn, collab & grow.", gradient: ["#a855f7", "#6366f1"] }
+                  { text: "Thousands of traders are using", gradient: ["#0f172a", "#2563eb"] },
+                  { text: "TradiFive to learn, collab & grow.", gradient: ["#7c3aed", "#2563eb"] }
                 ]}
               />
             </h2>
 
-            <p className="community-desc" style={{ fontSize: "clamp(15px, 4vw, 18px)", color: "#64748b", lineHeight: 1.6, maxWidth: 560, margin: "0 auto 40px", fontWeight: 400 }}>
+            <p className="community-desc" style={{ fontSize: "clamp(15px, 4vw, 18px)", color: "#475569", lineHeight: 1.6, maxWidth: 560, margin: "0 auto 40px", fontWeight: 400 }}>
               Join a vibrant global community. Share setups, learn from live webinars, and connect directly with the world's best verified traders.
             </p>
 
@@ -1702,7 +1679,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
                 <div className="community-stat-label" style={{ fontSize: 11, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{s.label}</div>
               </div>
-              <div className="community-stat-value" style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>{s.value}</div>
+              <div className="community-stat-value" style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.03em" }}>{s.value}</div>
             </motion.div>
           ))}
         </div>
@@ -1862,7 +1839,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                 }}
               >
                 <div style={{ marginBottom: 12 }}>
-                  <h3 className="problem-card-title" style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>{b.title}</h3>
+                  <h3 className="problem-card-title" style={{ fontSize: 17, fontWeight: 700, color: "#0f172a" }}>{b.title}</h3>
                 </div>
                 <p className="problem-card-desc" style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6, fontWeight: 400 }}>{b.desc}</p>
               </motion.div>
@@ -1991,7 +1968,7 @@ function Sep() {
       <div style={{
         width: "80%",
         height: 1,
-        background: "linear-gradient(to right, transparent, rgba(255,255,255,0.15) 20%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.15) 80%, transparent)"
+        background: "linear-gradient(to right, transparent, rgba(226, 232, 240, 0.6) 20%, #e2e8f0 50%, rgba(226, 232, 240, 0.6) 80%, transparent)"
       }} />
     </div>
   );

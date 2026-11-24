@@ -49,7 +49,7 @@ export function FeatCard({ title, description, children, className = "" }: FeatC
         <h3 className="font-bold text-slate-900 text-sm tracking-tight">{title}</h3>
         <p className="text-slate-600 text-xs leading-relaxed max-w-[90%]">{description}</p>
       </div>
-      <div className="relative mt-2 flex-1 w-full rounded-[14px] overflow-hidden border border-white/10 bg-[#000]/50">
+      <div className="relative mt-2 flex-1 w-full rounded-[14px] overflow-hidden border border-slate-200/80 bg-slate-50/70">
         {children}
       </div>
     </motion.div>
@@ -207,12 +207,12 @@ export function Card1() {
   };
 
   return (
-    <div className="w-full h-full relative overflow-hidden select-none bg-[#111]  rounded-xl flex items-center justify-center p-2">
+    <div className="w-full h-full relative overflow-hidden select-none bg-slate-50/90 border border-slate-200/80 rounded-xl flex items-center justify-center p-2">
       {/* ── Layer 1: Clean dotted grid ── */}
       <svg className="absolute inset-0 w-full h-full" aria-hidden>
         <defs>
           <pattern id="clean-grid" width="16" height="16" patternUnits="userSpaceOnUse">
-            <circle cx="1.5" cy="1.5" r="0.75" fill="currentColor" className="text-white/20 " />
+            <circle cx="1.5" cy="1.5" r="0.75" fill="#cbd5e1" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#clean-grid)" />
@@ -226,10 +226,10 @@ export function Card1() {
         aria-hidden
       >
         {/* Base Static Connection Paths */}
-        <path d="M 78 120 L 113 120" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
-        <path d="M 137 120 L 172 120" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
-        <path d="M 200 92 L 200 50 L 252 50" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
-        <path d="M 200 148 L 200 190 L 252 190" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
+        <path d="M 78 120 L 113 120" fill="none" stroke="#cbd5e1" strokeWidth="1.5" />
+        <path d="M 137 120 L 172 120" fill="none" stroke="#cbd5e1" strokeWidth="1.5" />
+        <path d="M 200 92 L 200 50 L 252 50" fill="none" stroke="#cbd5e1" strokeWidth="1.5" />
+        <path d="M 200 148 L 200 190 L 252 190" fill="none" stroke="#cbd5e1" strokeWidth="1.5" />
 
         {/* Animated Flow Overlays */}
         {PATHS.map((p) => {
@@ -300,11 +300,11 @@ export function Card1() {
                   <div
                     className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shadow-sm transition-all duration-300 ${isActive
                       ? "bg-amber-500/20 border-amber-500/70"
-                      : "bg-[#000]/80 border-zinc-300 border-zinc-800"
+                      : "bg-white border-slate-300"
                       }`}
                   >
                     <motion.div
-                      className={`w-2.5 h-2.5 rounded-full border border-dashed ${isActive ? "border-amber-500" : "border-zinc-400 border-zinc-600"
+                      className={`w-2.5 h-2.5 rounded-full border border-dashed ${isActive ? "border-amber-500" : "border-slate-400"
                         }`}
                       animate={{ rotate: 360 }}
                       transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
@@ -351,14 +351,14 @@ export function Card2() {
             <div key={i} className="flex-1 h-[76px] relative select-none">
               {/* Background Hatched Scale Card */}
               <div
-                className="absolute inset-0 rounded-xl border border-white/10 bg-[#080808]/5 text-white/20"
+                className="absolute inset-0 rounded-xl border border-white/10 bg-slate-100/60 border border-slate-200/80 text-slate-300"
                 style={{
                   backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)" }}
               />
 
               {/* Foreground Card sliding up and right on hover or cycle activation (0.5rem offset) */}
               <motion.div
-                className="absolute inset-0 w-full h-full rounded-xl bg-[#080808]/5  border border-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,1)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.01)] p-3 hover:bg-[#080808]/5 transition-colors duration-300 backdrop-blur-[2px] flex items-center justify-between gap-3 cursor-pointer"
+                className="absolute inset-0 w-full h-full rounded-xl bg-white border border-slate-200 shadow-sm p-3 hover:bg-slate-50 transition-colors duration-300 flex items-center justify-between gap-3 cursor-pointer"
                 animate={{
                   x: isActive ? "0.5rem" : "0rem",
                   y: isActive ? "-0.5rem" : "0rem" }}
@@ -368,14 +368,14 @@ export function Card2() {
               >
                 {/* Left Column: Metric Details */}
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[8px] text-white/60/80 font-mono uppercase tracking-widest leading-none">{s.label}</span>
-                  <span className="text-base font-bold font-mono text-white leading-none mt-1.5 tracking-tight">{s.value}</span>
+                  <span className="text-[8px] text-slate-500 font-mono uppercase tracking-widest leading-none">{s.label}</span>
+                  <span className="text-base font-bold font-mono text-slate-900 leading-none mt-1.5 tracking-tight">{s.value}</span>
                   <div className="flex items-center gap-1.5 mt-2">
                     <span className={`text-[8px] font-mono font-bold ${s.trend.startsWith("+") ? "text-emerald-500" : "text-rose-400"
                       }`}>
                       {s.trend}
                     </span>
-                    <span className="text-[8px] text-white/60/50 font-mono">prev</span>
+                    <span className="text-[8px] text-slate-400 font-mono">prev</span>
                   </div>
                 </div>
 
@@ -390,7 +390,7 @@ export function Card2() {
                       }
                       fill="none"
                       stroke="currentColor"
-                      className="text-white/60/30 text-white/60/20"
+                      className="text-slate-400"
                       strokeWidth="1"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -429,7 +429,7 @@ export function Card2() {
         {bars.map((h, i) => (
           <div
             key={i}
-            className="flex-1 h-full rounded-xl  border border-white/10 relative overflow-hidden bg-[#080808]/5 text-white/20"
+            className="flex-1 h-full rounded-xl  border border-white/10 relative overflow-hidden bg-slate-100/60 border border-slate-200/80 text-slate-300"
             style={{
               backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)" }}
           >
@@ -458,7 +458,7 @@ export function Card2() {
       {/* X labels */}
       <div className="flex gap-2.5 px-0.5">
         {days.map((d, i) => (
-          <p key={i} className="flex-1 text-center text-[8px] text-white/60 font-mono font-medium">{d}</p>
+          <p key={i} className="flex-1 text-center text-[8px] text-slate-500 font-mono font-semibold">{d}</p>
         ))}
       </div>
     </div>
@@ -535,8 +535,8 @@ export function Card3() {
               opacity: { duration: 0.25, ease: "easeOut" } }}
           >
             <div className={`w-full rounded-2xl border border-white/10 flex items-center gap-2.5 ${isActive
-              ? "px-3 py-2.5 bg-[#000] border-white/10"
-              : "px-2.5 py-1.5 bg-[#080808]/5 border-white/10"
+              ? "px-3 py-2.5 bg-white border-slate-200 shadow-sm"
+              : "px-2.5 py-1.5 bg-slate-100/80 border-slate-200/60"
               }`}>
 
               {/* Icon badge — full on active, compact on behind */}
@@ -548,18 +548,18 @@ export function Card3() {
               {/* Text — full on active, name-only on behind */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className={`font-mono font-semibold text-white leading-none ${isActive ? "text-[10px]" : "text-[9px]"
+                  <span className={`font-mono font-bold text-slate-900 leading-none ${isActive ? "text-[10px]" : "text-[9px]"
                     }`}>{l.agent}</span>
                   <span className={`font-mono uppercase tracking-wide rounded px-1 py-0.5 ${si.bg} ${si.color} ${isActive ? "text-[7px]" : "text-[6px]"
                     }`}>{l.status}</span>
                 </div>
                 {isActive && (
-                  <p className="text-[9px] text-white/60 truncate mt-0.5 leading-tight">{l.action}</p>
+                  <p className="text-[9px] text-slate-500 truncate mt-0.5 leading-tight">{l.action}</p>
                 )}
               </div>
 
               {isActive && (
-                <span className="text-[9px] font-mono text-white/60 shrink-0">{l.t}</span>
+                <span className="text-[9px] font-mono text-slate-500 font-semibold shrink-0">{l.t}</span>
               )}
             </div>
           </motion.div>
@@ -638,7 +638,7 @@ export function Card4() {
 
       {/* ── Left panel: Namespace bars ── */}
       <div className="flex-1 flex flex-col gap-0 min-w-0 pr-2">
-        <p className="text-[8px] font-mono uppercase tracking-widest text-white/60 mb-3">Namespaces</p>
+        <p className="text-[8px] font-mono uppercase tracking-widest text-slate-500 font-semibold mb-3">Namespaces</p>
 
         <div className="flex flex-col gap-3 flex-1">
           {namespaces.map((ns, i) => {
@@ -651,18 +651,18 @@ export function Card4() {
 
                 {/* Icon Container with 3D effect */}
                 <div
-                  className={`relative flex shrink-0 items-center justify-center w-[36px] h-[36px] rounded-[12px] border border-white/10 transition-all duration-500 ${isActive ? `shadow-[inset_0_1px_0_0_rgba(255,255,255,0.4),inset_4px_4px_0_0_rgba(255,255,255,0.06),inset_6px_6px_0_0_rgba(255,255,255,0.04),inset_8px_8px_0_0_rgba(255,255,255,0.02),0_1px_2px_0_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06),0_4px_6px_0_rgba(0,0,0,0.04),0_6px_8px_0_rgba(0,0,0,0.02)] text-white ${c.buttonBg} ${c.buttonBorder} scale-105` : ' shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.06),0_2px_4px_0px_rgba(0,0,0,0.04)] bg-[#080808] border-transparent text-[#A1A1A1]'}`}
+                  className={`relative flex shrink-0 items-center justify-center w-[36px] h-[36px] rounded-[12px] border border-white/10 transition-all duration-500 ${isActive ? `shadow-[inset_0_1px_0_0_rgba(255,255,255,0.4),inset_4px_4px_0_0_rgba(255,255,255,0.06),inset_6px_6px_0_0_rgba(255,255,255,0.04),inset_8px_8px_0_0_rgba(255,255,255,0.02),0_1px_2px_0_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06),0_4px_6px_0_rgba(0,0,0,0.04),0_6px_8px_0_rgba(0,0,0,0.02)] text-white ${c.buttonBg} ${c.buttonBorder} scale-105` : ' shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.06),0_2px_4px_0px_rgba(0,0,0,0.04)] bg-white border-slate-200 text-slate-500'}`}
                 >
                   <Icon size={16} weight={isActive ? "fill" : "regular"} className="relative z-10" />
                 </div>
 
                 {/* Name */}
-                <span className={`text-[10px] font-mono w-16 shrink-0 transition-colors duration-400 ${isActive ? "text-white font-semibold" : "text-white/60 group-hover:text-white/70"}`}>
+                <span className={`text-[10px] font-mono w-16 shrink-0 transition-colors duration-400 ${isActive ? "text-slate-900 font-bold" : "text-slate-600 group-hover:text-slate-800"}`}>
                   {ns.name}
                 </span>
 
                 {/* Cyberpunk Bar track */}
-                <div className="flex-1 h-1.5 bg-[#080808]/5 rounded-full overflow-hidden relative backdrop-blur-sm shadow-inner">
+                <div className="flex-1 h-1.5 bg-slate-200/80 rounded-full overflow-hidden relative shadow-inner">
                   <motion.div
                     className={`absolute left-0 top-0 bottom-0 rounded-full overflow-hidden bg-gradient-to-r ${c.bar}`}
                     initial={{ width: "0%" }}
@@ -685,7 +685,7 @@ export function Card4() {
 
                 {/* Hit count */}
                 <div className={`flex items-center gap-1.5 w-10 justify-end transition-all duration-500 ${isActive ? "opacity-100 scale-105" : "opacity-60 scale-100"}`}>
-                  <span className={`text-[9px] font-mono font-medium ${isActive ? "text-white" : "text-white/60"}`}>
+                  <span className={`text-[9px] font-mono font-medium ${isActive ? "text-slate-900 font-bold" : "text-slate-500"}`}>
                     {ns.hits}
                   </span>
                   {isActive && (
@@ -711,16 +711,16 @@ export function Card4() {
             />
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
           </div>
-          <span className="text-[8px] font-mono text-white/60 font-medium tracking-wide">Live retrieval active</span>
+          <span className="text-[8px] font-mono text-slate-500 font-medium tracking-wide">Live retrieval active</span>
         </div>
       </div>
 
       {/* Thin divider */}
-      <div className="w-px bg-[#080808]/10 self-stretch shrink-0" />
+      <div className="w-px bg-slate-200 self-stretch shrink-0" />
 
       {/* ── Right panel: Retrieval log ── */}
       <div className="w-[172px] shrink-0 flex flex-col gap-0">
-        <p className="text-[8px] font-mono uppercase tracking-widest text-white/60 mb-2.5">Retrieval Log</p>
+        <p className="text-[8px] font-mono uppercase tracking-widest text-slate-500 font-semibold mb-2.5">Retrieval Log</p>
 
         <div className="flex flex-col gap-1.5 flex-1 overflow-hidden">
           {recentQueries.map((q, qi) => {
@@ -728,7 +728,7 @@ export function Card4() {
             return (
               <motion.div
                 key={`${q.ns}-${q.q}-${qi}`}
-                className="rounded-xl border border-white/10 bg-[#080808]/5  px-2.5 py-2"
+                className="rounded-xl border border-slate-200/80 bg-white shadow-xs px-2.5 py-2"
                 initial={{ opacity: 0, y: -8 }}
                 animate={{
                   opacity: qi === 0 ? 1 : qi === 1 ? 0.8 : qi === 2 ? 0.5 : 0.25,
@@ -739,9 +739,9 @@ export function Card4() {
                   <span className={`text-[6.5px] font-mono font-semibold uppercase px-1.5 py-0.5 rounded-md ${c.badge}`}>
                     {q.ns}
                   </span>
-                  <span className="text-[7px] font-mono text-white/60/50 ml-auto tabular-nums">{q.t}</span>
+                  <span className="text-[7px] font-mono text-slate-400 ml-auto tabular-nums">{q.t}</span>
                 </div>
-                <p className="text-[8px] text-white/75 leading-tight font-mono truncate">{q.q}</p>
+                <p className="text-[8px] text-slate-700 leading-tight font-mono truncate">{q.q}</p>
               </motion.div>
             );
           })}
@@ -769,7 +769,7 @@ export function Card5() {
         {tools.map((t, i) => (
           <motion.div
             key={i}
-            className="relative rounded-[16px] border border-white/10 bg-[#000]  shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between p-2.5 group hover:border-white/10"
+            className="relative rounded-[16px] border border-slate-200/90 bg-white shadow-xs hover:shadow-sm transition-all duration-300 flex flex-col justify-between p-2.5 group hover:border-slate-300"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1, type: "spring", stiffness: 300, damping: 25 }}
@@ -781,18 +781,18 @@ export function Card5() {
               </div>
 
               <div className="flex flex-col items-end gap-0.5 mt-0.5">
-                <span className="text-[12px] font-mono font-bold text-white leading-none">{t.calls}</span>
-                <span className="text-[7px] font-mono text-white/60/80 uppercase tracking-widest leading-none">Calls</span>
+                <span className="text-[12px] font-mono font-bold text-slate-900 leading-none">{t.calls}</span>
+                <span className="text-[7px] font-mono text-slate-500 uppercase tracking-widest leading-none">Calls</span>
               </div>
             </div>
 
             {/* Bottom Row: Name + Latency + Progress */}
             <div className="mt-2 flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-medium text-white tracking-tight">{t.name}</span>
-                <span className="text-[8px] font-mono text-white/60 tabular-nums">{t.latency}</span>
+                <span className="text-[10px] font-mono font-bold text-slate-800 tracking-tight">{t.name}</span>
+                <span className="text-[8px] font-mono text-slate-400 tabular-nums">{t.latency}</span>
               </div>
-              <div className="w-full h-1.5 bg-[#080808]/5 rounded-full overflow-hidden shadow-inner relative">
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner relative">
                 <motion.div
                   className={`absolute left-0 top-0 bottom-0 rounded-full ${t.color}`}
                   initial={{ width: "0%" }}
