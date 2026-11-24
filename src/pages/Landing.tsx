@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import confetti from "canvas-confetti";
 import { FlipText } from "@/components/ui/flip-text";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
-import SideRays from "@/components/SideRays";
+// SideRays removed for clean white mode
 import PlasmaWave from "@/components/PlasmaWave";
 import BlurText from "@/components/BlurText";
 import LaserFlow from "@/components/LaserFlow";
@@ -64,14 +64,12 @@ function HeroDashboard() {
         transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
         style={{
           position: "absolute", top: 20, left: 0, right: 0,
-          background: "linear-gradient(160deg, rgba(18,18,22,0.98) 0%, rgba(10,10,12,0.99) 100%)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderTopColor: "rgba(150,200,255,0.2)",
-          borderRightColor: "rgba(150,200,255,0.15)",
+          background: "linear-gradient(160deg, rgba(255,255,255,0.98) 0%, rgba(248,250,252,0.99) 100%)",
+          border: "1px solid rgba(226,232,240,0.9)",
           borderRadius: 24,
           padding: "20px",
           backdropFilter: "blur(40px)",
-          boxShadow: "0 40px 80px rgba(0,0,0,0.7), inset -1px 1px 3px rgba(150,200,255,0.15), 0 0 0 1px rgba(255,255,255,0.04)",
+          boxShadow: "0 25px 60px -15px rgba(0,0,0,0.08), 0 0 0 1px rgba(226,232,240,0.6)",
           overflow: "hidden"
         }}
       >
@@ -83,7 +81,7 @@ function HeroDashboard() {
             <div style={{ display: "flex", gap: 5 }}>
               {["#f43f5e", "#f59e0b", "#10b981"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c, opacity: 0.8 }} />)}
             </div>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.35)", marginLeft: 6 }}>tradifive — live dashboard</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#64748b", marginLeft: 6 }}>tradifive — live dashboard</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
@@ -95,21 +93,21 @@ function HeroDashboard() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
           {[
             { l: "Total P&L", v: "+₹2,847", c: "#10b981", sub: "this week" },
-            { l: "Win Rate", v: "73.4%", c: "rgba(255,255,255,0.9)", sub: "last 50 trades" },
-            { l: "Followers", v: "1,240", c: "rgba(255,255,255,0.75)", sub: "on your profile" },
+            { l: "Win Rate", v: "73.4%", c: "#0f172a", sub: "last 50 trades" },
+            { l: "Followers", v: "1,240", c: "#334155", sub: "on your profile" },
           ].map((s, i) => (
-            <div key={i} style={{ background: "#171717", borderRadius: 14, padding: "12px 14px" }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{s.l}</div>
+            <div key={i} style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "12px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+              <div style={{ fontSize: 10, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{s.l}</div>
               <div style={{ fontSize: 20, fontWeight: 900, color: s.c, letterSpacing: "-0.03em" }}>{s.v}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 3 }}>{s.sub}</div>
+              <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 3 }}>{s.sub}</div>
             </div>
           ))}
         </div>
 
         {/* Chart */}
-        <div style={{ background: "#171717", borderRadius: 14, padding: "14px", marginBottom: 14, overflow: "hidden", position: "relative" }}>
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 14, padding: "14px", marginBottom: 14, overflow: "hidden", position: "relative", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Equity Curve</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#0f172a" }}>Equity Curve</span>
             <span style={{ fontSize: 11, fontWeight: 600, color: "#10b981" }}>↑ +18.4% this month</span>
           </div>
           <svg width="100%" height="70" viewBox="0 0 480 90" preserveAspectRatio="none" style={{ overflow: "visible" }}>
@@ -123,7 +121,7 @@ function HeroDashboard() {
             <polyline
               points={chartPoints[0]}
               fill="none"
-              stroke="rgba(255,255,255,0.5)"
+              stroke="#2563eb"
               strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -137,9 +135,9 @@ function HeroDashboard() {
         </div>
 
         {/* Live trades feed */}
-        <div style={{ background: "#171717", borderRadius: 14, overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1 }}>Live Trade Feed</span>
+        <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 14, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+          <div style={{ padding: "10px 14px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1 }}>Live Trade Feed</span>
             <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>● Synced</span>
           </div>
           {trades.map((t, i) => (
@@ -148,15 +146,15 @@ function HeroDashboard() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.15 + 0.6 }}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px", borderBottom: i < trades.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px", borderBottom: i < trades.length - 1 ? "1px solid #f8fafc" : "none" }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 28, height: 28, borderRadius: 8, background: t.dir === "BUY" ? "rgba(16,185,129,0.12)" : "rgba(244,63,94,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 9, fontWeight: 900, color: t.dir === "BUY" ? "#10b981" : "#f43f5e" }}>{t.dir}</span>
                 </div>
                 <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#fff" }}>{t.pair}</div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{t.time}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>{t.pair}</div>
+                  <div style={{ fontSize: 10, color: "#94a3b8" }}>{t.time}</div>
                 </div>
               </div>
               <span style={{ fontSize: 13, fontWeight: 800, color: t.pos ? "#10b981" : "#f43f5e" }}>{t.pnl}</span>
@@ -173,24 +171,22 @@ function HeroDashboard() {
         transition={{ delay: 0.9 }}
         style={{
           position: "absolute", top: -10, right: -30,
-          background: "rgba(14,14,16,0.95)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          borderTopColor: "rgba(150, 200, 255, 0.45)",
-          borderRightColor: "rgba(150, 200, 255, 0.35)",
+          background: "rgba(255,255,255,0.98)",
+          border: "1px solid #e2e8f0",
           borderRadius: 18, padding: "14px 16px",
           backdropFilter: "blur(20px)",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset -1px 1px 4px rgba(150, 200, 255, 0.3), 0 0 0 1px rgba(255,255,255,0.04)",
+          boxShadow: "0 15px 35px rgba(0,0,0,0.08)",
           width: 195, zIndex: 20, "--rot": "-2deg"
         } as any}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
           <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #374151, #6b7280)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: "#fff" }}>MV</div>
           <div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fff" }}>Marcus V.</div>
-            <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.4)" }}>@marcus_trades • 2m</div>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#0f172a" }}>Marcus V.</div>
+            <div style={{ fontSize: 9.5, color: "#64748b" }}>@marcus_trades • 2m</div>
           </div>
         </div>
-        <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.5, margin: 0 }}>Closed EUR/USD +142 pips. Risk managed the whole way. Love the journal sync 🔥</p>
+        <p style={{ fontSize: 11.5, color: "#334155", lineHeight: 1.5, margin: 0 }}>Closed EUR/USD +142 pips. Risk managed the whole way. Love the journal sync 🔥</p>
         <div style={{ display: "flex", gap: 12, marginTop: 10, color: "rgba(255,255,255,0.3)", fontSize: 10.5, fontWeight: 600 }}>
           <span>❤️ 47</span><span>💬 12</span><span>🔁 8</span>
         </div>
@@ -204,13 +200,11 @@ function HeroDashboard() {
         transition={{ delay: 1.1 }}
         style={{
           position: "absolute", bottom: 60, right: -20,
-          background: "rgba(14,14,16,0.95)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          borderTopColor: "rgba(150, 200, 255, 0.25)",
-          borderRightColor: "rgba(150, 200, 255, 0.2)",
+          background: "rgba(255,255,255,0.98)",
+          border: "1px solid #e2e8f0",
           borderRadius: 16, padding: "12px 16px",
           backdropFilter: "blur(20px)",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset -1px 1px 2px rgba(150,200,255,0.15)",
+          boxShadow: "0 15px 35px rgba(0,0,0,0.08)",
           width: 175, zIndex: 20
         }}
       >
@@ -220,10 +214,10 @@ function HeroDashboard() {
           { rank: "#2", name: "David M.", pnl: "+₹3,210" },
           { rank: "#3", name: "You", pnl: "+₹2,847", you: true },
         ].map((r, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: i < 2 ? "1px solid #f1f5f9" : "none" }}>
             <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
               <span style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>{r.rank}</span>
-              <span style={{ fontSize: 11, fontWeight: r.you ? 800 : 600, color: r.you ? "#f59e0b" : "rgba(255,255,255,0.7)" }}>{r.name}</span>
+              <span style={{ fontSize: 11, fontWeight: r.you ? 800 : 600, color: r.you ? "#f59e0b" : "#0f172a" }}>{r.name}</span>
             </div>
             <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>{r.pnl}</span>
           </div>
@@ -238,13 +232,11 @@ function HeroDashboard() {
         transition={{ delay: 1.3 }}
         style={{
           position: "absolute", bottom: 55, left: -20,
-          background: "rgba(14,14,16,0.95)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderTopColor: "rgba(255,255,255,0.15)",
-          borderRightColor: "rgba(255,255,255,0.12)",
+          background: "rgba(255,255,255,0.98)",
+          border: "1px solid #e2e8f0",
           borderRadius: 16, padding: "12px 16px",
           backdropFilter: "blur(20px)",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset -1px 1px 1px rgba(255,255,255,0.05)",
+          boxShadow: "0 15px 35px rgba(0,0,0,0.08)",
           width: 170, zIndex: 20
         }}
       >
@@ -254,10 +246,10 @@ function HeroDashboard() {
         </div>
         <div style={{ marginBottom: 8 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Daily Limit</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>₹500</span>
+            <span style={{ fontSize: 10, color: "#64748b" }}>Daily Limit</span>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "#0f172a" }}>₹500</span>
           </div>
-          <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 4 }}>
+          <div style={{ height: 4, background: "#e2e8f0", borderRadius: 4 }}>
             <div style={{ height: "100%", width: "34%", background: "linear-gradient(to right, #10b981, rgba(255,255,255,0.4))", borderRadius: 4 }} />
           </div>
           <div style={{ fontSize: 9, color: "#10b981", marginTop: 4, fontWeight: 600 }}>34% used — Protected ✓</div>
@@ -283,38 +275,38 @@ function HeroTrustSignals() {
       <div className="trust-features-grid" style={{ gap: 16 }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ color: "#3b82f6" }}><ShieldDone set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Risk First</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>AI risk guard protects your capital in real-time.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Risk First</div>
+          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>AI risk guard protects your capital in real-time.</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ color: "#7c3aed" }}><Graph set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Data Driven</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>Advanced analytics for smarter decisions.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Data Driven</div>
+          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Advanced analytics for smarter decisions.</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ color: "#8b5cf6" }}><IconlyActivity set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Lightning Fast</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>Blazing fast execution with low latency.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Lightning Fast</div>
+          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Blazing fast execution with low latency.</div>
         </div>
         <div 
           style={{ display: "flex", flexDirection: "column", gap: 8 }}
         >
           <div style={{ color: "#6366f1" }}><TwoUsers set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Built Together</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>Join a transparent community of traders.</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#0f172a" }}>Built Together</div>
+          <div style={{ fontSize: 11, color: "#64748b", lineHeight: 1.4 }}>Join a transparent community of traders.</div>
         </div>
       </div>
 
       {/* Social Proof Card */}
-      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-[#171717] border border-white/5 rounded-2xl w-full">
+      <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-white border border-slate-200 shadow-sm rounded-2xl w-full">
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div className="text-[10px] sm:text-xs text-white/60 font-medium">Trusted by traders worldwide</div>
+          <div className="text-[10px] sm:text-xs text-slate-600 font-medium">Trusted by traders worldwide</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ display: "flex" }}>
               {["/avatars/men_1.jpg", "/avatars/women_1.jpg", "/avatars/men_2.jpg", "/avatars/women_2.jpg", "/nikil_avatar.jpg"].map((src, i) => (
                 <div key={i} className="w-5 h-5 sm:w-[26px] sm:h-[26px]" style={{
                   borderRadius: "50%",
-                  border: "2px solid #0a0a0a",
+                  border: "2px solid #ffffff",
                   marginLeft: i === 0 ? 0 : (i === 1 ? -4 : -6), // Slightly tighter overlap on mobile
                   overflow: "hidden",
                   zIndex: 5 - i,
@@ -326,7 +318,7 @@ function HeroTrustSignals() {
                 </div>
               ))}
             </div>
-            <div className="px-2 py-1 bg-white/5 rounded-full text-[9px] sm:text-[11px] font-bold text-white tracking-wide">
+            <div className="px-2 py-1 bg-slate-100 rounded-full text-[9px] sm:text-[11px] font-bold text-slate-700 tracking-wide">
               +2.4K
             </div>
           </div>
@@ -334,16 +326,16 @@ function HeroTrustSignals() {
 
         <div className="flex items-center gap-3 sm:gap-4">
           {/* Divider */}
-          <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.1)" }} />
+          <div style={{ width: 1, height: 28, background: "#e2e8f0" }} />
 
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span className="text-[13px] sm:text-base font-extrabold text-white leading-none">4.9/5</span>
+              <span className="text-[13px] sm:text-base font-extrabold text-slate-900 leading-none">4.9/5</span>
               <div style={{ display: "flex", gap: 2 }}>
                 {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="#f59e0b" color="#f59e0b" />)}
               </div>
             </div>
-            <div className="text-[9px] sm:text-[11px] text-white/50">from 1,200+ reviews</div>
+            <div className="text-[9px] sm:text-[11px] text-slate-500">from 1,200+ reviews</div>
           </div>
         </div>
       </div>
@@ -358,23 +350,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
   return (
     <section className="hero-section" style={{ position: 'relative' }}>
       {/* SideRays background */}
-      <div className="siderays-wrapper" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
-        <SideRays
-          speed={2.5}
-          rayColor1="#EAB308"
-          rayColor2="#96c8ff"
-          intensity={2.8}
-          spread={2.5}
-          origin="top-right"
-          tilt={0}
-          saturation={1.5}
-          blend={0.75}
-          falloff={1.4}
-          opacity={1}
-        />
-      </div>
-
-            <PremiumBackground />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(59,130,246,0.08),rgba(255,255,255,0))] pointer-events-none" />
 
       <div className="hero-container">
         <div className="hero-grid">
@@ -382,9 +358,9 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
           {/* LEFT: Content */}
           <div className="hero-content-left" style={{ width: "100%", maxWidth: 640, marginTop: "60px" }}>
             {/* Badge */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="hero-badge" style={{ display: "inline-flex", width: "fit-content", alignItems: "center", gap: 8, background: "#171717", border: "none", padding: "6px 16px 6px 8px", borderRadius: "100px", marginBottom: 32, backdropFilter: "blur(20px)" }}>
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="hero-badge" style={{ display: "inline-flex", width: "fit-content", alignItems: "center", gap: 8, background: "#f8fafc", border: "1px solid #e2e8f0", padding: "6px 16px 6px 8px", borderRadius: "100px", marginBottom: 32, boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", background: "rgba(99,102,241,0.2)" }}><div className="pulse-dot" style={{ width: 4, height: 4, borderRadius: "50%", background: "#818cf8" }} /></div>
-              <span className="hero-badge-text" style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.9)", letterSpacing: "0.5px" }}>AI-Powered Trading Ecosystem</span>
+              <span className="hero-badge-text" style={{ fontSize: 12, fontWeight: 600, color: "#0f172a", letterSpacing: "0.5px" }}>AI-Powered Trading Ecosystem</span>
             </motion.div>
 
             {/* Headline */}
@@ -397,7 +373,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
             >
               <BlurText
                 text={"The Ultimate AI Ecosystem\nfor Modern Traders."}
-                gradient={["#ffffff", "#3b82f6"]}
+                gradient={["#0f172a", "#2563eb"]}
               />
             </motion.h1>
 
@@ -407,7 +383,7 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
               className="hero-desc"
-              style={{ fontSize: 17, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: 540, marginBottom: 40, fontWeight: 400 }}
+              style={{ fontSize: 17, color: "#475569", lineHeight: 1.6, maxWidth: 540, marginBottom: 40, fontWeight: 400 }}
             >
               Tradifive is an AI-powered trading ecosystem that enforces risk rules, builds discipline, and tracks performance — so traders stop blowing accounts and start trading like professionals.
             </motion.p>
@@ -423,10 +399,10 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
               <button
                 onClick={onStart}
                 style={{
-                  background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                  color: "#60a5fa",
+                  background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                  color: "#ffffff",
                   border: "none",
-                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
+                  boxShadow: "0 4px 14px rgba(37, 99, 235, 0.35)",
                   borderRadius: 100,
                   padding: "13px 26px",
                   fontSize: 14,
@@ -441,15 +417,15 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
-                  e.currentTarget.style.color = "#93c5fd";
-                  e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)";
+                  e.currentTarget.style.background = "linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)";
+                  e.currentTarget.style.color = "#ffffff";
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(37, 99, 235, 0.45)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-                  e.currentTarget.style.color = "#60a5fa";
-                  e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)";
+                  e.currentTarget.style.background = "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)";
+                  e.currentTarget.style.color = "#ffffff";
+                  e.currentTarget.style.boxShadow = "0 4px 14px rgba(37, 99, 235, 0.35)";
                 }}
               >
                 <span>Start Free</span>
@@ -466,9 +442,9 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                   }
                 }}
                 style={{
-                  background: "#171717",
-                  color: "rgba(255, 255, 255, 0.9)",
-                  border: "none",
+                  background: "#ffffff",
+                  color: "#0f172a",
+                  border: "1px solid #e2e8f0",
                   borderRadius: 100,
                   padding: "13px 24px",
                   fontSize: 14,
@@ -485,17 +461,15 @@ function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = "translateY(-1px)";
-                  e.currentTarget.style.background = "#1e1e1e";
-                  e.currentTarget.style.color = "#ffffff";
-                  e.currentTarget.style.boxShadow =
-                    "inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25)";
+                  e.currentTarget.style.background = "#f8fafc";
+                  e.currentTarget.style.borderColor = "#cbd5e1";
+                  e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.06)";
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = "translateY(0)";
-                  e.currentTarget.style.background = "#171717";
-                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.9)";
-                  e.currentTarget.style.boxShadow =
-                    "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)";
+                  e.currentTarget.style.background = "#ffffff";
+                  e.currentTarget.style.color = "#0f172a";
+                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.05)";
                 }}
               >
                 <span>Learn More</span>
@@ -544,7 +518,7 @@ function PlatformPillars() {
           {[...CORE_FEATURES, ...CORE_FEATURES].map((b, i) => (
             <div key={i} className="br-chip">
               <div style={{ width: 7, height: 7, borderRadius: "50%", background: b.c, boxShadow: `0 0 8px ${b.c}` }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)", letterSpacing: "-0.2px" }}>{b.n}</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#1e293b", letterSpacing: "-0.2px" }}>{b.n}</span>
             </div>
           ))}
         </div>
@@ -571,13 +545,13 @@ function Problem() {
           style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}
         >
           <div style={{ marginBottom: 20 }}>
-            <span style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "#3b82f6", padding: "6px 16px", borderRadius: "100px", textTransform: "uppercase", fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>WHY TRADIFIVE?</span>
+            <span style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", color: "#2563eb", padding: "6px 16px", borderRadius: "100px", textTransform: "uppercase", fontSize: 11, fontWeight: 700, letterSpacing: 2 }}>WHY TRADIFIVE?</span>
           </div>
           <h2 style={{ fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 48 }}>
             <BlurText
               lines={[
                 { text: "Trading Is More Than Charts.", gradient: ["#ffffff", "#3b82f6"] },
-                { text: "It's Psychology & Discipline.", style: { color: "rgba(255,255,255,0.35)", fontSize: "clamp(18px, 2.5vw, 28px)" } }
+                { text: "It's Psychology & Discipline.", style: { color: "#64748b", fontSize: "clamp(18px, 2.5vw, 28px)" } }
               ]}
             />
           </h2>
@@ -688,14 +662,14 @@ function HowItWorks() {
   }
 
   return (
-    <section id="how-it-works" style={{ backgroundColor: "transparent", padding: "120px 28px", position: "relative", overflow: "hidden" }}>
+    <section id="how-it-works" style={{ backgroundColor: "transparent", padding: "100px 28px", position: "relative", overflow: "hidden" }}>
       <div style={{ maxWidth: 1000, margin: "0 auto" }}>
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 90 }}>
           <motion.span
             initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            style={{ display: "inline-block", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.5)", padding: "6px 18px", borderRadius: 100, fontSize: 11, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 24 }}
+            style={{ display: "inline-block", background: "rgba(37,99,235,0.08)", color: "#2563eb", padding: "6px 18px", borderRadius: 100, fontSize: 11, fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", marginBottom: 24 }}
           >
             THE TRADIFIVE JOURNEY
           </motion.span>
@@ -703,14 +677,14 @@ function HowItWorks() {
             initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}
             style={{ fontSize: "clamp(30px, 4.5vw, 52px)", fontWeight: 800, letterSpacing: "-0.04em", color: "#fff", marginBottom: 16, lineHeight: 1.1 }}
           >
-            <span style={{ background: "linear-gradient(to right, #ffffff, #3b82f6)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+            <span style={{ background: "linear-gradient(to right, #0f172a, #2563eb)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
               From Beginner to Consistent Trader<br />
               In Four Simple Steps.
             </span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 }}
-            style={{ fontSize: 17, color: "rgba(255,255,255,0.4)", maxWidth: 460, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
+            style={{ fontSize: 17, color: "#64748b", maxWidth: 460, margin: "0 auto", fontWeight: 400, lineHeight: 1.6 }}
           >
             Everything you need — learning, trading, discipline, AI guidance, and community — in one ecosystem.
           </motion.p>
@@ -722,7 +696,7 @@ function HowItWorks() {
           {/* Animated Winding SVG Line */}
           {w > 0 && h > 0 && (
             <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0, pointerEvents: "none" }}>
-              <path d={pathString} stroke="rgba(255,255,255,0.05)" strokeWidth="4" fill="none" />
+              <path d={pathString} stroke="rgba(226, 232, 240, 0.9)" strokeWidth="4" fill="none" />
               <motion.path
                 d={pathString}
                 stroke="url(#gradient)"
@@ -767,14 +741,14 @@ function HowItWorks() {
                       perspective: 1200,
                       width: "100%",
                       maxWidth: isMobile ? "100%" : 400,
-                      background: "#121214", borderRadius: 24, padding: isMobile ? 20 : 32,
-                      border: "1px solid rgba(255,255,255,0.08)",
+                      background: "#ffffff", borderRadius: 24, padding: isMobile ? 20 : 32,
+                      border: "1px solid #e2e8f0",
                       boxShadow: `inset 0 1px 0 0 rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.5), 0 0 40px ${step.colorBg}` }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 12 : 16, marginBottom: isMobile ? 14 : 20 }}>
                       <div style={{
                         width: isMobile ? 48 : 56, height: isMobile ? 48 : 56, borderRadius: isMobile ? 14 : 18,
-                        background: "#171717",
+                        background: "#f8fafc",
                         border: `1.5px solid ${step.colorBorder}`,
                         display: "flex", alignItems: "center", justifyContent: "center",
                         color: step.color,
@@ -783,14 +757,14 @@ function HowItWorks() {
                       </div>
                       <div>
                         <span style={{ fontSize: 12, fontWeight: 800, color: step.color, textTransform: "uppercase", letterSpacing: 2 }}>STEP {step.num}</span>
-                        <h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: "#fff", marginTop: 4 }}>{step.title}</h3>
+                        <h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: "#0f172a", marginTop: 4 }}>{step.title}</h3>
                       </div>
                     </div>
-                    <p style={{ fontSize: isMobile ? 13 : 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, fontWeight: 400 }}>{step.desc}</p>
+                    <p style={{ fontSize: isMobile ? 13 : 14, color: "#64748b", lineHeight: 1.6, fontWeight: 400 }}>{step.desc}</p>
 
-                    <div style={{ marginTop: 24, display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", background: "rgba(255,255,255,0.03)", borderRadius: 100, border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div style={{ marginTop: 24, display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 16px", background: "#f1f5f9", borderRadius: 100, border: "1px solid #e2e8f0" }}>
                       <div style={{ width: 6, height: 6, borderRadius: "50%", background: step.color, boxShadow: `0 0 10px ${step.color}` }} />
-                      <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>{step.tag}</span>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#475569" }}>{step.tag}</span>
                     </div>
                   </motion.div>
 
@@ -929,7 +903,7 @@ function PhoneMockup({ screen }: { screen: any }) {
 function Pricing({ onStart }: { onStart: () => void }) {
   const navigate = useNavigate();
   const [pricingCategory, setPricingCategory] = useState<"autotrade" | "platform">("autotrade");
-  const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite" | "enterprise">("pro");
+  const [selectedPlan, setSelectedPlan] = useState<"starter" | "pro" | "elite">("pro");
   const [selectedFialgoPlan, setSelectedFialgoPlan] = useState<"three_years" | "profit_share">("three_years");
   const [enterpriseExpanded, setEnterpriseExpanded] = useState(true);
   const [performanceExpanded, setPerformanceExpanded] = useState(false);
@@ -978,9 +952,9 @@ function Pricing({ onStart }: { onStart: () => void }) {
         <div style={{ textAlign: "center", marginBottom: 44 }}>
           <div ref={useReveal()} className="rv" style={{ marginBottom: 16 }}>
             <span style={{
-              background: "rgba(59, 130, 246, 0.12)",
-              border: "none",
-              color: "#60a5fa",
+              background: "rgba(37, 99, 235, 0.08)",
+              border: "1px solid rgba(37, 99, 235, 0.18)",
+              color: "#2563eb",
               padding: "6px 18px",
               borderRadius: "100px",
               textTransform: "uppercase",
@@ -1005,7 +979,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
               gradient={["#ffffff", "#3b82f6"]}
             />
           </h2>
-          <p ref={useReveal()} className="rv d2" style={{ fontSize: 16, color: "rgba(255,255,255,0.55)", maxWidth: 640, margin: "0 auto 30px", fontWeight: 500, lineHeight: 1.6 }}>
+          <p ref={useReveal()} className="rv d2" style={{ fontSize: 16, color: "#64748b", maxWidth: 640, margin: "0 auto 30px", fontWeight: 500, lineHeight: 1.6 }}>
             Choose between a <strong style={{ color: "#60a5fa" }}>0% profit-sharing 3-year enterprise license</strong> or our <strong style={{ color: "#34d399" }}>performance partner plan</strong> where you pay only when you make profits.
           </p>
 
@@ -1016,8 +990,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
               alignItems: "center",
               padding: 4,
               borderRadius: 100,
-              background: "rgba(255, 255, 255, 0.04)",
-              border: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "#f1f5f9",
+              border: "1px solid #e2e8f0",
               boxShadow: "inset 0 1px 2px rgba(0, 0, 0, 0.4)",
               gap: 4
             }}
@@ -1033,11 +1007,11 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 cursor: "pointer",
                 transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)",
                 background: pricingCategory === "autotrade"
-                  ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+                  ? "#ffffff"
                   : "transparent",
                 color: pricingCategory === "autotrade"
-                  ? "#60a5fa"
-                  : "rgba(255, 255, 255, 0.6)",
+                  ? "#2563eb"
+                  : "#64748b",
                 boxShadow: pricingCategory === "autotrade"
                   ? "inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.35)"
                   : "none",
@@ -1068,11 +1042,11 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 cursor: "pointer",
                 transition: "all 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)",
                 background: pricingCategory === "platform"
-                  ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+                  ? "#ffffff"
                   : "transparent",
                 color: pricingCategory === "platform"
-                  ? "#60a5fa"
-                  : "rgba(255, 255, 255, 0.6)",
+                  ? "#2563eb"
+                  : "#64748b",
                 boxShadow: pricingCategory === "platform"
                   ? "inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.35)"
                   : "none",
@@ -1104,10 +1078,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 className="feat-card-premium"
                 style={{
                   padding: "20px 24px",
-                  background: "#171717",
+                  background: "#ffffff",
                   borderRadius: 20,
-                  border: "none",
-                  boxShadow: "none",
+                  border: "1px solid #e2e8f0",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
                   transition: "all 0.3s ease",
                   cursor: "pointer" }}
                 onClick={() => setEnterpriseExpanded(!enterpriseExpanded)}
@@ -1130,7 +1104,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     </div>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 3 }}>
-                        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 }}>
+                        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: 0 }}>
                           3-Year Enterprise Pass
                         </h3>
                         <span style={{
@@ -1149,16 +1123,16 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         <span style={{
                           padding: "3px 9px",
                           borderRadius: 8,
-                          background: "rgba(255, 255, 255, 0.05)",
-                          border: "none",
-                          color: "rgba(255, 255, 255, 0.7)",
+                          background: "#f1f5f9",
+                          border: "1px solid #e2e8f0",
+                          color: "#475569",
                           fontSize: 10.5,
                           fontWeight: 700
                         }}>
                           36 MONTHS
                         </span>
                       </div>
-                      <p style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", margin: 0, fontWeight: 500 }}>
+                      <p style={{ fontSize: 13, color: "#64748b", margin: 0, fontWeight: 500 }}>
                         Keep 100% of all profits. Zero ongoing cuts. Pay once.
                       </p>
                     </div>
@@ -1200,7 +1174,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         style={{
                           paddingTop: 20,
                           marginTop: 18,
-                          borderTop: "1px solid rgba(255,255,255,0.05)",
+                          borderTop: "1px solid #f1f5f9",
                           cursor: "default"
                         }}
                         onClick={(e) => e.stopPropagation()}
@@ -1209,8 +1183,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         <div style={{
                           padding: "14px 18px",
                           borderRadius: 14,
-                          background: "rgba(255, 255, 255, 0.03)",
-                          border: "none",
+                          background: "#f8fafc",
+                          border: "1px solid #e2e8f0",
                           marginBottom: 18,
                           display: "flex",
                           alignItems: "center",
@@ -1220,7 +1194,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         }}>
                           <div>
                             <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-                              <span style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
+                              <span style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.03em" }}>
                                 ₹1,00,000
                               </span>
                               <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", fontWeight: 600 }}>
@@ -1229,7 +1203,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                               <span style={{ width: 6, height: 6, borderRadius: 3, background: "#3b82f6" }} />
-                              <span style={{ fontSize: 11.5, color: "#93c5fd", fontWeight: 600 }}>
+                              <span style={{ fontSize: 11.5, color: "#2563eb", fontWeight: 600 }}>
                                 0% Profit Share · 100% Profits Retained In MT5
                               </span>
                             </div>
@@ -1239,7 +1213,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                             borderRadius: 8,
                             background: "rgba(59, 130, 246, 0.1)",
                             border: "none",
-                            color: "rgba(255, 255, 255, 0.75)",
+                            color: "#334155",
                             fontSize: 11,
                             fontWeight: 600
                           }}>
@@ -1258,10 +1232,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                             <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                               <CheckCircle2 size={16} color="#60a5fa" style={{ flexShrink: 0, marginTop: 2 }} />
                               <div>
-                                <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.9)", fontWeight: 600, display: "block" }}>
+                                <span style={{ fontSize: 13, color: "#0f172a", fontWeight: 600, display: "block" }}>
                                   {feat.title}
                                 </span>
-                                <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", display: "block", marginTop: 2, lineHeight: 1.4 }}>
+                                <span style={{ fontSize: 12, color: "#64748b", display: "block", marginTop: 2, lineHeight: 1.4 }}>
                                   {feat.desc}
                                 </span>
                               </div>
@@ -1270,8 +1244,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         </div>
 
                         {/* Action Row */}
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                          <div style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.4)" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, paddingTop: 14, borderTop: "1px solid #f1f5f9" }}>
+                          <div style={{ fontSize: 11.5, color: "#64748b" }}>
                             ⚡ Instant Hardware-Bound MT5 License Key Relay · Verified MT5 build 4400+
                           </div>
                           <button
@@ -1294,10 +1268,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 className="feat-card-premium"
                 style={{
                   padding: "20px 24px",
-                  background: "#171717",
+                  background: "#ffffff",
                   borderRadius: 20,
-                  border: "none",
-                  boxShadow: "none",
+                  border: "1px solid #e2e8f0",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
                   transition: "all 0.3s ease",
                   cursor: "pointer" }}
                 onClick={() => setPerformanceExpanded(!performanceExpanded)}
@@ -1321,7 +1295,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     </div>
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 3 }}>
-                        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 }}>
+                        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: 0 }}>
                           Performance Partner Plan
                         </h3>
                         <span style={{
@@ -1340,9 +1314,9 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         <span style={{
                           padding: "3px 9px",
                           borderRadius: 8,
-                          background: "rgba(255, 255, 255, 0.05)",
-                          border: "none",
-                          color: "rgba(255, 255, 255, 0.7)",
+                          background: "#f1f5f9",
+                          border: "1px solid #e2e8f0",
+                          color: "#475569",
                           fontSize: 10.5,
                           fontWeight: 700
                         }}>
@@ -1357,8 +1331,8 @@ function Pricing({ onStart }: { onStart: () => void }) {
 
                   <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
                     <div className="hidden sm:block" style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: 16, fontWeight: 900, color: "#fff" }}>₹10,000</span>
-                      <span style={{ fontSize: 11, color: "rgba(255, 255, 255, 0.45)", display: "block" }}>setup + 50% weekly</span>
+                      <span style={{ fontSize: 16, fontWeight: 900, color: "#0f172a" }}>₹10,000</span>
+                      <span style={{ fontSize: 11, color: "#64748b", display: "block" }}>setup + 50% weekly</span>
                     </div>
                     <div style={{
                       width: 32,
@@ -1391,7 +1365,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         style={{
                           paddingTop: 20,
                           marginTop: 18,
-                          borderTop: "1px solid rgba(255,255,255,0.05)",
+                          borderTop: "1px solid #e2e8f0",
                           cursor: "default"
                         }}
                         onClick={(e) => e.stopPropagation()}
@@ -1411,7 +1385,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         }}>
                           <div>
                             <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-                              <span style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>
+                              <span style={{ fontSize: 28, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.03em" }}>
                                 ₹10,000
                               </span>
                               <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", fontWeight: 600 }}>
@@ -1420,7 +1394,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                               <span style={{ width: 6, height: 6, borderRadius: 3, background: "#10b981" }} />
-                              <span style={{ fontSize: 11.5, color: "#6ee7b7", fontWeight: 600 }}>
+                              <span style={{ fontSize: 11.5, color: "#059669", fontWeight: 600 }}>
                                 ₹0 Platform Fee On Red Or Flat Weeks (No Profit = Zero Fee)
                               </span>
                             </div>
@@ -1428,9 +1402,9 @@ function Pricing({ onStart }: { onStart: () => void }) {
                           <div style={{
                             padding: "6px 12px",
                             borderRadius: 8,
-                            background: "rgba(16, 185, 129, 0.1)",
-                            border: "1px solid rgba(16, 185, 129, 0.2)",
-                            color: "rgba(255, 255, 255, 0.75)",
+                            background: "#ecfdf5",
+                            border: "1px solid #a7f3d0",
+                            color: "#065f46",
                             fontSize: 11,
                             fontWeight: 600
                           }}>
@@ -1449,10 +1423,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                             <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                               <CheckCircle2 size={16} color="#34d399" style={{ flexShrink: 0, marginTop: 2 }} />
                               <div>
-                                <span style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.9)", fontWeight: 600, display: "block" }}>
+                                <span style={{ fontSize: 13, color: "#0f172a", fontWeight: 600, display: "block" }}>
                                   {feat.title}
                                 </span>
-                                <span style={{ fontSize: 12, color: "rgba(255, 255, 255, 0.45)", display: "block", marginTop: 2, lineHeight: 1.4 }}>
+                                <span style={{ fontSize: 12, color: "#64748b", display: "block", marginTop: 2, lineHeight: 1.4 }}>
                                   {feat.desc}
                                 </span>
                               </div>
@@ -1461,7 +1435,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         </div>
 
                         {/* Action Row */}
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, paddingTop: 14, borderTop: "1px solid #e2e8f0" }}>
                           <div style={{ fontSize: 11.5, color: "rgba(255, 255, 255, 0.4)" }}>
                             🛡️ Zero Broker Account Deductions · Invoices cleared weekly via UPI / Bank
                           </div>
@@ -1485,10 +1459,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 className="feat-card-premium"
                 style={{
                   padding: "20px 24px",
-                  background: "#171717",
+                  background: "#ffffff",
                   borderRadius: 20,
-                  border: "none",
-                  boxShadow: "none",
+                  border: "1px solid #e2e8f0",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
                   transition: "all 0.3s ease",
                   cursor: "pointer" }}
                 onClick={() => setComparisonTableExpanded(!comparisonTableExpanded)}
@@ -1505,16 +1479,16 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "rgba(255, 255, 255, 0.8)",
+                      color: "#0f172a",
                       flexShrink: 0
                     }}>
                       <Activity size={20} />
                     </div>
                     <div>
-                      <h3 style={{ fontSize: 18, fontWeight: 800, color: "#fff", margin: 0 }}>
+                      <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: 0 }}>
                         Detailed Feature & Model Comparison
                       </h3>
-                      <p style={{ fontSize: 13, color: "rgba(255, 255, 255, 0.5)", margin: "3px 0 0", fontWeight: 500 }}>
+                      <p style={{ fontSize: 13, color: "#64748b", margin: "3px 0 0", fontWeight: 500 }}>
                         Review the core economic differences between our two official licensing structures.
                       </p>
                     </div>
@@ -1526,9 +1500,9 @@ function Pricing({ onStart }: { onStart: () => void }) {
                       style={{
                         padding: "7px 14px",
                         borderRadius: 10,
-                        background: "rgba(255, 255, 255, 0.06)",
-                        border: "none",
-                        color: "#fff",
+                        background: "#f1f5f9",
+                        border: "1px solid #e2e8f0",
+                        color: "#0f172a",
                         fontSize: 12,
                         fontWeight: 700,
                         cursor: "pointer",
@@ -1571,7 +1545,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         style={{
                           paddingTop: 20,
                           marginTop: 18,
-                          borderTop: "1px solid rgba(255,255,255,0.05)",
+                          borderTop: "1px solid #e2e8f0",
                           cursor: "default"
                         }}
                         onClick={(e) => e.stopPropagation()}
@@ -1579,22 +1553,22 @@ function Pricing({ onStart }: { onStart: () => void }) {
                         <div style={{ overflowX: "auto" }}>
                           <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", minWidth: 600 }}>
                             <thead>
-                              <tr style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)" }}>
-                                <th style={{ padding: "12px 16px", fontSize: 11.5, fontWeight: 700, color: "rgba(255, 255, 255, 0.45)", textTransform: "uppercase" }}>Feature / Parameter</th>
-                                <th style={{ padding: "12px 16px", fontSize: 11.5, fontWeight: 800, color: "#60a5fa", textTransform: "uppercase" }}>3-Year Pass (₹1,00,000)</th>
-                                <th style={{ padding: "12px 16px", fontSize: 11.5, fontWeight: 800, color: "#34d399", textTransform: "uppercase" }}>Performance (₹10,000)</th>
+                              <tr style={{ borderBottom: "1px solid #e2e8f0" }}>
+                                <th style={{ padding: "12px 16px", fontSize: 11.5, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Feature / Parameter</th>
+                                <th style={{ padding: "12px 16px", fontSize: 11.5, fontWeight: 800, color: "#2563eb", textTransform: "uppercase" }}>3-Year Pass (₹1,00,000)</th>
+                                <th style={{ padding: "12px 16px", fontSize: 11.5, fontWeight: 800, color: "#059669", textTransform: "uppercase" }}>Performance (₹10,000)</th>
                               </tr>
                             </thead>
                             <tbody>
                               {comparisonRows.map((row, idx) => (
-                                <tr key={idx} style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.04)" }}>
+                                <tr key={idx} style={{ borderBottom: "1px solid #f1f5f9" }}>
                                   <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 600, color: "rgba(255, 255, 255, 0.8)" }}>
                                     {row.label}
                                   </td>
-                                  <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "#93c5fd" }}>
+                                  <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "#1d4ed8" }}>
                                     {row.threeYears}
                                   </td>
-                                  <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "#6ee7b7" }}>
+                                  <td style={{ padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "#047857" }}>
                                     {row.profitShare}
                                   </td>
                                 </tr>
@@ -1615,9 +1589,9 @@ function Pricing({ onStart }: { onStart: () => void }) {
                 justifyContent: "space-between",
                 padding: "20px 24px",
                 borderRadius: 20,
-                background: "#171717",
-                border: "none",
-                boxShadow: "none",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
                 flexWrap: "wrap",
                 gap: 16
               }}>
@@ -1637,10 +1611,10 @@ function Pricing({ onStart }: { onStart: () => void }) {
                     <ShieldCheck size={22} />
                   </div>
                   <div>
-                    <strong style={{ fontSize: 14, color: "#fff", display: "block", fontWeight: 700 }}>
+                    <strong style={{ fontSize: 14, color: "#0f172a", display: "block", fontWeight: 700 }}>
                       100% Capital Isolation Guarantee · 3-Day Free Demo Trial
                     </strong>
-                    <span style={{ fontSize: 12.5, color: "rgba(255, 255, 255, 0.5)", marginTop: 2, display: "block" }}>
+                    <span style={{ fontSize: 12.5, color: "#64748b", marginTop: 2, display: "block" }}>
                       Experience FiAlgo V1 automated trading risk-free on any MT5 demo account for 3 full days. Your capital stays with your broker.
                     </span>
                   </div>
@@ -1714,22 +1688,23 @@ function Social() {
                 textAlign: "center",
                 padding: "22px",
                 cursor: "pointer",
-                background: "#171717",
-                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
                 borderRadius: 20
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
-                <div className="social-stat-label" style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.label}</div>
+                <div className="social-stat-label" style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px" }}>{s.label}</div>
               </div>
-              <div className="social-stat-val" style={{ fontSize: 24, fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 1 }}>{s.val}</div>
+              <div className="social-stat-val" style={{ fontSize: 24, fontWeight: 900, color: "#0f172a", letterSpacing: "-0.04em", lineHeight: 1 }}>{s.val}</div>
             </div>
           ))}
         </div>
 
         <div style={{ textAlign: "center", marginBottom: 56 }}>
           <div ref={useReveal()} className="rv" style={{ marginBottom: 18 }}>
-            <span style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>From the Community</span>
+            <span style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)", color: "#2563eb", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>From the Community</span>
           </div>
           <h2 style={{ fontSize: "clamp(22px, 5vw, 40px)", fontWeight: 900, letterSpacing: "-0.04em", color: "#fff", marginBottom: 14, lineHeight: 1.1 }}>
             <BlurText
@@ -1744,17 +1719,17 @@ function Social() {
         {/* CSS animation replaces Framer Motion JS-driven scroll — GPU-composited, lower CPU overhead on mobile */}
         <div className="testimonials-track" style={{ display: "flex", gap: 20, padding: "16px 0" }}>
           {[...TESTIS, ...TESTIS].map((t, i) => (
-            <div key={i} className="feat-card-premium testimonial-card" style={{ width: 320, padding: "22px", flexShrink: 0, borderRadius: 20, background: "#171717", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <div key={i} className="feat-card-premium testimonial-card" style={{ width: 320, padding: "22px", flexShrink: 0, borderRadius: 20, background: "#ffffff", border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
               <div className="testimonial-stars" style={{ display: "flex", gap: 3, marginBottom: 14 }}>
                 {Array(t.stars).fill(0).map((_, j) => (<svg key={j} width="11" height="11" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
                 {Array(5 - t.stars).fill(0).map((_, j) => (<svg key={j + t.stars} width="11" height="11" viewBox="0 0 24 24" fill="rgba(255,255,255,0.08)" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>))}
               </div>
-              <p className="testimonial-text" style={{ fontSize: 13.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 20, fontWeight: 400 }}>"{t.text}"</p>
+              <p className="testimonial-text" style={{ fontSize: 13.5, color: "#475569", lineHeight: 1.6, marginBottom: 20, fontWeight: 400 }}>"{t.text}"</p>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div className="testimonial-avatar" style={{ width: 36, height: 36, borderRadius: "50%", background: t.grad, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: "#fff", flexShrink: 0 }}>{t.init}</div>
                 <div>
-                  <div className="testimonial-name" style={{ fontSize: 13.5, fontWeight: 700, color: "#fff" }}>{t.name}</div>
-                  <div className="testimonial-role" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>{t.role}</div>
+                  <div className="testimonial-name" style={{ fontSize: 13.5, fontWeight: 700, color: "#0f172a" }}>{t.name}</div>
+                  <div className="testimonial-role" style={{ fontSize: 11, color: "#64748b", marginTop: 1 }}>{t.role}</div>
                 </div>
               </div>
             </div>
@@ -1788,24 +1763,25 @@ function FAQItem({ f, i, open, setOpen }: { f: any, i: number, open: number | nu
         padding: "20px 24px",
         cursor: "pointer",
         transition: "all 0.3s",
-        background: "#171717",
-        boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+        background: "#ffffff",
+        border: "1px solid #e2e8f0",
+        boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
         borderRadius: 20
       }}
       onClick={() => setOpen(open === i ? null : i)}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
-          <h4 style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>{f.q}</h4>
+          <h4 style={{ fontSize: 15, fontWeight: 700, color: "#0f172a" }}>{f.q}</h4>
         </div>
         <div style={{ transform: open === i ? "rotate(180deg)" : "none", transition: "transform 0.4s", flexShrink: 0, marginLeft: 12 }}>
-          <Ic n="chev" s={13} c="rgba(255,255,255,0.25)" sw={3} />
+          <Ic n="chev" s={13} c="#64748b" sw={3} />
         </div>
       </div>
       <AnimatePresence>
         {open === i && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden" }}>
-            <div style={{ paddingTop: 14, marginTop: 14, borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 14, color: "rgba(255,255,255,0.4)", lineHeight: 1.65, fontWeight: 400 }}>{f.a}</div>
+            <div style={{ paddingTop: 14, marginTop: 14, borderTop: "1px solid #e2e8f0", fontSize: 14, color: "#475569", lineHeight: 1.65, fontWeight: 400 }}>{f.a}</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1820,7 +1796,7 @@ function FAQ() {
       <div style={{ maxWidth: 800, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 56 }}>
           <div ref={useReveal()} className="rv" style={{ marginBottom: 18 }}>
-            <span style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>FAQ</span>
+            <span style={{ background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)", color: "#2563eb", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>FAQ</span>
           </div>
           <h2 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 900, letterSpacing: "-0.04em", lineHeight: 1.1 }}>
             <BlurText
@@ -1828,7 +1804,7 @@ function FAQ() {
               gradient={["#ffffff", "#3b82f6"]}
             />
           </h2>
-          <p ref={useReveal()} className="rv d2" style={{ fontSize: 15, color: "rgba(255,255,255,0.4)", marginTop: 12, fontWeight: 500 }}>Everything you need to know about Tradifive.</p>
+          <p ref={useReveal()} className="rv d2" style={{ fontSize: 15, color: "#64748b", marginTop: 12, fontWeight: 500 }}>Everything you need to know about Tradifive.</p>
         </div>
 
         <div style={{ display: "grid", gap: 10 }}>
@@ -1908,9 +1884,9 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
 
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }} style={{ position: "relative", zIndex: 1 }}>
             {/* Premium Pill */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "#171717", padding: "6px 16px", borderRadius: 100, marginBottom: 24, backdropFilter: "blur(10px)" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.18)", padding: "6px 16px", borderRadius: 100, marginBottom: 24, backdropFilter: "blur(10px)" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", boxShadow: "0 0 10px #6366f1" }} />
-              <span style={{ color: "#a5b4fc", fontWeight: 600, fontSize: 13, letterSpacing: 1, textTransform: "uppercase" }}>Global Network</span>
+              <span style={{ color: "#2563eb", fontWeight: 600, fontSize: 13, letterSpacing: 1, textTransform: "uppercase" }}>Global Network</span>
             </div>
 
             <h2 className="community-title" style={{ fontSize: "clamp(24px, 6vw, 56px)", fontWeight: 800, color: "#fff", lineHeight: 1.1, marginBottom: 24, letterSpacing: "-0.04em" }}>
@@ -1922,13 +1898,13 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
               />
             </h2>
 
-            <p className="community-desc" style={{ fontSize: "clamp(15px, 4vw, 18px)", color: "rgba(255,255,255,0.5)", lineHeight: 1.6, maxWidth: 560, margin: "0 auto 40px", fontWeight: 400 }}>
+            <p className="community-desc" style={{ fontSize: "clamp(15px, 4vw, 18px)", color: "#64748b", lineHeight: 1.6, maxWidth: 560, margin: "0 auto 40px", fontWeight: 400 }}>
               Join a vibrant global community. Share setups, learn from live webinars, and connect directly with the world's best verified traders.
             </p>
 
             <motion.button
               onClick={onStart}
-              className="btn-glow-primary"
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               style={{ padding: "14px 32px", borderRadius: 100, fontSize: 15, fontWeight: 700 }}
@@ -1952,13 +1928,14 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                 textAlign: "center",
                 padding: "28px 20px",
                 cursor: "pointer",
-                background: "#171717",
-                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
                 borderRadius: 20
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
-                <div className="community-stat-label" style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{s.label}</div>
+                <div className="community-stat-label" style={{ fontSize: 11, color: "#64748b", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>{s.label}</div>
               </div>
               <div className="community-stat-value" style={{ fontSize: 28, fontWeight: 900, color: "#fff", letterSpacing: "-0.03em" }}>{s.value}</div>
             </motion.div>
@@ -1989,7 +1966,7 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
 
               {/* Center glow */}
               <motion.circle cx={cx} cy={cy} r={90} fill="url(#centerGlow)" animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }} />
-              <circle cx={cx} cy={cy} r={48} fill="rgba(10,10,20,0.95)" stroke="rgba(168,85,247,0.6)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 15px rgba(168,85,247,0.5))" }} />
+              <circle cx={cx} cy={cy} r={48} fill="#ffffff" stroke="rgba(168,85,247,0.6)" strokeWidth="2" style={{ filter: "drop-shadow(0 0 15px rgba(168,85,247,0.5))" }} />
 
               {/* Spoke lines: inner ring → center */}
               {innerRing.map(n => {
@@ -2113,15 +2090,16 @@ function CommunityNetwork({ onStart }: { onStart: () => void }) {
                   display: "block",
                   padding: "28px",
                   cursor: "pointer",
-                  background: "#171717",
-                  boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                  background: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                boxShadow: "0 4px 16px rgba(0,0,0,0.04)",
                   borderRadius: 20
                 }}
               >
                 <div style={{ marginBottom: 12 }}>
                   <h3 className="problem-card-title" style={{ fontSize: 17, fontWeight: 700, color: "#fff" }}>{b.title}</h3>
                 </div>
-                <p className="problem-card-desc" style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, fontWeight: 400 }}>{b.desc}</p>
+                <p className="problem-card-desc" style={{ fontSize: 14, color: "#64748b", lineHeight: 1.6, fontWeight: 400 }}>{b.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -2145,9 +2123,9 @@ function CTA({ onStart }: { onStart: () => void }) {
     <section style={{ backgroundColor: "transparent", padding: "120px 28px", position: "relative", overflow: "hidden" }}>
       <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px)", backgroundSize: "60px 60px", pointerEvents: "none", zIndex: 0 }} />
 
-      <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
+      <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1, background: "linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%)", borderRadius: 32, padding: "72px 32px", boxShadow: "0 25px 60px -15px rgba(37,99,235,0.4)" }}>
         <div ref={useReveal()} className="rv" style={{ marginBottom: 18 }}>
-          <span style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", color: "#6366f1", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>START YOUR JOURNEY</span>
+          <span style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.3)", color: "#ffffff", padding: "6px 16px", borderRadius: "100px", fontSize: 10, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>START YOUR JOURNEY</span>
         </div>
         <h2 style={{ fontSize: "clamp(30px, 5vw, 48px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.04em", lineHeight: 1.1, marginBottom: 18 }}>
           <BlurText
@@ -2155,10 +2133,10 @@ function CTA({ onStart }: { onStart: () => void }) {
               { text: "Become The Trader" },
               { text: "You've Always Wanted To Be." }
             ]}
-            gradient={["#ffffff", "#3b82f6"]}
+            gradient={["#ffffff", "#e0e7ff"]}
           />
         </h2>
-        <p ref={useReveal()} className="rv d2" style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", marginBottom: 40, lineHeight: 1.65, fontWeight: 500, maxWidth: 580, margin: "0 auto 40px" }}>
+        <p ref={useReveal()} className="rv d2" style={{ fontSize: 16, color: "rgba(255,255,255,0.85)", marginBottom: 40, lineHeight: 1.65, fontWeight: 500, maxWidth: 580, margin: "0 auto 40px" }}>
           Join Tradifive and get access to AI coaching, risk management, auto-sync journaling, verified traders, creator communities, and everything you need to grow consistently.
         </p>
 
@@ -2166,8 +2144,8 @@ function CTA({ onStart }: { onStart: () => void }) {
           <button
             onClick={onStart}
             style={{
-              background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-              color: "#60a5fa",
+              background: "#ffffff",
+              color: "#1d4ed8",
               border: "none",
               boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3)",
               borderRadius: 100,
@@ -2201,9 +2179,9 @@ function CTA({ onStart }: { onStart: () => void }) {
           <button
             onClick={() => { const el = document.getElementById("capabilities"); el?.scrollIntoView({ behavior: "smooth" }); }}
             style={{
-              background: "#171717",
-              color: "rgba(255, 255, 255, 0.9)",
-              border: "none",
+              background: "rgba(255, 255, 255, 0.15)",
+              color: "#ffffff",
+              border: "1px solid rgba(255, 255, 255, 0.35)",
               borderRadius: 100,
               padding: "14px 32px",
               fontSize: 15,
@@ -2227,8 +2205,8 @@ function CTA({ onStart }: { onStart: () => void }) {
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.background = "#171717";
-              e.currentTarget.style.color = "rgba(255, 255, 255, 0.9)";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
+              e.currentTarget.style.color = "#ffffff";
               e.currentTarget.style.boxShadow =
                 "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)";
             }}
@@ -2236,7 +2214,7 @@ function CTA({ onStart }: { onStart: () => void }) {
             <span>Explore Tradifive</span>
           </button>
         </div>
-        <p ref={useReveal()} className="rv d4" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.22)", fontWeight: 600, letterSpacing: 0.5 }}>No Credit Card Required • Free Community Access • Cancel Anytime</p>
+        <p ref={useReveal()} className="rv d4" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)", fontWeight: 600, letterSpacing: 0.5 }}>No Credit Card Required • Free Community Access • Cancel Anytime</p>
       </div>
     </section>
   );
@@ -2354,6 +2332,16 @@ export default function TradiFive() {
     }
   }, [location]);
 
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+    document.body.style.backgroundColor = "#FFFFFF";
+    document.body.style.color = "#0F172A";
+    return () => {
+      document.body.style.backgroundColor = "";
+      document.body.style.color = "";
+    };
+  }, []);
+
   const handleSignIn = () => navigate("/login", { state: { mode: "login" } });
   const handleSignUp = () => navigate("/login", { state: { mode: "signup" } });
   const handleStart = handleSignUp;
@@ -2363,7 +2351,7 @@ export default function TradiFive() {
   // Mobile view is allowed to see the landing page, so we don't block.
 
   return (
-    <div style={{ background: "transparent", color: "#fff", minHeight: "100vh", position: "relative" }}>
+    <div style={{ background: "#FFFFFF", color: "#0F172A", minHeight: "100vh", position: "relative" }}>
       <PublicNavbar onSignIn={handleSignIn} onSignUp={handleSignUp} onDownloadClick={() => navigate('/download')} />
 
       <main style={{ position: "relative", zIndex: 1 }}>

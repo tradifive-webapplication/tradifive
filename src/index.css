@@ -106,9 +106,54 @@
     @apply border-border;
   }
 
+  html,
+  body {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom sleek cursor styling */
+  @media (pointer: fine) and (hover: hover) {
+    /* Hide native cursor only when custom cursor is actively enabled and not set to system */
+    html.custom-cursor-active:not(.cursor-style-system),
+    html.custom-cursor-active:not(.cursor-style-system) body,
+    html.custom-cursor-active:not(.cursor-style-system) a,
+    html.custom-cursor-active:not(.cursor-style-system) button,
+    html.custom-cursor-active:not(.cursor-style-system) [role="button"],
+    html.custom-cursor-active:not(.cursor-style-system) .cursor-pointer,
+    html.custom-cursor-active:not(.cursor-style-system) [onclick] {
+      cursor: none !important;
+    }
+
+    /* Native text cursor on inputs */
+    html.custom-cursor-active input[type="text"],
+    html.custom-cursor-active input[type="password"],
+    html.custom-cursor-active input[type="email"],
+    html.custom-cursor-active input[type="search"],
+    html.custom-cursor-active input[type="number"],
+    html.custom-cursor-active textarea,
+    html.custom-cursor-active [contenteditable="true"] {
+      cursor: text !important;
+    }
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased tabular-nums;
-    
+    font-feature-settings: "tnum" 1, "zero" 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Prevent mobile browsers (especially iOS Safari) from auto-zooming on input focus */
+  @media (max-width: 768px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
   }
 }
 
@@ -438,6 +483,94 @@
     padding: 12px 26px !important;
     white-space: nowrap !important;
   }
+
+  /* 5. FiAlgo Workspace Buttons (Consistent with Dashboard & Journal) */
+  .btn-fialgo-primary {
+    border-radius: 100px !important;
+    background: #0f172a !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12), 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    padding: 10px 22px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    outline: none !important;
+    white-space: nowrap !important;
+    transition: all 0.2s ease !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .dark .btn-fialgo-primary {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+  .btn-fialgo-primary:hover {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18) !important;
+    transform: translateY(-1px) !important;
+  }
+  .dark .btn-fialgo-primary:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+  .btn-fialgo-primary:active {
+    transform: translateY(0) scale(0.985) !important;
+  }
+  .btn-fialgo-primary:disabled {
+    opacity: 0.45 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+  }
+
+  .btn-fialgo-secondary {
+    border-radius: 100px !important;
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid rgba(226, 232, 240, 0.9) !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05) !important;
+    font-weight: 600 !important;
+    font-size: 13.5px !important;
+    padding: 10px 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+    outline: none !important;
+    white-space: nowrap !important;
+    transition: all 0.2s ease !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  .dark .btn-fialgo-secondary {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  .btn-fialgo-secondary:hover {
+    background: #f8fafc !important;
+    color: #0f172a !important;
+    border-color: rgba(203, 213, 225, 0.9) !important;
+    transform: translateY(-1px) !important;
+  }
+  .dark .btn-fialgo-secondary:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+  }
+  .btn-fialgo-secondary:active {
+    transform: translateY(0) scale(0.985) !important;
+  }
+  .btn-fialgo-secondary:disabled {
+    opacity: 0.45 !important;
+    pointer-events: none !important;
+    cursor: not-allowed !important;
+  }
   .btn-tradifive-success:hover {
     background: linear-gradient(135deg, #065f46 0%, #033629 100%) !important;
     color: #6ee7b7 !important;
@@ -574,11 +707,12 @@
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 100px;
   white-space: nowrap;
   flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* ═══════════════════════════════════
@@ -996,10 +1130,283 @@ html, body, * {
 
 @layer utilities {
   .font-mono {
-    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-feature-settings: "tnum";
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-feature-settings: "tnum" 1, "zero" 0;
     font-variant-numeric: tabular-nums;
   }
+
+  .font-code {
+    font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+
+  .tabular-nums {
+    font-feature-settings: "tnum" 1, "zero" 0;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ══════ FIGMA CARD 2 MULTI-LAYER DIFFUSED SHADOW (Softened, Subtle) ══════ */
+.figma-card-shadow {
+  box-shadow:
+    0 0px 0px 1px rgba(0, 0, 0, 0.04),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.035),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.035),
+    0 6px 6px -3px rgba(0, 0, 0, 0.035),
+    0 12px 12px -6px rgba(0, 0, 0, 0.035),
+    0 20px 20px -12px rgba(0, 0, 0, 0.035);
+}
+
+.figma-card-shadow-hover {
+  box-shadow:
+    0 0px 0px 1px rgba(0, 0, 0, 0.04),
+    0 1px 1px -0.5px rgba(0, 0, 0, 0.035),
+    0 3px 3px -1.5px rgba(0, 0, 0, 0.035),
+    0 6px 6px -3px rgba(0, 0, 0, 0.035),
+    0 12px 12px -6px rgba(0, 0, 0, 0.035),
+    0 20px 20px -12px rgba(0, 0, 0, 0.035);
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.figma-card-shadow-hover:hover {
+  box-shadow:
+    0 0px 0px 1px rgba(0, 0, 0, 0.05),
+    0 2px 2px -0.5px rgba(0, 0, 0, 0.045),
+    0 4px 4px -1.5px rgba(0, 0, 0, 0.045),
+    0 8px 8px -3px rgba(0, 0, 0, 0.045),
+    0 16px 16px -6px rgba(0, 0, 0, 0.045),
+    0 24px 24px -12px rgba(0, 0, 0, 0.045);
+}
+
+.dark .figma-card-shadow,
+.dark .figma-card-shadow-hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 8px 20px -6px rgba(0, 0, 0, 0.4);
+}
+
+.dark .figma-card-shadow-hover:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.10),
+    0 12px 24px -6px rgba(0, 0, 0, 0.5);
+}
+
+/* ══════ CONSISTENT TACTILE PILL BUTTONS (Black & White Bevelled Style) ══════ */
+.tactile-black-pill {
+  background: linear-gradient(180deg, #38383A 0%, #1E1E20 50%, #080808 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 12px -2px rgba(0, 0, 0, 0.42),
+    0 2px 5px -1px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.28);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tactile-black-pill:hover {
+  filter: brightness(1.07);
+  box-shadow:
+    0 6px 14px -2px rgba(0, 0, 0, 0.46),
+    0 2px 6px -1px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(0, 0, 0, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.32);
+}
+
+.tactile-black-pill:active {
+  transform: scale(0.965);
+  filter: brightness(0.92);
+  box-shadow:
+    0 2px 6px -1px rgba(0, 0, 0, 0.40),
+    0 0 0 1px rgba(0, 0, 0, 0.90),
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.dark .tactile-black-pill {
+  background: linear-gradient(180deg, #3A3A3D 0%, #242427 50%, #121214 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 12px -2px rgba(0, 0, 0, 0.60),
+    0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.22);
+}
+
+.tactile-white-pill {
+  background: #FFFFFF;
+  color: #111827;
+  box-shadow:
+    0 2px 4px 0 rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.12),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 0 #FFFFFF;
+  transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tactile-white-pill:hover {
+  background: #F8F9FA;
+  box-shadow:
+    0 3.5px 7px 0 rgba(0, 0, 0, 0.10),
+    0 0 0 1px rgba(0, 0, 0, 0.14),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 0 #FFFFFF;
+}
+
+.tactile-white-pill:active {
+  transform: scale(0.965);
+  background: #F1F3F5;
+  box-shadow:
+    0 1px 2px 0 rgba(0, 0, 0, 0.10),
+    0 0 0 1px rgba(0, 0, 0, 0.18),
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.10);
+}
+
+.dark .tactile-white-pill {
+  background: #242428;
+  color: #F8FAFC;
+  box-shadow:
+    0 2px 6px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.10),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
+}
+
+.dark .tactile-white-pill:hover {
+  background: #2C2C31;
+}
+
+/* ══════ TACTILE PILL ACTIVE / PRESSED STATE ══════
+   Refined tactile depressed state: neither harsh solid black nor electric blue.
+   Soft, sunken physical button feel with natural inset shadow.
+*/
+.tactile-pill-active,
+.tactile-white-pill.tactile-pill-active {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+  box-shadow:
+    inset 0 2px 3.5px 0 rgba(0, 0, 0, 0.12),
+    inset 0 0.5px 1px 0 rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.14) !important;
+  transform: translateY(0.5px);
+}
+
+.tactile-pill-active:hover,
+.tactile-white-pill.tactile-pill-active:hover {
+  background: #D8DFE8 !important;
+}
+
+.dark .tactile-pill-active,
+.dark .tactile-white-pill.tactile-pill-active {
+  background: #18181C !important;
+  color: #FFFFFF !important;
+  box-shadow:
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.50),
+    0 0 0 1px rgba(255, 255, 255, 0.18) !important;
+  transform: translateY(0.5px);
+}
+
+.dark .tactile-pill-active:hover,
+.dark .tactile-white-pill.tactile-pill-active:hover {
+  background: #202026 !important;
+}
+
+/* ══════ TACTILE COLORED PILL VARIANTS (Matching Bevelled Button Feel) ══════ */
+.tactile-emerald-pill {
+  background: linear-gradient(180deg, #10B981 0%, #059669 50%, #047857 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(16, 185, 129, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(4, 120, 87, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-emerald-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-emerald-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-rose-pill {
+  background: linear-gradient(180deg, #F43F5E 0%, #E11D48 50%, #BE123C 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(244, 63, 94, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(190, 18, 60, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-rose-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-rose-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-amber-pill {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 50%, #B45309 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(245, 158, 11, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(180, 83, 9, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-amber-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-amber-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-blue-pill {
+  background: linear-gradient(180deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(59, 130, 246, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(29, 78, 216, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-blue-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-blue-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-purple-pill {
+  background: linear-gradient(180deg, #A855F7 0%, #9333EA 50%, #7E22CE 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(168, 85, 247, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(126, 34, 206, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-purple-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-purple-pill:active {
+  transform: scale(0.965);
+}
+
+.tactile-indigo-pill {
+  background: linear-gradient(180deg, #6366F1 0%, #4F46E5 50%, #4338CA 100%);
+  color: #FFFFFF;
+  box-shadow:
+    0 4px 10px -2px rgba(99, 102, 241, 0.40),
+    0 1px 3px 0 rgba(0, 0, 0, 0.20),
+    0 0 0 1px rgba(67, 56, 202, 0.90),
+    inset 0 1px 0.5px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.tactile-indigo-pill:hover {
+  filter: brightness(1.06);
+}
+.tactile-indigo-pill:active {
+  transform: scale(0.965);
 }
 
 
@@ -1017,6 +1424,35 @@ button:active:not(:disabled) {
 /* ══════ BOTTOM SHEET BACKGROUND OVERFLOW LOCK ══════ */
 body.tf-sheet-open {
   overflow: hidden !important;
+}
+
+/* ══════ RECHARTS FOCUS OUTLINE & TEXT SELECTION FIX ══════ */
+.recharts-wrapper,
+.recharts-wrapper *,
+.recharts-wrapper:focus,
+.recharts-wrapper:focus-visible,
+.recharts-surface,
+.recharts-surface:focus,
+.recharts-surface:focus-visible,
+.recharts-responsive-container,
+.recharts-responsive-container:focus,
+.recharts-responsive-container:focus-visible,
+svg.recharts-surface,
+svg.recharts-surface:focus,
+svg.recharts-surface:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.recharts-text,
+.recharts-cartesian-axis-tick-value,
+.recharts-cartesian-axis text {
+  user-select: none !important;
+  -webkit-user-select: none !important;
 }
 
 /* ══════ ADMIN APP EXACT THEME STYLES (MATCHING ADMIN APP CACHED & HIGH-END DESIGN) ══════ */
