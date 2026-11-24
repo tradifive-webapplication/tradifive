@@ -92,13 +92,13 @@ export default function FeaturesMegaMenu({
             width: "min(680px, calc(100vw - 32px))",
             maxWidth: 680,
             /* ── Exact FAQ Box Settings (#171717, borderRadius 20, borderless) ── */
-            background: "#171717",
+            background: "#ffffff",
             borderRadius: 20,
-            boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.05), 0 24px 60px rgba(0, 0, 0, 0.85)",
+            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(226, 232, 240, 0.9)",
             border: "none",
             padding: "16px",
             zIndex: 2000,
-            color: "#fff",
+            color: "#0f172a",
             fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             WebkitFontSmoothing: "antialiased",
             textAlign: "left",
@@ -135,10 +135,8 @@ export default function FeaturesMegaMenu({
                     }}
                     onMouseEnter={() => setHoveredId(feat.id)}
                     style={{
-                      background: isHovered ? "#222222" : "transparent",
-                      boxShadow: isHovered
-                        ? "inset 0 1px 0 0 rgba(255,255,255,0.06), 0 0 0 1px rgba(255,255,255,0.05)"
-                        : "none",
+                      background: isHovered ? "#f8fafc" : "transparent",
+                      boxShadow: isHovered ? "0 1px 3px rgba(0, 0, 0, 0.04)" : "none",
                       border: "none",
                       borderRadius: 14,
                       padding: "11px 16px",
@@ -156,7 +154,7 @@ export default function FeaturesMegaMenu({
                         style={{
                           fontSize: 14.5,
                           fontWeight: 700,
-                          color: "#ffffff",
+                          color: "#0f172a",
                           lineHeight: 1.25,
                           letterSpacing: "-0.01em",
                           whiteSpace: "nowrap",
@@ -173,9 +171,9 @@ export default function FeaturesMegaMenu({
                             padding: "2px 6px",
                             borderRadius: 6,
                             letterSpacing: "0.04em",
-                            background: feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.08)",
-                            color: feat.badge === "LIVE" ? "#34d399" : "#94a3b8",
-                            border: `1px solid ${feat.badge === "LIVE" ? "rgba(16, 185, 129, 0.3)" : "rgba(255, 255, 255, 0.1)"}`
+                            background: feat.badge === "LIVE" ? "#ecfdf5" : "#f1f5f9",
+                            color: feat.badge === "LIVE" ? "#059669" : "#64748b",
+                            border: `1px solid ${feat.badge === "LIVE" ? "#a7f3d0" : "#e2e8f0"}`
                           }}
                         >
                           {feat.badge}
@@ -185,7 +183,7 @@ export default function FeaturesMegaMenu({
                     <div
                       style={{
                         fontSize: 12,
-                        color: isHovered ? "rgba(255, 255, 255, 0.7)" : "rgba(255, 255, 255, 0.44)",
+                        color: isHovered ? "#334155" : "#64748b",
                         lineHeight: 1.35,
                         marginTop: 3,
                         transition: "color 0.18s ease",
@@ -205,9 +203,9 @@ export default function FeaturesMegaMenu({
             ══════════════════════════════════════════════════════ */}
             <div
               style={{
-                background: "#1f1f1f",
-                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
-                border: "none",
+                background: "#f8fafc",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                border: "1px solid #e2e8f0",
                 borderRadius: 16,
                 padding: "14px",
                 display: "flex",
@@ -298,7 +296,7 @@ export default function FeaturesMegaMenu({
                     style={{
                       fontSize: 13.5,
                       fontWeight: 700,
-                      color: "#ffffff",
+                      color: "#0f172a",
                       lineHeight: 1.3,
                       letterSpacing: "-0.01em" }}
                   >
@@ -307,7 +305,7 @@ export default function FeaturesMegaMenu({
                   <div
                     style={{
                       fontSize: 11,
-                      color: "rgba(255, 255, 255, 0.52)",
+                      color: "#64748b",
                       lineHeight: 1.45,
                       marginTop: 3 }}
                   >
@@ -328,10 +326,10 @@ export default function FeaturesMegaMenu({
                     gap: 8,
                     padding: "9px 20px",
                     borderRadius: 999,
-                    background: "linear-gradient(135deg, #182236 0%, #0d1526 100%)",
-                    border: "1px solid rgba(56, 189, 248, 0.22)",
-                    boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 8px rgba(0, 0, 0, 0.4)",
-                    color: "#60a5fa",
+                    background: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                    border: "none",
+                    boxShadow: "0 2px 6px rgba(37, 99, 235, 0.35)",
+                    color: "#ffffff",
                     fontSize: 13,
                     fontWeight: 700,
                     cursor: "pointer",

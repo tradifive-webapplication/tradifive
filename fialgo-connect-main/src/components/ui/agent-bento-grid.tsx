@@ -41,14 +41,13 @@ export function FeatCard({ title, description, children, className = "" }: FeatC
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
         "group relative flex flex-col gap-2 overflow-hidden rounded-[20px] p-5",
-        "bg-neutral-900",
-        "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05),0_0_0_1px_rgba(255,255,255,0.05),0_2px_4px_rgba(0,0,0,0.2)]",
+        "bg-white border border-slate-200/90 shadow-sm hover:shadow-md transition-all",
         className
       )}
     >
       <div className="z-10 flex flex-col gap-1.5">
-        <h3 className="font-semibold text-white text-sm tracking-tight">{title}</h3>
-        <p className="text-white/60 text-xs leading-relaxed max-w-[90%]">{description}</p>
+        <h3 className="font-bold text-slate-900 text-sm tracking-tight">{title}</h3>
+        <p className="text-slate-600 text-xs leading-relaxed max-w-[90%]">{description}</p>
       </div>
       <div className="relative mt-2 flex-1 w-full rounded-[14px] overflow-hidden border border-white/10 bg-[#000]/50">
         {children}
