@@ -21,6 +21,8 @@ import WhatIsTradifive from "../components/WhatIsTradifive";
 import HowItWorks from "../components/HowItWorks";
 import MentorComparison from "../components/MentorComparison";
 import InteractiveAppSwitcher from "../components/InteractiveAppSwitcher";
+import LiquidHero from "../components/LiquidHero";
+import AffiliateSection from "../components/AffiliateSection";
 import InstitutionalRoadmap from "../components/InstitutionalRoadmap";
 // SideRays removed for clean white mode
 import PlasmaWave from "@/components/PlasmaWave";
@@ -1848,12 +1850,14 @@ export default function TradiFive() {
       <PublicNavbar onSignIn={handleSignIn} onSignUp={handleSignUp} onDownloadClick={() => navigate('/download')} />
 
       <main style={{ position: "relative", zIndex: 1 }}>
-        <Hero onStart={handleStart} onSignIn={handleSignIn} />
+        <LiquidHero onStart={handleStart} onSignIn={handleSignIn} />
         <PlatformPillars />
         <Sep />
         <InteractiveAppSwitcher onStart={handleStart} />
         <Sep />
         <MentorComparison onStart={handleStart} />
+        <Sep />
+        <AffiliateSection onStart={handleStart} />
         <Sep />
         <HowItWorks />
         <Sep />

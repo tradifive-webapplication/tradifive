@@ -1576,3 +1576,11 @@ svg.recharts-surface:focus-visible {
     display: flex !important;
   }
 }
+
+
+@media (max-width: 900px) {
+  .liquid-hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+}
