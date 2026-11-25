@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import mt5Logo from "@/assets/mt5-logo.jpg";
 
 interface ConnectBrokerTopDrawerProps {
   isOpen: boolean;
@@ -234,8 +235,12 @@ export default function ConnectBrokerTopDrawer({
             {/* Drawer Header */}
             <div className="flex items-center justify-between px-6 pt-4 pb-3.5 border-b border-slate-100 dark:border-white/[0.06] shrink-0 bg-white dark:bg-[#161619]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-800 dark:text-white flex items-center justify-center border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs">
-                  <Server size={16} strokeWidth={2.2} />
+                <div className="w-9 h-9 rounded-xl overflow-hidden border border-slate-200/80 dark:border-white/10 shrink-0 shadow-2xs bg-slate-100 dark:bg-white/[0.08]">
+                  <img
+                    src={mt5Logo}
+                    alt="MetaTrader 5"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
                   <h2 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
