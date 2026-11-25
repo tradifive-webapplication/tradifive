@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useLocation } from "react-router-dom";
 import { motion, useMotionValue, AnimatePresence } from "framer-motion";
 
@@ -112,7 +113,7 @@ export function CustomCursor() {
         'button, a, [role="button"], input[type="submit"], input[type="button"], select, .cursor-pointer, [data-cursor="pointer"], [onClick]'
       );
       const textInput = target.closest(
-        'input[type="text"], input[type="password"], input[type="email"], input[type="search"], input[type="number"], textarea, [contenteditable="true"]'
+        'input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]), textarea, [contenteditable="true"]'
       );
 
       setIsHovered(!!interactive && !textInput);
@@ -161,10 +162,13 @@ export function CustomCursor() {
     };
   }, [cursorX, cursorY, isVisible, cursorStyle, isLandingOrPublic]);
 
-  if (!isEnabled || isLandingOrPublic) return null;
+  if (!isEnabled || isLandingOrPublic || typeof document === "undefined") return null;
 
-  return (
-    <div className="pointer-events-none fixed inset-0 z-[9999999] overflow-hidden select-none">
+  return createPortal(
+    <div
+      style={{ zIndex: 2147483647 }}
+      className="pointer-events-none fixed inset-0 overflow-hidden select-none"
+    >
       {/* ── Luxury Expanding Click Circles (Refined & Compact) ── */}
       <AnimatePresence>
         {ripples.map((ripple) => (
@@ -263,7 +267,8 @@ export function CustomCursor() {
           />
         </motion.div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }
 

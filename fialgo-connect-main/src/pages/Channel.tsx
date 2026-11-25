@@ -415,7 +415,7 @@ export default function Channel() {
             toast.success("Channel deleted successfully!");
             setActiveChannelId("");
             refetchChannels();
-            navigate('/community');
+            navigate('/channel', { replace: true });
           } catch (err: any) {
             toast.error("Failed to delete channel");
           }
@@ -1325,13 +1325,22 @@ function ChannelSkeleton() {
                   </DropdownMenuItem>
 
                   {isChannelAdmin ? (
-                    <DropdownMenuItem
-                      onClick={() => setShowClearHistoryModal(true)}
-                      className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer outline-none"
-                    >
-                      <Trash size={16} className="text-slate-400 shrink-0" />
-                      <span>Clear History</span>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => setShowClearHistoryModal(true)}
+                        className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all cursor-pointer outline-none"
+                      >
+                        <Trash size={16} className="text-slate-400 shrink-0" />
+                        <span>Clear History</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={handleDeleteChannel}
+                        className="flex items-center gap-2.5 px-3 py-2 text-[13px] font-semibold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-all cursor-pointer outline-none mt-1 border-t border-slate-100 dark:border-white/5"
+                      >
+                        <Trash2 size={16} className="text-rose-500 shrink-0" />
+                        <span>Delete Channel</span>
+                      </DropdownMenuItem>
+                    </>
                   ) : isMember ? (
                     <DropdownMenuItem
                       onClick={handleLeaveChannel}

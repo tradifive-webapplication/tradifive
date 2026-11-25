@@ -118,25 +118,18 @@
 
   /* Custom sleek cursor styling */
   @media (pointer: fine) and (hover: hover) {
-    /* Hide native cursor only when custom cursor is actively enabled and not set to system */
+    /* Hide native cursor everywhere when custom cursor is active (text inputs excluded below) */
     html.custom-cursor-active:not(.cursor-style-system),
-    html.custom-cursor-active:not(.cursor-style-system) body,
-    html.custom-cursor-active:not(.cursor-style-system) a,
-    html.custom-cursor-active:not(.cursor-style-system) button,
-    html.custom-cursor-active:not(.cursor-style-system) [role="button"],
-    html.custom-cursor-active:not(.cursor-style-system) .cursor-pointer,
-    html.custom-cursor-active:not(.cursor-style-system) [onclick] {
+    html.custom-cursor-active:not(.cursor-style-system) *,
+    html.custom-cursor-active:not(.cursor-style-system) *::before,
+    html.custom-cursor-active:not(.cursor-style-system) *::after {
       cursor: none !important;
     }
 
-    /* Native text cursor on inputs */
-    html.custom-cursor-active input[type="text"],
-    html.custom-cursor-active input[type="password"],
-    html.custom-cursor-active input[type="email"],
-    html.custom-cursor-active input[type="search"],
-    html.custom-cursor-active input[type="number"],
-    html.custom-cursor-active textarea,
-    html.custom-cursor-active [contenteditable="true"] {
+    /* Native text cursor on editable text inputs */
+    html.custom-cursor-active:not(.cursor-style-system) input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+    html.custom-cursor-active:not(.cursor-style-system) textarea,
+    html.custom-cursor-active:not(.cursor-style-system) [contenteditable="true"] {
       cursor: text !important;
     }
   }
@@ -1641,5 +1634,21 @@ svg.recharts-surface:focus-visible {
   background-color: #1C1C20;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
+}
+
+/* Global unlayered override: prevent native cursor from bleeding through on boxes, SVG graphs, canvases, or pill buttons */
+@media (pointer: fine) and (hover: hover) {
+  html.custom-cursor-active:not(.cursor-style-system),
+  html.custom-cursor-active:not(.cursor-style-system) *,
+  html.custom-cursor-active:not(.cursor-style-system) *::before,
+  html.custom-cursor-active:not(.cursor-style-system) *::after {
+    cursor: none !important;
+  }
+
+  html.custom-cursor-active:not(.cursor-style-system) input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]),
+  html.custom-cursor-active:not(.cursor-style-system) textarea,
+  html.custom-cursor-active:not(.cursor-style-system) [contenteditable="true"] {
+    cursor: text !important;
+  }
 }
 

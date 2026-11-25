@@ -1,4 +1,4 @@
-﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2, Folder, Sparkles } from "lucide-react";
+﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { CommunityPageWrapper, useCommunityShell } from "@/components/CommunityShell";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -532,13 +532,39 @@ export default function Home() {
         }
     };
 
-    const [showWatchlist, setShowWatchlist] = useState(true);
-    const [showCalendar, setShowCalendar] = useState(true);
-    const [showFollowers, setShowFollowers] = useState(true);
-    const [showRequests, setShowRequests] = useState(true);
-    const [showSuggestions, setShowSuggestions] = useState(true);
-    const [showStreaks, setShowStreaks] = useState(true);
-    const [showDisciplined, setShowDisciplined] = useState(true);
+    const [homeLayoutPrefs] = useState<Record<string, boolean>>(() => {
+        try {
+            const raw = localStorage.getItem('home_layout_visibility_v1');
+            return raw ? JSON.parse(raw) : {};
+        } catch {
+            return {};
+        }
+    });
+    const [showProfileCard, setShowProfileCard] = useState(() => homeLayoutPrefs.showProfileCard !== false);
+    const [showWatchlist, setShowWatchlist] = useState(() => homeLayoutPrefs.showWatchlist !== false);
+    const [showCalendar, setShowCalendar] = useState(() => homeLayoutPrefs.showCalendar !== false);
+    const [showFollowers, setShowFollowers] = useState(() => homeLayoutPrefs.showFollowers !== false);
+    const [showRequests, setShowRequests] = useState(() => homeLayoutPrefs.showRequests !== false);
+    const [showSuggestions, setShowSuggestions] = useState(() => homeLayoutPrefs.showSuggestions !== false);
+    const [showStreaks, setShowStreaks] = useState(() => homeLayoutPrefs.showStreaks !== false);
+    const [showDisciplined, setShowDisciplined] = useState(() => homeLayoutPrefs.showDisciplined !== false);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem('home_layout_visibility_v1', JSON.stringify({
+                showProfileCard,
+                showWatchlist,
+                showCalendar,
+                showFollowers,
+                showRequests,
+                showSuggestions,
+                showStreaks,
+                showDisciplined,
+            }));
+        } catch {
+            // ignore storage errors
+        }
+    }, [showProfileCard, showWatchlist, showCalendar, showFollowers, showRequests, showSuggestions, showStreaks, showDisciplined]);
 
     // Customize layout elements
     const [showCustomizeMenu, setShowCustomizeMenu] = useState(false);
@@ -1291,71 +1317,83 @@ export default function Home() {
                             impactLower === 'high'
                                 ? {
                                     label: 'High',
-                                    folderClass: 'text-rose-600 fill-rose-500/85 dark:text-rose-400 dark:fill-rose-500/80',
+                                    barClass: 'bg-rose-500',
+                                    dotClass: 'bg-rose-500',
                                     textClass: 'text-rose-600 dark:text-rose-400',
                                 }
                                 : impactLower === 'medium'
                                     ? {
-                                        label: 'Medium',
-                                        folderClass: 'text-orange-500 fill-orange-400/85 dark:text-orange-400 dark:fill-orange-400/80',
-                                        textClass: 'text-orange-600 dark:text-orange-400',
+                                        label: 'Med',
+                                        barClass: 'bg-amber-500',
+                                        dotClass: 'bg-amber-500',
+                                        textClass: 'text-amber-600 dark:text-amber-400',
                                     }
                                     : {
                                         label: 'Low',
-                                        folderClass: 'text-amber-500 fill-amber-300/90 dark:text-amber-400 dark:fill-amber-300/75',
-                                        textClass: 'text-amber-600 dark:text-amber-400',
+                                        barClass: 'bg-slate-300 dark:bg-zinc-600',
+                                        dotClass: 'bg-slate-400 dark:bg-zinc-500',
+                                        textClass: 'text-slate-500 dark:text-zinc-400',
                                     };
 
                         return (
                             <div
                                 key={news.id || i}
-                                className={`flex items-center gap-2.5 px-3.5 py-2 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/[0.025] ${
-                                    isNextUp ? 'bg-slate-50/80 dark:bg-white/[0.03]' : ''
+                                className={`group flex items-stretch gap-2.5 px-3.5 py-2.5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/[0.025] ${
+                                    isNextUp ? 'bg-blue-50/45 dark:bg-blue-500/[0.05]' : ''
                                 }`}
                             >
-                                {/* Colored Impact Folder Icon (Red = High, Orange = Medium, Yellow = Low) */}
-                                <Folder
-                                    size={15}
-                                    strokeWidth={1.75}
+                                {/* Crisp Vertical Impact Bar (Rose = High, Amber = Medium, Slate = Low) */}
+                                <span
                                     aria-label={`${impactMeta.label} impact`}
-                                    className={`shrink-0 ${impactMeta.folderClass} ${isPast ? 'opacity-50' : ''}`}
+                                    className={`w-[3px] rounded-full shrink-0 my-0.5 ${impactMeta.barClass} ${isPast ? 'opacity-35' : ''}`}
                                 />
 
-                                {/* Event Title + Timing & Currency Pair */}
+                                {/* Event Title, Timing, Currency & Impact */}
                                 <div className="flex-1 min-w-0">
-                                    <p
-                                        title={news.event_title}
-                                        className={`text-[12px] font-medium truncate leading-tight ${
+                                    <div className="flex items-start justify-between gap-2">
+                                        <p
+                                            title={news.event_title}
+                                            className={`text-[12.5px] font-semibold tracking-[-0.01em] truncate leading-snug ${
+                                                isPast
+                                                    ? 'text-slate-400 dark:text-slate-500'
+                                                    : 'text-slate-900 dark:text-slate-100'
+                                            }`}
+                                        >
+                                            {news.event_title}
+                                        </p>
+                                        <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[9.5px] font-bold tracking-wider uppercase leading-none ${
                                             isPast
-                                                ? 'text-slate-500 dark:text-slate-400'
-                                                : 'text-slate-900 dark:text-slate-100'
-                                        }`}
-                                    >
-                                        {news.event_title}
-                                    </p>
-                                    <div className="flex items-center gap-1.5 mt-0.5 text-[10.5px] tabular-nums leading-tight">
-                                        <span className={isNextUp ? 'text-slate-900 dark:text-white font-semibold' : 'text-slate-400 dark:text-slate-500'}>
-                                            {displayDay ? `${displayDay} ${displayTime}` : displayTime}
-                                        </span>
-                                        <span className="text-slate-300 dark:text-slate-600">·</span>
-                                        <span className="font-semibold text-slate-600 dark:text-slate-300">
+                                                ? 'bg-slate-100/70 dark:bg-white/[0.04] text-slate-400 dark:text-slate-500'
+                                                : 'bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-slate-300'
+                                        }`}>
                                             {news.currency || 'USD'}
                                         </span>
-                                        {isNextUp && (
-                                            <>
-                                                <span className="text-slate-300 dark:text-slate-600">·</span>
-                                                <span className="text-slate-700 dark:text-slate-200 font-medium">
+                                    </div>
+
+                                    <div className="flex items-center justify-between gap-2 mt-1 leading-none">
+                                        <div className="flex items-center gap-1.5 text-[10.5px] tabular-nums min-w-0">
+                                            <span className={
+                                                isNextUp
+                                                    ? 'text-slate-900 dark:text-white font-semibold'
+                                                    : isPast
+                                                        ? 'text-slate-400 dark:text-slate-500'
+                                                        : 'text-slate-500 dark:text-slate-400 font-medium'
+                                            }>
+                                                {displayDay ? `${displayDay} · ${displayTime}` : displayTime}
+                                            </span>
+                                            {isNextUp && (
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9.5px] font-semibold leading-none">
                                                     {formatCountdown(eventMs - nowMs)}
                                                 </span>
-                                            </>
-                                        )}
+                                            )}
+                                        </div>
+
+                                        <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold leading-none ${impactMeta.textClass} ${isPast ? 'opacity-50' : ''}`}>
+                                            <span className={`w-1.5 h-1.5 rounded-full ${impactMeta.dotClass}`} />
+                                            <span>{impactMeta.label}</span>
+                                        </span>
                                     </div>
                                 </div>
-
-                                {/* Clear Impact Level Label */}
-                                <span className={`shrink-0 text-[10.5px] font-semibold leading-none ${impactMeta.textClass} ${isPast ? 'opacity-60' : ''}`}>
-                                    {impactMeta.label}
-                                </span>
                             </div>
                         );
                     })}
@@ -1365,9 +1403,10 @@ export default function Home() {
                     <button
                         type="button"
                         onClick={() => setNewsExpanded((prev) => !prev)}
-                        className="w-full py-2 text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/70 dark:hover:bg-white/[0.03] border-t border-slate-100 dark:border-white/[0.06] transition-colors cursor-pointer"
+                        className="w-full py-2.5 px-3.5 flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/70 dark:hover:bg-white/[0.03] border-t border-slate-100 dark:border-white/[0.06] transition-colors cursor-pointer"
                     >
-                        {newsExpanded ? 'Show less' : `Show all (${allMatchedNews.length})`}
+                        <span>{newsExpanded ? 'Show less' : `Show all (${allMatchedNews.length})`}</span>
+                        {newsExpanded ? <ChevronUp size={12.5} strokeWidth={2.2} /> : <ChevronDown size={12.5} strokeWidth={2.2} />}
                     </button>
                 )}
             </>
@@ -1585,8 +1624,9 @@ export default function Home() {
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Market Cards</span>
                                         <button
                                             onClick={() => {
-                                                const anyVisible = showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
+                                                const anyVisible = showProfileCard || showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
                                                 if (anyVisible) {
+                                                    setShowProfileCard(false);
                                                     setShowWatchlist(false);
                                                     setShowCalendar(false);
                                                     setShowFollowers(false);
@@ -1595,6 +1635,7 @@ export default function Home() {
                                                     setShowStreaks(false);
                                                     setShowDisciplined(false);
                                                 } else {
+                                                    handleToggle(setShowProfileCard, true);
                                                     handleToggle(setShowWatchlist, true);
                                                     handleToggle(setShowCalendar, true);
                                                     handleToggle(setShowFollowers, true);
@@ -1606,10 +1647,11 @@ export default function Home() {
                                             }}
                                             className="text-[9px] font-bold text-blue-500 hover:text-blue-650 transition-colors uppercase tracking-wider"
                                         >
-                                            {(showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide All' : 'Show All'}
+                                            {(showProfileCard || showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide All' : 'Show All'}
                                         </button>
                                     </div>
                                     <div className="space-y-3">
+                                        <ToggleRow label="Profile Card" checked={showProfileCard} onChange={(v) => handleToggle(setShowProfileCard, v)} />
                                         <ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} />
                                         <ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} />
                                         <ToggleRow label="Followers Stats" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} />
@@ -2000,14 +2042,16 @@ export default function Home() {
 
                             </motion.div>
                         )}
-                        {/* --- COLUMN 2: MIDDLE MAIN CONTENT (vertical borders left & right on desktop) --- */}
+                        {/* --- COLUMN 2: MIDDLE MAIN CONTENT (consistent centered width regardless of hidden sidebars) --- */}
                         <div
                             className={`relative flex flex-col min-h-[calc(100vh-80px)] ${
                                 currentTab === 'calendar'
                                     ? 'col-span-12 px-4 sm:px-8'
-                                    : (showWatchlist || showCalendar || showFollowers)
-                                        ? 'col-span-12 lg:col-span-8 xl:col-span-6 xl:col-start-4 md:border-x md:border-slate-200/85 dark:md:border-white/[0.09]'
-                                        : 'col-span-12 lg:col-span-8 xl:col-span-7 xl:col-start-2 md:border-x md:border-slate-200/85 dark:md:border-white/[0.09]'
+                                    : `col-span-12 lg:col-span-8 ${
+                                        !(showProfileCard || showRequests || showSuggestions || showStreaks || showDisciplined)
+                                            ? 'lg:col-start-3'
+                                            : ''
+                                    } xl:col-span-6 xl:col-start-4 md:border-x md:border-slate-200/85 dark:md:border-white/[0.09]`
                             }`}
                         >
                             {/* Dead-center top floating pill — appears ONLY when someone posts a new post */}
@@ -2135,6 +2179,21 @@ export default function Home() {
                                                 strokeWidth={2}
                                                 className={isRefreshingFeed ? "animate-spin text-[#2563EB]" : ""}
                                             />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setCustomizeActiveTab('layout');
+                                                setShowCustomizeModal(true);
+                                            }}
+                                            className="hidden lg:flex relative w-10 h-10 rounded-full bg-slate-100/90 hover:bg-slate-200/80 dark:bg-white/[0.06] dark:hover:bg-white/[0.11] text-slate-700 dark:text-slate-200 items-center justify-center shrink-0 active:scale-95 transition-all cursor-pointer"
+                                            title="Home Layout & Widgets"
+                                            aria-label="Home Layout & Widgets"
+                                        >
+                                            <Sliders size={15.5} strokeWidth={2} />
+                                            {!(showProfileCard && showWatchlist && showCalendar && showFollowers && showRequests && showSuggestions && showStreaks && showDisciplined) && (
+                                                <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+                                            )}
                                         </button>
                                     </div>
 
@@ -2410,21 +2469,19 @@ export default function Home() {
                         </div>
 
                         {/* --- COLUMN 3: RIGHT SIDEBAR (Profile Card + Optional Community Widgets) --- */}
-                        {currentTab !== 'calendar' && (
+                        {currentTab !== 'calendar' && (showProfileCard || showRequests || showSuggestions || showStreaks || showDisciplined) && (
                             <motion.div
                                 variants={homeContainerVariants}
                                 initial="hidden"
                                 animate="visible"
-                                className={`hidden lg:block lg:col-span-4 ${
-                                    (showWatchlist || showCalendar || showFollowers)
-                                        ? 'xl:col-span-3 xl:col-start-10'
-                                        : 'xl:col-span-4 xl:col-start-9'
-                                } lg:sticky lg:top-4 lg:max-h-[calc(100vh-110px)] lg:overflow-y-auto amazing-scrollbar space-y-3.5 px-1 xl:px-2 pt-4 pb-4`}
+                                className="hidden lg:block lg:col-span-4 xl:col-span-3 xl:col-start-10 lg:sticky lg:top-4 lg:max-h-[calc(100vh-110px)] lg:overflow-y-auto amazing-scrollbar space-y-3.5 px-1 xl:px-2 pt-4 pb-4"
                             >
                                 {/* Compact User Profile Card */}
-                                <motion.div variants={homeCardVariants}>
-                                    <HomeProfileCard userId={user?.id} />
-                                </motion.div>
+                                {showProfileCard && (
+                                    <motion.div variants={homeCardVariants}>
+                                        <HomeProfileCard userId={user?.id} />
+                                    </motion.div>
+                                )}
 
                                 {/* Requests Section */}
                                 {showRequests && (
@@ -2665,8 +2722,9 @@ export default function Home() {
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                const anyVisible = showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
+                                                                const anyVisible = showProfileCard || showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
                                                                 if (anyVisible) {
+                                                                    setShowProfileCard(false);
                                                                     setShowWatchlist(false);
                                                                     setShowCalendar(false);
                                                                     setShowFollowers(false);
@@ -2675,6 +2733,7 @@ export default function Home() {
                                                                     setShowStreaks(false);
                                                                     setShowDisciplined(false);
                                                                 } else {
+                                                                    handleToggle(setShowProfileCard, true);
                                                                     handleToggle(setShowWatchlist, true);
                                                                     handleToggle(setShowCalendar, true);
                                                                     handleToggle(setShowFollowers, true);
@@ -2686,11 +2745,12 @@ export default function Home() {
                                                             }}
                                                             className="h-7 px-3 rounded-full tactile-white-pill text-[11.5px] font-semibold cursor-pointer"
                                                         >
-                                                            {(showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide all' : 'Show all'}
+                                                            {(showProfileCard || showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide all' : 'Show all'}
                                                         </button>
                                                     </div>
 
                                                     <div className="rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06]">
+                                                        <div className="py-2.5"><ToggleRow label="Profile Card" checked={showProfileCard} onChange={(v) => handleToggle(setShowProfileCard, v)} /></div>
                                                         <div className="py-2.5"><ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} /></div>
                                                         <div className="py-2.5"><ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} /></div>
                                                         <div className="py-2.5"><ToggleRow label="Community Reach" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} /></div>
