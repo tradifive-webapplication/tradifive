@@ -481,7 +481,7 @@ export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
       </div>
 
       {/* Mode Switcher + Day Stepper Row & Events */}
-      <div className={`flex flex-col min-h-[200px] ${isStarter ? "blur-[3.5px] select-none pointer-events-none opacity-45" : ""}`}>
+      <div className={`flex flex-col min-h-[200px] ${isStarter ? "blur-[2px] select-none pointer-events-none opacity-80" : ""}`}>
         <div className={`flex items-center justify-between gap-1.5 ${compact ? "mb-2.5 flex-wrap" : "mb-3.5"}`}>
         <div className="inline-flex items-center p-0.5 rounded-[11px] bg-slate-100/90 dark:bg-white/[0.06]">
           {(["day", "week"] as const).map((mode) => (
@@ -697,22 +697,26 @@ export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
 
       {isStarter && (
         <div className="absolute inset-x-0 bottom-0 top-[52px] z-20 flex flex-col items-center justify-center p-4 pointer-events-auto">
-          <div className="backdrop-blur-md bg-white/90 dark:bg-[#18181b]/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl p-5 text-center flex flex-col items-center max-w-[270px]">
-            <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 shadow-xs">
-              <Lock size={15} strokeWidth={2.2} />
+          <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
+                <Lock size={14} strokeWidth={2.4} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">
+                  Economic Calendar
+                </p>
+                <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
+                  Pro &amp; Elite
+                </p>
+              </div>
             </div>
-            <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
-              Economic Calendar
-            </h4>
-            <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 mb-3.5 leading-relaxed">
-              Real-time high-impact macroeconomic event feeds &amp; currency impact filters require Pro or Elite.
-            </p>
             <button
               type="button"
               onClick={() => navigate("/upgrade")}
-              className="tactile-white-pill px-4 py-1.5 rounded-full text-[11.5px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+              className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm cursor-pointer active:scale-95 transition-all"
             >
-              Upgrade to Pro
+              Upgrade
             </button>
           </div>
         </div>
