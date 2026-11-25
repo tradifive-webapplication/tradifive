@@ -6,7 +6,7 @@ import {
   X, TrendingUp, TrendingDown, Award, AlertTriangle, 
   Smile, AlignLeft, Calendar, FileText, CheckCircle,
   HelpCircle, ChevronRight, ChevronLeft, Activity, DollarSign, Percent, Share2,
-  Star, Pin, Download
+  Star, Pin, Download, Trash2
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -670,27 +670,29 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                 {/* Autosave status & action buttons */}
                 <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
                   {saveStatus === "saving" && (
-                    <span className="hidden sm:inline-block text-[10px] font-bold uppercase text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded tracking-widest animate-pulse">Autosaving...</span>
+                    <span className="hidden sm:inline-block text-[10px] font-bold uppercase text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20 tracking-wider animate-pulse">Autosaving...</span>
                   )}
                   {saveStatus === "saved" && (
-                    <span className="hidden sm:flex text-[10px] font-bold uppercase text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded tracking-widest items-center gap-1">
+                    <span className="hidden sm:flex text-[10px] font-bold uppercase text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-full tracking-wider items-center gap-1">
                       <CheckCircle size={10} /> Saved
                     </span>
                   )}
                   <button
+                    type="button"
                     onClick={() => setShowShareModal(true)}
-                    className="flex items-center gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-b from-[#FFFFFF] to-[#F4F4F4] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 shadow-sm text-indigo-600 dark:text-indigo-400 hover:scale-105 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider transition-all"
+                    className="tactile-white-pill rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 cursor-pointer select-none active:scale-95 shadow-xs transition-transform"
                     title="Share Report"
                   >
-                    <Share2 size={13} strokeWidth={2.5} />
+                    <Share2 size={13} strokeWidth={2.4} />
                     <span className="hidden sm:inline">Share Report</span>
                   </button>
                   <button 
+                    type="button"
                     onClick={onClose}
-                    className="w-[30px] h-[30px] sm:w-[36px] sm:h-[36px] rounded-xl bg-gradient-to-b from-[#FFFFFF] to-[#F4F4F4] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 shadow-sm flex items-center justify-center text-[#393939] dark:text-white hover:scale-105 transition-all shrink-0"
+                    className="tactile-white-pill w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white cursor-pointer select-none active:scale-95 shrink-0 transition-transform"
                     title="Close"
                   >
-                    <X size={15} strokeWidth={2.5} />
+                    <X size={15} strokeWidth={2.4} />
                   </button>
                 </div>
               </div>
@@ -701,73 +703,73 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                 {/* 1. Daily Metrics Section */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-4">
                   {/* Card 1: Net Result */}
-                  <div className={`p-4 sm:p-5 md:p-6 rounded-[18px] sm:rounded-[22px] border-2 border-white dark:border-white/5 relative overflow-hidden group transition-all duration-300 hover:scale-[1.02]
+                  <div className={`p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 hover:scale-[1.01] shadow-[0_2px_8px_rgba(0,0,0,0.04)]
                     ${stats.netPnl >= 0 
-                      ? "bg-gradient-to-b from-[#EBF9F3] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#C2F0DD] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#A5E5CB] dark:bg-none dark:bg-[#10B981]/5 dark:border-[1px] dark:border-[#10B981]/20 dark:shadow-none dark:hover:shadow-none"
-                      : "bg-gradient-to-b from-[#FFF0F0] to-[#FFFFFF] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#FCD1D1] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FAA2A2] dark:bg-none dark:bg-[#F06363]/5 dark:border-[1px] dark:border-[#F06363]/20 dark:shadow-none dark:hover:shadow-none"
+                      ? "bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/25 dark:border-emerald-500/30"
+                      : "bg-rose-500/[0.04] dark:bg-rose-500/[0.08] border border-rose-500/25 dark:border-rose-500/30"
                     }`}
                   >
-                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/30 group-hover:text-slate-400/50 transition-colors">
+                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/40 group-hover:text-slate-500 transition-colors">
                       <DollarSign size={16} />
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-[#393939] dark:text-slate-400 uppercase tracking-widest block mb-1.5 sm:mb-2 truncate">Daily Net Return</span>
-                    <h3 className={`text-[19px] sm:text-[22px] md:text-[26px] font-bold tracking-tight leading-none truncate ${stats.netPnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">Daily Net Return</span>
+                    <h3 className={`text-[20px] sm:text-[24px] md:text-[26px] font-bold tracking-tight leading-none truncate ${stats.netPnl >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                       {fmtDailyValue(stats.netPnl, { showSign: true })}
                     </h3>
-                    <p className={`text-[10px] sm:text-[11px] font-bold mt-1.5 sm:mt-2 truncate ${stats.netPnl >= 0 ? "text-[#10B981]/70" : "text-[#F06363]/70"}`}>
+                    <p className={`text-[11px] font-medium mt-2 truncate ${stats.netPnl >= 0 ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-rose-600/80 dark:text-rose-400/80"}`}>
                       {percentageOnly ? "account P&L" : `${stats.netPnl >= 0 ? "+" : ""}${stats.netPct.toFixed(2)}% account P&L`}
                     </p>
                   </div>
 
                   {/* Card 2: Win Rate */}
-                  <div className="bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-5 md:p-6 rounded-[18px] sm:rounded-[22px] relative overflow-hidden group shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
-                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/30 group-hover:text-slate-400/50 transition-colors">
+                  <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.01]">
+                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/40 group-hover:text-slate-500 transition-colors">
                       <Award size={16} />
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-[#393939] dark:text-slate-400 uppercase tracking-widest block mb-1.5 sm:mb-2 truncate">Win Rate</span>
-                    <h3 className="text-[19px] sm:text-[22px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">Win Rate</span>
+                    <h3 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
                       {stats.winRate}%
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] font-bold text-slate-400/90 mt-1.5 sm:mt-2 truncate">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
                       {stats.winners} won · {stats.losers} lost
                     </p>
                   </div>
 
                   {/* Card 3: Total Trades */}
-                  <div className="bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-5 md:p-6 rounded-[18px] sm:rounded-[22px] relative overflow-hidden group shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
-                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/30 group-hover:text-slate-400/50 transition-colors">
+                  <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.01]">
+                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/40 group-hover:text-slate-500 transition-colors">
                       <Activity size={16} />
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-[#393939] dark:text-slate-400 uppercase tracking-widest block mb-1.5 sm:mb-2 truncate">Total Trades</span>
-                    <h3 className="text-[19px] sm:text-[22px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">Total Trades</span>
+                    <h3 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
                       {stats.total}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] font-bold text-slate-400/90 mt-1.5 sm:mt-2 truncate">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
                       {stats.buys} Buy · {stats.sells} Sell
                     </p>
                   </div>
 
                   {/* Card 4: Profit Factor */}
-                  <div className="bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-5 md:p-6 rounded-[18px] sm:rounded-[22px] relative overflow-hidden group shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
-                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/30 group-hover:text-slate-400/50 transition-colors">
+                  <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.01]">
+                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400/40 group-hover:text-slate-500 transition-colors">
                       <Percent size={16} />
                     </div>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-[#393939] dark:text-slate-400 uppercase tracking-widest block mb-1.5 sm:mb-2 truncate">Profit Factor</span>
-                    <h3 className="text-[19px] sm:text-[22px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                      {stats.profitFactor || "N/A"}
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">Profit Factor</span>
+                    <h3 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
+                      {stats.profitFactor > 0 ? (stats.losers === 0 ? "10.0+ (Max)" : stats.profitFactor.toFixed(2)) : "N/A"}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] font-bold text-slate-400/90 mt-1.5 sm:mt-2 truncate">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
                       Gross wins / losses
                     </p>
                   </div>
 
                   {/* Card 5: R:R Achieved */}
-                  <div className="col-span-2 sm:col-span-1 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-5 md:p-6 rounded-[18px] sm:rounded-[22px] relative overflow-hidden group shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
-                    <span className="text-[9px] sm:text-[10px] font-bold text-[#393939] dark:text-slate-400 uppercase tracking-widest block mb-1.5 sm:mb-2 truncate">R:R Achieved</span>
-                    <h3 className="text-[19px] sm:text-[22px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-                      {stats.calculatedRR ? `1:${stats.calculatedRR}` : "N/A"}
+                  <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300 hover:scale-[1.01]">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">R:R Achieved</span>
+                    <h3 className="text-[20px] sm:text-[24px] md:text-[26px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
+                      {stats.calculatedRR > 0 ? `1:${stats.calculatedRR}` : (bestR && Number(bestR) > 0 ? `1:${bestR}` : "N/A")}
                     </h3>
-                    <p className="text-[10px] sm:text-[11px] font-bold text-slate-400/90 mt-1.5 sm:mt-2 truncate">
+                    <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
                       Avg Win / Loss ratio
                     </p>
                   </div>
@@ -776,27 +778,21 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                 {/* 2. Daily Highlights Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-6">
                   {/* Card 1: Best Trade */}
-                  <div className="bg-gradient-to-b from-[#EBF9F3] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#10B981]/5 dark:border-[1px] dark:border-[#10B981]/20 p-6 rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#C2F0DD] dark:shadow-none relative overflow-hidden group transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#A5E5CB] dark:hover:shadow-none">
-                    <div className="absolute -top-12 -right-12 w-24 h-24 bg-[#10B981]/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500" />
-                    
+                  <div className="bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border border-emerald-500/25 dark:border-emerald-500/30 p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(16,185,129,0.04)] relative overflow-hidden group transition-all duration-300 hover:scale-[1.01]">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-[#10B981]/10 flex items-center justify-center text-[#10B981] shrink-0">
-                          <Star size={18} className="fill-[#10B981]/10" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+                          <Star size={18} className="fill-emerald-500/20" />
                         </div>
                         <div>
-                          <span className="text-[10px] font-bold text-[#393939] dark:text-slate-400 uppercase tracking-widest block">Best Trade</span>
-                          <h4 className="text-[15px] font-bold text-slate-900 dark:text-white uppercase leading-none mt-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Best Trade</span>
+                          <h4 className="text-[16px] font-bold text-slate-900 dark:text-white uppercase leading-none mt-1">
                             {stats.bestTrade ? stats.bestTrade.symbol : "N/A"}
                           </h4>
                         </div>
                       </div>
                       {stats.bestTrade && (
-                        <span className={`inline-flex px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-[0.08em] ${
-                          bestDirection === "LONG"
-                            ? "bg-[#10B981]/10 text-[#10B981]"
-                            : "bg-[#F06363]/10 text-[#F06363]"
-                        }`}>
+                        <span className={`tactile-emerald-pill text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider inline-flex items-center`}>
                           {bestDirection}
                         </span>
                       )}
@@ -804,40 +800,34 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
 
                     {stats.bestTrade ? (
                       <div className="mt-3">
-                        <h3 className={`text-[26px] font-bold tracking-tight leading-none tabular-nums ${stats.bestTrade.profit >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+                        <h3 className={`text-[24px] sm:text-[26px] font-bold tracking-tight leading-none tabular-nums ${stats.bestTrade.profit >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                           {fmtDailyValue(stats.bestTrade.profit, { showSign: true })}
                         </h3>
-                        <p className={`text-[11px] font-bold tabular-nums mt-1.5 ${stats.bestTrade.profit >= 0 ? "text-[#10B981]/70" : "text-[#F06363]/70"}`}>
+                        <p className={`text-[11px] font-medium tabular-nums mt-1.5 ${stats.bestTrade.profit >= 0 ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-rose-600/80 dark:text-rose-400/80"}`}>
                           {Number(bestR) >= 0 ? "+" : ""}{bestR}R achieved
                         </p>
                       </div>
                     ) : (
-                      <p className="text-[11px] text-slate-400 font-semibold py-4 text-center">No trades logged</p>
+                      <p className="text-[11px] text-slate-400 font-medium py-4 text-center">No trades logged</p>
                     )}
                   </div>
 
                   {/* Card 2: Worst Trade */}
-                  <div className="bg-gradient-to-b from-[#FFF0F0] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#F06363]/5 dark:border-[1px] dark:border-[#F06363]/20 p-6 rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#FCD1D1] dark:shadow-none relative overflow-hidden group transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FAA2A2] dark:hover:shadow-none">
-                    <div className="absolute -top-12 -right-12 w-24 h-24 bg-[#F06363]/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-500" />
-                    
+                  <div className="bg-rose-500/[0.04] dark:bg-rose-500/[0.08] border border-rose-500/25 dark:border-rose-500/30 p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(244,63,94,0.04)] relative overflow-hidden group transition-all duration-300 hover:scale-[1.01]">
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-[#F06363]/10 flex items-center justify-center text-[#F06363] shrink-0">
-                          <Pin size={18} className="rotate-45 text-[#F06363]" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+                          <Pin size={18} className="rotate-45 text-rose-500" />
                         </div>
                         <div>
-                          <span className="text-[10px] font-bold text-[#393939] dark:text-slate-400 uppercase tracking-widest block">Worst Trade</span>
-                          <h4 className="text-[15px] font-bold text-slate-900 dark:text-white uppercase leading-none mt-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Worst Trade</span>
+                          <h4 className="text-[16px] font-bold text-slate-900 dark:text-white uppercase leading-none mt-1">
                             {stats.worstTrade ? stats.worstTrade.symbol : "N/A"}
                           </h4>
                         </div>
                       </div>
                       {stats.worstTrade && (
-                        <span className={`inline-flex px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-[0.08em] ${
-                          worstDirection === "LONG"
-                            ? "bg-[#10B981]/10 text-[#10B981]"
-                            : "bg-[#F06363]/10 text-[#F06363]"
-                        }`}>
+                        <span className={`tactile-rose-pill text-white px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider inline-flex items-center`}>
                           {worstDirection}
                         </span>
                       )}
@@ -845,15 +835,22 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
 
                     {stats.worstTrade ? (
                       <div className="mt-3">
-                        <h3 className={`text-[26px] font-bold tracking-tight leading-none tabular-nums ${stats.worstTrade.profit >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+                        <h3 className={`text-[24px] sm:text-[26px] font-bold tracking-tight leading-none tabular-nums ${stats.worstTrade.profit >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                           {fmtDailyValue(stats.worstTrade.profit, { showSign: true })}
                         </h3>
-                        <p className={`text-[11px] font-bold tabular-nums mt-1.5 ${stats.worstTrade.profit >= 0 ? "text-[#10B981]/70" : "text-[#F06363]/70"}`}>
+                        <p className={`text-[11px] font-medium tabular-nums mt-1.5 ${stats.worstTrade.profit >= 0 ? "text-emerald-600/80 dark:text-emerald-400/80" : "text-rose-600/80 dark:text-rose-400/80"}`}>
                           {stats.worstTrade.profit < 0 ? "" : "+"}{((stats.worstTrade.profit) / 50).toFixed(1)}R {stats.worstTrade.profit < 0 ? "incurred" : "achieved"}
                         </p>
                       </div>
                     ) : (
-                      <p className="text-[11px] text-slate-400 font-semibold py-4 text-center">{stats.total > 0 ? "N/A" : "No trades logged"}</p>
+                      <div className="py-2">
+                        <h4 className="text-[14px] font-bold text-slate-800 dark:text-slate-200">
+                          {stats.total > 0 ? "No Losing Trades Today 🎉" : "No trades logged"}
+                        </h4>
+                        <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
+                          {stats.total > 0 ? "100% win rate · Zero downside breach" : "Take a trade or log a disciplined day"}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -861,15 +858,15 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                 {/* 3. Emotional State picker & Chart Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-6">
                   {/* Left block: Emotional State Card */}
-                  <div className="col-span-1 bg-gradient-to-b from-[#F5F7FB] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-6 rounded-[18px] sm:rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none flex flex-col justify-between relative overflow-hidden group min-h-[220px] sm:min-h-[280px] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] dark:hover:shadow-none">
+                  <div className="col-span-1 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between relative overflow-hidden group min-h-[240px] sm:min-h-[290px] transition-all duration-300 hover:scale-[1.01]">
                     <div className="flex-1 flex flex-col justify-between">
                       {/* Card Title */}
                       <div className="flex items-center justify-between mb-3 sm:mb-4">
                         <div className="flex items-center gap-2">
-                          <div className="p-1.5 bg-indigo-500/10 dark:bg-indigo-400/10 rounded-lg text-[#5C52E5] dark:text-indigo-400">
+                          <div className="p-1.5 bg-indigo-500/10 dark:bg-indigo-400/10 rounded-lg text-indigo-600 dark:text-indigo-400">
                             <Smile size={16} />
                           </div>
-                          <h4 className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">Emotional State</h4>
+                          <h4 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">Emotional State</h4>
                         </div>
                         {entry.isManualEmotion ? (
                           <button
@@ -879,36 +876,42 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                               setEntry(updated);
                               saveJournalEntry(updated);
                             }}
-                            className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors uppercase tracking-wider"
+                            className="tactile-white-pill px-2.5 py-1 rounded-full text-[9.5px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider cursor-pointer active:scale-95 transition-transform"
                           >
                             Reset to Auto
                           </button>
                         ) : (
-                          <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                             Auto
                           </span>
                         )}
                       </div>
 
                       {/* Face buttons row */}
-                      <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3.5 mb-4 sm:mb-6">
+                      <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 mb-4 sm:mb-6">
                         {EMOTIONAL_STATES.map((state) => {
                           const isSelected = activeEmotionLabel === state.label;
+                          let selectedClass = "tactile-emerald-pill text-white scale-105 shadow-md";
+                          if (state.level <= 2) {
+                            selectedClass = "tactile-rose-pill text-white scale-105 shadow-md";
+                          } else if (state.level === 3) {
+                            selectedClass = "tactile-black-pill text-white scale-105 shadow-md";
+                          }
                           return (
                             <button
                               key={state.label}
                               type="button"
                               onClick={() => {
                                 const updated = { ...entry, emotion: state.label, isManualEmotion: true };
-                                  setEntry(updated);
-                                  saveJournalEntry(updated);
+                                setEntry(updated);
+                                saveJournalEntry(updated);
                               }}
-                              className={`relative flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11 rounded-full transition-all duration-200
-                                bg-[#E5E5FC] dark:bg-[#3A3A3C] text-[#5C52E5] dark:text-[#A594FD]
+                              className={`relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full transition-all duration-200 cursor-pointer select-none
                                 ${isSelected
-                                  ? "ring-2 ring-offset-2 ring-[#5C52E5] dark:ring-offset-[#2C2C2E] scale-105"
-                                  : "opacity-80 hover:opacity-100 hover:scale-105"
+                                  ? selectedClass
+                                  : "tactile-white-pill text-slate-500 dark:text-slate-400 hover:scale-105 active:scale-95"
                                 }`}
+                              title={state.label}
                             >
                               {/* Draw SVG Face outline */}
                               <svg viewBox="0 0 24 24" className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -934,26 +937,26 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                       {/* Info & Meditating Illustration Side-by-Side */}
                       <div className="flex items-end justify-between gap-2 mt-auto">
                         <div className="flex-1 space-y-1 pb-1">
-                          <h5 className="text-[14px] sm:text-[15px] font-black text-[#5C52E5] dark:text-[#A594FD] tracking-tight">
+                          <h5 className="text-[14px] sm:text-[15px] font-bold text-indigo-600 dark:text-indigo-400 tracking-tight">
                             {selectedEmotion.label}
                           </h5>
-                          <p className="text-[10px] sm:text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[200px]">
+                          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed max-w-[200px]">
                             {selectedEmotion.message}
                           </p>
                         </div>
                         {/* Meditation Illustration SVG */}
                         <div className="shrink-0 -mb-2 -mr-2">
-                          <svg viewBox="0 0 120 120" className="w-20 h-20 sm:w-28 sm:h-28 text-[#5C52E5] dark:text-[#A594FD]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                          <svg viewBox="0 0 120 120" className="w-20 h-20 sm:w-26 sm:h-26 text-indigo-500 dark:text-indigo-400" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                             {/* Stars / Sparkles */}
                             <path d="M98,22 L100,25 L103,26 L100,27 L98,30 L96,27 L93,26 L96,25 Z" fill="currentColor" className="opacity-45" stroke="none" />
                             <path d="M18,35 L20,38 L23,39 L20,40 L18,43 L16,40 L13,39 L16,38 Z" fill="currentColor" className="opacity-45" stroke="none" />
                             <path d="M102,52 L103,54 L105,55 L103,56 L102,58 L101,56 L99,55 L101,54 Z" fill="currentColor" className="opacity-45" stroke="none" />
                             
                             {/* Head & Hair */}
-                            <path d="M52,26 C43,26 43,35 45,38 C42,39 44,43 45,43 C46,45 48,45 50,45 C52,45 54,45 55,45 C57,43 59,43 57,38 C59,35 59,26 52,26 Z" fill="currentColor" className="opacity-20 text-[#5C52E5]" />
+                            <path d="M52,26 C43,26 43,35 45,38 C42,39 44,43 45,43 C46,45 48,45 50,45 C52,45 54,45 55,45 C57,43 59,43 57,38 C59,35 59,26 52,26 Z" fill="currentColor" className="opacity-20 text-indigo-500" />
                             <path d="M47,29 C45,32 45,36 47,38" />
                             <path d="M57,29 C59,32 59,36 57,38" />
-                            <path d="M52,26 C47,26 45,30 46,34 C49,32 55,32 58,34 C59,30 57,26 52,26 Z" fill="currentColor" className="text-[#5C52E5]" />
+                            <path d="M52,26 C47,26 45,30 46,34 C49,32 55,32 58,34 C59,30 57,26 52,26 Z" fill="currentColor" className="text-indigo-500" />
                             
                             {/* Face details */}
                             <path d="M47,38 C49,40 51,40 53,38" />
@@ -978,13 +981,13 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                             <path d="M60,74 C58,74 57,76 58,78" />
 
                             {/* Torso / Clothes */}
-                            <path d="M44,54 L60,54 L63,68 L41,68 Z" fill="currentColor" className="opacity-30 text-[#5C52E5]" />
+                            <path d="M44,54 L60,54 L63,68 L41,68 Z" fill="currentColor" className="opacity-30 text-indigo-500" />
                             <path d="M44,54 L60,54 L63,68 L41,68 Z" />
                             <path d="M44,54 L39,59 L42,62 L45,58" />
                             <path d="M60,54 L65,59 L62,62 L59,58" />
                             
                             {/* Crossed Legs (Lotus pose) */}
-                            <path d="M26,76 C20,76 22,86 40,88 L64,88 C82,86 84,76 78,76 C72,76 68,82 52,82 C36,82 32,76 26,76 Z" fill="currentColor" className="opacity-15 text-[#5C52E5]" />
+                            <path d="M26,76 C20,76 22,86 40,88 L64,88 C82,86 84,76 78,76 C72,76 68,82 52,82 C36,82 32,76 26,76 Z" fill="currentColor" className="opacity-15 text-indigo-500" />
                             <path d="M26,76 C20,76 22,86 40,88 L64,88 C82,86 84,76 78,76 C72,76 68,82 52,82 C36,82 32,76 26,76 Z" />
                             <circle cx="34" cy="81" r="2.5" fill="currentColor" className="opacity-55" />
                             <circle cx="70" cy="81" r="2.5" fill="currentColor" className="opacity-55" />
@@ -995,12 +998,16 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                   </div>
 
                   {/* Right block: P&L Chart over time */}
-                  <div className="col-span-1 lg:col-span-2 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-6 rounded-[18px] sm:rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none flex flex-col min-h-[220px] sm:min-h-[280px] transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] dark:hover:shadow-none relative">
+                  <div className="col-span-1 lg:col-span-2 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col min-h-[240px] sm:min-h-[290px] transition-all duration-300 hover:scale-[1.01] relative">
                     <div className="mb-3 sm:mb-4 flex items-center justify-between">
                       <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                        <TrendingUp size={12} /> Intraday P&L Over Time
+                        <TrendingUp size={13} className="text-indigo-500" /> Intraday P&L Over Time
                       </h4>
-                      <span className={`text-[12px] sm:text-[13px] font-bold ${stats.netPnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                        stats.netPnl >= 0 
+                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20" 
+                          : "bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20"
+                      }`}>
                         {fmtDailyValue(stats.netPnl, { showSign: true })}
                       </span>
                     </div>
@@ -1043,9 +1050,9 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                 {/* 4. Interactive Inputs Panel */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 sm:gap-6">
                   {/* Notes & Observations (col-span-2) */}
-                  <div className="col-span-1 lg:col-span-2 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-6 rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.12em] text-[#393939] dark:text-slate-400 mb-3 flex items-center gap-1.5">
-                      <FileText size={13} className="text-slate-400" /> Notes & Observations
+                  <div className="col-span-1 lg:col-span-2 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between transition-all duration-300 hover:scale-[1.005]">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
+                      <FileText size={14} className="text-slate-400" /> Notes & Observations
                     </h4>
                     <textarea
                       value={entry.notes}
@@ -1055,17 +1062,17 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                       onBlur={e => handleTextareaBlur("notes", e.target.value)}
                       rows={8}
                       placeholder="Write down details about market behavior, trading setups, etc..."
-                      className="w-full bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-[13px] font-medium leading-relaxed text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all resize-none shadow-inner"
+                      className="w-full bg-slate-50/80 dark:bg-[#141416] border border-slate-200/80 dark:border-white/[0.08] rounded-xl p-4 text-[13px] font-medium leading-relaxed text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none shadow-xs"
                     />
                   </div>
 
                   {/* Market Environment (col-span-1) */}
-                  <div className="col-span-1 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-6 rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
+                  <div className="col-span-1 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between transition-all duration-300 hover:scale-[1.005]">
                     <div className="flex flex-col h-full justify-between">
                       <div>
                         <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-[11px] font-black uppercase tracking-[0.12em] text-[#393939] dark:text-slate-400 flex items-center gap-1.5">
-                            <Activity size={13} className="text-slate-400" /> Market Environment
+                          <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Activity size={14} className="text-slate-400" /> Market Environment
                           </h4>
                           {entry.isManualMarket ? (
                             <button
@@ -1075,12 +1082,12 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                 setEntry(updated);
                                 saveJournalEntry(updated);
                               }}
-                              className="text-[10px] font-bold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors uppercase tracking-wider"
+                              className="tactile-white-pill px-2.5 py-1 rounded-full text-[9.5px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider cursor-pointer active:scale-95 transition-transform"
                             >
                               Reset to Auto
                             </button>
                           ) : (
-                            <span className="text-[9px] font-bold text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                            <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                               Auto
                             </span>
                           )}
@@ -1093,7 +1100,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                               setEntry(updated);
                               saveJournalEntry(updated);
                             }}
-                            className="bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2 text-[12px] font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-slate-800 dark:text-slate-200"
+                            className="tactile-white-pill px-3 py-1.5 rounded-xl text-[12px] font-bold text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer"
                           >
                             <option value="Volatile">Volatile</option>
                             <option value="Trending">Trending</option>
@@ -1119,15 +1126,15 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                         }}
                         rows={5}
                         placeholder="Describe the session market environment..."
-                        className="w-full bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-[13px] font-medium leading-relaxed text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all resize-none shadow-inner flex-1 mt-2"
+                        className="w-full bg-slate-50/80 dark:bg-[#141416] border border-slate-200/80 dark:border-white/[0.08] rounded-xl p-4 text-[13px] font-medium leading-relaxed text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none shadow-xs flex-1 mt-2"
                       />
                     </div>
                   </div>
 
                   {/* What Went Well (col-span-1) */}
-                  <div className="col-span-1 bg-gradient-to-b from-[#EBF9F3] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#10B981]/5 dark:border-[1px] dark:border-[#10B981]/20 p-4 sm:p-6 rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#C2F0DD] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#A5E5CB] dark:hover:shadow-none">
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.12em] text-[#10B981] mb-3 flex items-center gap-1.5">
-                      <CheckCircle size={13} className="text-[#10B981]" /> What Went Well
+                  <div className="col-span-1 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.06] border border-emerald-500/20 dark:border-emerald-500/25 p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(16,185,129,0.03)] flex flex-col justify-between transition-all duration-300 hover:scale-[1.005]">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-3 flex items-center gap-1.5">
+                      <CheckCircle size={14} className="text-emerald-500" /> What Went Well
                     </h4>
                     <textarea
                       value={entry.whatWentWell}
@@ -1137,14 +1144,14 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                       onBlur={e => handleTextareaBlur("whatWentWell", e.target.value)}
                       rows={5}
                       placeholder="Did you follow your risk management plan? Excellent executions? Write here..."
-                      className="w-full bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-[13px] font-medium leading-relaxed text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#10B981]/20 focus:border-[#10B981]/40 transition-all resize-none shadow-inner"
+                      className="w-full bg-white dark:bg-[#141416] border border-emerald-500/25 dark:border-emerald-500/30 rounded-xl p-4 text-[13px] font-medium leading-relaxed text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all resize-none shadow-xs"
                     />
                   </div>
 
                   {/* Mistakes & Rules Violated (col-span-1) */}
-                  <div className="col-span-1 bg-gradient-to-b from-[#FFF0F0] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#F06363]/5 dark:border-[1px] dark:border-[#F06363]/20 p-4 sm:p-6 rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#FCD1D1] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FAA2A2] dark:hover:shadow-none">
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.12em] text-[#F06363] mb-3 flex items-center gap-1.5">
-                      <AlertTriangle size={13} className="text-[#F06363]" /> Mistakes & Rules Violated
+                  <div className="col-span-1 bg-rose-500/[0.03] dark:bg-rose-500/[0.06] border border-rose-500/20 dark:border-rose-500/25 p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(244,63,94,0.03)] flex flex-col justify-between transition-all duration-300 hover:scale-[1.005]">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3 flex items-center gap-1.5">
+                      <AlertTriangle size={14} className="text-rose-500" /> Mistakes & Rules Violated
                     </h4>
                     <textarea
                       value={entry.mistakes}
@@ -1154,14 +1161,14 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                       onBlur={e => handleTextareaBlur("mistakes", e.target.value)}
                       rows={5}
                       placeholder="Chased a breakout? Revenge trading? Boredom entry? Log it to avoid it next time..."
-                      className="w-full bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-[13px] font-medium leading-relaxed text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#F06363]/20 focus:border-[#F06363]/40 transition-all resize-none shadow-inner"
+                      className="w-full bg-white dark:bg-[#141416] border border-rose-500/25 dark:border-rose-500/30 rounded-xl p-4 text-[13px] font-medium leading-relaxed text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all resize-none shadow-xs"
                     />
                   </div>
 
                   {/* Daily Summary Comment (col-span-1) */}
-                  <div className="col-span-1 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 p-4 sm:p-6 rounded-[22px] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none">
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.12em] text-[#393939] dark:text-slate-400 mb-3 flex items-center gap-1.5">
-                      <AlignLeft size={13} className="text-slate-400" /> Daily Summary Comment
+                  <div className="col-span-1 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-5 sm:p-6 rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col justify-between transition-all duration-300 hover:scale-[1.005]">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-3 flex items-center gap-1.5">
+                      <AlignLeft size={14} className="text-slate-400" /> Daily Summary Comment
                     </h4>
                     <textarea
                       value={entry.summary}
@@ -1171,24 +1178,32 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                       onBlur={e => handleTextareaBlur("summary", e.target.value)}
                       rows={5}
                       placeholder="Provide a final high-level review or comment on this day's performance..."
-                      className="w-full bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 rounded-2xl p-4 text-[13px] font-medium leading-relaxed text-slate-700 dark:text-slate-200 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500/50 transition-all resize-none shadow-inner"
+                      className="w-full bg-slate-50/80 dark:bg-[#141416] border border-slate-200/80 dark:border-white/[0.08] rounded-xl p-4 text-[13px] font-medium leading-relaxed text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all resize-none shadow-xs"
                     />
                   </div>
                 </div>
 
                 {/* 5. Complete Trade History for the Day */}
-                <div className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] border-2 border-white dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 rounded-[22px] overflow-hidden shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none transition-all duration-300 hover:scale-[1.002] hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#CBD5E1] dark:hover:shadow-none">
-                  <div className="px-6 py-4 border-b border-slate-100 dark:border-white/10 flex justify-between items-center bg-slate-50/20 dark:bg-white/[0.005]">
-                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                      <Activity size={12} /> Today's Executed Trades ({trades.length})
-                    </h4>
+                <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all duration-300">
+                  <div className="px-6 py-4 border-b border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 bg-slate-50/50 dark:bg-white/[0.01]">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                        <Activity size={13} />
+                      </div>
+                      <h4 className="text-[11px] font-bold uppercase tracking-widest text-slate-800 dark:text-white">
+                        Today's Executed Trades ({trades.length})
+                      </h4>
+                    </div>
+                    <span className="text-[11px] font-medium text-slate-400">
+                      💡 Click any trade row to view full execution dossier &amp; chart photos
+                    </span>
                   </div>
                   {trades.length > 0 ? (
                     <>
                       <div className="overflow-x-auto max-h-[460px] overflow-y-auto amazing-scrollbar relative">
                         <table className="w-full border-collapse">
                           <thead className="sticky top-0 z-20">
-                            <tr className="bg-slate-100 dark:bg-[#141414] text-left border-b border-slate-100 dark:border-white/10 shadow-[0_1px_0_rgba(0,0,0,0.05)]">
+                            <tr className="bg-slate-50/90 dark:bg-[#141416] text-left border-b border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_0_rgba(0,0,0,0.03)]">
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Ticket</th>
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400">Symbol</th>
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center">Type</th>
@@ -1200,9 +1215,10 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Swaps</th>
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Gross P&L</th>
                               <th className="py-3 px-5 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-right">Net P&L</th>
+                              <th className="py-3 px-4 text-[10px] font-bold uppercase tracking-widest text-slate-400 text-center">Action</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 dark:divide-white/10">
+                          <tbody className="divide-y divide-slate-100 dark:divide-white/[0.05]">
                             {paginatedTrades.map((t, index) => {
                               const isWin = t.profit >= 0;
                               const tType = String(t.type !== undefined ? t.type : (t.trade_type !== undefined ? t.trade_type : "")).toUpperCase();
@@ -1214,7 +1230,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                     const mapped = {
                                       id: t.ticket || t.id,
                                       asset: t.symbol,
-                                      direction: String(t.type).toUpperCase() === "BUY" || String(t.type) === "0" ? "BUY" as const : "SELL" as const,
+                                      direction: isBuy ? "BUY" as const : "SELL" as const,
                                       pnl: Number(t.profit),
                                       entryTime: formatUTCDate(t.open_time || t.opened_at || new Date().toISOString()),
                                       exitTime: t.closed_at ? formatUTCDate(t.closed_at) : "Open",
@@ -1222,16 +1238,16 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                       exitPrice: Number(t.close_price || 0),
                                       stopLoss: (t as any).stop_loss ? Number((t as any).stop_loss) : undefined,
                                       takeProfit: (t as any).take_profit ? Number((t as any).take_profit) : undefined,
-                                      setups: [],
-                                      mistakes: [],
-                                      notes: "",
+                                      setups: Array.isArray((t as any).tags) ? (t as any).tags : ((t as any).setup ? [(t as any).setup] : []),
+                                      mistakes: Array.isArray((t as any).mistakes) ? (t as any).mistakes : [],
+                                      notes: (t as any).notes || "",
                                       holdDuration: formatHoldDuration(t.open_time || t.opened_at || new Date().toISOString(), t.closed_at),
                                       rawTrade: t
                                     };
                                     setSelectedTrade(mapped);
                                     setIsSlideOverOpen(true);
                                   }}
-                                  className="hover:bg-slate-100/50 dark:hover:bg-white/5 transition-all cursor-pointer"
+                                  className="hover:bg-slate-50/90 dark:hover:bg-white/[0.04] transition-all cursor-pointer group"
                                 >
                                   <td className="py-3 px-5 text-[11px] text-slate-400 font-sans font-medium">
                                     {t.ticket || t.id.slice(0, 8)}
@@ -1240,10 +1256,10 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                     {t.symbol}
                                   </td>
                                   <td className="py-3 px-5 text-center">
-                                    <span className={`inline-flex px-2 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-[0.08em] ${
+                                    <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                                       isBuy
-                                        ? "bg-[#10B981]/10 text-[#10B981]"
-                                        : "bg-[#F06363]/10 text-[#F06363]"
+                                        ? "tactile-emerald-pill text-white"
+                                        : "tactile-rose-pill text-white"
                                     }`}>
                                       {isBuy ? "BUY" : "SELL"}
                                     </span>
@@ -1267,14 +1283,57 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                     {(t as any).swap !== undefined && (t as any).swap !== null ? formatMoney(Number((t as any).swap), { raw: true, showSign: true }) : "-"}
                                   </td>
                                   <td className={`py-3 px-5 text-[12px] font-bold text-right font-sans ${
-                                    (Number(t.profit || 0) - Number((t as any).commission || 0) - Number((t as any).swap || 0) - Number((t as any).fee || 0)) >= 0 ? "text-[#10B981]" : "text-[#F06363]"
+                                    (Number(t.profit || 0) - Number((t as any).commission || 0) - Number((t as any).swap || 0) - Number((t as any).fee || 0)) >= 0 ? "text-emerald-500" : "text-rose-500"
                                   }`}>
                                     {fmtDailyValue(Number(t.profit || 0) - Number((t as any).commission || 0) - Number((t as any).swap || 0) - Number((t as any).fee || 0), { showSign: true })}
                                   </td>
                                   <td className={`py-3 px-5 text-[12px] font-bold text-right font-sans ${
-                                    isWin ? "text-[#10B981]" : "text-[#F06363]"
+                                    isWin ? "text-emerald-500" : "text-rose-500"
                                   }`}>
                                     {fmtDailyValue(t.profit, { showSign: true })}
+                                  </td>
+                                  <td className="py-3 px-4 text-center">
+                                    <div className="inline-flex items-center gap-1.5">
+                                      <span className="tactile-white-pill px-2.5 py-1 rounded-full text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform inline-flex items-center gap-1">
+                                        View <ChevronRight size={11} />
+                                      </span>
+                                      <button
+                                        type="button"
+                                        title="Delete trade"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toast(`Delete ${t.symbol || "this"} trade?`, {
+                                            description: "This removes it from your Calendar, Charts, and Journal.",
+                                            action: {
+                                              label: "Delete",
+                                              onClick: async () => {
+                                                try {
+                                                  const { error } = await supabase
+                                                    .from("trades")
+                                                    .delete()
+                                                    .eq("id", t.id);
+                                                  if (error) throw error;
+                                                  if (typeof window !== "undefined") {
+                                                    window.dispatchEvent(new CustomEvent("tradifive:trades-updated"));
+                                                  }
+                                                  toast.success(`${t.symbol || "Trade"} deleted`);
+                                                } catch (err: any) {
+                                                  console.error("Failed to delete trade:", err);
+                                                  toast.error(err?.message || "Failed to delete trade");
+                                                }
+                                              },
+                                            },
+                                            cancel: {
+                                              label: "Cancel",
+                                              onClick: () => {},
+                                            },
+                                          });
+                                        }}
+                                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-colors cursor-pointer"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               );
@@ -1285,7 +1344,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                       
                       {/* Pagination Controls */}
                       {trades.length > ITEMS_PER_PAGE && (
-                        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-white/10 bg-slate-50/20 dark:bg-[#141414]">
+                        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200/80 dark:border-white/[0.08] bg-slate-50/50 dark:bg-[#141416]">
                           <div className="text-[11px] font-bold text-slate-400">
                             Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, trades.length)} of {trades.length} trades
                           </div>
@@ -1293,10 +1352,10 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                             <button
                               disabled={currentPage === 1}
                               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                              className={`p-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-300 transition-all ${
+                              className={`tactile-white-pill p-1.5 rounded-xl text-slate-500 dark:text-slate-300 cursor-pointer transition-transform active:scale-95 ${
                                 currentPage === 1 
-                                  ? "opacity-40 cursor-not-allowed" 
-                                  : "hover:bg-slate-50 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-white"
+                                  ? "opacity-40 cursor-not-allowed pointer-events-none" 
+                                  : "hover:text-slate-800 dark:hover:text-white"
                               }`}
                             >
                               <ChevronLeft size={14} />
@@ -1307,10 +1366,10 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                             <button
                               disabled={currentPage === totalPages}
                               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                              className={`p-1.5 rounded-lg border border-slate-200 dark:border-white/10 text-slate-400 dark:text-slate-300 transition-all ${
+                              className={`tactile-white-pill p-1.5 rounded-xl text-slate-500 dark:text-slate-300 cursor-pointer transition-transform active:scale-95 ${
                                 currentPage === totalPages 
-                                  ? "opacity-40 cursor-not-allowed" 
-                                  : "hover:bg-slate-50 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-white"
+                                  ? "opacity-40 cursor-not-allowed pointer-events-none" 
+                                  : "hover:text-slate-800 dark:hover:text-white"
                               }`}
                             >
                               <ChevronRight size={14} />
@@ -1329,14 +1388,14 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
               </div>
 
               {/* Footer row */}
-              <div className="px-4 py-3 sm:px-8 sm:py-5 border-t border-slate-100 dark:border-white/10 flex flex-col gap-4 bg-slate-50/50 dark:bg-[#141414] shrink-0">
-                {/* Quotation banner in new white card */}
-                <div className="bg-white dark:bg-[#2C2C2E] border border-slate-100 dark:border-white/10 px-4 py-3 sm:px-6 sm:py-3.5 rounded-[16px] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-slate-700 dark:text-slate-300 shadow-sm">
+              <div className="px-4 py-3 sm:px-8 sm:py-5 border-t border-slate-200/80 dark:border-white/10 flex flex-col gap-4 bg-slate-50/50 dark:bg-[#141414] shrink-0">
+                {/* Quotation banner in new elevated card */}
+                <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] px-5 py-3.5 sm:px-6 sm:py-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-slate-700 dark:text-slate-300 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
                   <div className="flex items-center gap-2">
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5 text-[#5C52E5] fill-current shrink-0" stroke="none">
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 fill-current shrink-0" stroke="none">
                       <path d="M11.192 15.757c0-.907-.188-1.745-.562-2.512A5.572 5.572 0 0 0 9.07 11.23a4.57 4.57 0 0 0-2.31-.586c-.503 0-1.002.096-1.498.286A4.316 4.316 0 0 0 3.73 12.01c-.37.382-.646.852-.828 1.41a5.617 5.617 0 0 0-.273 1.777c0 .907.188 1.745.563 2.512A5.573 5.573 0 0 0 4.75 19.73a4.57 4.57 0 0 0 2.31.587c.503 0 1.002-.096 1.498-.286a4.314 4.314 0 0 0 1.532-1.079c.37-.382.646-.852.828-1.41a5.618 5.618 0 0 0 .274-1.785zm10.238 0c0-.907-.188-1.745-.563-2.512a5.572 5.572 0 0 0-1.558-2.015 4.57 4.57 0 0 0-2.31-.586c-.503 0-1.002.096-1.498.286a4.317 4.317 0 0 0-1.532 1.079c-.37.382-.646.852-.828 1.41a5.616 5.616 0 0 0-.273 1.777c0 .907.188 1.745.563 2.512a5.573 5.573 0 0 0 1.558 2.015 4.57 4.57 0 0 0 2.31.587c.503 0 1.002-.096 1.498-.286a4.314 4.314 0 0 0 1.532-1.079c.37-.382.646-.852.828-1.41a5.618 5.618 0 0 0 .274-1.785z"/>
                     </svg>
-                    <p className="text-[11.5px] sm:text-[12px] font-medium leading-relaxed">
+                    <p className="text-[12px] font-medium leading-relaxed">
                       Discipline is choosing between what you want now and what you want most.
                     </p>
                   </div>
@@ -1353,40 +1412,43 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="relative w-full max-w-[440px] rounded-[32px] overflow-hidden bg-white dark:bg-[#141414] border border-slate-200 dark:border-white/10 shadow-2xl p-6 flex flex-col space-y-6"
+                    className="relative w-full max-w-[440px] rounded-[32px] overflow-hidden bg-white dark:bg-[#141416] border border-slate-200/90 dark:border-white/[0.08] shadow-2xl p-6 flex flex-col space-y-6"
                     onClick={e => e.stopPropagation()}
                   >
                     {/* Header with logo */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <img src={tradifiveLogo} alt="TradiFive Logo" className="h-[36px] object-contain" />
-                        <span className="text-[12px] font-bold text-slate-400 mt-1">REPORT</span>
+                        <span className="text-[11px] font-bold tracking-wider text-slate-400 mt-1 uppercase">REPORT</span>
                       </div>
-                      <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-2">
                         <button
+                          type="button"
                           onClick={() => {
                             const text = `TradiFive Trading Report - ${dateLabel}\n----------------------------------\nNet Return: ${fmtDailyValueStr(stats.netPnl, { showSign: true })} ${!percentageOnly ? `(${stats.netPct.toFixed(2)}%)` : ""}\nWin Rate: ${stats.winRate}%\nTotal Trades: ${stats.total}\nBest Trade: ${stats.bestTrade ? `${stats.bestTrade.symbol} (${fmtDailyValueStr(stats.bestTrade.profit, { showSign: true })})` : "—"}\nWorst Trade: ${stats.worstTrade ? `${stats.worstTrade.symbol} (${fmtDailyValueStr(stats.worstTrade.profit, { showSign: true })})` : "—"}\nMarket Condition: ${entry.marketCondition || "Volatile"}\nEmotional State: ${activeEmotionLabel}\nNotes: ${entry.notes || "No notes logged."}\n----------------------------------\nDiscipline is choosing between what you want now and what you want most. — Tradifive`;
                             navigator.clipboard.writeText(text);
                             toast.success("Performance report copied to clipboard!");
                           }}
-                          className="w-[36px] h-[36px] rounded-xl bg-gradient-to-b from-[#FFFFFF] to-[#F4F4F4] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-[#393939] dark:text-white hover:scale-105 transition-transform"
+                          className="tactile-white-pill w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 active:scale-95 transition-transform"
                           title="Copy Summary to Clipboard"
                         >
-                          <Share2 size={16} strokeWidth={2.5} />
+                          <Share2 size={15} strokeWidth={2.4} />
                         </button>
                         <button
+                          type="button"
                           onClick={() => toast.info("Image download feature coming soon!")}
-                          className="w-[36px] h-[36px] rounded-xl bg-gradient-to-b from-[#FFFFFF] to-[#F4F4F4] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-[#393939] dark:text-white hover:scale-105 transition-transform"
+                          className="tactile-white-pill w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 active:scale-95 transition-transform"
                           title="Download Report Image"
                         >
-                          <Download size={16} strokeWidth={2.5} />
+                          <Download size={15} strokeWidth={2.4} />
                         </button>
                         <button 
+                          type="button"
                           onClick={() => setShowShareModal(false)} 
-                          className="w-[36px] h-[36px] rounded-xl bg-gradient-to-b from-[#FFFFFF] to-[#F4F4F4] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-[#393939] dark:text-white hover:scale-105 transition-transform"
+                          className="tactile-white-pill w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 active:scale-95 transition-transform"
                           title="Close"
                         >
-                          <X size={16} strokeWidth={2.5} />
+                          <X size={15} strokeWidth={2.4} />
                         </button>
                       </div>
                     </div>
@@ -1394,32 +1456,32 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                     {/* Report Graphic Panel */}
                     <div className="flex flex-col gap-3.5">
                       {/* Date Box */}
-                      <div className="flex flex-col bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 rounded-[14px] p-3.5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none">
+                      <div className="flex flex-col bg-slate-50 dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs">
                         <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-0.5">Trading Performance summary</span>
                         <h3 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight">{dateLabel}</h3>
                       </div>
 
                       {/* Summary Metric list */}
                       <div className="grid grid-cols-2 gap-3 font-sans">
-                        <div className="bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 rounded-[14px] p-3.5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-center">
+                        <div className="bg-slate-50 dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-3.5 shadow-xs flex flex-col justify-center">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Daily Net Return</span>
-                          <span className={`text-[17px] leading-tight font-bold ${stats.netPnl >= 0 ? "text-[#10B981]" : "text-[#F06363]"}`}>
+                          <span className={`text-[17px] leading-tight font-bold ${stats.netPnl >= 0 ? "text-emerald-500" : "text-rose-500"}`}>
                             {fmtDailyValue(stats.netPnl, { showSign: true })} {!percentageOnly && `(${stats.netPct.toFixed(2)}%)`}
                           </span>
                         </div>
-                        <div className="bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 rounded-[14px] p-3.5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-center">
+                        <div className="bg-slate-50 dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-3.5 shadow-xs flex flex-col justify-center">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Win Rate / Trades</span>
                           <span className="text-[17px] leading-tight font-bold text-slate-900 dark:text-white">
-                            {stats.winRate}% <span className="text-[13px] text-slate-500">({stats.total} trades)</span>
+                            {stats.winRate}% <span className="text-[13px] text-slate-500 font-medium">({stats.total} trades)</span>
                           </span>
                         </div>
-                        <div className="bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 rounded-[14px] p-3.5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-center">
+                        <div className="bg-slate-50 dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-3.5 shadow-xs flex flex-col justify-center">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Market Condition</span>
                           <span className="text-[14px] leading-tight font-bold text-slate-800 dark:text-slate-200">
                             {entry.marketCondition || "Volatile"}
                           </span>
                         </div>
-                        <div className="bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 rounded-[14px] p-3.5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col justify-center">
+                        <div className="bg-slate-50 dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-3.5 shadow-xs flex flex-col justify-center">
                           <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Emotional State</span>
                           <span className="text-[14px] leading-tight font-bold text-slate-800 dark:text-slate-200">
                             {activeEmotionLabel}
@@ -1428,24 +1490,24 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                       </div>
 
                       {/* Highlights */}
-                      <div className="space-y-2 text-[12px] font-medium leading-relaxed font-sans bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] border-[1.5px] border-white dark:bg-none dark:bg-[#252525] dark:border-[1px] dark:border-white/5 rounded-[14px] p-3.5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none">
+                      <div className="space-y-2 text-[12px] font-medium leading-relaxed font-sans bg-slate-50 dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs">
                         {stats.bestTrade && (
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Best Trade</span>
-                            <span className="text-[#10B981] font-bold">{stats.bestTrade.symbol} ({fmtDailyValue(stats.bestTrade.profit, { showSign: true })})</span>
+                            <span className="text-emerald-500 font-bold">{stats.bestTrade.symbol} ({fmtDailyValue(stats.bestTrade.profit, { showSign: true })})</span>
                           </div>
                         )}
                         {stats.worstTrade && (
                           <div className="flex justify-between items-center">
                             <span className="text-slate-400 font-bold uppercase text-[9px] tracking-widest">Worst Trade</span>
-                            <span className="text-[#F06363] font-bold">{stats.worstTrade.symbol} ({fmtDailyValue(stats.worstTrade.profit, { showSign: true })})</span>
+                            <span className="text-rose-500 font-bold">{stats.worstTrade.symbol} ({fmtDailyValue(stats.worstTrade.profit, { showSign: true })})</span>
                           </div>
                         )}
                       </div>
 
                       {/* Notes & Summary */}
                       {entry.notes && (
-                        <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed italic border-t border-slate-200/50 dark:border-white/10 pt-3">
+                        <div className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed italic border-t border-slate-200/80 dark:border-white/10 pt-3">
                           &ldquo;{entry.notes.length > 150 ? `${entry.notes.slice(0, 150)}...` : entry.notes}&rdquo;
                         </div>
                       )}
@@ -1453,7 +1515,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                     </div>
 
                     {/* Quote Footer */}
-                    <div className="bg-slate-50 dark:bg-[#141414] px-4 py-3 rounded-[14px] text-[10px] text-slate-500 italic border border-slate-100 dark:border-white/5 text-center mt-2">
+                    <div className="bg-slate-50 dark:bg-[#18181B] px-4 py-3 rounded-2xl text-[10.5px] text-slate-500 italic border border-slate-200/80 dark:border-white/[0.06] text-center mt-2">
                       &ldquo;Discipline is choosing between what you want now and what you want most.&rdquo; — Tradifive
                     </div>
                   </motion.div>

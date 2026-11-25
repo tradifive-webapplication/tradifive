@@ -6,7 +6,7 @@ import {
   X, TrendingUp, TrendingDown, Award, AlertTriangle, 
   Smile, AlignLeft, Calendar, FileText, CheckCircle,
   HelpCircle, ChevronRight, ChevronLeft, Activity, DollarSign, Percent, Share2,
-  Star, Pin, Download
+  Star, Pin, Download, Trash2
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -1230,7 +1230,7 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                     const mapped = {
                                       id: t.ticket || t.id,
                                       asset: t.symbol,
-                                      direction: String(t.type).toUpperCase() === "BUY" || String(t.type) === "0" ? "BUY" as const : "SELL" as const,
+                                      direction: isBuy ? "BUY" as const : "SELL" as const,
                                       pnl: Number(t.profit),
                                       entryTime: formatUTCDate(t.open_time || t.opened_at || new Date().toISOString()),
                                       exitTime: t.closed_at ? formatUTCDate(t.closed_at) : "Open",
@@ -1293,9 +1293,47 @@ export default function DailyJournalModal({ isOpen, onClose, date, trades, accou
                                     {fmtDailyValue(t.profit, { showSign: true })}
                                   </td>
                                   <td className="py-3 px-4 text-center">
-                                    <span className="tactile-white-pill px-2.5 py-1 rounded-full text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform inline-flex items-center gap-1">
-                                      View <ChevronRight size={11} />
-                                    </span>
+                                    <div className="inline-flex items-center gap-1.5">
+                                      <span className="tactile-white-pill px-2.5 py-1 rounded-full text-[10px] font-bold text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform inline-flex items-center gap-1">
+                                        View <ChevronRight size={11} />
+                                      </span>
+                                      <button
+                                        type="button"
+                                        title="Delete trade"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          toast(`Delete ${t.symbol || "this"} trade?`, {
+                                            description: "This removes it from your Calendar, Charts, and Journal.",
+                                            action: {
+                                              label: "Delete",
+                                              onClick: async () => {
+                                                try {
+                                                  const { error } = await supabase
+                                                    .from("trades")
+                                                    .delete()
+                                                    .eq("id", t.id);
+                                                  if (error) throw error;
+                                                  if (typeof window !== "undefined") {
+                                                    window.dispatchEvent(new CustomEvent("tradifive:trades-updated"));
+                                                  }
+                                                  toast.success(`${t.symbol || "Trade"} deleted`);
+                                                } catch (err: any) {
+                                                  console.error("Failed to delete trade:", err);
+                                                  toast.error(err?.message || "Failed to delete trade");
+                                                }
+                                              },
+                                            },
+                                            cancel: {
+                                              label: "Cancel",
+                                              onClick: () => {},
+                                            },
+                                          });
+                                        }}
+                                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-colors cursor-pointer"
+                                      >
+                                        <Trash2 size={13} />
+                                      </button>
+                                    </div>
                                   </td>
                                 </tr>
                               );

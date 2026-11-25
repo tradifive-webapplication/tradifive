@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
-import { Search, Upload, Download, Share2 } from "lucide-react";
+import { Search, Upload, Download, Share2, Trash2 } from "lucide-react";
 import {
   ChevronDown as IconlyChevronDown,
   InfoSquare as IconlyInfoSquare,
@@ -313,6 +313,37 @@ export default function JournalTradesTable({
     e.stopPropagation();
     navigator.clipboard.writeText(`TRADIFIVE-TRADE-${ticket || "LOG"}`);
     toast.success(`Trade #${ticket || "LOG"} copied to clipboard!`);
+  };
+
+  const handleDeleteTrade = (e: React.MouseEvent, trade: TradeRecord) => {
+    e.stopPropagation();
+    toast(`Delete ${trade.symbol || "this"} trade?`, {
+      description: "This permanently removes the trade from your Journal, Calendar, and stats.",
+      action: {
+        label: "Delete",
+        onClick: async () => {
+          try {
+            const { error } = await supabase
+              .from("trades")
+              .delete()
+              .eq("id", trade.id);
+            if (error) throw error;
+            setTrades((prev) => prev.filter((t) => t.id !== trade.id));
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("tradifive:trades-updated"));
+            }
+            toast.success(`${trade.symbol || "Trade"} deleted`);
+          } catch (err: any) {
+            console.error("Failed to delete trade:", err);
+            toast.error(err?.message || "Failed to delete trade");
+          }
+        },
+      },
+      cancel: {
+        label: "Cancel",
+        onClick: () => {},
+      },
+    });
   };
 
   const handleExportCsv = () => {
@@ -778,14 +809,26 @@ export default function JournalTradesTable({
                       {formatPnl(profit)}
                     </td>
                     <td className="px-3 py-3 text-center">
-                      <button
-                        type="button"
-                        onClick={(e) => handleShareTrade(e, trade.ticket)}
-                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-[#2563EB] cursor-pointer"
-                        title="Copy trade reference"
-                      >
-                        <Share2 size={13} />
-                      </button>
+                      <div className="inline-flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => handleShareTrade(e, trade.ticket)}
+                          className="p-1.5 hover:bg-slate-100 dark:hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-[#2563EB] cursor-pointer"
+                          title="Copy trade reference"
+                        >
+                          <Share2 size={13} />
+                        </button>
+                        {!demoData && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteTrade(e, trade)}
+                            className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/15 rounded-lg transition-colors text-slate-400 hover:text-rose-600 cursor-pointer"
+                            title="Delete trade"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

@@ -58,7 +58,14 @@ export default function TradeSlideOver({ trade, isOpen, onClose }: TradeSlideOve
   const entryRef = useRef<HTMLInputElement>(null);
   const exitRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { hideBalance, percentageOnly, formatMoney } = useJournalSettings();
+
+  useEffect(() => {
+    setConfirmDelete(false);
+    setIsDeleting(false);
+  }, [trade, isOpen]);
 
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
@@ -658,10 +665,52 @@ export default function TradeSlideOver({ trade, isOpen, onClose }: TradeSlideOve
 
             {/* Footer Actions */}
             <div className="px-6 sm:px-8 py-5 flex items-center gap-3 bg-white dark:bg-[#121316] border-t border-slate-100 dark:border-white/[0.08] sticky bottom-0 z-20">
+              <button
+                type="button"
+                disabled={isSaving || isDeleting}
+                onClick={async () => {
+                  if (!confirmDelete) {
+                    setConfirmDelete(true);
+                    return;
+                  }
+                  setIsDeleting(true);
+                  try {
+                    const dbId = trade.rawTrade?.id;
+                    const { error } = dbId
+                      ? await supabase.from("trades").delete().eq("id", dbId)
+                      : await supabase.from("trades").delete().eq("ticket", String(trade.id));
+                    if (error) throw error;
+                    toast.success("Trade deleted from journal");
+                    if (typeof window !== "undefined") {
+                      window.dispatchEvent(new CustomEvent("tradifive:trades-updated"));
+                    }
+                    onClose();
+                  } catch (err: any) {
+                    console.error("Failed to delete trade:", err);
+                    toast.error(err?.message || "Failed to delete trade");
+                  } finally {
+                    setIsDeleting(false);
+                    setConfirmDelete(false);
+                  }
+                }}
+                className={`px-4 py-3.5 rounded-full text-[12px] font-bold uppercase tracking-wider transition-all disabled:opacity-55 flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
+                  confirmDelete
+                    ? "bg-rose-600 hover:bg-rose-700 text-white shadow-sm active:scale-95"
+                    : "bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 active:scale-95"
+                }`}
+                title={confirmDelete ? "Click again to permanently delete" : "Delete trade"}
+              >
+                {isDeleting ? (
+                  <span className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 size={14} />
+                )}
+                <span>{isDeleting ? "Deleting..." : confirmDelete ? "Confirm?" : "Delete"}</span>
+              </button>
               <button 
                 type="button"
                 onClick={onClose} 
-                disabled={isSaving}
+                disabled={isSaving || isDeleting}
                 className="tactile-white-pill flex-1 py-3.5 rounded-full text-[12px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 shadow-xs active:scale-95 transition-all disabled:opacity-55 cursor-pointer"
               >
                 Discard
@@ -669,7 +718,7 @@ export default function TradeSlideOver({ trade, isOpen, onClose }: TradeSlideOve
               <button 
                 type="button"
                 onClick={async () => {
-                  if (isSaving) return;
+                  if (isSaving || isDeleting) return;
                   setIsSaving(true);
                   try {
                     const tradeId = trade.rawTrade?.id || trade.id;
@@ -690,6 +739,9 @@ export default function TradeSlideOver({ trade, isOpen, onClose }: TradeSlideOve
                       trade.rawTrade.tags = setups;
                       trade.rawTrade.setup = setups[0] || null;
                     }
+                    if (typeof window !== "undefined") {
+                      window.dispatchEvent(new CustomEvent("tradifive:trades-updated"));
+                    }
                     onClose();
                   } catch (err: any) {
                     console.error("Failed to save trade entry:", err);
@@ -698,7 +750,7 @@ export default function TradeSlideOver({ trade, isOpen, onClose }: TradeSlideOve
                     setIsSaving(false);
                   }
                 }}
-                disabled={isSaving}
+                disabled={isSaving || isDeleting}
                 className="tactile-emerald-pill flex-1 py-3.5 rounded-full text-[12px] font-bold uppercase tracking-wider text-white shadow-sm active:scale-95 transition-all disabled:opacity-55 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSaving && <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
