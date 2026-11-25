@@ -11,6 +11,33 @@ import { useMarket } from "@/contexts/MarketContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import FeedCard from "@/components/FeedCard";
 import HomeProfileCard from "@/components/HomeProfileCard";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+
+const HOME_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const homeContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.06,
+            delayChildren: 0.04,
+        },
+    },
+};
+
+const homeCardVariants = {
+    hidden: { opacity: 0, y: 16, scale: 0.98 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            duration: 0.42,
+            ease: HOME_EXPO_OUT,
+        },
+    },
+};
 import CommunityHeaderBar from "@/components/CommunityHeaderBar";
 import InlineNotificationsPanel from "@/components/InlineNotificationsPanel";
 import { triggerHaptic } from "@/utils/haptics";
@@ -1735,11 +1762,16 @@ export default function Home() {
 
                         {/* --- COLUMN 1: LEFT SIDEBAR (col-span-3) --- */}
                         {currentTab !== 'calendar' && (showWatchlist || showCalendar || showFollowers) && (
-                            <div className="hidden xl:block xl:col-span-3 xl:col-start-1 xl:sticky xl:top-4 xl:max-h-[calc(100vh-110px)] xl:overflow-y-auto amazing-scrollbar space-y-3.5 px-1 xl:px-2 pt-4 pb-4">
+                            <motion.div
+                                variants={homeContainerVariants}
+                                initial="hidden"
+                                animate="visible"
+                                className="hidden xl:block xl:col-span-3 xl:col-start-1 xl:sticky xl:top-4 xl:max-h-[calc(100vh-110px)] xl:overflow-y-auto amazing-scrollbar space-y-3.5 px-1 xl:px-2 pt-4 pb-4"
+                            >
 
                                 {/* A. My Watchlist / Market Segment */}
                                 {showWatchlist && (
-                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                    <motion.div variants={homeCardVariants} className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
                                         <div className="flex items-center justify-between mb-3.5">
                                             <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                                                 <IconlyGraph size={15} set="curved" primaryColor="currentColor" className="text-slate-700 dark:text-slate-300 shrink-0" />
@@ -1846,12 +1878,12 @@ export default function Home() {
                                                 })
                                             )}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )}
 
                                 {/* B. Market News Ledger */}
                                 {showCalendar && (
-                                    <div className="rounded-[20px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_8px_rgba(15,23,42,0.04)] dark:shadow-none overflow-hidden">
+                                    <motion.div variants={homeCardVariants} className="rounded-[20px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_8px_rgba(15,23,42,0.04)] dark:shadow-none overflow-hidden">
                                         {/* Compact Header */}
                                         <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 border-b border-slate-100 dark:border-white/[0.06]">
                                             <div className="flex items-baseline gap-2 min-w-0">
@@ -1913,12 +1945,13 @@ export default function Home() {
                                         <div>
                                             {calendarRender}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )}
 
                                 {/* C. Followers Stats Box */}
                                 {showFollowers && (
-                                    <div
+                                    <motion.div
+                                        variants={homeCardVariants}
                                         onClick={() => navigate('/profile')}
                                         className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none cursor-pointer group hover:border-slate-300/90 dark:hover:border-white/15 transition-colors"
                                     >
@@ -1949,7 +1982,11 @@ export default function Home() {
                                         )}
                                         <div className="flex items-baseline gap-1.5">
                                             <h4 className="text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
-                                                {followerCountText}
+                                                <AnimatedNumber
+                                                    value={followers?.count || 0}
+                                                    duration={900}
+                                                    format={(v) => Math.round(v).toLocaleString()}
+                                                />
                                             </h4>
                                             <span className="text-[11.5px] font-semibold text-slate-400 uppercase tracking-wider">
                                                 Followers
@@ -1958,10 +1995,10 @@ export default function Home() {
                                         <p className="text-[11.5px] font-medium text-slate-400 mt-1.5">
                                             Active now on your profile
                                         </p>
-                                    </div>
+                                    </motion.div>
                                 )}
 
-                            </div>
+                            </motion.div>
                         )}
                         {/* --- COLUMN 2: MIDDLE MAIN CONTENT (vertical borders left & right on desktop) --- */}
                         <div
@@ -2356,7 +2393,10 @@ export default function Home() {
 
                         {/* --- COLUMN 3: RIGHT SIDEBAR (Profile Card + Optional Community Widgets) --- */}
                         {currentTab !== 'calendar' && (
-                            <div
+                            <motion.div
+                                variants={homeContainerVariants}
+                                initial="hidden"
+                                animate="visible"
                                 className={`hidden lg:block lg:col-span-4 ${
                                     (showWatchlist || showCalendar || showFollowers)
                                         ? 'xl:col-span-3 xl:col-start-10'
@@ -2364,11 +2404,13 @@ export default function Home() {
                                 } lg:sticky lg:top-4 lg:max-h-[calc(100vh-110px)] lg:overflow-y-auto amazing-scrollbar space-y-3.5 px-1 xl:px-2 pt-4 pb-4`}
                             >
                                 {/* Compact User Profile Card */}
-                                <HomeProfileCard userId={user?.id} />
+                                <motion.div variants={homeCardVariants}>
+                                    <HomeProfileCard userId={user?.id} />
+                                </motion.div>
 
                                 {/* Requests Section */}
                                 {showRequests && (
-                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                    <motion.div variants={homeCardVariants} className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
                                         <div className="flex items-center justify-between mb-3">
                                             <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">Follow Requests</h3>
                                             <span className="bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-200 text-[11px] font-bold px-2 py-0.5 rounded-full tabular-nums">
@@ -2378,12 +2420,12 @@ export default function Home() {
                                         <div className="text-center py-4">
                                             <p className="text-[12.5px] font-medium text-slate-400">No pending requests</p>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )}
 
                                 {/* Suggestions Section */}
                                 {showSuggestions && (
-                                    <div className="p-4 rounded-2xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none">
+                                    <motion.div variants={homeCardVariants} className="p-4 rounded-2xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(15,23,42,0.04)] dark:shadow-none">
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight">Suggestions for you</h3>
                                             {finalSuggestions.length > 0 && (
@@ -2408,12 +2450,12 @@ export default function Home() {
                                                 <p className="text-[11px] text-slate-400 mt-0.5">New signups and profile visitors will appear here.</p>
                                             </div>
                                         )}
-                                    </div>
+                                    </motion.div>
                                 )}
 
                                 {/* Top Winning Streaks Section */}
                                 {showStreaks && (
-                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                    <motion.div variants={homeCardVariants} className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
                                         <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 mb-3.5">
                                             <IconlyActivity size={15} set="curved" primaryColor="currentColor" className="text-orange-500 shrink-0" />
                                             <span>Top Winning Streaks</span>
@@ -2426,12 +2468,12 @@ export default function Home() {
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )}
 
                                 {/* Top Disciplined Section */}
                                 {showDisciplined && (
-                                    <div className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
+                                    <motion.div variants={homeCardVariants} className="p-4 rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none">
                                         <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 mb-3.5">
                                             <IconlyShieldDone size={15} set="curved" primaryColor="currentColor" className="text-emerald-500 shrink-0" />
                                             <span>Top Disciplined</span>
@@ -2444,9 +2486,9 @@ export default function Home() {
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )}
-                            </div>
+                            </motion.div>
                         )}
 
                     </div>

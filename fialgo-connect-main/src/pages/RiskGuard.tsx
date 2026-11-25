@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
 import { RiskScoreCard } from "@/components/RiskScoreCard";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
   Zap,
   Power,
@@ -1015,7 +1016,7 @@ export default function RiskGuard() {
                         Protocol Architecture
                       </span>
                       <h2 className="text-[14px] sm:text-[15px] font-bold text-slate-900 dark:text-white tracking-tight truncate tabular-nums">
-                        Level {gamificationState.level}{" "}
+                        Level <AnimatedNumber value={gamificationState.level} duration={700} />{" "}
                         {getTitleForLevel(gamificationState.level)}
                       </h2>
                     </div>
@@ -1024,17 +1025,21 @@ export default function RiskGuard() {
                       <span className="hidden md:inline text-[11px] text-slate-400 tabular-nums">
                         <strong className="font-semibold text-slate-700 dark:text-neutral-200">
                           {sym}
-                          {(startingCapital || balance || 0).toLocaleString(
-                            undefined,
-                            { maximumFractionDigits: 0 }
-                          )}
+                          <AnimatedNumber
+                            value={startingCapital || balance || 0}
+                            duration={900}
+                            format={(v) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          />
                         </strong>
                         {" → "}
                         <strong className="font-semibold text-[#2563EB] dark:text-blue-400">
                           {sym}
-                          {targetCapital.toLocaleString(undefined, {
-                            maximumFractionDigits: 0,
-                          })}
+                          <AnimatedNumber
+                            value={targetCapital}
+                            duration={900}
+                            delay={80}
+                            format={(v) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          />
                         </strong>{" "}
                         {iso}
                       </span>
@@ -1042,7 +1047,13 @@ export default function RiskGuard() {
                       <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400">
                         <Trophy size={11} />
                         <span className="text-[11px] font-semibold tabular-nums">
-                          {gamificationState.xp.toLocaleString()} XP
+                          <AnimatedNumber
+                            value={gamificationState.xp}
+                            duration={850}
+                            delay={120}
+                            format={(v) => v.toLocaleString()}
+                          />{" "}
+                          XP
                         </span>
                       </div>
 

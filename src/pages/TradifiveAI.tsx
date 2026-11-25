@@ -1922,9 +1922,9 @@ ${JSON.stringify(contextData)}`;
 
                 {/* Clean Warm Welcome Title */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 }}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
                   className="space-y-2.5"
                 >
                   <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight leading-tight bg-gradient-to-r from-slate-900 via-blue-600 to-slate-500 dark:from-white dark:via-blue-500 dark:to-slate-500 bg-clip-text text-transparent inline-block">
@@ -1939,9 +1939,14 @@ ${JSON.stringify(contextData)}`;
                 </motion.div>
 
                 {/* Input Console centered for new chat */}
-                <div className="w-full max-w-2xl mt-6 sm:mt-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.44, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full max-w-2xl mt-6 sm:mt-8"
+                >
                   {renderInputConsole()}
-                </div>
+                </motion.div>
               </div>
             ) : (
               <div className="w-full max-w-2xl space-y-5 py-4">
