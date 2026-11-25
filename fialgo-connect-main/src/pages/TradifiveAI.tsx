@@ -1667,8 +1667,9 @@ ${JSON.stringify(contextData)}`;
             {/* Historic Consultations list */}
             {!isSidebarCollapsed && (
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.36, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
                 className="flex-1 flex flex-col px-4 overflow-hidden"
               >
                 <div className="flex items-center justify-between px-1 mb-2.5 shrink-0">
@@ -1754,7 +1755,12 @@ ${JSON.stringify(contextData)}`;
           </div>
 
           {/* MT5 Account Context Panel (Sidebar Footer) - Made proper, borderless, clean & professional */}
-          <div className="p-4 border-t border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
+            className="p-4 border-t border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20 backdrop-blur-sm"
+          >
             {!isSidebarCollapsed ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 px-0.5">
@@ -1790,7 +1796,7 @@ ${JSON.stringify(contextData)}`;
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse border-2 border-white dark:border-[#151515] shadow-sm" />
               </div>
             )}
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* MAIN CHAT CONTENT AREA (RIGHT) */}

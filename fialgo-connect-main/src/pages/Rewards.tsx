@@ -1,5 +1,32 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+
+const REWARDS_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const rewardsContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.065,
+      delayChildren: 0.04,
+    },
+  },
+};
+
+const rewardsCardVariants = {
+  hidden: { opacity: 0, y: 18, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.45,
+      ease: REWARDS_EXPO_OUT,
+    },
+  },
+};
 import {
   Shield,
   ShieldCheck,
@@ -1254,7 +1281,12 @@ export default function Rewards() {
 
         {/* ── Scrollable Body Area (Matching Dashboard & Journal) ── */}
         <div className="flex-1 min-h-0 overflow-y-auto px-3.5 sm:px-6 pt-3.5 pb-12 scroll-smooth">
-          <div className="w-full max-w-[1440px] mx-auto space-y-4 sm:space-y-5">
+          <motion.div
+            variants={rewardsContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="w-full max-w-[1440px] mx-auto space-y-4 sm:space-y-5"
+          >
 
         {/* =========================================================================
             HERO ROW (12-COL GRID) — MATCHING DASHBOARD/JOURNAL CARD STYLING
@@ -1264,7 +1296,7 @@ export default function Rewards() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3.5 sm:gap-4 mb-4 sm:mb-5">
           
           {/* Card A: Trader Identity, Level/XP Progress & Account Chips (7 cols) */}
-          <div className={`lg:col-span-7 ${CARD_BASE} px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col justify-between gap-2.5`}>
+          <motion.div variants={rewardsCardVariants} className={`lg:col-span-7 ${CARD_BASE} px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col justify-between gap-2.5`}>
             
             {/* Top row: Avatar + Name + 2 Stat Chips (TOTAL XP & ACCOUNT) */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
@@ -1320,7 +1352,7 @@ export default function Rewards() {
                     <Star size={9.5} className="fill-[#006DFE] text-[#006DFE]" /> TOTAL XP
                   </div>
                   <div className="text-xs font-mono font-black text-slate-900 dark:text-white mt-0.5 tabular-nums">
-                    {totalXP.toLocaleString()} XP
+                    <AnimatedNumber value={totalXP} duration={900} format={(v) => Math.round(v).toLocaleString()} /> XP
                   </div>
                 </div>
 
@@ -1349,20 +1381,22 @@ export default function Rewards() {
                   </span>
                 </div>
                 <div className="text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 tabular-nums shrink-0">
-                  {totalXP.toLocaleString()} / {levelInfo.nextXp.toLocaleString()} XP
+                  <AnimatedNumber value={totalXP} duration={900} format={(v) => Math.round(v).toLocaleString()} /> / {levelInfo.nextXp.toLocaleString()} XP
                 </div>
               </div>
               <div className="h-1.5 w-full bg-slate-100 dark:bg-white/[0.06] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#006DFE] rounded-full transition-all duration-500"
-                  style={{ width: `${progressPercent}%` }}
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 0.9, delay: 0.12, ease: REWARDS_EXPO_OUT }}
+                  className="h-full bg-[#006DFE] rounded-full"
                 />
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Card B: Trading Streak (5 cols - Balanced Hero Height) */}
-          <div className={`lg:col-span-5 ${CARD_BASE} px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col justify-between gap-2`}>
+          <motion.div variants={rewardsCardVariants} className={`lg:col-span-5 ${CARD_BASE} px-3.5 py-2.5 sm:px-4 sm:py-3 flex flex-col justify-between gap-2`}>
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
                 Trading Streak
@@ -1380,7 +1414,7 @@ export default function Rewards() {
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-xl sm:text-[22px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-tight">
-                  {streakDays} Days
+                  <AnimatedNumber value={streakDays} duration={800} delay={100} /> Days
                 </div>
                 <div className="text-[10.5px] font-semibold text-slate-500 dark:text-neutral-400 mt-0.5">
                   {streakDays >= 21 ? "21d Shield Unlocked" : `Target 21 Days · ${Math.max(0, 21 - streakDays)} days left`}
@@ -1429,7 +1463,7 @@ export default function Rewards() {
                 );
               })}
             </div>
-          </div>
+          </motion.div>
 
         </div>
 
@@ -3048,7 +3082,7 @@ export default function Rewards() {
           )}
         </AnimatePresence>
 
-          </div>
+          </motion.div>
         </div>
       </div>
     </DashboardLayout>
