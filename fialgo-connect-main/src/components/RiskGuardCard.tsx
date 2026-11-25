@@ -1,7 +1,7 @@
 import React from "react";
 import { Switch } from "./ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
-import { Lock } from "lucide-react";
+import { Lock, LayoutGrid, Check } from "lucide-react";
 
 type CardIntent = "trading" | "warning" | "discipline" | "emergency";
 
@@ -14,6 +14,9 @@ export function RiskGuardCard({
   onToggle,
   intent = "trading",
   activeContent,
+  pinned,
+  onTogglePin,
+  fixedBodyHeight = false,
   children,
 }: {
   icon: React.ElementType;
@@ -24,6 +27,9 @@ export function RiskGuardCard({
   onToggle: (val: boolean) => void;
   intent?: CardIntent;
   activeContent?: React.ReactNode;
+  pinned?: boolean;
+  onTogglePin?: () => void;
+  fixedBodyHeight?: boolean;
   children?: React.ReactNode;
 }) {
   const activeIconStyle =
@@ -47,9 +53,11 @@ export function RiskGuardCard({
     valueStr.toLowerCase() !== "disabled" &&
     valueStr.toLowerCase() !== "active";
 
+  const bodySizeClass = fixedBodyHeight ? "min-h-[148px] flex flex-col justify-between" : "";
+
   return (
     <div
-      className={`p-3 sm:p-3.5 rounded-[16px] transition-all flex flex-col justify-start relative overflow-hidden isolate bg-white dark:bg-[#17171A] border shadow-[0_2px_8px_rgba(15,23,42,0.035),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none ${
+      className={`p-3 sm:p-3.5 rounded-[16px] transition-colors flex flex-col justify-start relative overflow-hidden isolate bg-white dark:bg-[#17171A] border shadow-[0_2px_8px_rgba(15,23,42,0.035),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none ${
         active
           ? intent === "emergency"
             ? "border-rose-200/80 dark:border-rose-500/25"
@@ -60,7 +68,7 @@ export function RiskGuardCard({
       }`}
     >
       {/* Header row — compact, zero clutter */}
-      <div className="flex items-center justify-between gap-2.5">
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <div
             className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-colors ${
@@ -87,7 +95,26 @@ export function RiskGuardCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onTogglePin && (
+            <button
+              type="button"
+              onClick={onTogglePin}
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold border transition-colors cursor-pointer ${
+                pinned
+                  ? "bg-blue-50 border-blue-200/80 text-[#2563EB] dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-400"
+                  : "bg-slate-50 border-slate-200/70 text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-neutral-400 dark:hover:text-white"
+              }`}
+              title={
+                pinned
+                  ? "Pinned to Dashboard (click to remove)"
+                  : "Add live widget to Dashboard"
+              }
+            >
+              {pinned ? <Check size={10} strokeWidth={2.5} /> : <LayoutGrid size={10} />}
+              <span>{pinned ? "Widget" : "+ Widget"}</span>
+            </button>
+          )}
           {showValuePill && (
             <span
               className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-md tabular-nums ${
@@ -105,15 +132,21 @@ export function RiskGuardCard({
 
       {/* Active custom live view (e.g. Rewards Gauge) OR original blurred edit controls */}
       {active && activeContent ? (
-        <div className="pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06]">
+        <div className={`pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06] ${bodySizeClass}`}>
           {activeContent}
         </div>
       ) : (
         children && (
-          <div className="relative pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06]">
+          <div className={`relative pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06] ${bodySizeClass}`}>
             <div
               className={`transition-all duration-200 ${
-                active ? "opacity-35 pointer-events-none select-none blur-[1px]" : ""
+                fixedBodyHeight ? "flex-1 flex flex-col justify-between" : ""
+              } ${
+                active && !fixedBodyHeight
+                  ? "opacity-35 pointer-events-none select-none blur-[1px]"
+                  : active
+                  ? "opacity-35 pointer-events-none select-none blur-[1px]"
+                  : ""
               }`}
             >
               {children}

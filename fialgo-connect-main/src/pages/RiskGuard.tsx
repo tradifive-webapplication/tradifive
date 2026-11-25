@@ -40,6 +40,7 @@ import {
   Wallet,
   ShieldOff,
   RefreshCw,
+  Lock,
 } from "lucide-react";
 import {
   Select,
@@ -57,6 +58,11 @@ import { useRiskConfig } from "@/hooks/useRiskConfig";
 import { getGamificationState } from "@/utils/gamification";
 import { useMarket } from "@/contexts/MarketContext";
 import { RiskGuardCard } from "@/components/RiskGuardCard";
+import {
+  getPinnedRiskWidgets,
+  togglePinRiskWidget,
+  type RiskWidgetId,
+} from "@/components/dashboard/RiskGuardWidgets";
 import { supabase } from "@/lib/supabase";
 import { Switch } from "@/components/ui/switch";
 
@@ -272,11 +278,36 @@ export default function RiskGuard() {
     lastImportTime,
   } = useDashboardData();
 
-  // Demo Preview & Inline Cap Editing (Card #1: Max Lot Size)
+  // Demo Preview & Dashboard Widget Pinning (Card #1: Max Lot Size)
   const [demoDataOverride, setDemoDataOverride] = useState<boolean | null>(null);
   const useDemoData = demoDataOverride !== null ? demoDataOverride : !isConnected;
-  const [demoOpenLots, setDemoOpenLots] = useState(0.65);
-  const [maxLotEditOpen, setMaxLotEditOpen] = useState(false);
+  const [demoOpenLots, setDemoOpenLots] = useState<number>(() => {
+    try {
+      const saved = Number(localStorage.getItem("fialgo_demo_open_lots"));
+      return Number.isFinite(saved) && saved >= 0 ? saved : 0.65;
+    } catch {
+      return 0.65;
+    }
+  });
+  const [pinnedWidgets, setPinnedWidgets] = useState<RiskWidgetId[]>(() =>
+    getPinnedRiskWidgets()
+  );
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("fialgo_demo_open_lots", String(demoOpenLots));
+      window.dispatchEvent(new Event("fialgo_config_changed"));
+    } catch {
+      /* ignore */
+    }
+  }, [demoOpenLots]);
+
+  useEffect(() => {
+    const syncWidgets = () => setPinnedWidgets(getPinnedRiskWidgets());
+    window.addEventListener("tradifive:risk-widgets-changed", syncWidgets);
+    return () =>
+      window.removeEventListener("tradifive:risk-widgets-changed", syncWidgets);
+  }, []);
 
   // C. Institutional Discipline States
   const { isProOrElite } = usePlan();
@@ -1320,7 +1351,7 @@ export default function RiskGuard() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.22, ease: EXPO_OUT }}
-                      className="grid grid-cols-1 md:grid-cols-2 gap-3"
+                      className="grid grid-cols-1 md:grid-cols-2 gap-3 items-start"
                     >
                       <RiskGuardCard
                         icon={Layers}
@@ -1338,20 +1369,33 @@ export default function RiskGuard() {
                         active={maxLotActive}
                         onToggle={setMaxLotActive}
                         intent={lotTelemetry.isBreached ? "emergency" : "trading"}
+                        fixedBodyHeight
+                        pinned={pinnedWidgets.includes("max_lot")}
+                        onTogglePin={() => {
+                          const added = togglePinRiskWidget("max_lot");
+                          setPinnedWidgets(getPinnedRiskWidgets());
+                          toast.success(
+                            added
+                              ? "Added Max Lot Gauge widget to Dashboard"
+                              : "Removed Max Lot widget from Dashboard"
+                          );
+                        }}
                         activeContent={
-                          <div className="space-y-2.5">
+                          <div className="flex-1 flex flex-col justify-between gap-2">
                             <div className="flex items-center gap-3">
-                              {/* Rewards-style Notched Semicircle Gauge */}
-                              <div className="w-[144px] shrink-0 flex flex-col items-center">
+                              {/* Bklit-style Dial Gauge with Ruler & Gradient Needle */}
+                              <div className="w-[136px] shrink-0 flex flex-col items-center">
                                 <Gauge
                                   compact
                                   ariaLabel="Max Lot Exposure Gauge"
                                   value={lotTelemetry.pct}
-                                  centerValue={lotTelemetry.fmt(lotTelemetry.openLots)}
-                                  defaultLabel={`of ${lotTelemetry.fmt(lotTelemetry.safeCap)} ${lotTelemetry.unit}`}
-                                  startAngle={180}
-                                  endAngle={360}
-                                  notchCornerRadius={3.5}
+                                  suffix="%"
+                                  defaultLabel={`${lotTelemetry.fmt(lotTelemetry.openLots)} / ${lotTelemetry.fmt(lotTelemetry.safeCap)} ${lotTelemetry.unit}`}
+                                  startAngle={135}
+                                  endAngle={405}
+                                  ruler
+                                  needle="gradient"
+                                  inactiveFillOpacity={0.42}
                                   useGradient
                                   gradientColors={lotTelemetry.gradientColors}
                                 />
@@ -1446,35 +1490,6 @@ export default function RiskGuard() {
                               </div>
                             </div>
 
-                            {maxLotEditOpen && (
-                              <div className="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
-                                <div className="relative flex items-center w-[112px] shrink-0">
-                                  <input
-                                    type="number"
-                                    step={activeMarket === "indian" ? "1" : "0.01"}
-                                    min={activeMarket === "indian" ? "1" : "0.01"}
-                                    value={maxLot}
-                                    onChange={(e) =>
-                                      setMaxLot(Math.max(0.01, Number(e.target.value)))
-                                    }
-                                    className={`w-full pl-2.5 pr-9 h-[30px] ${INPUT_BASE}`}
-                                  />
-                                  <span className="absolute right-2.5 text-[10px] font-semibold text-slate-400">
-                                    {lotTelemetry.unit}
-                                  </span>
-                                </div>
-                                <input
-                                  type="range"
-                                  min={activeMarket === "indian" ? "1" : "0.01"}
-                                  max={activeMarket === "indian" ? "500" : "10.00"}
-                                  step={activeMarket === "indian" ? "1" : "0.01"}
-                                  value={maxLot}
-                                  onChange={(e) => setMaxLot(Number(e.target.value))}
-                                  className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                                />
-                              </div>
-                            )}
-
                             <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/[0.06] text-[10px]">
                               <span
                                 className={`inline-flex items-center gap-1.5 font-semibold ${
@@ -1502,45 +1517,75 @@ export default function RiskGuard() {
                                     : "MetaApi Auto-Close Armed"}
                                 </span>
                               </span>
-                              <button
-                                type="button"
-                                onClick={() => setMaxLotEditOpen((v) => !v)}
-                                className="inline-flex items-center gap-1 font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
-                              >
-                                <Pencil size={9.5} />
-                                <span>{maxLotEditOpen ? "Done" : "Edit Cap"}</span>
-                              </button>
+                              <span className="inline-flex items-center gap-1 font-medium text-slate-400 dark:text-neutral-500">
+                                <Lock size={10} />
+                                <span>Turn off to edit</span>
+                              </span>
                             </div>
                           </div>
                         }
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="relative flex items-center w-[116px] shrink-0">
-                            <input
-                              type="number"
-                              step={activeMarket === "indian" ? "1" : "0.01"}
-                              min={activeMarket === "indian" ? "1" : "0.01"}
-                              value={maxLot}
-                              onChange={(e) =>
-                                setMaxLot(Number(e.target.value))
-                              }
-                              className={`w-full pl-2.5 pr-9 h-[32px] ${INPUT_BASE}`}
-                            />
-                            <span className="absolute right-2.5 text-[10px] font-semibold text-slate-400">
-                              {activeMarket === "indian" ? "Qty" : "Lots"}
+                        <div className="flex-1 flex flex-col justify-between gap-2">
+                          <div className="space-y-2.5">
+                            <div className="flex items-center gap-3">
+                              <div className="relative flex items-center w-[116px] shrink-0">
+                                <input
+                                  type="number"
+                                  step={activeMarket === "indian" ? "1" : "0.01"}
+                                  min={activeMarket === "indian" ? "1" : "0.01"}
+                                  value={maxLot}
+                                  onChange={(e) =>
+                                    setMaxLot(Number(e.target.value))
+                                  }
+                                  className={`w-full pl-2.5 pr-9 h-[32px] ${INPUT_BASE}`}
+                                />
+                                <span className="absolute right-2.5 text-[10px] font-semibold text-slate-400">
+                                  {activeMarket === "indian" ? "Qty" : "Lots"}
+                                </span>
+                              </div>
+                              <input
+                                type="range"
+                                min={activeMarket === "indian" ? "1" : "0.01"}
+                                max={activeMarket === "indian" ? "500" : "10.00"}
+                                step={activeMarket === "indian" ? "1" : "0.01"}
+                                value={maxLot}
+                                onChange={(e) =>
+                                  setMaxLot(Number(e.target.value))
+                                }
+                                className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="text-[10px] font-medium text-slate-400 dark:text-neutral-500 mr-0.5">
+                                Presets:
+                              </span>
+                              {(activeMarket === "indian"
+                                ? [25, 50, 100, 250, 500]
+                                : [0.25, 0.5, 1.0, 2.0, 5.0]
+                              ).map((preset) => (
+                                <button
+                                  key={preset}
+                                  type="button"
+                                  onClick={() => setMaxLot(preset)}
+                                  className={`px-2 py-0.5 rounded-md text-[10px] font-semibold tabular-nums border transition-colors cursor-pointer ${
+                                    Number(maxLot) === preset
+                                      ? "bg-blue-50 border-blue-200 text-[#2563EB] dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-400"
+                                      : "bg-slate-50 border-slate-200/70 text-slate-500 hover:text-slate-800 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-neutral-400"
+                                  }`}
+                                >
+                                  {preset} {lotTelemetry.unit}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/[0.06] text-[10px] text-slate-400 dark:text-neutral-500">
+                            <span>Set cap above &amp; toggle ON to lock exposure</span>
+                            <span className="font-semibold text-slate-500 dark:text-neutral-400">
+                              Editable
                             </span>
                           </div>
-                          <input
-                            type="range"
-                            min={activeMarket === "indian" ? "1" : "0.01"}
-                            max={activeMarket === "indian" ? "500" : "10.00"}
-                            step={activeMarket === "indian" ? "1" : "0.01"}
-                            value={maxLot}
-                            onChange={(e) =>
-                              setMaxLot(Number(e.target.value))
-                            }
-                            className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                          />
                         </div>
                       </RiskGuardCard>
 

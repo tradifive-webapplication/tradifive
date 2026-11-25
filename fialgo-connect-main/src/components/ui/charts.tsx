@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { Cpu, TrendingUp } from "lucide-react";
+import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -25,8 +26,15 @@ export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   useGradient?: boolean;
   gradientColors?: string[];
   inactiveColor?: string;
+  inactiveFillOpacity?: number;
+  spacing?: number;
+  ruler?: boolean;
+  needle?: boolean | "gradient" | "line" | "triangle" | "polygon";
   ariaLabel?: string;
   orientation?: "arc" | "linear";
+  linearHeight?: number;
+  labelPlacement?: "top" | "bottom";
+  labelAlign?: "start" | "center" | "end";
   compact?: boolean;
   className?: string;
 }
@@ -73,24 +81,63 @@ export const Gauge: React.FC<GaugeProps> = ({
   notchCornerRadius = 3,
   suffix = "%",
   useGradient = true,
-  gradientColors = ["#60A5FA", "#2563EB", "#0031F2"],
+  gradientColors = ["#818CF8", "#4F46E5", "#2563EB"],
   inactiveColor,
+  inactiveFillOpacity = 0.4,
+  spacing,
+  ruler = false,
+  needle = false,
   ariaLabel = "Gauge",
+  orientation = "arc",
+  linearHeight = 22,
+  labelPlacement = "top",
+  labelAlign = "start",
   compact = false,
   className = "",
   ...props
 }) => {
-  const effectiveNotches = compact && totalNotches === 36 ? 28 : totalNotches;
-  const clampedValue = Math.max(0, Math.min(100, value));
-  const activeCount = Math.round((clampedValue / 100) * effectiveNotches);
+  const uid = React.useId().replace(/:/g, "");
+  const prefersReduced = useReducedMotion();
+  const sweepDeg = Math.abs(endAngle - startAngle);
+  const isDial = sweepDeg > 185;
 
-  // SVG Geometry
-  const cx = 150;
-  const cy = 135;
-  const rInner = 76;
-  const rOuter = 108;
-  const baseRadius = compact ? Math.max(notchCornerRadius, 3.6) : notchCornerRadius;
-  const strokeW = baseRadius ? baseRadius * 1.8 : 5.4;
+  const effectiveNotches = isDial
+    ? totalNotches === 36
+      ? compact
+        ? 54
+        : 68
+      : totalNotches
+    : compact && totalNotches === 36
+    ? 28
+    : totalNotches;
+
+  const clampedValue = Math.max(0, Math.min(100, value));
+  const springMotion = useMotionValue(prefersReduced ? clampedValue : 0);
+  const [animValue, setAnimValue] = useState<number>(
+    prefersReduced ? clampedValue : 0
+  );
+
+  useMotionValueEvent(springMotion, "change", (latest) => {
+    setAnimValue(Math.max(0, Math.min(100, latest)));
+  });
+
+  useEffect(() => {
+    if (prefersReduced) {
+      springMotion.set(clampedValue);
+      setAnimValue(clampedValue);
+      return;
+    }
+    const controls = animate(springMotion, clampedValue, {
+      type: "spring",
+      stiffness: 115,
+      damping: 22,
+      mass: 0.75,
+      bounce: 0,
+    });
+    return () => controls.stop();
+  }, [clampedValue, prefersReduced, springMotion]);
+
+  const activeCount = Math.round((animValue / 100) * effectiveNotches);
 
   const stops: [number, string][] =
     gradientColors.length === 2
@@ -103,6 +150,100 @@ export const Gauge: React.FC<GaugeProps> = ({
           [0.5, gradientColors[1]],
           [1, gradientColors[2] || gradientColors[1]],
         ];
+
+  const displayCenter =
+    centerValue !== undefined
+      ? centerValue
+      : `${Math.round(animValue)}${suffix}`;
+
+  // ── LINEAR HORIZONTAL BAR GAUGE MODE ──
+  if (orientation === "linear") {
+    const linearNotches = totalNotches === 36 ? 48 : totalNotches;
+    const activeLin = Math.round((animValue / 100) * linearNotches);
+    const alignClass =
+      labelAlign === "center"
+        ? "items-center text-center"
+        : labelAlign === "end"
+        ? "items-end text-right"
+        : "items-start text-left";
+
+    const labelBlock = (centerValue !== undefined || defaultLabel) && (
+      <div className={`flex flex-col ${alignClass}`}>
+        {centerValue !== undefined && (
+          <div className="text-[14px] font-bold text-slate-900 dark:text-white tabular-nums leading-tight">
+            {displayCenter}
+          </div>
+        )}
+        {defaultLabel && (
+          <div className="text-[10.5px] font-medium text-slate-400 dark:text-neutral-500 leading-tight">
+            {defaultLabel}
+          </div>
+        )}
+      </div>
+    );
+
+    return (
+      <div
+        role="progressbar"
+        aria-label={ariaLabel}
+        aria-valuenow={clampedValue}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        className={`w-full flex flex-col gap-1.5 select-none ${className}`}
+        {...props}
+      >
+        {labelPlacement === "top" && labelBlock}
+        <div
+          className="w-full flex items-stretch"
+          style={{
+            height: `${linearHeight}px`,
+            gap: `${spacing ?? 2}px`,
+          }}
+        >
+          {Array.from({ length: linearNotches }, (_, idx) => {
+            const ratio = linearNotches > 1 ? idx / (linearNotches - 1) : 0;
+            const isActive = idx < activeLin;
+            const fill = isActive
+              ? useGradient
+                ? interpolateGradient(ratio, stops)
+                : gradientColors[1] || "#2563EB"
+              : inactiveColor;
+            return (
+              <div
+                key={idx}
+                className={`flex-1 transition-colors duration-300 ${
+                  !isActive && !inactiveColor
+                    ? "bg-slate-200 dark:bg-white/[0.14]"
+                    : ""
+                }`}
+                style={{
+                  backgroundColor: fill,
+                  opacity: isActive ? 1 : inactiveFillOpacity,
+                  borderRadius: `${notchCornerRadius}px`,
+                }}
+              />
+            );
+          })}
+        </div>
+        {labelPlacement === "bottom" && labelBlock}
+      </div>
+    );
+  }
+
+  // ── ARC / DIAL GAUGE GEOMETRY ──
+  const cx = 150;
+  const cy = isDial ? 148 : 135;
+  const rInner = isDial ? 96 : 76;
+  const rOuter = isDial ? 116 : 108;
+  const viewBox = isDial ? "0 0 300 246" : "0 0 300 156";
+  const baseRadius = isDial
+    ? compact
+      ? 2.1
+      : 2.2
+    : compact
+    ? Math.max(notchCornerRadius, 3.6)
+    : notchCornerRadius;
+  const strokeW = baseRadius * 1.8;
 
   const notches = Array.from({ length: effectiveNotches }, (_, idx) => {
     const stepRatio = effectiveNotches > 1 ? idx / (effectiveNotches - 1) : 0;
@@ -132,10 +273,41 @@ export const Gauge: React.FC<GaugeProps> = ({
     };
   });
 
-  const displayCenter =
-    centerValue !== undefined
-      ? centerValue
-      : `${Math.round(clampedValue)}${suffix}`;
+  // Inner Precision Ruler Ticks (Major + Minor)
+  const totalRulerTicks = isDial ? 41 : 25;
+  const rulerTicks = ruler
+    ? Array.from({ length: totalRulerTicks }, (_, idx) => {
+        const stepRatio = idx / (totalRulerTicks - 1);
+        const angleDeg = startAngle + stepRatio * (endAngle - startAngle);
+        const angleRad = (angleDeg * Math.PI) / 180;
+        const isMajor = idx % 5 === 0;
+        const tickOuter = rInner - 6;
+        const tickInner = isMajor ? tickOuter - 13 : tickOuter - 7;
+        const passed = stepRatio * 100 <= animValue + 0.5;
+
+        return {
+          idx,
+          isMajor,
+          passed,
+          x1: (cx + tickInner * Math.cos(angleRad)).toFixed(2),
+          y1: (cy + tickInner * Math.sin(angleRad)).toFixed(2),
+          x2: (cx + tickOuter * Math.cos(angleRad)).toFixed(2),
+          y2: (cy + tickOuter * Math.sin(angleRad)).toFixed(2),
+        };
+      })
+    : [];
+
+  // Pointer Needle (Drawn vertically up at 270deg, rotated smoothly around cx,cy)
+  const showNeedle = Boolean(needle);
+  const needleMode = needle === true ? "gradient" : needle || "gradient";
+  const needleAngleDeg = startAngle + (animValue / 100) * (endAngle - startAngle);
+  const needleRotDeg = needleAngleDeg - 270;
+  const rNeedleStart = isDial ? 46 : 36;
+  const rNeedleTip = rInner - 7;
+  const vStartY = cy - rNeedleStart;
+  const vTipY = cy - rNeedleTip;
+  const triHalfW = 3.2;
+  const polyPoints = `${cx - triHalfW},${vStartY} ${cx + triHalfW},${vStartY} ${cx},${vTipY}`;
 
   return (
     <div
@@ -149,10 +321,46 @@ export const Gauge: React.FC<GaugeProps> = ({
     >
       <svg
         className={`w-full h-auto overflow-visible ${
-          compact ? "max-w-[154px]" : "max-w-[280px]"
+          compact
+            ? isDial
+              ? "max-w-[136px]"
+              : "max-w-[154px]"
+            : "max-w-[280px]"
         }`}
-        viewBox="0 0 300 154"
+        viewBox={viewBox}
       >
+        {showNeedle && needleMode === "gradient" && (
+          <defs>
+            <linearGradient
+              id={`tfNeedleLight-${uid}`}
+              gradientUnits="userSpaceOnUse"
+              gradientTransform={`rotate(${needleRotDeg} ${cx} ${cy})`}
+              x1={cx}
+              y1={vStartY}
+              x2={cx}
+              y2={vTipY}
+            >
+              <stop offset="0%" stopColor="#64748B" stopOpacity="0" />
+              <stop offset="55%" stopColor="#2563EB" stopOpacity="0.65" />
+              <stop offset="100%" stopColor="#0F172A" stopOpacity="1" />
+            </linearGradient>
+            <linearGradient
+              id={`tfNeedleDark-${uid}`}
+              gradientUnits="userSpaceOnUse"
+              gradientTransform={`rotate(${needleRotDeg} ${cx} ${cy})`}
+              x1={cx}
+              y1={vStartY}
+              x2={cx}
+              y2={vTipY}
+            >
+              <stop offset="0%" stopColor="#94A3B8" stopOpacity="0" />
+              <stop offset="55%" stopColor="#CBD5E1" stopOpacity="0.7" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="1" />
+            </linearGradient>
+          </defs>
+        )}
+
+        {/* Outer Arc Notches */}
         <g>
           {notches.map((notch) => (
             <line
@@ -166,37 +374,116 @@ export const Gauge: React.FC<GaugeProps> = ({
                   ? notch.color
                   : inactiveColor || "currentColor"
               }
+              strokeOpacity={notch.isActive ? 1 : inactiveFillOpacity}
               className={
                 !notch.isActive && !inactiveColor
-                  ? "text-slate-200 dark:text-[#181C26]"
+                  ? "text-slate-300 dark:text-white/30"
                   : ""
               }
               strokeWidth={strokeW}
               strokeLinecap="round"
-              style={{
-                transition: "stroke 0.3s ease, opacity 0.3s ease",
-              }}
             />
           ))}
         </g>
+
+        {/* Inner Ruler Scale Ticks */}
+        {ruler && (
+          <g>
+            {rulerTicks.map((t) => (
+              <line
+                key={t.idx}
+                x1={t.x1}
+                y1={t.y1}
+                x2={t.x2}
+                y2={t.y2}
+                stroke="currentColor"
+                strokeWidth={t.isMajor ? 2.4 : 1.25}
+                strokeLinecap="round"
+                className={
+                  t.passed
+                    ? t.isMajor
+                      ? "text-slate-800 dark:text-white"
+                      : "text-slate-400 dark:text-white/50"
+                    : t.isMajor
+                    ? "text-slate-300 dark:text-white/25"
+                    : "text-slate-200 dark:text-white/15"
+                }
+              />
+            ))}
+          </g>
+        )}
+
+        {/* Rotating Gradient / Line / Triangle Pointer Needle */}
+        {showNeedle && (
+          <g transform={`rotate(${needleRotDeg} ${cx} ${cy})`}>
+            {needleMode === "triangle" || needleMode === "polygon" ? (
+              <polygon
+                points={polyPoints}
+                className="fill-slate-900 dark:fill-white"
+              />
+            ) : needleMode === "line" ? (
+              <line
+                x1={cx}
+                y1={vStartY}
+                x2={cx}
+                y2={vTipY}
+                stroke="currentColor"
+                strokeWidth={3}
+                strokeLinecap="round"
+                className="text-slate-900 dark:text-white"
+              />
+            ) : (
+              <>
+                <line
+                  x1={cx}
+                  y1={vStartY}
+                  x2={cx}
+                  y2={vTipY}
+                  stroke={`url(#tfNeedleLight-${uid})`}
+                  strokeWidth={3.8}
+                  strokeLinecap="round"
+                  className="dark:hidden"
+                />
+                <line
+                  x1={cx}
+                  y1={vStartY}
+                  x2={cx}
+                  y2={vTipY}
+                  stroke={`url(#tfNeedleDark-${uid})`}
+                  strokeWidth={3.8}
+                  strokeLinecap="round"
+                  className="hidden dark:block"
+                />
+              </>
+            )}
+          </g>
+        )}
       </svg>
 
       <div
         className={`absolute flex flex-col items-center text-center pointer-events-none ${
-          compact ? "top-[42px]" : "top-[82px]"
+          isDial
+            ? "top-[58%] -translate-y-1/2"
+            : compact
+            ? "top-[42px]"
+            : "top-[82px]"
         }`}
       >
         <div
           className={`font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-none ${
-            compact ? "text-[17px]" : "text-3xl sm:text-[34px]"
+            compact
+              ? isDial
+                ? "text-[16px]"
+                : "text-[17px]"
+              : "text-3xl sm:text-[34px]"
           }`}
         >
           {displayCenter}
         </div>
         {defaultLabel && (
           <div
-            className={`font-semibold text-slate-400 dark:text-neutral-400 ${
-              compact ? "mt-0.5 text-[9.5px]" : "mt-1 text-[11px]"
+            className={`font-semibold text-slate-400 dark:text-neutral-400 leading-tight ${
+              compact ? "mt-0.5 text-[8.5px] max-w-[82px] truncate" : "mt-1 text-[11px]"
             }`}
           >
             {defaultLabel}
