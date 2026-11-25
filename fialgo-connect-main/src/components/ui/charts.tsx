@@ -15,7 +15,7 @@ import {
 
 export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
-  centerValue?: number | string;
+  centerValue?: React.ReactNode;
   defaultLabel?: string;
   startAngle?: number;
   endAngle?: number;
@@ -27,6 +27,7 @@ export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   inactiveColor?: string;
   ariaLabel?: string;
   orientation?: "arc" | "linear";
+  compact?: boolean;
   className?: string;
 }
 
@@ -75,18 +76,21 @@ export const Gauge: React.FC<GaugeProps> = ({
   gradientColors = ["#60A5FA", "#2563EB", "#0031F2"],
   inactiveColor,
   ariaLabel = "Gauge",
+  compact = false,
   className = "",
   ...props
 }) => {
+  const effectiveNotches = compact && totalNotches === 36 ? 28 : totalNotches;
   const clampedValue = Math.max(0, Math.min(100, value));
-  const activeCount = Math.round((clampedValue / 100) * totalNotches);
+  const activeCount = Math.round((clampedValue / 100) * effectiveNotches);
 
   // SVG Geometry
   const cx = 150;
   const cy = 135;
   const rInner = 76;
   const rOuter = 108;
-  const strokeW = notchCornerRadius ? notchCornerRadius * 1.8 : 5.4;
+  const baseRadius = compact ? Math.max(notchCornerRadius, 3.6) : notchCornerRadius;
+  const strokeW = baseRadius ? baseRadius * 1.8 : 5.4;
 
   const stops: [number, string][] =
     gradientColors.length === 2
@@ -100,8 +104,8 @@ export const Gauge: React.FC<GaugeProps> = ({
           [1, gradientColors[2] || gradientColors[1]],
         ];
 
-  const notches = Array.from({ length: totalNotches }, (_, idx) => {
-    const stepRatio = totalNotches > 1 ? idx / (totalNotches - 1) : 0;
+  const notches = Array.from({ length: effectiveNotches }, (_, idx) => {
+    const stepRatio = effectiveNotches > 1 ? idx / (effectiveNotches - 1) : 0;
     const angleDeg = startAngle + stepRatio * (endAngle - startAngle);
     const angleRad = (angleDeg * Math.PI) / 180;
 
@@ -144,8 +148,10 @@ export const Gauge: React.FC<GaugeProps> = ({
       {...props}
     >
       <svg
-        className="w-full max-w-[280px] h-auto overflow-visible"
-        viewBox="0 0 300 160"
+        className={`w-full h-auto overflow-visible ${
+          compact ? "max-w-[154px]" : "max-w-[280px]"
+        }`}
+        viewBox="0 0 300 154"
       >
         <g>
           {notches.map((notch) => (
@@ -175,12 +181,24 @@ export const Gauge: React.FC<GaugeProps> = ({
         </g>
       </svg>
 
-      <div className="absolute top-[82px] flex flex-col items-center text-center pointer-events-none">
-        <div className="text-3xl sm:text-[34px] font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-none">
+      <div
+        className={`absolute flex flex-col items-center text-center pointer-events-none ${
+          compact ? "top-[42px]" : "top-[82px]"
+        }`}
+      >
+        <div
+          className={`font-black tracking-tight text-slate-900 dark:text-white tabular-nums leading-none ${
+            compact ? "text-[17px]" : "text-3xl sm:text-[34px]"
+          }`}
+        >
           {displayCenter}
         </div>
         {defaultLabel && (
-          <div className="mt-1 text-[11px] font-semibold text-slate-400 dark:text-neutral-400">
+          <div
+            className={`font-semibold text-slate-400 dark:text-neutral-400 ${
+              compact ? "mt-0.5 text-[9.5px]" : "mt-1 text-[11px]"
+            }`}
+          >
             {defaultLabel}
           </div>
         )}

@@ -13,6 +13,7 @@ export function RiskGuardCard({
   active,
   onToggle,
   intent = "trading",
+  activeContent,
   children,
 }: {
   icon: React.ElementType;
@@ -22,6 +23,7 @@ export function RiskGuardCard({
   active: boolean;
   onToggle: (val: boolean) => void;
   intent?: CardIntent;
+  activeContent?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   const activeIconStyle =
@@ -101,44 +103,50 @@ export function RiskGuardCard({
         </div>
       </div>
 
-      {/* Children content area */}
-      {children && (
-        <div className="relative pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06]">
-          <div
-            className={`transition-all duration-200 ${
-              active ? "opacity-35 pointer-events-none select-none blur-[1px]" : ""
-            }`}
-          >
-            {children}
-          </div>
-
-          <AnimatePresence>
-            {active && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 flex items-center justify-center z-10 pt-1.5"
-              >
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 dark:bg-[#1E1E22]/95 border border-slate-200/80 dark:border-white/10 shadow-sm">
-                  <Lock
-                    size={11}
-                    className={
-                      intent === "emergency"
-                        ? "text-rose-500"
-                        : intent === "warning"
-                        ? "text-amber-500"
-                        : "text-[#2563EB] dark:text-blue-400"
-                    }
-                  />
-                  <span className="text-[10px] font-semibold text-slate-700 dark:text-neutral-200">
-                    Guard active · turn off to edit
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+      {/* Active custom live view (e.g. Rewards Gauge) OR original blurred edit controls */}
+      {active && activeContent ? (
+        <div className="pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06]">
+          {activeContent}
         </div>
+      ) : (
+        children && (
+          <div className="relative pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06]">
+            <div
+              className={`transition-all duration-200 ${
+                active ? "opacity-35 pointer-events-none select-none blur-[1px]" : ""
+              }`}
+            >
+              {children}
+            </div>
+
+            <AnimatePresence>
+              {active && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 flex items-center justify-center z-10 pt-1.5"
+                >
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/95 dark:bg-[#1E1E22]/95 border border-slate-200/80 dark:border-white/10 shadow-sm">
+                    <Lock
+                      size={11}
+                      className={
+                        intent === "emergency"
+                          ? "text-rose-500"
+                          : intent === "warning"
+                          ? "text-amber-500"
+                          : "text-[#2563EB] dark:text-blue-400"
+                      }
+                    />
+                    <span className="text-[10px] font-semibold text-slate-700 dark:text-neutral-200">
+                      Guard active · turn off to edit
+                    </span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )
       )}
     </div>
   );

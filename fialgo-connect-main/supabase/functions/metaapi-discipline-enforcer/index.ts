@@ -56,27 +56,44 @@ serve(async (req) => {
 
     const userId = accountData.user_id;
 
-    // 2. Query the user's profile to check discipline rules
-    const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
-      .select('is_locked_for_today, trades_today, max_daily_trades, max_lot_size')
-      .eq('id', userId)
-      .single();
+    // 2. Query the user's profile & Risk Guard config to check discipline rules
+    const [{ data: profile, error: profileError }, { data: riskCfg }] = await Promise.all([
+      supabaseAdmin
+        .from('profiles')
+        .select('is_locked_for_today, trades_today, max_daily_trades, max_lot_size')
+        .eq('id', userId)
+        .single(),
+      supabaseAdmin
+        .from('user_risk_configs')
+        .select('max_lot_size, max_open_trades, max_daily_loss_percent')
+        .eq('user_id', userId)
+        .maybeSingle()
+    ]);
 
     if (profileError || !profile) {
       throw new Error(`Profile fetch failed for user_id ${userId}: ${profileError?.message}`);
     }
+
+    // Prefer user_risk_configs (Risk Guard UI) when configured, falling back to profiles
+    const activeMaxLot =
+      riskCfg && riskCfg.max_lot_size !== null && riskCfg.max_lot_size !== undefined
+        ? Number(riskCfg.max_lot_size)
+        : Number(profile.max_lot_size || 0);
+    const activeMaxTrades =
+      riskCfg && riskCfg.max_open_trades !== null && riskCfg.max_open_trades !== undefined && Number(riskCfg.max_open_trades) > 0
+        ? Number(riskCfg.max_open_trades)
+        : Number(profile.max_daily_trades || 0);
 
     // Extract trade volume from various possible MetaApi/Custom webhook payload formats
     let tradeVolume = payload.volume || payload.lot_size || payload.position?.volume || null;
 
     // 3. Rule Enforcement Logic
     const isLocked = profile.is_locked_for_today;
-    const overTradeLimit = profile.max_daily_trades > 0 && profile.trades_today >= profile.max_daily_trades;
+    const overTradeLimit = activeMaxTrades > 0 && profile.trades_today >= activeMaxTrades;
     let overMaxLot = false;
     
     // If we have trade volume in the payload, we can check it immediately without RPC
-    if (tradeVolume !== null && profile.max_lot_size > 0 && tradeVolume > profile.max_lot_size) {
+    if (tradeVolume !== null && activeMaxLot > 0 && Number(tradeVolume) > activeMaxLot) {
       overMaxLot = true;
     }
 
@@ -84,7 +101,7 @@ serve(async (req) => {
     let violationReason = isLocked ? 'ACCOUNT_LOCKED' : overTradeLimit ? 'MAX_TRADES_EXCEEDED' : overMaxLot ? 'MAX_LOT_EXCEEDED' : null;
 
     // If no initial violation is detected, but we have a max lot size rule and couldn't find the volume in the payload, we MUST check via RPC
-    const needsRpcVolumeCheck = !violationReason && profile.max_lot_size > 0 && tradeVolume === null;
+    const needsRpcVolumeCheck = !violationReason && activeMaxLot > 0 && tradeVolume === null;
 
     if (violationReason || needsRpcVolumeCheck) {
       console.log(`[SHIELD] Checking/Enforcing rules for user ${userId}. Initial Violation: ${violationReason || 'Checking Volume via RPC'}`);
@@ -100,7 +117,7 @@ serve(async (req) => {
         // If we needed to check volume via RPC, do it now before closing
         if (needsRpcVolumeCheck) {
            const position = await connection.getPosition(String(ticketId));
-           if (position && position.volume > profile.max_lot_size) {
+           if (position && position.volume > activeMaxLot) {
               overMaxLot = true;
               violationReason = 'MAX_LOT_EXCEEDED';
               tradeVolume = position.volume;
@@ -112,24 +129,32 @@ serve(async (req) => {
           console.log(`[SHIELD] Termination command initiated for ticket ${ticketId} on account ${accountId}. Reason: ${violationReason}`);
           await connection.closePosition(String(ticketId));
           
-          // 4. Log the forceful closure in system_logs
+          // 4. Log the forceful closure in system_logs & risk_breach_logs
           const logMessage = `Discipline Shield Activated: Trade [${ticketId}] auto-closed for rule violation.`;
-          await supabaseAdmin.from('system_logs').insert({
-            level: 'mt5',
-            user_id: userId,
-            message: logMessage,
-            metadata: {
-              ticketId,
-              accountId,
-              volume: tradeVolume,
-              reason: violationReason,
-              enforced_at: new Date().toISOString()
-            }
-          });
+          await Promise.all([
+            supabaseAdmin.from('system_logs').insert({
+              level: 'mt5',
+              user_id: userId,
+              message: logMessage,
+              metadata: {
+                ticketId,
+                accountId,
+                volume: tradeVolume,
+                max_lot_size: activeMaxLot,
+                reason: violationReason,
+                enforced_at: new Date().toISOString()
+              }
+            }),
+            supabaseAdmin.from('risk_breach_logs').insert({
+              user_id: userId,
+              rule_type: violationReason,
+              message: logMessage,
+            })
+          ]);
 
           let friendlyReason = 'Account is restricted for today';
           if (violationReason === 'MAX_TRADES_EXCEEDED') friendlyReason = 'Maximum daily trade volume exceeded';
-          if (violationReason === 'MAX_LOT_EXCEEDED') friendlyReason = `Maximum lot size exceeded (${tradeVolume} > ${profile.max_lot_size})`;
+          if (violationReason === 'MAX_LOT_EXCEEDED') friendlyReason = `Maximum lot size exceeded (${tradeVolume} > ${activeMaxLot})`;
 
           return new Response(
             JSON.stringify({ 

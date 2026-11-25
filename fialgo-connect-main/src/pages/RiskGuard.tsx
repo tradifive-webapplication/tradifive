@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
 import { RiskScoreCard } from "@/components/RiskScoreCard";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { Gauge } from "@/components/ui/charts";
 import {
   Zap,
   Power,
@@ -19,6 +20,9 @@ import {
   ShieldAlert,
   Settings,
   Pencil,
+  FlaskConical,
+  Minus,
+  Plus,
   MonitorOff,
   Key,
   Eye,
@@ -259,6 +263,7 @@ export default function RiskGuard() {
     balance,
     equity,
     isConnected,
+    recentTrades,
     lastClosedTrade,
     tradesToday,
     todayProfit,
@@ -266,6 +271,12 @@ export default function RiskGuard() {
     avgDisciplineScore,
     lastImportTime,
   } = useDashboardData();
+
+  // Demo Preview & Inline Cap Editing (Card #1: Max Lot Size)
+  const [demoDataOverride, setDemoDataOverride] = useState<boolean | null>(null);
+  const useDemoData = demoDataOverride !== null ? demoDataOverride : !isConnected;
+  const [demoOpenLots, setDemoOpenLots] = useState(0.65);
+  const [maxLotEditOpen, setMaxLotEditOpen] = useState(false);
 
   // C. Institutional Discipline States
   const { isProOrElite } = usePlan();
@@ -396,7 +407,7 @@ export default function RiskGuard() {
   });
 
   // E. Capital & Risk States
-  const [maxLot, setMaxLot] = useState(0.1);
+  const [maxLot, setMaxLot] = useState(1.0);
   const [targetCapital, setTargetCapital] = useState(2000);
 
   const [startingCapital, setStartingCapital] = useState(() => {
@@ -489,7 +500,9 @@ export default function RiskGuard() {
 
   useEffect(() => {
     if (dbConfig) {
-      if (dbConfig.max_lot_size !== null) setMaxLot(dbConfig.max_lot_size);
+      if (dbConfig.max_lot_size !== null && dbConfig.max_lot_size > 0) {
+        setMaxLot(dbConfig.max_lot_size);
+      }
       if (dbConfig.target_capital !== null)
         setTargetCapital(dbConfig.target_capital);
       if (dbConfig.max_daily_loss_percent !== null)
@@ -530,7 +543,7 @@ export default function RiskGuard() {
       if (config.selectedSessions)
         setSelectedSessions(config.selectedSessions);
       if (config.sessionTimes) setSessionTimes(config.sessionTimes);
-      if (config.maxLot) setMaxLot(config.maxLot);
+      if (config.maxLot && config.maxLot > 0) setMaxLot(config.maxLot);
       if (config.targetCapital) setTargetCapital(config.targetCapital);
       if (config.maxOpenPositions !== undefined)
         setMaxOpenPositions(config.maxOpenPositions);
@@ -633,14 +646,28 @@ export default function RiskGuard() {
     pinActive,
   });
 
+  const syncProfileLotCap = async (userId: string, activeLotCap: number) => {
+    try {
+      await (supabase.from("profiles") as any)
+        .update({ max_lot_size: activeLotCap })
+        .eq("id", userId);
+    } catch {
+      /* optional profiles column sync */
+    }
+  };
+
   const handleSave = async () => {
+    const activeLotCap = maxLotActive ? maxLot : 0;
     if (user?.id) {
-      await saveConfig({
-        max_lot_size: maxLotActive ? maxLot : 0,
-        target_capital: targetCapital,
-        max_daily_loss_percent: drawdownGuardActive ? maxDrawdown : 0,
-        max_open_trades: disciplineActive ? tradeLimit : 0,
-      }).catch(console.error);
+      await Promise.all([
+        saveConfig({
+          max_lot_size: activeLotCap,
+          target_capital: targetCapital,
+          max_daily_loss_percent: drawdownGuardActive ? maxDrawdown : 0,
+          max_open_trades: disciplineActive ? tradeLimit : 0,
+        }).catch(console.error),
+        syncProfileLotCap(user.id, activeLotCap),
+      ]);
     }
 
     localStorage.setItem(
@@ -668,12 +695,14 @@ export default function RiskGuard() {
       );
 
       if (user?.id) {
+        const activeLotCap = maxLotActive ? maxLot : 0;
         saveConfig({
-          max_lot_size: maxLotActive ? maxLot : 0,
+          max_lot_size: activeLotCap,
           target_capital: targetCapital,
           max_daily_loss_percent: drawdownGuardActive ? maxDrawdown : 0,
           max_open_trades: disciplineActive ? tradeLimit : 0,
         }).catch(console.error);
+        syncProfileLotCap(user.id, activeLotCap);
       }
     }, 800);
 
@@ -829,6 +858,59 @@ export default function RiskGuard() {
     return `${m}:${s}`;
   };
 
+  // Card #1 (Max Lot Size) Live MetaApi + Demo Telemetry
+  const lotTelemetry = useMemo(() => {
+    const isIndian = activeMarket === "indian";
+    const unit = isIndian ? "Qty" : "Lots";
+    const safeCap = Math.max(isIndian ? 1 : 0.01, Number(maxLot) || (isIndian ? 50 : 1.0));
+    const accountOpen = Array.isArray(accountMetrics?.open_positions)
+      ? accountMetrics.open_positions
+      : [];
+    const tradesOpen = (recentTrades || []).filter(
+      (t: any) => !t.closed_at && !t.is_pending
+    );
+    const livePositions = accountOpen.length > 0 ? accountOpen : tradesOpen;
+    const liveOpenSum = livePositions.reduce(
+      (sum: number, p: any) => sum + Number(p.lot ?? p.lot_size ?? p.volume ?? 0),
+      0
+    );
+
+    const openLots = useDemoData
+      ? isIndian
+        ? Math.max(0, Math.round(demoOpenLots * 100))
+        : Math.max(0, Number(demoOpenLots.toFixed(2)))
+      : Number(liveOpenSum.toFixed(isIndian ? 0 : 2));
+
+    const openCount = useDemoData ? (openLots > 0 ? 2 : 0) : livePositions.length;
+    const remainingLots = Math.max(0, Number((safeCap - openLots).toFixed(isIndian ? 0 : 2)));
+    const exceededBy = Math.max(0, Number((openLots - safeCap).toFixed(isIndian ? 0 : 2)));
+    const pct = Math.min(100, Math.max(0, Math.round((openLots / safeCap) * 100)));
+    const isBreached = openLots > safeCap;
+    const isWarning = !isBreached && pct >= 70;
+
+    const gradientColors = isBreached || pct >= 95
+      ? ["#FB7185", "#E11D48", "#BE123C"]
+      : isWarning
+      ? ["#FBBF24", "#F59E0B", "#D97706"]
+      : ["#60A5FA", "#2563EB", "#0031F2"];
+
+    const fmt = (val: number) => (isIndian ? String(Math.round(val)) : val.toFixed(2));
+
+    return {
+      unit,
+      safeCap,
+      openLots,
+      openCount,
+      remainingLots,
+      exceededBy,
+      pct,
+      isBreached,
+      isWarning,
+      gradientColors,
+      fmt,
+    };
+  }, [activeMarket, maxLot, accountMetrics, recentTrades, useDemoData, demoOpenLots]);
+
   if (!authChecked) {
     return (
       <DashboardLayout
@@ -880,6 +962,25 @@ export default function RiskGuard() {
               </div>
 
               <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  type="button"
+                  onClick={() => setDemoDataOverride(!useDemoData)}
+                  className={`inline-flex items-center gap-1.5 h-[32px] sm:h-[34px] px-2.5 sm:px-3 rounded-[10px] text-[11px] sm:text-[11.5px] font-semibold border transition-all cursor-pointer shrink-0 ${
+                    useDemoData
+                      ? "bg-amber-50 dark:bg-amber-500/15 border-amber-200 dark:border-amber-500/30 text-amber-700 dark:text-amber-300"
+                      : "bg-emerald-50 dark:bg-emerald-500/15 border-emerald-200 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300"
+                  }`}
+                  title={
+                    useDemoData
+                      ? "Showing simulated demo exposure for preview (click for live broker data)"
+                      : "Showing live MetaApi/broker exposure (click to preview with demo data)"
+                  }
+                >
+                  <FlaskConical size={12} />
+                  <span>{useDemoData ? "Demo Data" : "Live Data"}</span>
+                </motion.button>
+
                 <motion.button
                   whileTap={{ scale: 0.96 }}
                   type="button"
@@ -1233,19 +1334,192 @@ export default function RiskGuard() {
                             ? "Hard cap on quantity per trade"
                             : "Hard cap on lot size per trade"
                         }
-                        value={`${maxLot} ${
-                          activeMarket === "indian" ? "Qty" : "Lots"
-                        }`}
+                        value={`${lotTelemetry.fmt(lotTelemetry.safeCap)} ${lotTelemetry.unit}`}
                         active={maxLotActive}
                         onToggle={setMaxLotActive}
-                        intent="trading"
+                        intent={lotTelemetry.isBreached ? "emergency" : "trading"}
+                        activeContent={
+                          <div className="space-y-2.5">
+                            <div className="flex items-center gap-3">
+                              {/* Rewards-style Notched Semicircle Gauge */}
+                              <div className="w-[144px] shrink-0 flex flex-col items-center">
+                                <Gauge
+                                  compact
+                                  ariaLabel="Max Lot Exposure Gauge"
+                                  value={lotTelemetry.pct}
+                                  centerValue={lotTelemetry.fmt(lotTelemetry.openLots)}
+                                  defaultLabel={`of ${lotTelemetry.fmt(lotTelemetry.safeCap)} ${lotTelemetry.unit}`}
+                                  startAngle={180}
+                                  endAngle={360}
+                                  notchCornerRadius={3.5}
+                                  useGradient
+                                  gradientColors={lotTelemetry.gradientColors}
+                                />
+                              </div>
+
+                              {/* Live / Demo Breakdown Rows */}
+                              <div className="flex-1 min-w-0 space-y-1.5">
+                                <div className="flex items-center justify-between gap-2 text-[11px]">
+                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                    Lock Set
+                                  </span>
+                                  <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                                    {lotTelemetry.fmt(lotTelemetry.safeCap)} {lotTelemetry.unit}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2 text-[11px]">
+                                  <span className="text-slate-400 dark:text-neutral-500 font-medium inline-flex items-center gap-1">
+                                    <span>Open Now</span>
+                                    <span
+                                      className={`px-1 py-[1px] rounded text-[8.5px] font-bold uppercase tracking-wide ${
+                                        useDemoData
+                                          ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                      }`}
+                                    >
+                                      {useDemoData ? "Demo" : "Live"}
+                                    </span>
+                                  </span>
+                                  <div className="flex items-center gap-1">
+                                    {useDemoData && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setDemoOpenLots((v) =>
+                                            Math.max(0, Number((v - 0.1).toFixed(2)))
+                                          )
+                                        }
+                                        className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                        title="Decrease demo open lot"
+                                      >
+                                        <Minus size={9} />
+                                      </button>
+                                    )}
+                                    <span className="font-bold text-slate-900 dark:text-white tabular-nums">
+                                      {lotTelemetry.fmt(lotTelemetry.openLots)} {lotTelemetry.unit}
+                                    </span>
+                                    {useDemoData && (
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          setDemoOpenLots((v) =>
+                                            Number((v + 0.1).toFixed(2))
+                                          )
+                                        }
+                                        className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                        title="Increase demo open lot"
+                                      >
+                                        <Plus size={9} />
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2 text-[11px]">
+                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                    {lotTelemetry.isBreached ? "Exceeded" : "Remaining"}
+                                  </span>
+                                  <span
+                                    className={`font-bold tabular-nums ${
+                                      lotTelemetry.isBreached
+                                        ? "text-rose-600 dark:text-rose-400"
+                                        : lotTelemetry.isWarning
+                                        ? "text-amber-600 dark:text-amber-400"
+                                        : "text-emerald-600 dark:text-emerald-400"
+                                    }`}
+                                  >
+                                    {lotTelemetry.isBreached
+                                      ? `+${lotTelemetry.fmt(lotTelemetry.exceededBy)} ${lotTelemetry.unit} over`
+                                      : `${lotTelemetry.fmt(lotTelemetry.remainingLots)} ${lotTelemetry.unit} left`}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center justify-between gap-2 text-[10.5px] pt-0.5">
+                                  <span className="text-slate-400 dark:text-neutral-500">
+                                    Open Positions
+                                  </span>
+                                  <span className="font-semibold text-slate-600 dark:text-neutral-300 tabular-nums">
+                                    {lotTelemetry.openCount} active · {lotTelemetry.pct}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {maxLotEditOpen && (
+                              <div className="flex items-center gap-3 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                                <div className="relative flex items-center w-[112px] shrink-0">
+                                  <input
+                                    type="number"
+                                    step={activeMarket === "indian" ? "1" : "0.01"}
+                                    min={activeMarket === "indian" ? "1" : "0.01"}
+                                    value={maxLot}
+                                    onChange={(e) =>
+                                      setMaxLot(Math.max(0.01, Number(e.target.value)))
+                                    }
+                                    className={`w-full pl-2.5 pr-9 h-[30px] ${INPUT_BASE}`}
+                                  />
+                                  <span className="absolute right-2.5 text-[10px] font-semibold text-slate-400">
+                                    {lotTelemetry.unit}
+                                  </span>
+                                </div>
+                                <input
+                                  type="range"
+                                  min={activeMarket === "indian" ? "1" : "0.01"}
+                                  max={activeMarket === "indian" ? "500" : "10.00"}
+                                  step={activeMarket === "indian" ? "1" : "0.01"}
+                                  value={maxLot}
+                                  onChange={(e) => setMaxLot(Number(e.target.value))}
+                                  className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                                />
+                              </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/[0.06] text-[10px]">
+                              <span
+                                className={`inline-flex items-center gap-1.5 font-semibold ${
+                                  lotTelemetry.isBreached
+                                    ? "text-rose-600 dark:text-rose-400"
+                                    : useDemoData
+                                    ? "text-amber-600 dark:text-amber-400"
+                                    : "text-emerald-600 dark:text-emerald-400"
+                                }`}
+                              >
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    lotTelemetry.isBreached
+                                      ? "bg-rose-500 animate-pulse"
+                                      : useDemoData
+                                      ? "bg-amber-500"
+                                      : "bg-emerald-500"
+                                  }`}
+                                />
+                                <span>
+                                  {lotTelemetry.isBreached
+                                    ? "Cap Breached · MetaApi Auto-Close Triggered"
+                                    : useDemoData
+                                    ? "Demo Preview · MetaApi Guard Armed"
+                                    : "MetaApi Auto-Close Armed"}
+                                </span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setMaxLotEditOpen((v) => !v)}
+                                className="inline-flex items-center gap-1 font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                              >
+                                <Pencil size={9.5} />
+                                <span>{maxLotEditOpen ? "Done" : "Edit Cap"}</span>
+                              </button>
+                            </div>
+                          </div>
+                        }
                       >
                         <div className="flex items-center gap-3">
                           <div className="relative flex items-center w-[116px] shrink-0">
                             <input
                               type="number"
-                              step="0.01"
-                              min="0.01"
+                              step={activeMarket === "indian" ? "1" : "0.01"}
+                              min={activeMarket === "indian" ? "1" : "0.01"}
                               value={maxLot}
                               onChange={(e) =>
                                 setMaxLot(Number(e.target.value))
@@ -1258,9 +1532,9 @@ export default function RiskGuard() {
                           </div>
                           <input
                             type="range"
-                            min="0.01"
-                            max="10.00"
-                            step="0.01"
+                            min={activeMarket === "indian" ? "1" : "0.01"}
+                            max={activeMarket === "indian" ? "500" : "10.00"}
+                            step={activeMarket === "indian" ? "1" : "0.01"}
                             value={maxLot}
                             onChange={(e) =>
                               setMaxLot(Number(e.target.value))
