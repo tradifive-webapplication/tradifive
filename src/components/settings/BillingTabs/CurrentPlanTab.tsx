@@ -68,6 +68,11 @@ export default function CurrentPlanTab() {
       setDowngradeModalPlan('starter');
       return;
     }
+    const BYPASS_RAZORPAY_FOR_TESTING = true;
+    if (BYPASS_RAZORPAY_FOR_TESTING) {
+      await applyPlan(plan);
+      return;
+    }
     const price = plan === 'pro' ? 1399 : 2799;
     try {
       const { data: { user } } = await supabase.auth.getUser();

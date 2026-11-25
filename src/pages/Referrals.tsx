@@ -9,6 +9,37 @@ import {
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+
+const EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.03 },
+  },
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 14, scale: 0.99 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.42, ease: EXPO_OUT },
+  },
+};
+
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.38, ease: EXPO_OUT },
+  },
+};
 
 // ── Consistent Card Box & KPI Box Styles (Shared with Dashboard, AI Journal, & Reports) ──
 const SURFACE_CARD =
@@ -275,10 +306,15 @@ Please verify and process my remittance. Thank you!`;
 
   return (
     <DashboardLayout breadcrumbs={[{ label: 'Affiliate & Referrals' }]}>
-      <div className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 pb-12 space-y-5 select-none font-sans min-h-screen">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-[1600px] mx-auto px-3 sm:px-6 md:px-8 pb-12 space-y-5 select-none font-sans min-h-screen"
+      >
         
         {/* ── 1. SIGNATURE HEADER & PARTNER NETWORK STRIP ── */}
-        <div className={SURFACE_CARD}>
+        <motion.div variants={sectionVariants} className={SURFACE_CARD}>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
@@ -319,61 +355,62 @@ Please verify and process my remittance. Thank you!`;
               </button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── 2. METRICS ROW (5 CONSISTENCY CARDS MATCHING REPORTS) ── */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        <motion.div variants={sectionVariants} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           
           {/* Card 1: Settled Earnings */}
-          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border-emerald-500/25">
+          <motion.div variants={cardItemVariants} className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border-emerald-500/25">
             <div className="absolute top-4 right-4 text-emerald-600/30 group-hover:text-emerald-600/60 transition-colors">
               <DollarSign size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
               Settled Cash
             </span>
-            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none truncate">
-              ₹{earnedCash.toLocaleString()}
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none truncate tabular-nums">
+              ₹<AnimatedNumber value={earnedCash} duration={800} format={(v) => Math.round(v).toLocaleString()} />
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-emerald-600/90 dark:text-emerald-400/90 truncate">
               {activeBrokers > 0 ? `${activeBrokers} Active sub${activeBrokers > 1 ? "s" : ""}` : "Recurring monthly"} · Cleared
             </p>
-          </div>
+          </motion.div>
 
           {/* Card 2: Pipeline Commissions */}
-          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border-amber-500/25">
+          <motion.div variants={cardItemVariants} className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-amber-500/[0.04] dark:bg-amber-500/[0.08] border-amber-500/25">
             <div className="absolute top-4 right-4 text-amber-600/30 group-hover:text-amber-600/60 transition-colors">
               <Clock size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
               In Pipeline
             </span>
-            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-amber-600 dark:text-amber-400 tracking-tight leading-none truncate">
-              ₹{pendingCash.toLocaleString()}
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-amber-600 dark:text-amber-400 tracking-tight leading-none truncate tabular-nums">
+              ₹<AnimatedNumber value={pendingCash} duration={800} delay={60} format={(v) => Math.round(v).toLocaleString()} />
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-amber-600/90 dark:text-amber-400/90 truncate">
               {totalReferred - activeBrokers} signed up · Free plan
             </p>
-          </div>
+          </motion.div>
 
           {/* Card 3: Paid Subscribers */}
-          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border-sky-500/25">
+          <motion.div variants={cardItemVariants} className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border-sky-500/25">
             <div className="absolute top-4 right-4 text-sky-600/30 group-hover:text-sky-600/60 transition-colors">
               <Users size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
               Paid Subscribers
             </span>
-            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate">
-              {activeBrokers} <span className="text-xs font-semibold text-slate-400">/ {totalReferred}</span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate tabular-nums">
+              <AnimatedNumber value={activeBrokers} duration={750} delay={100} format={(v) => String(Math.round(v))} />{" "}
+              <span className="text-xs font-semibold text-slate-400">/ {totalReferred}</span>
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-sky-600/90 dark:text-sky-400/90 truncate">
               Active Pro &amp; Elite Plans
             </p>
-          </div>
+          </motion.div>
 
           {/* Card 4: Current Affiliate Tier */}
-          <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-violet-500/[0.04] dark:bg-violet-500/[0.08] border-violet-500/25">
+          <motion.div variants={cardItemVariants} className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-violet-500/[0.04] dark:bg-violet-500/[0.08] border-violet-500/25">
             <div className="absolute top-4 right-4 text-violet-600/30 group-hover:text-violet-600/60 transition-colors">
               <Trophy size={18} />
             </div>
@@ -387,28 +424,33 @@ Please verify and process my remittance. Thank you!`;
               <span>{currentTier.upfrontBonus} Recurring</span>
               <span className="font-mono text-[10px] opacity-75">{progressToNext}%</span>
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 5: Consistency & Conversion */}
-          <div className="col-span-2 sm:col-span-1 p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-indigo-500/[0.04] dark:bg-indigo-500/[0.08] border-indigo-500/25">
+          <motion.div variants={cardItemVariants} className="col-span-2 sm:col-span-1 p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-indigo-500/[0.04] dark:bg-indigo-500/[0.08] border-indigo-500/25">
             <div className="absolute top-4 right-4 text-indigo-600/30 group-hover:text-indigo-600/60 transition-colors">
               <Award size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
               Conversion Rate
             </span>
-            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-indigo-600 dark:text-indigo-400 tracking-tight leading-none truncate">
-              {totalReferred > 0 ? Math.round((activeBrokers / totalReferred) * 100) : 0}%
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-indigo-600 dark:text-indigo-400 tracking-tight leading-none truncate tabular-nums">
+              <AnimatedNumber
+                value={totalReferred > 0 ? Math.round((activeBrokers / totalReferred) * 100) : 0}
+                duration={750}
+                delay={140}
+                format={(v) => `${Math.round(v)}%`}
+              />
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-indigo-600/90 dark:text-indigo-400/90 truncate">
               Friend Discount: 5% OFF
             </p>
-          </div>
+          </motion.div>
 
-        </div>
+        </motion.div>
 
         {/* ── 3. INVITE WORKSTATION & VIRAL 1-CLICK SHARING ── */}
-        <div className={SURFACE_CARD}>
+        <motion.div variants={sectionVariants} className={SURFACE_CARD}>
           <div className="space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="space-y-1">
@@ -533,7 +575,7 @@ Please verify and process my remittance. Thank you!`;
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── 4. EXPANSIVE 2-COLUMN SECTION: TIERS + TABLE & RIGHT SIDEBAR ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -542,7 +584,7 @@ Please verify and process my remittance. Thank you!`;
           <div className="lg:col-span-8 space-y-5">
             
             {/* 3 Affiliate Partnership Tiers */}
-            <div className={SURFACE_CARD}>
+            <motion.div variants={sectionVariants} className={SURFACE_CARD}>
               <div className="space-y-5">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -611,10 +653,10 @@ Please verify and process my remittance. Thank you!`;
                   })}
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Systematic 3-Step Process */}
-            <div className={SURFACE_CARD}>
+            <motion.div variants={sectionVariants} className={SURFACE_CARD}>
               <div className="space-y-4">
                 <div className="space-y-0.5">
                   <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
@@ -663,10 +705,10 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Referred Friends Real Table */}
-            <div className={SURFACE_CARD}>
+            <motion.div variants={sectionVariants} className={SURFACE_CARD}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -699,7 +741,7 @@ Please verify and process my remittance. Thank you!`;
                         No referred traders yet
                       </h4>
                       <p className="text-xs text-slate-500 max-w-sm mx-auto font-medium">
-                        Share your referral link on WhatsApp or trading groups to earn ₹2,000 cash for every new automated trading terminal.
+                        Share your referral link on WhatsApp or trading groups to earn up to 20% recurring monthly commission.
                       </p>
                     </div>
                     <button
@@ -760,7 +802,7 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                 )}
               </div>
-            </div>
+            </motion.div>
 
           </div>
 
@@ -768,7 +810,7 @@ Please verify and process my remittance. Thank you!`;
           <div className="lg:col-span-4 space-y-5 lg:sticky lg:top-6">
             
             {/* Payout & Withdrawal Action Card */}
-            <div className={SURFACE_CARD}>
+            <motion.div variants={sectionVariants} className={SURFACE_CARD}>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-[10.5px] sm:text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
@@ -781,8 +823,8 @@ Please verify and process my remittance. Thank you!`;
 
                 <div>
                   <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Available For Withdrawal:</span>
-                  <div className="text-[26px] sm:text-[28px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 leading-none">
-                    ₹{earnedCash.toLocaleString()}
+                  <div className="text-[26px] sm:text-[28px] font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 leading-none tabular-nums">
+                    ₹<AnimatedNumber value={earnedCash} duration={800} format={(v) => Math.round(v).toLocaleString()} />
                   </div>
                 </div>
 
@@ -814,10 +856,10 @@ Please verify and process my remittance. Thank you!`;
                   Direct WhatsApp finance desk confirmation upon submission.
                 </p>
               </div>
-            </div>
+            </motion.div>
 
             {/* Why Traders Subscribe */}
-            <div className={SURFACE_CARD}>
+            <motion.div variants={sectionVariants} className={SURFACE_CARD}>
               <div className="space-y-3 text-xs">
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles size={14} className="text-indigo-500" />
@@ -839,10 +881,10 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Partner Program FAQ */}
-            <div className={SURFACE_CARD}>
+            <motion.div variants={sectionVariants} className={SURFACE_CARD}>
               <div className="space-y-3 text-xs">
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                   <HelpCircle size={14} className="text-violet-500" />
@@ -864,7 +906,7 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
           </div>
 
@@ -1002,7 +1044,7 @@ Please verify and process my remittance. Thank you!`;
           )}
         </AnimatePresence>
 
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }

@@ -46,12 +46,13 @@ export default function Upgrade() {
         // Also cache locally so settings page reads it immediately
         localStorage.setItem('tradifive_selected_plan', selectedPlan);
         localStorage.setItem('tradifive_cached_plan', selectedPlan);
-        const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-        const newMax = limits[selectedPlan as keyof typeof limits] || 20;
+        const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+        const newMax = limits[selectedPlan as keyof typeof limits] || 5;
         localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
         window.dispatchEvent(new Event('tradifive_profile_update'));
 
-        if (selectedPlan !== 'starter') {
+        const BYPASS_RAZORPAY_FOR_TESTING = true;
+        if (selectedPlan !== 'starter' && !BYPASS_RAZORPAY_FOR_TESTING) {
           try {
             await supabase.from('billing_history').insert({
               user_id: user.id,
@@ -85,8 +86,9 @@ export default function Upgrade() {
   };
 
   // Razorpay Standard Web Checkout Integration
+  const BYPASS_RAZORPAY_FOR_TESTING = true;
   const handlePayment = async () => {
-    if (selectedPlan === 'starter') {
+    if (selectedPlan === 'starter' || BYPASS_RAZORPAY_FOR_TESTING) {
       await finalizeConnection();
       return;
     }
@@ -355,6 +357,8 @@ export default function Upgrade() {
                     <Zap size={16} />
                     {selectedPlan === 'starter'
                       ? 'Confirm Free Plan'
+                      : BYPASS_RAZORPAY_FOR_TESTING
+                      ? `Switch to ${selectedPlanLabel} (Test Mode)`
                       : `Pay ₹${selectedPlan === 'pro' ? '1,399' : '2,799'} with Razorpay`}
                   </>
                 )}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Activity, TrendingUp, Download, Search, Terminal, Clock, RefreshCw,
   Copy, Check, ChevronDown, ChevronUp, Bot, FileText, ArrowRight,
@@ -9,6 +10,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import JournalTradesTable from "@/components/journal/JournalTradesTable";
 import TradeSlideOver from "@/components/journal/TradeSlideOver";
 import LogTradeModal from "@/components/dashboard/LogTradeModal";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
   JournalSettingsProvider,
   useJournalSettings
@@ -18,6 +20,36 @@ import { supabase } from "@/integrations/supabase/client";
 import { EXISTING_OFFICIAL_ALGOS } from "@/pages/Discover";
 import { formatUTCDate, formatHoldDuration } from "@/utils/tradeUtils";
 import { toast } from "sonner";
+
+const EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.03 },
+  },
+};
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 14, scale: 0.99 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.42, ease: EXPO_OUT },
+  },
+};
+
+const cardItemVariants = {
+  hidden: { opacity: 0, y: 12, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.38, ease: EXPO_OUT },
+  },
+};
 
 const cardBoxStyle = "bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] rounded-[20px] p-5 sm:p-6 space-y-3.5 shadow-xs transition-all";
 
@@ -404,10 +436,15 @@ function TradeHistoryContent() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 pb-20 select-none px-3 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full font-sans">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-4 pb-20 select-none px-3 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full font-sans"
+      >
 
         {/* ── Top Header (Clean White-Mode Tactile Consistency) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-white/[0.08]">
+        <motion.div variants={sectionVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-slate-200/80 dark:border-white/[0.08]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-500/10 border border-blue-200/70 dark:border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0 shadow-xs">
               <Clock size={18} />
@@ -428,115 +465,160 @@ function TradeHistoryContent() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            <button
+            <motion.button
+              whileTap={{ scale: 0.96 }}
               type="button"
               onClick={() => {
                 setLogModalTab("manual");
                 setLogModalOpen(true);
               }}
-              className="h-9 px-4 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="tactile-black-pill h-[36px] px-4 rounded-full text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer select-none shadow-sm"
             >
-              <Plus size={14} className="stroke-[2.5]" />
+              <Plus size={13.5} className="stroke-[2.6]" />
               <span>Log Trade</span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.96 }}
               type="button"
               onClick={() => {
                 setLogModalTab("import");
                 setLogModalOpen(true);
               }}
-              className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="tactile-white-pill h-[36px] px-3.5 rounded-full text-xs font-semibold text-slate-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer select-none shadow-xs"
             >
-              <UploadCloud size={13} className="text-blue-600 dark:text-blue-400" />
+              <UploadCloud size={13.5} className="text-blue-600 dark:text-blue-400" />
               <span>Import CSV</span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileTap={{ scale: 0.96 }}
               type="button"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-white/[0.05] border border-slate-200/80 dark:border-white/10 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="tactile-white-pill h-[36px] px-3.5 rounded-full text-xs font-semibold text-slate-700 dark:text-neutral-200 flex items-center gap-1.5 cursor-pointer select-none shadow-xs"
             >
-              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400 dark:text-neutral-400"} />
+              <RefreshCw size={13.5} className={isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400 dark:text-neutral-400"} />
               <span>Sync Data</span>
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
-        {/* ── 4 KPI Metric Cards (Clean Tactile Consistency) ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* ── 4 Consistency Metric Cards (Matching Reports & Referrals) ── */}
+        <motion.div variants={sectionVariants} className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Card 1: Total Closed Trades */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] rounded-[20px] p-4 sm:p-5 shadow-xs transition-all">
-            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
-              TOTAL CLOSED TRADES
+          <motion.div variants={cardItemVariants} className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border-sky-500/25">
+            <div className="absolute top-4 right-4 text-sky-600/30 group-hover:text-sky-600/60 transition-colors">
+              <Activity size={18} />
             </div>
-            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
-              {totalClosedCount}
-            </div>
-            <div className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1 flex items-center gap-1.5">
-              <span>{winningTrades.length} Wins</span>
-              <span>·</span>
-              <span>{losingTrades.length} Losses</span>
-            </div>
-          </div>
+            <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest block mb-1.5 truncate">
+              Total Closed Trades
+            </span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
+              <AnimatedNumber value={totalClosedCount} duration={750} format={(v) => String(Math.round(v))} />
+            </h3>
+            <p className="text-[11px] font-semibold mt-2 text-sky-600/90 dark:text-sky-400/90 truncate">
+              {winningTrades.length} Wins · {losingTrades.length} Losses
+            </p>
+          </motion.div>
 
           {/* Card 2: Realized Net P&L */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] rounded-[20px] p-4 sm:p-5 shadow-xs transition-all">
-            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
-              REALIZED NET P&amp;L
+          <motion.div
+            variants={cardItemVariants}
+            className={`p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border ${
+              totalProfit < 0
+                ? "bg-rose-500/[0.04] dark:bg-rose-500/[0.08] border-rose-500/25"
+                : "bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border-emerald-500/25"
+            }`}
+          >
+            <div className={`absolute top-4 right-4 transition-colors ${
+              totalProfit < 0 ? "text-rose-600/30 group-hover:text-rose-600/60" : "text-emerald-600/30 group-hover:text-emerald-600/60"
+            }`}>
+              <TrendingUp size={18} />
             </div>
-            <div className={`text-2xl font-bold font-mono tracking-tight ${totalProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : totalProfit < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
-              {formatMoney(totalProfit, { showSign: true })}
-            </div>
-            <div className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest block mb-1.5 truncate">
+              Realized Net P&amp;L
+            </span>
+            <h3 className={`text-[20px] sm:text-[22px] xl:text-[24px] font-bold tracking-tight leading-none tabular-nums truncate ${
+              totalProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : totalProfit < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"
+            }`}>
+              <AnimatedNumber
+                value={totalProfit}
+                duration={850}
+                delay={40}
+                format={(v) => formatMoney(v, { showSign: true })}
+              />
+            </h3>
+            <p className={`text-[11px] font-semibold mt-2 truncate ${
+              totalProfit < 0 ? "text-rose-600/90 dark:text-rose-400/90" : "text-emerald-600/90 dark:text-emerald-400/90"
+            }`}>
               Across connected brokers &amp; manual logs
-            </div>
-          </div>
+            </p>
+          </motion.div>
 
           {/* Card 3: Trade Win Rate */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] rounded-[20px] p-4 sm:p-5 shadow-xs transition-all">
-            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
-              TRADE WIN RATE
+          <motion.div variants={cardItemVariants} className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-violet-500/[0.04] dark:bg-violet-500/[0.08] border-violet-500/25">
+            <div className="absolute top-4 right-4 text-violet-600/30 group-hover:text-violet-600/60 transition-colors">
+              <FileText size={18} />
             </div>
-            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
-              {winRate}%
-            </div>
-            <div className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest block mb-1.5 truncate">
+              Trade Win Rate
+            </span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none tabular-nums">
+              <AnimatedNumber
+                value={winRate}
+                duration={800}
+                delay={80}
+                format={(v) => `${v % 1 === 0 ? Math.round(v) : v.toFixed(1)}%`}
+              />
+            </h3>
+            <p className="text-[11px] font-semibold mt-2 text-violet-600/90 dark:text-violet-400/90 truncate">
               {winningTrades.length} of {totalClosedCount} profitable
-            </div>
-          </div>
+            </p>
+          </motion.div>
 
           {/* Card 4: Profit Factor */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] rounded-[20px] p-4 sm:p-5 shadow-xs transition-all">
-            <div className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest mb-1">
-              PROFIT FACTOR
+          <motion.div variants={cardItemVariants} className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-indigo-500/[0.04] dark:bg-indigo-500/[0.08] border-indigo-500/25">
+            <div className="absolute top-4 right-4 text-indigo-600/30 group-hover:text-indigo-600/60 transition-colors">
+              <Sliders size={18} />
             </div>
-            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
-              {profitFactor}
-            </div>
-            <div className="text-[11px] text-slate-500 dark:text-neutral-400 mt-1">
+            <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest block mb-1.5 truncate">
+              Profit Factor
+            </span>
+            <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-indigo-600 dark:text-indigo-400 tracking-tight leading-none tabular-nums">
+              {profitFactor === "MAX" ? (
+                "MAX"
+              ) : (
+                <AnimatedNumber
+                  value={Number(profitFactor) || 0}
+                  duration={800}
+                  delay={120}
+                  format={(v) => v.toFixed(2)}
+                />
+              )}
+            </h3>
+            <p className="text-[11px] font-semibold mt-2 text-indigo-600/90 dark:text-indigo-400/90 truncate">
               Gross Wins / Gross Losses
-            </div>
-          </div>
-        </div>
+            </p>
+          </motion.div>
+        </motion.div>
 
-        {/* ── Sub Navigation Tabs ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+        {/* ── Sub Navigation Pill Tabs ── */}
+        <motion.div variants={sectionVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+          <div className="inline-flex items-center gap-1.5 p-1 rounded-full bg-slate-100/90 dark:bg-white/[0.05] border border-slate-200/70 dark:border-white/[0.06] overflow-x-auto max-w-full">
             <button
               type="button"
               onClick={() => { setActiveModule("trades"); setSearchQuery(""); }}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+              className={`whitespace-nowrap h-8 px-4 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
                 activeModule === "trades"
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                  : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/5"
+                  : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Clock size={13} className={activeModule === "trades" ? "text-emerald-400" : ""} />
+              <Clock size={13} className={activeModule === "trades" ? "text-emerald-400 dark:text-emerald-600" : ""} />
               <span>Trade History Table</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
-                activeModule === "trades" ? "bg-white/20 text-white dark:bg-black/20 dark:text-slate-900" : "bg-slate-100 dark:bg-black/40 text-emerald-600 dark:text-emerald-400"
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold leading-none ${
+                activeModule === "trades" ? "bg-white/20 text-white dark:bg-black/15 dark:text-slate-900" : "bg-white dark:bg-white/10 text-slate-600 dark:text-neutral-300"
               }`}>
                 {orders.length}
               </span>
@@ -545,16 +627,16 @@ function TradeHistoryContent() {
             <button
               type="button"
               onClick={() => { setActiveModule("purchases"); setSearchQuery(""); }}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+              className={`whitespace-nowrap h-8 px-4 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
                 activeModule === "purchases"
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                  : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/5"
+                  : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Bot size={13} className={activeModule === "purchases" ? "text-blue-400" : ""} />
+              <Bot size={13} className={activeModule === "purchases" ? "text-blue-400 dark:text-blue-600" : ""} />
               <span>Purchased Algos</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
-                activeModule === "purchases" ? "bg-white/20 text-white dark:bg-black/20 dark:text-slate-900" : "bg-slate-100 dark:bg-black/40 text-slate-500 dark:text-neutral-400"
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold leading-none ${
+                activeModule === "purchases" ? "bg-white/20 text-white dark:bg-black/15 dark:text-slate-900" : "bg-white dark:bg-white/10 text-slate-600 dark:text-neutral-300"
               }`}>
                 {totalPurchases}
               </span>
@@ -563,16 +645,16 @@ function TradeHistoryContent() {
             <button
               type="button"
               onClick={() => { setActiveModule("terminal"); setSearchQuery(""); }}
-              className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 cursor-pointer ${
+              className={`whitespace-nowrap h-8 px-4 rounded-full text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer ${
                 activeModule === "terminal"
                   ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xs"
-                  : "bg-white dark:bg-[#17171A] text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white border border-slate-200/80 dark:border-white/5"
+                  : "text-slate-600 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Terminal size={13} className={activeModule === "terminal" ? "text-purple-400" : ""} />
+              <Terminal size={13} className={activeModule === "terminal" ? "text-indigo-400 dark:text-indigo-600" : ""} />
               <span>MT5 Execution Logs</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-bold ${
-                activeModule === "terminal" ? "bg-white/20 text-white dark:bg-black/20 dark:text-slate-900" : "bg-slate-100 dark:bg-black/40 text-purple-600 dark:text-purple-400"
+              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-bold leading-none ${
+                activeModule === "terminal" ? "bg-white/20 text-white dark:bg-black/15 dark:text-slate-900" : "bg-white dark:bg-white/10 text-slate-600 dark:text-neutral-300"
               }`}>
                 {terminalLogs.length}
               </span>
@@ -581,23 +663,23 @@ function TradeHistoryContent() {
 
           {activeModule !== "trades" && (
             <div className="relative min-w-[240px]">
-              <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" />
+              <Search size={13} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={`Search ${activeModule}...`}
-                className="w-full h-9 bg-white dark:bg-black/30 border border-slate-200/80 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/20 rounded-xl pl-8 pr-3 text-xs font-mono text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-neutral-500 shadow-xs transition-colors"
+                className="w-full h-9 bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/10 focus:border-slate-400 dark:focus:border-white/20 rounded-full pl-9 pr-4 text-xs text-slate-900 dark:text-white focus:outline-none placeholder-slate-400 dark:placeholder-neutral-500 shadow-xs transition-colors"
               />
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* ══════════════════════════════════════════════════════════════════════
             MODULE 1: FULL-PAGE TRADE HISTORY & POSITIONS (Primary Default)
         ══════════════════════════════════════════════════════════════════════ */}
         {activeModule === "trades" && (
-          <div className="w-full">
+          <motion.div variants={sectionVariants} className="w-full">
             <JournalTradesTable
               refreshKey={tableRefreshKey}
               demoData={null}
@@ -607,7 +689,7 @@ function TradeHistoryContent() {
               }}
               onTradeClick={handleTradeClick}
             />
-          </div>
+          </motion.div>
         )}
 
         {/* ══════════════════════════════════════════════════════════════════════
@@ -630,7 +712,7 @@ function TradeHistoryContent() {
                   <button
                     type="button"
                     onClick={() => navigate("/discover?tab=store")}
-                    className="btn-fialgo-primary h-8 px-4 text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5 cursor-pointer"
+                    className="tactile-black-pill h-9 px-4 rounded-full text-xs font-bold text-white inline-flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>Browse Strategy Armory</span>
                     <ArrowRight size={12} />
@@ -638,7 +720,7 @@ function TradeHistoryContent() {
                   <button
                     type="button"
                     onClick={() => navigate("/auto-trade/builder")}
-                    className="h-8 px-4 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 border border-slate-200 dark:border-white/10 transition-colors cursor-pointer"
+                    className="tactile-white-pill h-9 px-4 rounded-full text-xs font-semibold text-slate-700 dark:text-neutral-300 cursor-pointer"
                   >
                     Request Custom Build
                   </button>
@@ -834,7 +916,7 @@ function TradeHistoryContent() {
                   <button
                     type="button"
                     onClick={handleDownloadTerminalLog}
-                    className="h-8 px-3 rounded-xl bg-white dark:bg-black/30 hover:bg-slate-50 dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
+                    className="tactile-white-pill h-8 px-3.5 rounded-full text-xs font-semibold text-slate-700 dark:text-neutral-300 cursor-pointer flex items-center gap-1.5"
                   >
                     <Download size={12} />
                     <span>Download Log</span>
@@ -842,7 +924,7 @@ function TradeHistoryContent() {
                   <button
                     type="button"
                     onClick={handleRefresh}
-                    className="btn-fialgo-primary h-8 px-3.5 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer"
+                    className="tactile-black-pill h-8 px-3.5 rounded-full text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer"
                   >
                     <RefreshCw size={12} className={isRefreshing ? "animate-spin" : ""} />
                     <span>Refresh Stream</span>
@@ -876,7 +958,7 @@ function TradeHistoryContent() {
           }}
         />
 
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }
