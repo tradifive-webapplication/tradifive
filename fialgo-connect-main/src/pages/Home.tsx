@@ -1,4 +1,4 @@
-﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+﻿import { Search, Plus, X, MoreHorizontal, Heart, MessageCircle, MessageSquare, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Sliders, Trash2, Check, ArrowUp, RotateCw, Globe, Home as HomeIcon, Compass, Radio, Bell, Users, Smile, ImagePlus, Video as VideoIcon, Loader2, Sparkles } from "lucide-react";
 import { CommunityPageWrapper, useCommunityShell } from "@/components/CommunityShell";
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -11,6 +11,7 @@ import { useMarket } from "@/contexts/MarketContext";
 import CreatePostModal from "@/components/CreatePostModal";
 import FeedCard from "@/components/FeedCard";
 import HomeProfileCard from "@/components/HomeProfileCard";
+import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 
 const HOME_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -1215,204 +1216,6 @@ export default function Home() {
         ));
     }, [feeds, feedSort, feedMarketFilter, feedSearchQuery, likedPosts, likesOffsets, followedUsers, user?.id, toggleFollowUser, handleLikePost, handleDeletePost, handleVote]);
 
-
-
-    const calendarRender = useMemo(() => {
-        const now = new Date();
-        const isSameLocalDay = (d: Date) =>
-            d.getFullYear() === now.getFullYear() &&
-            d.getMonth() === now.getMonth() &&
-            d.getDate() === now.getDate();
-
-        const impactMatched = calendar.filter((news) => {
-            const impact = (news.impact || 'low').toLowerCase();
-            if (impact === 'high' && calendarFilters.high) return true;
-            if (impact === 'medium' && calendarFilters.medium) return true;
-            if (impact === 'low' && calendarFilters.low) return true;
-            return false;
-        });
-
-        const allMatchedNews = newsViewMode === 'today'
-            ? impactMatched.filter((news) => {
-                const d = new Date(news.event_time);
-                return !isNaN(d.getTime()) && isSameLocalDay(d);
-            })
-            : impactMatched;
-
-        const maxVisible = newsExpanded ? (newsViewMode === 'today' ? 12 : 16) : 4;
-        const nowMs = now.getTime();
-
-        // When collapsed, prioritize upcoming events so the trader sees what matters next
-        let orderedNews = allMatchedNews;
-        if (!newsExpanded && allMatchedNews.length > maxVisible) {
-            const firstUpcomingIdx = allMatchedNews.findIndex((n) => {
-                const t = new Date(n.event_time).getTime();
-                return !isNaN(t) && t >= nowMs;
-            });
-            if (firstUpcomingIdx > 0) {
-                const startIdx = Math.max(0, Math.min(firstUpcomingIdx - 1, allMatchedNews.length - maxVisible));
-                orderedNews = allMatchedNews.slice(startIdx, startIdx + maxVisible);
-            } else {
-                orderedNews = allMatchedNews.slice(0, maxVisible);
-            }
-        } else {
-            orderedNews = allMatchedNews.slice(0, maxVisible);
-        }
-
-        const filteredNews = orderedNews;
-        const hasMoreNews = allMatchedNews.length > 4;
-
-        if (filteredNews.length === 0) {
-            return (
-                <div className="px-3.5 py-6 text-center">
-                    <p className="text-[12.5px] font-medium text-slate-800 dark:text-slate-100">
-                        {newsViewMode === 'today' ? "No major news today" : "No upcoming news"}
-                    </p>
-                    {newsViewMode === 'today' && impactMatched.length > 0 && (
-                        <button
-                            type="button"
-                            onClick={() => setNewsViewMode('week')}
-                            className="mt-2 px-3.5 py-1.5 rounded-full tactile-white-pill font-semibold text-[11.5px] cursor-pointer"
-                        >
-                            View this week ({impactMatched.length})
-                        </button>
-                    )}
-                </div>
-            );
-        }
-
-        const nextUpcomingId = allMatchedNews.find((n) => {
-            const t = new Date(n.event_time).getTime();
-            return !isNaN(t) && t >= nowMs;
-        })?.id;
-
-        const formatCountdown = (diffMs: number) => {
-            const totalMin = Math.max(1, Math.round(diffMs / 60000));
-            const hrs = Math.floor(totalMin / 60);
-            const mins = totalMin % 60;
-            if (hrs >= 24) return `in ${Math.floor(hrs / 24)}d`;
-            if (hrs > 0) return mins > 0 ? `in ${hrs}h ${mins}m` : `in ${hrs}h`;
-            return `in ${mins}m`;
-        };
-
-        return (
-            <>
-                <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
-                    {filteredNews.map((news, i) => {
-                        const dateObj = new Date(news.event_time);
-                        const isValidDate = !isNaN(dateObj.getTime());
-                        const eventMs = isValidDate ? dateObj.getTime() : 0;
-                        const isPast = isValidDate && eventMs < nowMs;
-                        const isNextUp = Boolean(nextUpcomingId && news.id === nextUpcomingId);
-
-                        const displayTime = isValidDate
-                            ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })
-                            : '—';
-                        const displayDay = isValidDate && newsViewMode === 'week'
-                            ? dateObj.toLocaleDateString([], { weekday: 'short' })
-                            : null;
-
-                        const impactLower = (news.impact || 'low').toLowerCase();
-                        const impactMeta =
-                            impactLower === 'high'
-                                ? {
-                                    label: 'High',
-                                    barClass: 'bg-rose-500',
-                                    dotClass: 'bg-rose-500',
-                                    textClass: 'text-rose-600 dark:text-rose-400',
-                                }
-                                : impactLower === 'medium'
-                                    ? {
-                                        label: 'Med',
-                                        barClass: 'bg-amber-500',
-                                        dotClass: 'bg-amber-500',
-                                        textClass: 'text-amber-600 dark:text-amber-400',
-                                    }
-                                    : {
-                                        label: 'Low',
-                                        barClass: 'bg-slate-300 dark:bg-zinc-600',
-                                        dotClass: 'bg-slate-400 dark:bg-zinc-500',
-                                        textClass: 'text-slate-500 dark:text-zinc-400',
-                                    };
-
-                        return (
-                            <div
-                                key={news.id || i}
-                                className={`group flex items-stretch gap-2.5 px-3.5 py-2.5 transition-colors hover:bg-slate-50/80 dark:hover:bg-white/[0.025] ${
-                                    isNextUp ? 'bg-blue-50/45 dark:bg-blue-500/[0.05]' : ''
-                                }`}
-                            >
-                                {/* Crisp Vertical Impact Bar (Rose = High, Amber = Medium, Slate = Low) */}
-                                <span
-                                    aria-label={`${impactMeta.label} impact`}
-                                    className={`w-[3px] rounded-full shrink-0 my-0.5 ${impactMeta.barClass} ${isPast ? 'opacity-35' : ''}`}
-                                />
-
-                                {/* Event Title, Timing, Currency & Impact */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <p
-                                            title={news.event_title}
-                                            className={`text-[12.5px] font-semibold tracking-[-0.01em] truncate leading-snug ${
-                                                isPast
-                                                    ? 'text-slate-400 dark:text-slate-500'
-                                                    : 'text-slate-900 dark:text-slate-100'
-                                            }`}
-                                        >
-                                            {news.event_title}
-                                        </p>
-                                        <span className={`shrink-0 inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[9.5px] font-bold tracking-wider uppercase leading-none ${
-                                            isPast
-                                                ? 'bg-slate-100/70 dark:bg-white/[0.04] text-slate-400 dark:text-slate-500'
-                                                : 'bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-slate-300'
-                                        }`}>
-                                            {news.currency || 'USD'}
-                                        </span>
-                                    </div>
-
-                                    <div className="flex items-center justify-between gap-2 mt-1 leading-none">
-                                        <div className="flex items-center gap-1.5 text-[10.5px] tabular-nums min-w-0">
-                                            <span className={
-                                                isNextUp
-                                                    ? 'text-slate-900 dark:text-white font-semibold'
-                                                    : isPast
-                                                        ? 'text-slate-400 dark:text-slate-500'
-                                                        : 'text-slate-500 dark:text-slate-400 font-medium'
-                                            }>
-                                                {displayDay ? `${displayDay} · ${displayTime}` : displayTime}
-                                            </span>
-                                            {isNextUp && (
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9.5px] font-semibold leading-none">
-                                                    {formatCountdown(eventMs - nowMs)}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <span className={`shrink-0 inline-flex items-center gap-1 text-[10px] font-semibold leading-none ${impactMeta.textClass} ${isPast ? 'opacity-50' : ''}`}>
-                                            <span className={`w-1.5 h-1.5 rounded-full ${impactMeta.dotClass}`} />
-                                            <span>{impactMeta.label}</span>
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
-
-                {hasMoreNews && (
-                    <button
-                        type="button"
-                        onClick={() => setNewsExpanded((prev) => !prev)}
-                        className="w-full py-2.5 px-3.5 flex items-center justify-center gap-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/70 dark:hover:bg-white/[0.03] border-t border-slate-100 dark:border-white/[0.06] transition-colors cursor-pointer"
-                    >
-                        <span>{newsExpanded ? 'Show less' : `Show all (${allMatchedNews.length})`}</span>
-                        {newsExpanded ? <ChevronUp size={12.5} strokeWidth={2.2} /> : <ChevronDown size={12.5} strokeWidth={2.2} />}
-                    </button>
-                )}
-            </>
-        );
-    }, [calendar, calendarFilters, newsViewMode, newsExpanded]);
-
     const suggestionsRender = useMemo(() => {
         const source = finalSuggestions;
         return source.map((sug: any) => {
@@ -1923,70 +1726,29 @@ export default function Home() {
                                     </motion.div>
                                 )}
 
-                                {/* B. Market News Ledger */}
+                                {/* B. Forex Factory Market News (Matches Dashboard UI) */}
                                 {showCalendar && (
-                                    <motion.div variants={homeCardVariants} className="rounded-[20px] bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_8px_rgba(15,23,42,0.04)] dark:shadow-none overflow-hidden">
-                                        {/* Compact Header */}
-                                        <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 border-b border-slate-100 dark:border-white/[0.06]">
-                                            <div className="flex items-baseline gap-2 min-w-0">
-                                                <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white leading-none">
-                                                    News
-                                                </h3>
-                                                <span className="text-[11px] text-slate-400 dark:text-slate-500 leading-none tabular-nums">
-                                                    {new Date().toLocaleDateString([], { month: 'short', day: 'numeric' })}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-1 shrink-0">
-                                                <div className="inline-flex items-center bg-slate-100 dark:bg-white/[0.06] p-0.5 rounded-lg">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setNewsViewMode('today');
-                                                            setNewsExpanded(false);
-                                                        }}
-                                                        className={`px-2 py-0.5 rounded-[6px] text-[10.5px] font-medium transition-colors cursor-pointer ${
-                                                            newsViewMode === 'today'
-                                                                ? 'bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
-                                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                                                        }`}
-                                                    >
-                                                        Today
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setNewsViewMode('week');
-                                                            setNewsExpanded(false);
-                                                        }}
-                                                        className={`px-2 py-0.5 rounded-[6px] text-[10.5px] font-medium transition-colors cursor-pointer ${
-                                                            newsViewMode === 'week'
-                                                                ? 'bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
-                                                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                                                        }`}
-                                                    >
-                                                        Week
-                                                    </button>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setCustomizeActiveTab('calendar');
-                                                        setShowCustomizeModal(true);
-                                                    }}
-                                                    title="Filter news"
-                                                    aria-label="Filter news"
-                                                    className="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
-                                                >
-                                                    <Sliders size={12.5} strokeWidth={1.75} />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Compact Rows */}
-                                        <div>
-                                            {calendarRender}
-                                        </div>
+                                    <motion.div variants={homeCardVariants}>
+                                        <DashboardNewsCard
+                                            compact
+                                            externalViewMode={newsViewMode === 'week' ? 'week' : 'day'}
+                                            onExternalViewModeChange={(mode) => {
+                                                setNewsViewMode(mode === 'week' ? 'week' : 'today');
+                                                setNewsExpanded(false);
+                                            }}
+                                            externalImpacts={[
+                                                ...(calendarFilters.high ? ['High'] : []),
+                                                ...(calendarFilters.medium ? ['Medium'] : []),
+                                                ...(calendarFilters.low ? ['Low'] : []),
+                                            ]}
+                                            onExternalImpactsChange={(impacts) => {
+                                                setCalendarFilters({
+                                                    high: impacts.some((i) => i.toLowerCase() === 'high'),
+                                                    medium: impacts.some((i) => i.toLowerCase() === 'medium'),
+                                                    low: impacts.some((i) => i.toLowerCase() === 'low'),
+                                                });
+                                            }}
+                                        />
                                     </motion.div>
                                 )}
 

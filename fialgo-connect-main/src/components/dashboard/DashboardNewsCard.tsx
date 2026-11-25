@@ -108,7 +108,21 @@ function isCacheFreshForThisWeek(items: NewsCalendarEvent[]): boolean {
   });
 }
 
-export const DashboardNewsCard: React.FC = () => {
+export interface DashboardNewsCardProps {
+  compact?: boolean;
+  externalViewMode?: "day" | "week";
+  onExternalViewModeChange?: (mode: "day" | "week") => void;
+  externalImpacts?: string[];
+  onExternalImpactsChange?: (impacts: string[]) => void;
+}
+
+export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
+  compact = false,
+  externalViewMode,
+  onExternalViewModeChange,
+  externalImpacts,
+  onExternalImpactsChange,
+}) => {
   const [events, setEvents] = useState<NewsCalendarEvent[]>(() => {
     try {
       const cached = localStorage.getItem("tf_calendar_cache_v2");
@@ -126,12 +140,20 @@ export const DashboardNewsCard: React.FC = () => {
 
   const [loading, setLoading] = useState(events.length === 0);
   const [refreshing, setRefreshing] = useState(false);
-  const [viewMode, setViewMode] = useState<"day" | "week">("day");
+  const [internalViewMode, setInternalViewMode] = useState<"day" | "week">("day");
   const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selectedImpacts, setSelectedImpacts] = useState<string[]>(DEFAULT_IMPACTS);
+  const [internalSelectedImpacts, setInternalSelectedImpacts] = useState<string[]>(DEFAULT_IMPACTS);
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(DEFAULT_CURRENCIES);
   const filterRef = useRef<HTMLDivElement | null>(null);
+
+  const viewMode = externalViewMode ?? internalViewMode;
+  const setViewMode = (mode: "day" | "week") => {
+    setInternalViewMode(mode);
+    onExternalViewModeChange?.(mode);
+  };
+
+  const selectedImpacts = externalImpacts ?? internalSelectedImpacts;
 
   useEffect(() => {
     const onDocClick = (e: MouseEvent) => {
@@ -257,9 +279,11 @@ export const DashboardNewsCard: React.FC = () => {
   };
 
   const toggleImpact = (imp: string) => {
-    setSelectedImpacts((prev) =>
-      prev.includes(imp) ? prev.filter((x) => x !== imp) : [...prev, imp]
-    );
+    const next = selectedImpacts.includes(imp)
+      ? selectedImpacts.filter((x) => x !== imp)
+      : [...selectedImpacts, imp];
+    setInternalSelectedImpacts(next);
+    onExternalImpactsChange?.(next);
   };
 
   const toggleCurrency = (cur: string) => {
@@ -313,19 +337,25 @@ export const DashboardNewsCard: React.FC = () => {
       : 0);
 
   return (
-    <section className="bg-white dark:bg-[#17171A] rounded-[16px] p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none border border-slate-200/80 dark:border-white/[0.07]">
+    <section
+      className={
+        compact
+          ? "bg-white dark:bg-[#17171A] rounded-[22px] p-4 shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none border border-slate-200/80 dark:border-white/[0.08]"
+          : "bg-white dark:bg-[#17171A] rounded-[16px] p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none border border-slate-200/80 dark:border-white/[0.07]"
+      }
+    >
       {/* Header */}
       <div className="flex items-center justify-between gap-2 mb-3">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-[13px] font-semibold text-slate-900 dark:text-white tracking-tight">
+        <div className="flex items-baseline gap-1.5 min-w-0">
+          <h2 className={`${compact ? "text-[14px] font-bold" : "text-[13px] font-semibold"} text-slate-900 dark:text-white tracking-tight shrink-0`}>
             News
           </h2>
-          <span className="text-[12px] text-slate-400 dark:text-neutral-500">
+          <span className={`${compact ? "text-[11px]" : "text-[12px]"} text-slate-400 dark:text-neutral-500 truncate`}>
             Forex Factory · this week
           </span>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 shrink-0">
           {/* Filters */}
           <div className="relative" ref={filterRef}>
             <button
@@ -437,14 +467,14 @@ export const DashboardNewsCard: React.FC = () => {
       </div>
 
       {/* Mode Switcher + Day Stepper Row */}
-      <div className="flex items-center justify-between gap-2 mb-3.5">
+      <div className={`flex items-center justify-between gap-1.5 ${compact ? "mb-2.5 flex-wrap" : "mb-3.5"}`}>
         <div className="inline-flex items-center p-0.5 rounded-[11px] bg-slate-100/90 dark:bg-white/[0.06]">
           {(["day", "week"] as const).map((mode) => (
             <button
               key={mode}
               type="button"
               onClick={() => setViewMode(mode)}
-              className={`relative px-3 py-1 rounded-[9px] text-[12px] font-semibold transition-colors cursor-pointer ${
+              className={`relative ${compact ? "px-2.5 py-0.5 text-[11px]" : "px-3 py-1 text-[12px]"} rounded-[9px] font-semibold transition-colors cursor-pointer ${
                 viewMode === mode
                   ? "text-slate-900 dark:text-white"
                   : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
@@ -452,7 +482,7 @@ export const DashboardNewsCard: React.FC = () => {
             >
               {viewMode === mode && (
                 <motion.span
-                  layoutId="news-mode-pill"
+                  layoutId={compact ? "home-news-mode-pill" : "news-mode-pill"}
                   transition={{ type: "spring", stiffness: 460, damping: 34 }}
                   className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[9px] shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
                 />
@@ -463,29 +493,29 @@ export const DashboardNewsCard: React.FC = () => {
         </div>
 
         {viewMode === "day" && (
-          <div className="flex items-center gap-1.5">
+          <div className={`flex items-center ${compact ? "gap-1" : "gap-1.5"}`}>
             <button
               type="button"
               onClick={() => stepDay(-1)}
               className="w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
               aria-label="Previous day"
             >
-              <ChevronLeft size={14} strokeWidth={2.2} />
+              <ChevronLeft size={compact ? 13 : 14} strokeWidth={2.2} />
             </button>
 
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-[13px] font-bold text-slate-900 dark:text-white tracking-tight">
+            <div className="flex items-baseline gap-1">
+              <span className={`${compact ? "text-[11.5px]" : "text-[13px]"} font-bold text-slate-900 dark:text-white tracking-tight whitespace-nowrap`}>
                 {formatDayHeader(selectedDate)}
               </span>
               {isTodaySelected ? (
-                <span className="text-[11px] font-semibold text-blue-600 dark:text-blue-400">
+                <span className={`${compact ? "text-[10.5px]" : "text-[11px]"} font-semibold text-blue-600 dark:text-blue-400`}>
                   Today
                 </span>
               ) : (
                 <button
                   type="button"
                   onClick={() => setSelectedDate(new Date())}
-                  className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  className={`${compact ? "text-[10.5px]" : "text-[11px]"} font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer`}
                 >
                   Today
                 </button>
@@ -498,7 +528,7 @@ export const DashboardNewsCard: React.FC = () => {
               className="w-6 h-6 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer"
               aria-label="Next day"
             >
-              <ChevronRight size={14} strokeWidth={2.2} />
+              <ChevronRight size={compact ? 13 : 14} strokeWidth={2.2} />
             </button>
           </div>
         )}
@@ -539,9 +569,35 @@ export const DashboardNewsCard: React.FC = () => {
             transition={{ duration: 0.16, ease: "easeOut" }}
           >
             {viewMode === "day" ? (
-              <div className="divide-y divide-slate-100/80 dark:divide-white/[0.04]">
+              <div className={`divide-y divide-slate-100/80 dark:divide-white/[0.04] ${compact ? "max-h-[260px] overflow-y-auto amazing-scrollbar pr-0.5" : ""}`}>
                 {filteredEvents.map((ev) => {
                   const st = getImpactStyle(ev.impact);
+                  if (compact) {
+                    return (
+                      <div key={ev.id} className="py-2 group">
+                        <div className="grid grid-cols-[52px_10px_32px_1fr] items-center gap-1.5 text-[12px]">
+                          <span className="font-mono text-[10.5px] font-semibold text-slate-500 dark:text-neutral-400 tabular-nums whitespace-nowrap">
+                            {formatEventTime(ev.event_time)}
+                          </span>
+                          <span className="flex items-center justify-center" title={`${ev.impact} Impact`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
+                          </span>
+                          <span className="text-[9.5px] font-bold px-1 py-0.5 rounded-md bg-slate-100/90 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 text-center leading-none">
+                            {ev.currency}
+                          </span>
+                          <span title={ev.event_title} className="font-medium text-slate-800 dark:text-slate-100 truncate">
+                            {ev.event_title}
+                          </span>
+                        </div>
+                        {(ev.forecast || ev.previous) && (
+                          <div className="pl-[108px] mt-0.5 flex items-center gap-2 text-[10px] font-mono text-slate-400 dark:text-neutral-500 tabular-nums">
+                            {ev.forecast && <span>F:{ev.forecast}</span>}
+                            {ev.previous && <span>P:{ev.previous}</span>}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }
                   return (
                     <div
                       key={ev.id}
@@ -572,7 +628,7 @@ export const DashboardNewsCard: React.FC = () => {
                 })}
               </div>
             ) : (
-              <div className="space-y-3 max-h-[290px] overflow-y-auto amazing-scrollbar pr-1">
+              <div className={`space-y-3 ${compact ? "max-h-[260px]" : "max-h-[290px]"} overflow-y-auto amazing-scrollbar pr-1`}>
                 {groupedByDay?.map((group) => (
                   <div key={group.label}>
                     <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 mb-1.5">
@@ -584,18 +640,18 @@ export const DashboardNewsCard: React.FC = () => {
                         return (
                           <div
                             key={ev.id}
-                            className="grid grid-cols-[64px_12px_36px_1fr] items-center gap-2 py-1 text-[12px]"
+                            className={`grid ${compact ? "grid-cols-[52px_10px_32px_1fr] gap-1.5 text-[11.5px]" : "grid-cols-[64px_12px_36px_1fr] gap-2 text-[12px]"} items-center py-1`}
                           >
-                            <span className="font-mono text-[11px] font-semibold text-slate-500 dark:text-neutral-400 tabular-nums">
+                            <span className={`font-mono ${compact ? "text-[10.5px]" : "text-[11px]"} font-semibold text-slate-500 dark:text-neutral-400 tabular-nums whitespace-nowrap`}>
                               {formatEventTime(ev.event_time)}
                             </span>
                             <span className="flex items-center justify-center">
-                              <span className={`w-2 h-2 rounded-full ${st.dot}`} />
+                              <span className={`${compact ? "w-1.5 h-1.5" : "w-2 h-2"} rounded-full ${st.dot}`} />
                             </span>
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100/90 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 text-center">
+                            <span className={`${compact ? "text-[9.5px] px-1" : "text-[10px] px-1.5"} font-bold py-0.5 rounded-md bg-slate-100/90 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 text-center leading-none`}>
                               {ev.currency}
                             </span>
-                            <span className="text-slate-800 dark:text-slate-100 font-medium truncate">
+                            <span title={ev.event_title} className="text-slate-800 dark:text-slate-100 font-medium truncate">
                               {ev.event_title}
                             </span>
                           </div>
