@@ -15,7 +15,7 @@ import {
 
 export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
-  centerValue?: number | string;
+  centerValue?: React.ReactNode;
   defaultLabel?: string;
   startAngle?: number;
   endAngle?: number;
