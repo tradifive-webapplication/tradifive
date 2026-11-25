@@ -22,6 +22,7 @@ import { useTradingTheme } from "@/hooks/useTradingTheme";
 import { useNavigate } from "react-router-dom";
 import { usePlan } from "@/hooks/usePlan";
 import { Lock } from "lucide-react";
+import { MagicTextReveal } from "@/components/ui/magic-text-reveal";
 
 const CARD_SURFACE =
   "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none";
@@ -67,6 +68,8 @@ function ChartCard({
   filters,
   chartHeight = 250,
   frameless = false,
+  isLocked = false,
+  lockedOverlay,
 }: {
   title: string;
   legend?: React.ReactNode;
@@ -77,6 +80,8 @@ function ChartCard({
   filters?: string[];
   chartHeight?: number;
   frameless?: boolean;
+  isLocked?: boolean;
+  lockedOverlay?: React.ReactNode;
 }) {
   return (
     <motion.div
@@ -84,53 +89,61 @@ function ChartCard({
       animate={{ opacity: 1 }}
       className={
         frameless
-          ? "flex flex-col h-full relative px-0.5 pt-0.5 pb-1"
-          : `${CARD_SURFACE} p-4 sm:p-5 flex flex-col h-full min-h-[340px] sm:min-h-[370px] relative`
+          ? "flex flex-col h-full relative px-0.5 pt-0.5 pb-1 overflow-hidden"
+          : `${CARD_SURFACE} p-4 sm:p-5 flex flex-col h-full min-h-[340px] sm:min-h-[370px] relative overflow-hidden`
       }
     >
-      <div
-        className={`flex items-start justify-between gap-2 ${
-          frameless ? "mb-3 min-h-[42px]" : "mb-4"
-        }`}
-      >
-        <div className="min-w-0">
-          <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
-            {title}
-          </h3>
-          {legend && <div className="mt-1">{legend}</div>}
-        </div>
-        {filters && (
-          <div
-            className={`inline-flex items-center p-0.5 rounded-[9px] shrink-0 ${
-              frameless
-                ? "bg-slate-200/70 dark:bg-white/[0.07]"
-                : "bg-slate-100/90 dark:bg-white/[0.06]"
-            }`}
-          >
-            {filters.map((f) => (
-              <button
-                key={f}
-                type="button"
-                onClick={() => onFilter?.(f)}
-                className={`px-2.5 py-1 rounded-[7px] text-[10.5px] font-semibold transition-all cursor-pointer ${
-                  filter === f
-                    ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-xs"
-                    : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                }`}
-              >
-                {f}
-              </button>
-            ))}
+      <div className={`flex flex-col flex-1 min-h-0 ${isLocked ? "blur-[2px] select-none pointer-events-none opacity-75" : ""}`}>
+        <div
+          className={`flex items-start justify-between gap-2 ${
+            frameless ? "mb-3 min-h-[42px]" : "mb-4"
+          }`}
+        >
+          <div className="min-w-0">
+            <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight leading-tight">
+              {title}
+            </h3>
+            {legend && <div className="mt-1">{legend}</div>}
           </div>
-        )}
+          {filters && (
+            <div
+              className={`inline-flex items-center p-0.5 rounded-[9px] shrink-0 ${
+                frameless
+                  ? "bg-slate-200/70 dark:bg-white/[0.07]"
+                  : "bg-slate-100/90 dark:bg-white/[0.06]"
+              }`}
+            >
+              {filters.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => onFilter?.(f)}
+                  className={`px-2.5 py-1 rounded-[7px] text-[10.5px] font-semibold transition-all cursor-pointer ${
+                    filter === f
+                      ? "bg-white dark:bg-[#26262B] text-slate-900 dark:text-white shadow-xs"
+                      : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        <div
+          className={`w-full relative flex-1 flex flex-col min-h-0 ${frameless ? "" : "min-h-[240px]"}`}
+          style={frameless ? { minHeight: chartHeight } : { height: chartHeight, minHeight: chartHeight }}
+        >
+          {children}
+        </div>
+        {footer}
       </div>
-      <div
-        className={`w-full relative flex-1 flex flex-col min-h-0 ${frameless ? "" : "min-h-[240px]"}`}
-        style={frameless ? { minHeight: chartHeight } : { height: chartHeight, minHeight: chartHeight }}
-      >
-        {children}
-      </div>
-      {footer}
+
+      {isLocked && lockedOverlay && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-4 pointer-events-auto">
+          {lockedOverlay}
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -854,45 +867,38 @@ export default function JournalCharts({
         filter={ddFilter}
         onFilter={isStarter ? () => navigate("/upgrade") : setDdFilter}
         filters={["1W", "1M", "All"]}
-      >
-        {isStarter ? (
-          <div className="relative w-full h-[250px] overflow-hidden flex items-center justify-center">
-            <div className="absolute inset-0 blur-[2px] select-none pointer-events-none opacity-80">
-              <ResponsiveContainer width="100%" height={250}>
-                <AreaChart
-                  data={filteredData.length > 0 ? filteredData : [{ date: 'Nov 12', value: -140 }, { date: 'Nov 19', value: -280 }, { date: 'Nov 25', value: 0 }]}
-                  margin={{ top: 6, right: 8, left: -6, bottom: 0 }}
-                >
-                  <Area type="linear" dataKey="value" stroke={chartColor} strokeWidth={2} fill={chartColor} fillOpacity={0.15} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="relative z-10 backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 shadow-xs">
-                  <Lock size={14} strokeWidth={2.4} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">
-                    Drawdown Analysis
-                  </p>
-                  <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
-                    Pro &amp; Elite
-                  </p>
-                </div>
+        isLocked={isStarter}
+        lockedOverlay={
+          <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 shadow-xs">
+                <Lock size={14} strokeWidth={2.4} />
               </div>
-              <button
-                type="button"
-                onClick={() => navigate("/upgrade")}
-                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm cursor-pointer active:scale-95 transition-all"
-              >
-                Upgrade
-              </button>
+              <div className="min-w-0 flex flex-col justify-center">
+                <MagicTextReveal
+                  text="Drawdown Analysis"
+                  fontSize={13}
+                  fontWeight={700}
+                  className="leading-tight"
+                />
+                <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
+                  Pro &amp; Elite
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => navigate("/upgrade")}
+              className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm cursor-pointer active:scale-95 transition-all"
+            >
+              Upgrade
+            </button>
           </div>
-        ) : loading ? (
+        }
+      >
+        {loading ? (
           <ChartSkeleton />
-        ) : !hasData ? (
+        ) : !hasData && !isStarter ? (
           <EmptyChartHint message="Measures peak-to-trough equity drawdown." />
         ) : (
           <div
@@ -904,7 +910,7 @@ export default function JournalCharts({
           >
             <ResponsiveContainer width="100%" height={250}>
               <AreaChart
-                data={filteredData}
+                data={filteredData.length > 0 ? filteredData : [{ date: 'Nov 12', value: -140 }, { date: 'Nov 19', value: -280 }, { date: 'Nov 25', value: 0 }]}
                 margin={{ top: 6, right: 8, left: -6, bottom: 0 }}
               >
                 <defs>
@@ -980,42 +986,38 @@ export default function JournalCharts({
             </span>
           </div>
         }
-      >
-        {isStarter ? (
-          <div className="relative w-full h-[250px] overflow-hidden flex items-center justify-center">
-            <div className="absolute inset-0 blur-[2px] select-none pointer-events-none opacity-80">
-              <ResponsiveContainer width="100%" height={250}>
-                <ScatterChart margin={{ top: 10, right: 10, left: -6, bottom: 0 }}>
-                  <Scatter data={[{ dur: 300, pnl: 400 }, { dur: 900, pnl: -200 }, { dur: 3600, pnl: 650 }]} fill={profitColor} />
-                </ScatterChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="relative z-10 backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
-                  <Lock size={14} strokeWidth={2.4} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">
-                    Trade Duration
-                  </p>
-                  <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
-                    Pro &amp; Elite
-                  </p>
-                </div>
+        isLocked={isStarter}
+        lockedOverlay={
+          <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
+                <Lock size={14} strokeWidth={2.4} />
               </div>
-              <button
-                type="button"
-                onClick={() => navigate("/upgrade")}
-                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm cursor-pointer active:scale-95 transition-all"
-              >
-                Upgrade
-              </button>
+              <div className="min-w-0 flex flex-col justify-center">
+                <MagicTextReveal
+                  text="Trade Duration"
+                  fontSize={13}
+                  fontWeight={700}
+                  className="leading-tight"
+                />
+                <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
+                  Pro &amp; Elite
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={() => navigate("/upgrade")}
+              className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm cursor-pointer active:scale-95 transition-all"
+            >
+              Upgrade
+            </button>
           </div>
-        ) : loading ? (
+        }
+      >
+        {loading ? (
           <ChartSkeleton />
-        ) : !hasData ? (
+        ) : !hasData && !isStarter ? (
           <EmptyChartHint message="Compare trade hold time against P&L." />
         ) : (
           <div

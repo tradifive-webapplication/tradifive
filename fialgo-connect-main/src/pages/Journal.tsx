@@ -27,6 +27,7 @@ import JournalTradesTable from "@/components/journal/JournalTradesTable";
 import TradeSlideOver from "@/components/journal/TradeSlideOver";
 import LogTradeModal from "@/components/dashboard/LogTradeModal";
 import { ChartRadarDefault } from "@/components/journal/ChartRadarDefault";
+import { MagicTextReveal } from "@/components/ui/magic-text-reveal";
 import {
   JournalSettingsProvider,
   useJournalSettings,
@@ -801,7 +802,7 @@ function JournalContent() {
 
               {/* Col 3: Extremes, Streaks & Tagged Setups */}
               <div className={`${SURFACE_CARD} p-4 sm:p-5 flex flex-col justify-between gap-4 relative overflow-hidden`}>
-                <div className={`flex flex-col justify-between h-full gap-4 ${isStarter ? "blur-[2px] select-none pointer-events-none opacity-80" : ""}`}>
+                <div className={`flex flex-col justify-between h-full gap-4 ${isStarter ? "blur-[2px] select-none pointer-events-none opacity-75" : ""}`}>
                 <div>
                   <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight">
                     Extremes &amp; setups
@@ -930,10 +931,13 @@ function JournalContent() {
                         <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
                           <Lock size={14} strokeWidth={2.4} />
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">
-                            Extremes &amp; Setups
-                          </p>
+                        <div className="min-w-0 flex flex-col justify-center">
+                          <MagicTextReveal
+                            text="Extremes & Setups"
+                            fontSize={13}
+                            fontWeight={700}
+                            className="leading-tight"
+                          />
                           <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
                             Pro &amp; Elite
                           </p>

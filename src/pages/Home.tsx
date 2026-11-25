@@ -14,6 +14,7 @@ import FeedCard from "@/components/FeedCard";
 import HomeProfileCard from "@/components/HomeProfileCard";
 import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+import { MagicTextReveal } from "@/components/ui/magic-text-reveal";
 
 const HOME_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -2542,7 +2543,7 @@ export default function Home() {
                                                     </div>
 
                                                     <div className="relative rounded-xl overflow-hidden">
-                                                        <div className={`rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06] ${!canAccess('home_customize') ? 'blur-[2px] select-none pointer-events-none opacity-80' : ''}`}>
+                                                        <div className={`rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06] ${!canAccess('home_customize') ? 'blur-[2px] select-none pointer-events-none opacity-75' : ''}`}>
                                                             <div className="py-2.5"><ToggleRow label="Profile Card" checked={showProfileCard} onChange={(v) => handleToggle(setShowProfileCard, v)} /></div>
                                                             <div className="py-2.5"><ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} /></div>
                                                             <div className="py-2.5"><ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} /></div>
@@ -2560,10 +2561,13 @@ export default function Home() {
                                                                         <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
                                                                             <Lock size={14} strokeWidth={2.4} />
                                                                         </div>
-                                                                        <div className="min-w-0">
-                                                                            <p className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">
-                                                                                Customize Layout
-                                                                            </p>
+                                                                        <div className="min-w-0 flex flex-col justify-center">
+                                                                            <MagicTextReveal
+                                                                                text="Customize Layout"
+                                                                                fontSize={13}
+                                                                                fontWeight={700}
+                                                                                className="leading-tight"
+                                                                            />
                                                                             <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
                                                                                 Pro &amp; Elite
                                                                             </p>

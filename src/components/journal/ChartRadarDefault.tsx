@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { MagicTextReveal } from "@/components/ui/magic-text-reveal";
 
 export const description = "TradiFive 5-Axis Radar Score with Interactive Diagnostics";
 
@@ -301,6 +302,7 @@ export function ChartRadarDefault({
           : "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none overflow-hidden relative flex flex-col h-full p-4 sm:p-5 select-none"
       }
     >
+      <div className={`flex flex-col flex-1 min-h-0 ${isStarter ? "blur-[2px] select-none pointer-events-none opacity-75" : ""}`}>
       {/* ── 1. Header (Title, Subtitle, Timeframe Tabs, Overall Score) ── */}
       <div className="flex items-start justify-between gap-2 mb-1">
         <div className="min-w-0">
@@ -384,7 +386,7 @@ export function ChartRadarDefault({
         </div>
       </div>
 
-      <div className={`flex-1 flex flex-col min-h-0 relative ${isStarter ? "blur-[2px] select-none pointer-events-none opacity-80" : ""}`}>
+      <div className="flex-1 flex flex-col min-h-0 relative">
 
       {/* ── 2. Radar Chart Canvas (Interactive Polygon & Spokes) ── */}
       <div className="flex-1 flex items-center justify-center min-h-[195px] max-h-[225px] w-full relative py-1">
@@ -561,18 +563,22 @@ export function ChartRadarDefault({
         })}
       </div>
       </div>
+      </div>
 
       {isStarter && (
-        <div className="absolute inset-x-0 bottom-0 top-[68px] z-20 flex flex-col items-center justify-center p-4">
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-4 pointer-events-auto">
           <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lock size={14} strokeWidth={2.4} />
               </div>
-              <div className="min-w-0">
-                <p className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">
-                  TradiFive Score
-                </p>
+              <div className="min-w-0 flex flex-col justify-center">
+                <MagicTextReveal
+                  text="TradiFive Score"
+                  fontSize={13}
+                  fontWeight={700}
+                  className="leading-tight"
+                />
                 <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
                   Pro &amp; Elite
                 </p>
