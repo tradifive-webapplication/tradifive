@@ -190,11 +190,36 @@ const Dashboard = () => {
   const [pnlRange, setPnlRange] = useState<PnlRange>("all");
   const [demoMode, setDemoMode] = useState<boolean>(() => {
     try {
-      return localStorage.getItem("tf_dashboard_demo_mode") === "true";
+      const saved = localStorage.getItem("tf_dashboard_demo_mode");
+      return saved !== "false";
     } catch {
-      return false;
+      return true;
     }
   });
+
+  useEffect(() => {
+    const syncDemo = () => {
+      try {
+        setDemoMode(localStorage.getItem("tf_dashboard_demo_mode") !== "false");
+      } catch {}
+    };
+    window.addEventListener("tf_demo_mode_change", syncDemo);
+    window.addEventListener("storage", syncDemo);
+    return () => {
+      window.removeEventListener("tf_demo_mode_change", syncDemo);
+      window.removeEventListener("storage", syncDemo);
+    };
+  }, []);
+
+  const toggleDemoMode = () => {
+    const next = !demoMode;
+    setDemoMode(next);
+    try {
+      localStorage.setItem("tf_dashboard_demo_mode", String(next));
+    } catch {}
+    window.dispatchEvent(new CustomEvent("tf_demo_mode_change"));
+    toast.info(next ? "Demo data enabled" : "Switched to live account data");
+  };
   const [hidePnl, setHidePnl] = useState<boolean>(() => {
     try {
       return localStorage.getItem("tf_dashboard_hide_pnl") === "true";
@@ -547,6 +572,19 @@ const Dashboard = () => {
                     </div>
                   </div>
                 )}
+
+                <motion.button
+                  whileTap={{ scale: 0.96 }}
+                  type="button"
+                  onClick={toggleDemoMode}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full tactile-white-pill text-[12px] font-semibold cursor-pointer select-none ${
+                    demoMode ? "tactile-pill-active" : "text-slate-600 dark:text-slate-300"
+                  }`}
+                  title={demoMode ? "Click to switch to your real account data" : "Preview with sample demo data"}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${demoMode ? "bg-amber-500" : "bg-slate-400"}`} />
+                  <span>{demoMode ? "Demo Data" : "Live Data"}</span>
+                </motion.button>
 
                 <motion.button
                   initial={{ opacity: 0 }}

@@ -89,19 +89,50 @@ function JournalContent() {
   const [selectedTrade, setSelectedTrade] = useState<any>(null);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [demoMode, setDemoMode] = useState(false);
+  const [demoMode, setDemoMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("tf_dashboard_demo_mode") !== "false";
+    } catch {
+      return true;
+    }
+  });
   const [logModalOpen, setLogModalOpen] = useState(false);
   const [logModalTab, setLogModalTab] = useState<"manual" | "import">("manual");
   const [tableRefreshKey, setTableRefreshKey] = useState(0);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const currencyDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Real user data strictly used. Demo data is disabled so that manual trade logs
-  // and connected broker accounts populate seamlessly across all cards and metrics.
-  const demoData = null;
+  useEffect(() => {
+    const syncDemo = () => {
+      try {
+        setDemoMode(localStorage.getItem("tf_dashboard_demo_mode") !== "false");
+      } catch {}
+    };
+    window.addEventListener("tf_demo_mode_change", syncDemo);
+    window.addEventListener("storage", syncDemo);
+    return () => {
+      window.removeEventListener("tf_demo_mode_change", syncDemo);
+      window.removeEventListener("storage", syncDemo);
+    };
+  }, []);
 
-  const effectiveTrades = recentTrades || [];
-  const effectiveLastImport = lastImportTime;
+  const toggleDemoMode = () => {
+    const next = !demoMode;
+    setDemoMode(next);
+    try {
+      localStorage.setItem("tf_dashboard_demo_mode", String(next));
+    } catch {}
+    window.dispatchEvent(new CustomEvent("tf_demo_mode_change"));
+    toast.info(next ? "Demo data enabled" : "Switched to live journal data");
+  };
+
+  const demoData = useMemo(
+    () => (demoMode ? buildJournalDemoData(activeMarket) : null),
+    [demoMode, activeMarket]
+  );
+
+  const effectiveTrades = demoData ? demoData.allTrades : recentTrades || [];
+  const effectiveLastImport = demoData ? demoData.lastImportTime : lastImportTime;
 
   // SEBI Indian Market Daily Login State
   const [dailyTokenActive, setDailyTokenActive] = useState(() => {
@@ -455,6 +486,19 @@ function JournalContent() {
               >
                 <Percent size={12} strokeWidth={2.4} />
                 <span>Percent</span>
+              </button>
+
+              {/* Demo / Live Data Toggle */}
+              <button
+                type="button"
+                onClick={toggleDemoMode}
+                className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
+                  demoMode ? "tactile-pill-active" : ""
+                }`}
+                title={demoMode ? "Click to switch back to real account data" : "Fill sample demo data"}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${demoMode ? "bg-amber-500" : "bg-slate-400"}`} />
+                <span>{demoMode ? "Demo Data" : "Live Data"}</span>
               </button>
 
               {/* Edit / Reorder Layout */}
