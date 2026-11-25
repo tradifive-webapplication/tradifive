@@ -43,6 +43,33 @@ import { useJournalSettings, JournalSettingsProvider } from "@/contexts/JournalS
 import { useMarket } from "@/contexts/MarketContext";
 import { supabase } from "@/lib/supabase";
 import tradifiveLogo from "@/assets/tradifive-logo.png";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+
+const REPORTS_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const reportsContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.04,
+    },
+  },
+};
+
+const reportsCardVariants = {
+  hidden: { opacity: 0, y: 18, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.45,
+      ease: REPORTS_EXPO_OUT,
+    },
+  },
+};
 
 interface StatementDoc {
   id: string;
@@ -394,9 +421,14 @@ export const Reports: React.FC = () => {
   }, [selectedStatement, effectiveTrades]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-300 pb-16">
+    <motion.div
+      variants={reportsContainerVariants}
+      initial="hidden"
+      animate="visible"
+      className="space-y-6 pb-16"
+    >
       {/* ── Top Header & Actions ─────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div variants={reportsCardVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-[24px] font-bold tracking-tight text-slate-900 dark:text-white">
@@ -431,12 +463,13 @@ export const Reports: React.FC = () => {
             <span>Generate Report</span>
           </button>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Consistency Cards (The 5 consistency cards from screenshot) ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         {/* Card 1: Daily/Weekly Net Return */}
-        <div
+        <motion.div
+          variants={reportsCardVariants}
           className={`p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border ${
             totalNet >= 0
               ? "bg-emerald-500/[0.04] dark:bg-emerald-500/[0.08] border-emerald-500/30"
@@ -450,91 +483,117 @@ export const Reports: React.FC = () => {
             Audited Net Return
           </span>
           <h3
-            className={`text-[22px] sm:text-[24px] font-bold tracking-tight leading-none truncate ${
+            className={`text-[22px] sm:text-[24px] font-bold tracking-tight leading-none truncate tabular-nums ${
               totalNet >= 0 ? "text-emerald-500" : "text-rose-500"
             }`}
           >
-            {hideBalance ? "•••••" : `${totalNet >= 0 ? "+" : ""}${formatMoney(totalNet, { raw: true })}`}
+            {hideBalance ? (
+              "•••••"
+            ) : (
+              <AnimatedNumber
+                value={totalNet}
+                duration={900}
+                format={(v) => `${v >= 0 ? "+" : ""}${formatMoney(v, { raw: true })}`}
+              />
+            )}
           </h3>
           <p
-            className={`text-[11px] font-semibold mt-2 truncate ${
+            className={`text-[11px] font-semibold mt-2 truncate tabular-nums ${
               totalNet >= 0 ? "text-emerald-600/90 dark:text-emerald-400/90" : "text-rose-600/90 dark:text-rose-400/90"
             }`}
           >
-            {totalNet >= 0 ? "+" : ""}
-            {safeNetPct}% account P&L
+            <AnimatedNumber
+              value={Number(safeNetPct) || 0}
+              duration={850}
+              delay={60}
+              format={(v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`}
+            />{" "}
+            account P&amp;L
           </p>
-        </div>
+        </motion.div>
 
         {/* Card 2: Win Rate */}
-        <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
+        <motion.div variants={reportsCardVariants} className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
           <div className="absolute top-4 right-4 text-slate-400/30 group-hover:text-slate-500 transition-colors">
             <Award size={18} />
           </div>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
             Win Rate
           </span>
-          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-            {safeWinRate}%
+          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate tabular-nums">
+            <AnimatedNumber value={safeWinRate} duration={850} delay={80} />%
           </h3>
-          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate tabular-nums">
             {winCount} won · {lossCount} lost
           </p>
-        </div>
+        </motion.div>
 
         {/* Card 3: Total Trades */}
-        <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
+        <motion.div variants={reportsCardVariants} className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
           <div className="absolute top-4 right-4 text-slate-400/30 group-hover:text-slate-500 transition-colors">
             <Activity size={18} />
           </div>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
             Total Trades
           </span>
-          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-            {totalTradesCount}
+          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate tabular-nums">
+            <AnimatedNumber value={totalTradesCount} duration={850} delay={120} />
           </h3>
-          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate tabular-nums">
             {buyCount} Buy · {sellCount} Sell
           </p>
-        </div>
+        </motion.div>
 
         {/* Card 4: Profit Factor */}
-        <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
+        <motion.div variants={reportsCardVariants} className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
           <div className="absolute top-4 right-4 text-slate-400/30 group-hover:text-slate-500 transition-colors">
             <Percent size={18} />
           </div>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
             Profit Factor
           </span>
-          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate">
-            {formattedProfitFactor}
+          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-slate-900 dark:text-white truncate tabular-nums">
+            {!isNaN(Number(formattedProfitFactor)) ? (
+              <AnimatedNumber
+                value={Number(formattedProfitFactor)}
+                duration={850}
+                delay={160}
+                format={(v) => v.toFixed(2)}
+              />
+            ) : (
+              formattedProfitFactor
+            )}
           </h3>
           <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
             Gross wins / losses
           </p>
-        </div>
+        </motion.div>
 
         {/* Card 5: Consistency & Discipline Standing */}
-        <div className="col-span-2 sm:col-span-1 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
+        <motion.div variants={reportsCardVariants} className="col-span-2 sm:col-span-1 bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] p-4 sm:p-5 rounded-2xl relative overflow-hidden group shadow-[0_2px_8px_rgba(0,0,0,0.04)] transition-all">
           <div className="absolute top-4 right-4 text-slate-400/30 group-hover:text-slate-500 transition-colors">
             <ShieldCheck size={18} />
           </div>
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
             Consistency Score
           </span>
-          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-indigo-600 dark:text-indigo-400 truncate">
-            {avgDisciplineScore ? `${avgDisciplineScore}%` : (totalTradesCount > 0 ? "95%" : "100%")}
+          <h3 className="text-[22px] sm:text-[24px] font-bold tracking-tight leading-none text-indigo-600 dark:text-indigo-400 truncate tabular-nums">
+            <AnimatedNumber
+              value={avgDisciplineScore ? Number(avgDisciplineScore) : (totalTradesCount > 0 ? 95 : 100)}
+              duration={900}
+              delay={200}
+            />%
           </h3>
           <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mt-2 truncate">
             {totalTradesCount > 0 ? "Disciplined · Rule Compliant" : "Standing Active · No Violations"}
           </p>
-        </div>
+        </motion.div>
       </div>
 
       {/* ── Featured Audit & Statement Packages ──────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Box 1: Monday Audit Statement */}
-        <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] group hover:border-slate-300 dark:hover:border-white/20 transition-colors">
+        <motion.div variants={reportsCardVariants} className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] group hover:border-slate-300 dark:hover:border-white/20 transition-colors">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
@@ -570,10 +629,10 @@ export const Reports: React.FC = () => {
               View Audit <ChevronRight size={13} />
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Box 2: Tax Statement */}
-        <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] group hover:border-slate-300 dark:hover:border-white/20 transition-colors">
+        <motion.div variants={reportsCardVariants} className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] group hover:border-slate-300 dark:hover:border-white/20 transition-colors">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
@@ -609,10 +668,10 @@ export const Reports: React.FC = () => {
               View Report <ChevronRight size={13} />
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Box 3: Raw Execution Log */}
-        <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] group hover:border-slate-300 dark:hover:border-white/20 transition-colors">
+        <motion.div variants={reportsCardVariants} className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] group hover:border-slate-300 dark:hover:border-white/20 transition-colors">
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
@@ -647,11 +706,11 @@ export const Reports: React.FC = () => {
               Export CSV <Download size={13} />
             </button>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* ── Statements & Documents Center (Table & Filters) ──────────────── */}
-      <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.03)] overflow-hidden">
+      <motion.div variants={reportsCardVariants} className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.03)] overflow-hidden">
         {/* Table Toolbar */}
         <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           {/* Category Pill Filters */}
@@ -779,7 +838,7 @@ export const Reports: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Interactive Statement Preview Modal (Matching Reference Image) ── */}
       {typeof document !== "undefined" && createPortal(
@@ -1261,7 +1320,7 @@ export const Reports: React.FC = () => {
         </AnimatePresence>,
         document.body
       )}
-    </div>
+    </motion.div>
   );
 };
 

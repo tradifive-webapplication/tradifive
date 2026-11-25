@@ -1,6 +1,28 @@
 ﻿import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+
+const SETTLEMENT_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const settlementContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.04 },
+  },
+};
+
+const settlementCardVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.44, ease: SETTLEMENT_EXPO_OUT },
+  },
+};
 import { 
   Receipt, Wallet, ArrowUpRight, TrendingUp, TrendingDown, Clock, 
   CheckCircle2, AlertCircle, RefreshCw, Filter, ShieldCheck, Download, 
@@ -344,10 +366,15 @@ export default function WeeklySettlements() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full">
+      <motion.div
+        variants={settlementContainerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full"
+      >
         
         {/* ── Top Header (Admin App Style: Dark, Clean, Sharp Borders, No Pill Badges) ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+        <motion.div variants={settlementCardVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
           <div className="flex items-center gap-3">
             <div 
               className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" 
@@ -384,49 +411,68 @@ export default function WeeklySettlements() {
               <span>Sync</span>
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* ── 4 Metric Cards Grid (Consistent Dashboard Box Styling) ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           {/* Card 1: Total Trading Profit */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
-            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.totalTradingProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : summary.totalTradingProfit < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
-              {summary.totalTradingProfit >= 0 ? "+" : ""}{curr}{summary.totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight tabular-nums ${summary.totalTradingProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : summary.totalTradingProfit < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
+              <AnimatedNumber
+                value={summary.totalTradingProfit}
+                duration={900}
+                format={(v) => `${v >= 0 ? "+" : ""}${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
             </div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               TOTAL TRADING PROFIT
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 2: Tradifive Share (50%) */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
-            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight">
-              {curr}{summary.tradifiveShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight tabular-nums">
+              <AnimatedNumber
+                value={summary.tradifiveShare}
+                duration={900}
+                delay={60}
+                format={(v) => `${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
             </div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               TRADIFIVE SHARE (50%)
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 3: Your Share (50%) */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
-            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.yourShare > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
-              {summary.yourShare >= 0 ? "+" : ""}{curr}{summary.yourShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight tabular-nums ${summary.yourShare > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
+              <AnimatedNumber
+                value={summary.yourShare}
+                duration={900}
+                delay={120}
+                format={(v) => `${v >= 0 ? "+" : ""}${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
             </div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               YOUR SHARE (50%)
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 4: Pending Payment */}
-          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
-            <div className={`text-2xl font-bold font-mono tracking-tight ${summary.pendingPayment > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
-              {curr}{summary.pendingPayment.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight tabular-nums ${summary.pendingPayment > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
+              <AnimatedNumber
+                value={summary.pendingPayment}
+                duration={900}
+                delay={180}
+                format={(v) => `${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
             </div>
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
               PENDING PAYMENT
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* ── 2. CURRENT ACTIVE SETTLEMENT CARD ── */}
@@ -822,7 +868,7 @@ export default function WeeklySettlements() {
           onPaymentSuccess={handlePaymentSuccess}
           userId={userId}
         />
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }

@@ -1,12 +1,37 @@
 ﻿import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+
+const SETTLEMENT_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const settlementContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.06, delayChildren: 0.04 },
+  },
+};
+
+const settlementCardVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.44, ease: SETTLEMENT_EXPO_OUT },
+  },
+};
 import { 
   Receipt, Wallet, ArrowUpRight, TrendingUp, TrendingDown, Clock, 
   CheckCircle2, AlertCircle, RefreshCw, Filter, ShieldCheck, Download, 
-  ChevronRight, Calendar, ArrowRight, Info, Coins, ShieldAlert
+  ChevronRight, Calendar, ArrowRight, Info, Coins, ShieldAlert,
+  Lock, Sparkles, Zap, Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { getSystemSetting } from "@/lib/systemSettings";
 import { 
   Settlement, 
   CustomerSettlementSummary, 
@@ -19,14 +44,26 @@ import SettlementDetailsModal from "@/components/settlements/SettlementDetailsMo
 import SettlementPaymentModal from "@/components/settlements/SettlementPaymentModal";
 import { downloadSettlementInvoicePdf } from "@/utils/settlementPdf";
 
-// Signature Tradifive box styling tokens matching AI Journal, RiskGuard, and AutoTrade
-const kpiBoxStyle = "rounded-[22px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-4 sm:p-5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[20px] transition-all flex flex-col justify-between";
-const cardBoxStyle = "rounded-[24px] border-2 border-white bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] p-5 sm:p-6 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:bg-none dark:bg-[#1E1E1E] dark:border-[1px] dark:border-white/5 dark:rounded-[22px]";
-
 export default function WeeklySettlements() {
+  const navigate = useNavigate();
   const [userId, setUserId] = useState<string>("");
   const [userProfile, setUserProfile] = useState<any>(null);
   const [accountNumber, setAccountNumber] = useState<string>("");
+  const [isLifetimePlan, setIsLifetimePlan] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        if (localStorage.getItem("tradifive_is_lifetime_plan") === "true") return true;
+        const tier = localStorage.getItem("tradifive_payment_tier") || localStorage.getItem("tradifive_selected_tier");
+        if (tier === "three_years" || tier === "lifetime") return true;
+        const req = localStorage.getItem("tradifive_payment_request");
+        if (req) {
+          const p = JSON.parse(req);
+          if (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000) return true;
+        }
+      }
+    } catch (e) {}
+    return false;
+  });
   const [settlements, setSettlements] = useState<Settlement[]>([]);
   const [summary, setSummary] = useState<CustomerSettlementSummary>({
     totalTradingProfit: 0,
@@ -48,7 +85,7 @@ export default function WeeklySettlements() {
   const [payingSettlement, setPayingSettlement] = useState<Settlement | null>(null);
 
   // Currency preference (USC / INR)
-  const [viewCurrency, setViewCurrency] = useState<string>(() => {
+  const [viewCurrency] = useState<string>(() => {
     try {
       return localStorage.getItem("tradifive_view_currency") || "INR";
     } catch (e) {
@@ -71,6 +108,44 @@ export default function WeeklySettlements() {
 
       const connectedAcc = localStorage.getItem("tradifive_connected_mt5_account") || "";
       setAccountNumber(connectedAcc);
+
+      // Verify lifetime exemption status
+      let isLt = false;
+      if (localStorage.getItem("tradifive_is_lifetime_plan") === "true") {
+        isLt = true;
+      } else {
+        try {
+          const payments = await getSystemSetting<any[]>("license_payment_requests");
+          if (Array.isArray(payments)) {
+            const hasLt = payments.some((p: any) => 
+              (p.user_id === currentUid || (connectedAcc && p.mt5_account_number === connectedAcc)) &&
+              (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000 || (p.plan_name && p.plan_name.includes("3-Year")))
+            );
+            if (hasLt) isLt = true;
+          }
+          if (!isLt) {
+            const adminRecords = await getSystemSetting<any[]>("auto_trade_admin_records");
+            if (Array.isArray(adminRecords)) {
+              const rec = adminRecords.find((r: any) => 
+                r.user_id === currentUid || (connectedAcc && (r.mt5_account_number === connectedAcc || r.bound_account === connectedAcc))
+              );
+              if (rec && (rec.tier?.includes("three_years") || rec.tier?.includes("100000") || rec.tier?.includes("Lifetime") || rec.plan_tier === "three_years")) {
+                isLt = true;
+              }
+            }
+          }
+        } catch (err) {
+          console.warn("Error checking lifetime plan:", err);
+        }
+      }
+
+      if (isLt) {
+        setIsLifetimePlan(true);
+        try {
+          localStorage.setItem("tradifive_is_lifetime_plan", "true");
+          window.dispatchEvent(new Event("tradifive_tier_update"));
+        } catch (e) {}
+      }
 
       const result = await getCustomerSettlements(currentUid, connectedAcc);
       setSettlements(result.settlements);
@@ -122,176 +197,307 @@ export default function WeeklySettlements() {
     setShowPaymentModal(true);
   };
 
-  const handlePaymentSuccess = (receiptNumber: string) => {
+  const handlePaymentSuccess = () => {
     loadSettlementData();
   };
 
-  return (
-    <DashboardLayout breadcrumbs={[{ label: "Weekly Profit Settlement" }]}>
-      <div className="w-full pb-16 font-sans text-slate-800 dark:text-slate-200">
-        
-        {/* Top Header & Telemetry Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0">
-                <Receipt size={18} />
+  if (isLifetimePlan) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6 pb-20 select-none px-4 sm:px-6 md:px-8 py-4 max-w-[1400px] mx-auto w-full">
+          {/* Top Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70 dark:border-white/5">
+            <div className="flex items-center gap-3">
+              <div 
+                className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-sm"
+              >
+                <Lock size={18} />
               </div>
-              <h1 className="text-[20px] sm:text-[22px] font-bold text-slate-900 dark:text-white tracking-tight" >
-                Weekly Profit Settlement
-              </h1>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-200/60 shrink-0">
-                50/50 Profit Split
-              </span>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase font-sans">
+                    Weekly Profit Settlement
+                  </h1>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                    <ShieldCheck size={11} className="text-emerald-500" />
+                    Locked · 0% Profit Share
+                  </span>
+                </div>
+                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.15em] mt-0.5">
+                  Institutional Lifetime Exemption · Zero Platform Deductions
+                </p>
+              </div>
             </div>
-            <p className="text-[12px] sm:text-[13px] text-slate-400 mt-1">
-              Transparent, audited weekly performance settlements. Zero deductions from your MT5 broker account.
-            </p>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <div className="h-9 px-3.5 bg-white dark:bg-[#1E1E1E] border border-slate-200/70 dark:border-white/5 rounded-xl shadow-xs flex items-center gap-2 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>MT5 #{accountNumber ? accountNumber : "36946803"}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  loadSettlementData(true);
+                  toast.success("Telemetry and institutional standing verified.");
+                }}
+                disabled={isRefreshing}
+                className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1E1E1E] dark:hover:bg-white/[0.05] border border-slate-200/70 dark:border-white/5 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 flex items-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <RefreshCw size={13} className={isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400"} />
+                <span>Sync</span>
+              </button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            {/* Refresh Button */}
-            <button
-              onClick={() => loadSettlementData(true)}
-              disabled={isRefreshing}
-              className="w-[36px] h-[36px] rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer disabled:opacity-50"
-              title="Refresh Settlements"
-            >
-              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-blue-600" : ""} />
-            </button>
+          {/* Institutional Exemption Hero Card */}
+          <div className="relative overflow-hidden rounded-[18px] border border-emerald-200/80 dark:border-emerald-500/20 bg-gradient-to-br from-emerald-50/70 via-white to-slate-50 dark:from-emerald-950/20 dark:via-[#141416] dark:to-[#0D0D0E] p-6 sm:p-8 shadow-sm">
+            {/* Ambient Glow */}
+            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
-            {/* Account Binding Indicator */}
-            <div className="h-[36px] px-3.5 rounded-[14px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none flex items-center gap-2 select-none text-xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-bold text-slate-700 dark:text-slate-300">
-                MT5 #{accountNumber ? `••••${accountNumber.slice(-4)}` : "••••9980"}
-              </span>
+            <div className="relative z-10 space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 shadow-inner">
+                    <ShieldCheck size={26} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono font-extrabold uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                        ₹1,00,000 Institutional Lifetime Plan
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                        100% Profits Yours
+                      </span>
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mt-1">
+                      Weekly Settlements Locked & Exempt
+                    </h2>
+                  </div>
+                </div>
+
+                <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 text-xs font-mono font-bold self-start md:self-auto">
+                  <Lock size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>Platform Profit Share: 0.00%</span>
+                </div>
+              </div>
+
+              <p className="text-sm sm:text-base text-slate-600 dark:text-neutral-300 leading-relaxed max-w-4xl">
+                Your MT5 trading account is active under the <strong className="text-slate-900 dark:text-white font-semibold">Tradifive ₹1,00,000 Lifetime Plan</strong>. Because your license was acquired with full upfront enterprise clearance, you retain <strong className="text-emerald-600 dark:text-emerald-400 font-semibold">100% of all algorithmic trading profits</strong>. You are completely exempt from weekly 50/50 profit clearance invoices, profit splits, and settlement remittances.
+              </p>
+
+              {/* 3 Pillar Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                <div className="bg-white dark:bg-[#1A1A1D]/80 border border-slate-200/70 dark:border-white/5 rounded-xl p-4 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-slate-400 dark:text-neutral-400">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Trading Profit Split</span>
+                    <Sparkles size={14} className="text-emerald-500 dark:text-emerald-400" />
+                  </div>
+                  <div className="text-2xl font-mono font-black text-emerald-600 dark:text-emerald-400">
+                    100% Client
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 leading-normal">
+                    0% platform cut. All gains remain directly inside your broker wallet.
+                  </p>
+                </div>
+
+                <div className="bg-white dark:bg-[#1A1A1D]/80 border border-slate-200/70 dark:border-white/5 rounded-xl p-4 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-slate-400 dark:text-neutral-400">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Settlement Dues</span>
+                    <CheckCircle2 size={14} className="text-emerald-500 dark:text-emerald-400" />
+                  </div>
+                  <div className="text-2xl font-mono font-black text-slate-900 dark:text-white">
+                    ₹0.00 / Zero
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 leading-normal">
+                    Account is in permanent good standing. No invoices will be generated.
+                  </p>
+                </div>
+
+                <div className="bg-white dark:bg-[#1A1A1D]/80 border border-slate-200/70 dark:border-white/5 rounded-xl p-4 space-y-2 shadow-xs">
+                  <div className="flex items-center justify-between text-slate-400 dark:text-neutral-400">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider">Broker Integration</span>
+                    <Zap size={14} className="text-blue-500 dark:text-blue-400" />
+                  </div>
+                  <div className="text-2xl font-mono font-black text-blue-600 dark:text-blue-400">
+                    Direct MT5
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-neutral-400 leading-normal">
+                    Zero lockups. Withdrawals processed normally via broker portal.
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200/70 dark:border-white/5">
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/dashboard")}
+                  className="px-5 py-2.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 font-bold text-xs uppercase tracking-wider flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+                >
+                  <Activity size={14} />
+                  <span>Open FiAlgo Modern Dashboard</span>
+                  <ArrowRight size={14} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/history")}
+                  className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#1E1E22] dark:hover:bg-white/[0.06] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                >
+                  <Receipt size={14} className="text-slate-400 dark:text-neutral-400" />
+                  <span>Audit MT5 Order History</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/auto-trade/license")}
+                  className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 dark:bg-[#1E1E22] dark:hover:bg-white/[0.06] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 font-semibold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                >
+                  <ShieldCheck size={14} className="text-slate-400 dark:text-neutral-400" />
+                  <span>License & Hardware Binding</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      </DashboardLayout>
+    );
+  }
 
-        {/* ── 1. TOP 4 SUMMARY CARDS ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
-          {/* Card 1: Total Trading Profit */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Total Trading Profit
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
+  return (
+    <DashboardLayout>
+      <motion.div
+        variants={settlementContainerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-4 pb-20 select-none px-4 sm:px-6 md:px-8 py-3 max-w-[1500px] mx-auto w-full"
+      >
+        
+        {/* ── Top Header (Admin App Style: Dark, Clean, Sharp Borders, No Pill Badges) ── */}
+        <motion.div variants={settlementCardVariants} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-white/5">
+          <div className="flex items-center gap-3">
+            <div 
+              className="w-9 h-9 rounded-lg bg-black/30 border border-white/5 flex items-center justify-center text-blue-400 shrink-0" 
+              style={{ borderColor: "#3b82f620" }}
+            >
+              <Receipt size={16} />
             </div>
             <div>
-              <h3 className="text-[22px] font-bold text-emerald-600 dark:text-emerald-400 tracking-tight leading-none" >
-                +{curr}{summary.totalTradingProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </h3>
-              <p className="text-[11px] font-medium text-slate-400 mt-2 truncate">
-                Verified closed profit across {summary.settledCount + (currentSettlement ? 1 : 0)} cycles
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white uppercase font-sans">
+                  Weekly Profit Settlement
+                </h1>
+              </div>
+              <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-[0.15em] mt-0.5">
+                Transparent weekly performance settlements · Zero deductions from your MT5 account
               </p>
             </div>
           </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="h-9 px-3 bg-white dark:bg-[#1E1E1E] border border-slate-200/70 dark:border-white/5 rounded-xl shadow-xs flex items-center gap-2 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>MT5 #{accountNumber ? `••••${accountNumber.slice(-4)}` : "Connected"}</span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => loadSettlementData(true)}
+              disabled={isRefreshing}
+              className="h-9 px-3.5 bg-slate-100 hover:bg-slate-200 dark:bg-[#1E1E1E] dark:hover:bg-white/[0.05] border border-slate-200/70 dark:border-white/5 rounded-xl text-xs font-semibold text-slate-700 dark:text-neutral-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Refresh Settlements"
+            >
+              <RefreshCw size={13} className={isRefreshing ? "animate-spin text-slate-900 dark:text-white" : "text-slate-400"} />
+              <span>Sync</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* ── 4 Metric Cards Grid (Consistent Dashboard Box Styling) ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+          {/* Card 1: Total Trading Profit */}
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight tabular-nums ${summary.totalTradingProfit > 0 ? "text-emerald-600 dark:text-emerald-400" : summary.totalTradingProfit < 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-900 dark:text-white"}`}>
+              <AnimatedNumber
+                value={summary.totalTradingProfit}
+                duration={900}
+                format={(v) => `${v >= 0 ? "+" : ""}${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
+            </div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+              TOTAL TRADING PROFIT
+            </div>
+          </motion.div>
 
           {/* Card 2: Tradifive Share (50%) */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Tradifive Share (50%)
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center shrink-0">
-                <Coins className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </div>
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white tracking-tight tabular-nums">
+              <AnimatedNumber
+                value={summary.tradifiveShare}
+                duration={900}
+                delay={60}
+                format={(v) => `${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
             </div>
-            <div>
-              <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
-                {curr}{summary.tradifiveShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </h3>
-              <p className="text-[11px] font-medium text-slate-400 mt-2 truncate">
-                Total agreed performance platform fee
-              </p>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+              TRADIFIVE SHARE (50%)
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 3: Your Share (50%) */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Your Share (50%)
-              </span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center shrink-0">
-                <Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight tabular-nums ${summary.yourShare > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-slate-900 dark:text-white"}`}>
+              <AnimatedNumber
+                value={summary.yourShare}
+                duration={900}
+                delay={120}
+                format={(v) => `${v >= 0 ? "+" : ""}${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
             </div>
-            <div>
-              <h3 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-none" >
-                +{curr}{summary.yourShare.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </h3>
-              <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 mt-2 truncate">
-                100% credited & retained in your MT5
-              </p>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+              YOUR SHARE (50%)
             </div>
-          </div>
+          </motion.div>
 
           {/* Card 4: Pending Payment */}
-          <div className={kpiBoxStyle}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">
-                Pending Payment
-              </span>
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                summary.pendingPayment > 0 ? "bg-amber-50 dark:bg-amber-500/10" : "bg-slate-100 dark:bg-white/5"
-              }`}>
-                <Clock className={`w-4 h-4 ${summary.pendingPayment > 0 ? "text-amber-600" : "text-slate-400"}`} />
-              </div>
+          <motion.div variants={settlementCardVariants} className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-4 sm:p-5 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
+            <div className={`text-2xl font-bold font-mono tracking-tight tabular-nums ${summary.pendingPayment > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"}`}>
+              <AnimatedNumber
+                value={summary.pendingPayment}
+                duration={900}
+                delay={180}
+                format={(v) => `${curr}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              />
             </div>
-            <div>
-              <h3 className={`text-[22px] font-bold tracking-tight leading-none ${
-                summary.pendingPayment > 0 ? "text-amber-600 dark:text-amber-400" : "text-slate-900 dark:text-white"
-              }`} >
-                {curr}{summary.pendingPayment.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </h3>
-              <div className="flex items-center justify-between mt-2 pt-0.5">
-                <span className="text-[11px] font-medium text-slate-400 truncate">
-                  {summary.overdueCount > 0 ? `${summary.overdueCount} Overdue cycle` : "All dues current"}
-                </span>
-                {summary.pendingPayment > 0 && currentSettlement && (
-                  <button
-                    onClick={() => handleOpenPayment(currentSettlement)}
-                    className="text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-0.5 cursor-pointer"
-                  >
-                    <span>Pay Now</span>
-                    <ArrowRight size={10} />
-                  </button>
-                )}
-              </div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mt-1">
+              PENDING PAYMENT
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* ── 2. CURRENT ACTIVE SETTLEMENT CARD ── */}
         {currentSettlement && (
-          <div className={`${cardBoxStyle} mb-6`}>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/5 mb-4">
+          <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
               <div>
-                <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
-                  <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight" >
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                     Current Settlement Cycle: {currentSettlement.week_label}
                   </h2>
-                  <span className={`text-[10.5px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                  <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
                     currentSettlement.status === "paid" || currentSettlement.status === "approved"
-                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
+                      ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                       : currentSettlement.status === "overdue"
-                      ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300"
+                      ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
                       : currentSettlement.status === "loss_week" || currentSettlement.status === "cleared"
-                      ? "bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300"
-                      : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
+                      ? "bg-white/5 text-neutral-400 border border-white/10"
+                      : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                   }`}>
                     {currentSettlement.status.replace("_", " ")}
                   </span>
                 </div>
-                <p className="text-[11.5px] text-slate-400 mt-1">
-                  Settlement ID: <span className="font-mono font-bold text-slate-600 dark:text-slate-300">{currentSettlement.settlement_number}</span> • Bound MT5 #{currentSettlement.mt5_account_number ? `••••${currentSettlement.mt5_account_number.slice(-4)}` : "••••9980"} • Exness Broker Server
+                <p className="text-[10px] font-mono text-neutral-500 mt-1">
+                  Settlement ID: <span className="font-bold text-neutral-300">{currentSettlement.settlement_number}</span> · Bound MT5 #{currentSettlement.mt5_account_number ? `••••${currentSettlement.mt5_account_number.slice(-4)}` : "Connected"} · Exness Broker Server
                 </p>
               </div>
 
@@ -299,129 +505,129 @@ export default function WeeklySettlements() {
                 <button
                   type="button"
                   onClick={() => downloadSettlementInvoicePdf(currentSettlement, userProfile)}
-                  className="h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className="h-8 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
-                  <Download size={13} />
+                  <Download size={12} />
                   <span>Invoice</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleOpenDetails(currentSettlement)}
-                  className="h-9 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-800 dark:text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  className="h-8 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <span>View Details</span>
-                  <ChevronRight size={14} />
+                  <ChevronRight size={13} />
                 </button>
               </div>
             </div>
 
-            {/* Financial Parameters Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-5">
-              <div className="p-3 rounded-[16px] bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">Starting Balance</span>
-                <span className="text-[13px] font-bold text-slate-800 dark:text-white block mt-0.5">
+            {/* Financial Parameters Grid (Clean Monospace Tiles) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 font-mono text-xs">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Starting Balance</span>
+                <span className="font-bold text-white block">
                   {curr}{currentSettlement.starting_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-[16px] bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">Ending Balance</span>
-                <span className="text-[13px] font-bold text-slate-800 dark:text-white block mt-0.5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Ending Balance</span>
+                <span className="font-bold text-white block">
                   {curr}{currentSettlement.ending_balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-[16px] bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">Gross Realised</span>
-                <span className="text-[13px] font-bold text-emerald-600 block mt-0.5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Gross Realised</span>
+                <span className="font-bold text-emerald-400 block">
                   +{curr}{currentSettlement.gross_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-[16px] bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">Trading Costs & Swaps</span>
-                <span className="text-[13px] font-bold text-slate-500 block mt-0.5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Trading Costs</span>
+                <span className="font-bold text-neutral-400 block">
                   -{curr}{(currentSettlement.commissions + currentSettlement.swaps).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-[16px] bg-slate-50 dark:bg-white/5 border border-slate-200/60 dark:border-white/5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase block">Loss Carry-Forward</span>
-                <span className="text-[13px] font-bold text-slate-500 block mt-0.5">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5">
+                <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest block mb-0.5">Loss Carry-Forward</span>
+                <span className="font-bold text-neutral-400 block">
                   -{curr}{currentSettlement.previous_loss_carried.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              <div className="p-3 rounded-[16px] bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200/60 dark:border-emerald-500/20">
-                <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 uppercase block">Net Realised Profit</span>
-                <span className="text-[13px] font-bold text-emerald-700 dark:text-emerald-300 block mt-0.5">
+              <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest block mb-0.5">Net Realised Profit</span>
+                <span className="font-bold text-emerald-400 block">
                   +{curr}{currentSettlement.net_realised_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </span>
               </div>
             </div>
 
-            {/* Prominent Calculation Explanation Box (Requested in Section 3) */}
-            <div className="p-4 sm:p-5 rounded-[20px] border-2 border-white bg-gradient-to-r from-blue-50/60 via-indigo-50/30 to-white dark:bg-none dark:bg-[#151D2A] shadow-[0_4px_10px_-5px_rgba(37,99,235,0.1),0_0_0_2px_#DBEAFE] dark:border-blue-500/20 flex flex-col md:flex-row md:items-center justify-between gap-5">
-              <div className="space-y-1.5 flex-1">
+            {/* Prominent Calculation Explanation Box (Clean Admin Strip) */}
+            <div className="p-4 rounded-lg bg-black/40 border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4 font-mono text-xs">
+              <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-blue-700 dark:text-blue-300 flex items-center gap-1.5">
-                    <ShieldCheck size={14} className="text-blue-600" /> Prominent Calculation Breakdown
+                  <ShieldCheck size={13} className="text-blue-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-300">
+                    Calculation Breakdown (50/50 Audited Formula)
                   </span>
-                  <span className="text-[10px] font-medium text-slate-400">Audited 50/50 Formula</span>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 text-xs">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
                   <div>
-                    <span className="text-slate-400 block text-[10.5px]">Eligible net profit:</span>
-                    <span className="text-[15px] font-bold text-slate-900 dark:text-white">
+                    <span className="text-neutral-500 block text-[9px] uppercase tracking-widest">Eligible net profit:</span>
+                    <span className="text-sm font-bold text-white">
                       {curr}{currentSettlement.eligible_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10.5px]">Customer share:</span>
-                    <span className="text-[15px] font-bold text-emerald-600 dark:text-emerald-400">
+                    <span className="text-neutral-500 block text-[9px] uppercase tracking-widest">Customer share:</span>
+                    <span className="text-sm font-bold text-emerald-400">
                       +{curr}{currentSettlement.customer_share.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10.5px]">Tradifive share:</span>
-                    <span className="text-[15px] font-bold text-blue-600 dark:text-blue-400">
+                    <span className="text-neutral-500 block text-[9px] uppercase tracking-widest">Tradifive share:</span>
+                    <span className="text-sm font-bold text-blue-400">
                       {curr}{currentSettlement.tradifive_share.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10.5px]">Amount payable:</span>
-                    <span className="text-[16px] font-extrabold text-blue-700 dark:text-blue-300">
+                    <span className="text-neutral-500 block text-[9px] uppercase tracking-widest">Amount payable:</span>
+                    <span className="text-sm font-bold text-emerald-400">
                       {curr}{currentSettlement.amount_payable.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                 </div>
 
-                <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed pt-1">
-                  <b>How this was calculated:</b> Only verified closed trades are included. Floating positions, deposits, and capital transfers are 100% excluded. If the net trading result was negative, loss is carried forward and zero fee is due.
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pt-1">
+                  Only verified closed trades are included. Floating positions and capital deposits are 100% excluded. If the net trading result was negative, loss is carried forward and zero fee is due.
                 </p>
               </div>
 
               {/* Direct Pay CTA */}
-              <div className="flex flex-col gap-2 shrink-0 self-start md:self-center">
+              <div className="flex flex-col gap-1.5 shrink-0 self-start md:self-center">
                 {(currentSettlement.status === "pending" || currentSettlement.status === "overdue") && currentSettlement.amount_payable > 0 ? (
                   <button
                     type="button"
                     onClick={() => handleOpenPayment(currentSettlement)}
-                    className="h-11 px-7 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold transition-all duration-150 active:scale-[0.985] shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap border-none"
+                    className="btn-fialgo-primary h-9 px-5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
                   >
-                    <ArrowUpRight size={15} />
+                    <ArrowUpRight size={13} />
                     <span>Pay Now ({curr}{currentSettlement.amount_payable.toFixed(0)})</span>
                   </button>
                 ) : (
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs font-bold">
-                    <CheckCircle2 size={15} className="text-emerald-600" />
-                    <span>{currentSettlement.amount_payable === 0 ? "No Dues (0.00) ✓" : "Cycle Cleared & Verified"}</span>
+                  <div className="flex items-center gap-1.5 px-3 py-2 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold font-mono">
+                    <CheckCircle2 size={13} className="text-emerald-400" />
+                    <span>{currentSettlement.amount_payable === 0 ? "No Dues (0.00) ✓" : "Cycle Cleared"}</span>
                   </div>
                 )}
-                <span className="text-[10px] text-slate-400 text-center font-medium">
-                  Payment Due: {new Date(currentSettlement.payment_deadline).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+                <span className="text-[9px] text-neutral-500 text-center font-mono">
+                  Due: {new Date(currentSettlement.payment_deadline).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
                 </span>
               </div>
             </div>
@@ -429,14 +635,14 @@ export default function WeeklySettlements() {
         )}
 
         {/* ── 3. WEEKLY SETTLEMENT HISTORY ── */}
-        <div className={cardBoxStyle}>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <div className="bg-white dark:bg-[#17171A] border border-slate-200/70 dark:border-white/[0.07] rounded-[18px] p-5 sm:p-6 shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 dark:border-white/5">
             <div>
-              <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight" >
+              <h2 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                 Weekly Settlement History
               </h2>
-              <p className="text-[11.5px] text-slate-400 mt-0.5">
-                Chronological ledger of verified weekly profit sharing cycles and payment clearance receipts.
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                Chronological ledger of verified weekly profit sharing cycles and payment clearance receipts
               </p>
             </div>
 
@@ -452,7 +658,11 @@ export default function WeeklySettlements() {
                 <button
                   key={f.id}
                   onClick={() => setSelectedStatusFilter(f.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-150 active:scale-[0.985] cursor-pointer ${selectedStatusFilter === f.id ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_2px_4px_rgba(0,0,0,0.15)]" : "bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-white/5"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer whitespace-nowrap ${
+                    selectedStatusFilter === f.id
+                      ? "bg-slate-900 text-white dark:bg-white/10 dark:text-white border border-slate-900 dark:border-white/15 shadow-xs"
+                      : "text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white border border-transparent"
+                  }`}
                 >
                   {f.label}
                 </button>
@@ -462,22 +672,22 @@ export default function WeeklySettlements() {
 
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-left text-xs">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-white/10 text-slate-400 text-[10.5px] uppercase tracking-wider">
-                  <th className="py-3 font-bold">Week</th>
-                  <th className="py-3 font-bold text-right">Net Profit</th>
-                  <th className="py-3 font-bold text-right">Tradifive Share</th>
-                  <th className="py-3 font-bold text-right">Customer Share</th>
-                  <th className="py-3 font-bold text-center">Payment Status</th>
-                  <th className="py-3 font-bold text-right">Action</th>
+                <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-black/20">
+                  <th className="p-3">WEEK</th>
+                  <th className="p-3 text-right">NET PROFIT</th>
+                  <th className="p-3 text-right">TRADIFIVE SHARE</th>
+                  <th className="p-3 text-right">CUSTOMER SHARE</th>
+                  <th className="p-3 text-center">PAYMENT STATUS</th>
+                  <th className="p-3 text-right">ACTION</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-slate-700 dark:text-slate-200">
+              <tbody className="divide-y divide-slate-100 dark:divide-white/5 font-mono text-xs">
                 {filteredSettlements.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-slate-400">
-                                      No settlements found for this filter.
+                    <td colSpan={6} className="py-8 text-center text-neutral-500 text-xs">
+                      No settlements found for this filter.
                     </td>
                   </tr>
                 ) : (
@@ -489,43 +699,44 @@ export default function WeeklySettlements() {
 
                     return (
                       <tr key={s.id} className="hover:bg-slate-50/60 dark:hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3.5">
-                          <div className="font-bold text-slate-900 dark:text-white">{s.week_label}</div>
-                          <div className="text-[10.5px] font-mono text-slate-400">{s.settlement_number}</div>
+                        <td className="p-3">
+                          <div className="font-bold text-slate-900 dark:text-white font-sans text-xs">{s.week_label}</div>
+                          <div className="text-[10px] font-mono text-slate-400 dark:text-neutral-500">{s.settlement_number}</div>
                         </td>
 
-                        <td className="py-3.5 text-right font-bold">
+                        <td className="p-3 text-right font-bold">
                           <span className={s.net_realised_profit >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}>
                             {s.net_realised_profit >= 0 ? "+" : ""}{curr}{s.net_realised_profit.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </span>
                         </td>
 
-                        <td className="py-3.5 text-right font-bold text-blue-600 dark:text-blue-400">
+                        <td className="p-3 text-right font-bold text-blue-600 dark:text-blue-400">
                           {isLoss ? "—" : `${curr}${s.tradifive_share.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                         </td>
 
-                        <td className="py-3.5 text-right font-bold text-slate-800 dark:text-white">
+                        <td className="p-3 text-right font-bold text-slate-900 dark:text-white">
                           {isLoss ? "—" : `+${curr}${s.customer_share.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
                         </td>
 
-                        <td className="py-3.5 text-center">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        <td className="p-3 text-center">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                             isPaid
-                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
                               : isOverdue
-                              ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss 
-                          ? "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
-                              : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
+                              ? "bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                              : isLoss 
+                              ? "bg-white/5 text-neutral-400 border border-white/10"
+                              : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                           }`}>
                             {s.status.replace("_", " ")}
                           </span>
                         </td>
 
-                        <td className="py-3.5 text-right space-x-2">
+                        <td className="p-3 text-right space-x-2">
                           <button
                             type="button"
                             onClick={() => handleOpenDetails(s)}
-                            className="px-3.5 py-1 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10 text-xs font-semibold cursor-pointer transition-all duration-150 active:scale-[0.985]"
+                            className="h-7 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-xs font-mono font-bold text-slate-700 dark:text-neutral-300 transition-colors cursor-pointer"
                           >
                             View
                           </button>
@@ -534,7 +745,7 @@ export default function WeeklySettlements() {
                             <button
                               type="button"
                               onClick={() => handleOpenPayment(s)}
-                              className="px-3.5 py-1 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_4px_rgba(37,99,235,0.3)] text-xs font-bold cursor-pointer transition-all duration-150 active:scale-[0.985] border-none"
+                              className="btn-fialgo-primary h-7 px-3 text-xs font-bold uppercase tracking-wider cursor-pointer"
                             >
                               Pay
                             </button>
@@ -548,11 +759,11 @@ export default function WeeklySettlements() {
             </table>
           </div>
 
-          {/* Mobile Stacked Card View (Requested in Section 11) */}
-          <div className="md:hidden space-y-3">
+          {/* Mobile Stacked Card View */}
+          <div className="md:hidden space-y-2.5">
             {filteredSettlements.length === 0 ? (
-              <div className="py-8 text-center text-slate-400 text-xs">
-                                No settlements found for this filter.
+              <div className="py-8 text-center text-neutral-500 text-xs font-mono">
+                No settlements found for this filter.
               </div>
             ) : (
               filteredSettlements.map((s) => {
@@ -564,48 +775,49 @@ export default function WeeklySettlements() {
                 return (
                   <div
                     key={s.id}
-                    className="p-4 rounded-[18px] border-2 border-white bg-slate-50/70 dark:bg-white/5 shadow-xs space-y-2.5"
+                    className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 space-y-2 font-mono text-xs"
                   >
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                        <span className="text-xs font-bold text-white block font-sans">
                           {s.week_label}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400">
+                        <span className="text-[10px] text-neutral-500">
                           {s.settlement_number}
                         </span>
                       </div>
 
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
                         isPaid
-                          ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300"
+                          ? "bg-emerald-500/10 text-emerald-400"
                           : isOverdue
-                          ? "bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300": isLoss 
-                          ? "bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400"
-                          : "bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300"
+                          ? "bg-rose-500/10 text-rose-400"
+                          : isLoss 
+                          ? "bg-white/5 text-neutral-400"
+                          : "bg-amber-500/10 text-amber-400"
                       }`}>
                         {s.status.replace("_", " ")}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2 py-2 border-y border-slate-200/60 dark:border-white/5 text-xs">
+                    <div className="grid grid-cols-3 gap-2 py-2 border-y border-white/5 text-xs">
                       <div>
-                        <span className="text-[10px] text-slate-400 block">Net Profit</span>
-                        <span className={`font-bold ${s.net_realised_profit >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                        <span className="text-[9px] text-neutral-500 uppercase tracking-widest block">Net Profit</span>
+                        <span className={`font-bold ${s.net_realised_profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
                           {s.net_realised_profit >= 0 ? "+" : ""}{curr}{s.net_realised_profit.toFixed(0)}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-[10px] text-slate-400 block">Your 50%</span>
-                        <span className="font-bold text-slate-800 dark:text-white">
+                        <span className="text-[9px] text-neutral-500 uppercase tracking-widest block">Your 50%</span>
+                        <span className="font-bold text-white">
                           +{curr}{s.customer_share.toFixed(0)}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-[10px] text-slate-400 block">Tradifive 50%</span>
-                        <span className="font-bold text-blue-600">
+                        <span className="text-[9px] text-neutral-500 uppercase tracking-widest block">Tradifive 50%</span>
+                        <span className="font-bold text-blue-400">
                           {curr}{s.tradifive_share.toFixed(0)}
                         </span>
                       </div>
@@ -615,7 +827,7 @@ export default function WeeklySettlements() {
                       <button
                         type="button"
                         onClick={() => handleOpenDetails(s)}
-                        className="px-3 py-1.5 rounded-lg bg-white dark:bg-white/10 border border-slate-200 text-xs font-semibold"
+                        className="h-7 px-3 rounded bg-black/40 border border-white/10 text-xs font-bold text-neutral-300"
                       >
                         Details
                       </button>
@@ -624,7 +836,7 @@ export default function WeeklySettlements() {
                         <button
                           type="button"
                           onClick={() => handleOpenPayment(s)}
-                          className="px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_4px_rgba(37,99,235,0.3)] text-xs font-bold cursor-pointer transition-all duration-150 active:scale-[0.985] border-none"
+                          className="btn-fialgo-primary h-7 px-3 text-xs font-bold uppercase tracking-wider"
                         >
                           Pay Now
                         </button>
@@ -656,7 +868,7 @@ export default function WeeklySettlements() {
           onPaymentSuccess={handlePaymentSuccess}
           userId={userId}
         />
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }
