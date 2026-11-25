@@ -350,10 +350,16 @@ export function useDashboardData() {
         .subscribe();
     };
 
+    const handleTradesUpdated = () => {
+      if (isMounted) fetchData();
+    };
+    window.addEventListener('tradifive:trades-updated', handleTradesUpdated);
+
     setupRealtime();
 
     return () => {
       isMounted = false;
+      window.removeEventListener('tradifive:trades-updated', handleTradesUpdated);
       if (channel) supabase.removeChannel(channel);
     };
   }, [activeMarket]);

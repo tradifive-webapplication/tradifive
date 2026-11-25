@@ -218,8 +218,14 @@ export default function JournalTradesTable({
       )
       .subscribe();
 
+    const handleTradesUpdated = () => {
+      if (isMounted) fetchData();
+    };
+    window.addEventListener("tradifive:trades-updated", handleTradesUpdated);
+
     return () => {
       isMounted = false;
+      window.removeEventListener("tradifive:trades-updated", handleTradesUpdated);
       supabase.removeChannel(channel);
     };
   }, [refreshKey, demoData]);
@@ -330,7 +336,7 @@ export default function JournalTradesTable({
     ];
     const rows = displayTrades.map((t) => [
       t.symbol || "",
-      t.trade_type === 0 ? "BUY" : "SELL",
+      t.trade_type === 0 || String(t.trade_type || "").toUpperCase().includes("BUY") ? "BUY" : "SELL",
       Number(t.lot_size || 0).toFixed(2),
       t.open_price ?? t.entry_price ?? "",
       t.close_price ?? t.exit_price ?? "",

@@ -178,6 +178,9 @@ export const LogTradeModal: React.FC<LogTradeModalProps> = ({
   };
 
   const notifyComplete = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("tradifive:trades-updated"));
+    }
     if (onSuccess) onSuccess();
     if (onSaved) onSaved();
   };
