@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, HashRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, HashRouter, Route, Routes, Navigate, Outlet, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
+import { PageTransition } from "./components/PageTransition";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -137,6 +138,32 @@ const queryClient = new QueryClient();
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
 const AppRouter = isElectron ? HashRouter : BrowserRouter;
 
+const PublicRouteLayout = () => {
+  const location = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [location.pathname]);
+
+  return (
+    <PageTransition key={location.pathname} className="w-full min-h-screen flex flex-col">
+      <Outlet />
+    </PageTransition>
+  );
+};
+
+const AdminRouteLayout = () => {
+  const location = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+  }, [location.pathname]);
+
+  return (
+    <PageTransition key={location.pathname} className="w-full min-h-screen flex flex-col">
+      <Outlet />
+    </PageTransition>
+  );
+};
+
 const App = () => {
   useEffect(() => {
     const cleanup = initGlobalHaptics();
@@ -177,40 +204,43 @@ const App = () => {
             <CustomCursor />
             <Suspense fallback={<div style={{ minHeight: '100vh', width: '100%', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><div style={{ width: 40, height: 40, border: '3px solid rgba(99,102,241,0.3)', borderTopColor: '#6366f1', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /><style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style></div>}>
               <Routes>
-                <Route path="/" element={isElectron ? <Navigate to="/home" replace /> : <Landing />} />
-                <Route path="/download" element={<DownloadAppPublic />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicyPublic />} />
-                <Route path="/privacy" element={<PrivacyPolicyPublic />} />
-                <Route path="/terms-of-service" element={<TermsOfServicePublic />} />
-                <Route path="/terms" element={<TermsOfServicePublic />} />
-                <Route path="/delete-account" element={<DeleteAccountPublic />} />
-                <Route path="/refund-policy" element={<RefundPolicyPublic />} />
-                <Route path="/risk-disclosure" element={<RiskDisclosurePublic />} />
-                <Route path="/cookie-policy" element={<CookiePolicyPublic />} />
-                <Route path="/aml-kyc-policy" element={<AmlKycPolicyPublic />} />
-                <Route path="/features/discover" element={<DiscoverPublic />} />
-                <Route path="/features/channels" element={<ChannelsPublic />} />
-                <Route path="/features/creator-hub" element={<ChannelsPublic />} />
-                <Route path="/features/pulse-feeds" element={<PulseFeedsPublic />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/auth-callback" element={<AuthCallback />} />
-                <Route path="/contact" element={<ContactPublic />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route path="/features/risk-guard" element={<RiskGuardPublic />} />
-                <Route path="/features/smart-journal" element={<SmartJournalPublic />} />
-                <Route path="/features/community-hub" element={<CommunityHubPublic />} />
-                <Route path="/features/competitions" element={<CompetitionsPublic />} />
-                <Route path="/features/tradifive-ai" element={<TradifiveAIPublic />} />
-                <Route path="/features/auto-trade" element={<AutoTradePublic />} />
-                <Route path="/features/custom-strategies" element={<CustomStrategiesPublic />} />
-                <Route path="/features/options-trading" element={<OptionsTradingPublic />} />
-                <Route path="/features/prop-firm-integrations" element={<PropFirmIntegrationsPublic />} />
-                <Route path="/onboarding" element={<OnboardingPage />} />
-                <Route path="/account-frozen" element={<AccountFrozen />} />
-                <Route path="/account-deleted" element={<AccountDeleted />} />
-                <Route path="/broker-auth/:brokerId" element={<BrokerAuth />} />
+                {/* Public & Marketing Routes Wrapper with Animated Entrance */}
+                <Route element={<PublicRouteLayout />}>
+                  <Route path="/" element={isElectron ? <Navigate to="/home" replace /> : <Landing />} />
+                  <Route path="/download" element={<DownloadAppPublic />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicyPublic />} />
+                  <Route path="/privacy" element={<PrivacyPolicyPublic />} />
+                  <Route path="/terms-of-service" element={<TermsOfServicePublic />} />
+                  <Route path="/terms" element={<TermsOfServicePublic />} />
+                  <Route path="/delete-account" element={<DeleteAccountPublic />} />
+                  <Route path="/refund-policy" element={<RefundPolicyPublic />} />
+                  <Route path="/risk-disclosure" element={<RiskDisclosurePublic />} />
+                  <Route path="/cookie-policy" element={<CookiePolicyPublic />} />
+                  <Route path="/aml-kyc-policy" element={<AmlKycPolicyPublic />} />
+                  <Route path="/features/discover" element={<DiscoverPublic />} />
+                  <Route path="/features/channels" element={<ChannelsPublic />} />
+                  <Route path="/features/creator-hub" element={<ChannelsPublic />} />
+                  <Route path="/features/pulse-feeds" element={<PulseFeedsPublic />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/auth-callback" element={<AuthCallback />} />
+                  <Route path="/contact" element={<ContactPublic />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/verify-email" element={<VerifyEmail />} />
+                  <Route path="/features/risk-guard" element={<RiskGuardPublic />} />
+                  <Route path="/features/smart-journal" element={<SmartJournalPublic />} />
+                  <Route path="/features/community-hub" element={<CommunityHubPublic />} />
+                  <Route path="/features/competitions" element={<CompetitionsPublic />} />
+                  <Route path="/features/tradifive-ai" element={<TradifiveAIPublic />} />
+                  <Route path="/features/auto-trade" element={<AutoTradePublic />} />
+                  <Route path="/features/custom-strategies" element={<CustomStrategiesPublic />} />
+                  <Route path="/features/options-trading" element={<OptionsTradingPublic />} />
+                  <Route path="/features/prop-firm-integrations" element={<PropFirmIntegrationsPublic />} />
+                  <Route path="/onboarding" element={<OnboardingPage />} />
+                  <Route path="/account-frozen" element={<AccountFrozen />} />
+                  <Route path="/account-deleted" element={<AccountDeleted />} />
+                  <Route path="/broker-auth/:brokerId" element={<BrokerAuth />} />
+                </Route>
                 {/* Protected Routes Wrapper */}
                 <Route element={<ProtectedLayout />}>
                   {/* Persistent Community Shell: Top Logo, Profile/Bell, and 5-Icon Bar stay fixed while lower content animates */}
@@ -305,19 +335,21 @@ const App = () => {
                   <Route path="/creator/store" element={<MyStore />} />
                 </Route>
 
-                {/* Admin Routes */}
-                <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
-                <Route path="/admin/auto-trade" element={<AdminRoute><AdminAutoTrade /></AdminRoute>} />
-                <Route path="/admin/settlements" element={<AdminRoute><AdminSettlements /></AdminRoute>} />
-                <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-                <Route path="/admin/deleted" element={<AdminRoute><AdminDeleted /></AdminRoute>} />
-                <Route path="/admin/trading" element={<AdminRoute><AdminTrading /></AdminRoute>} />
-                <Route path="/admin/finance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
-                <Route path="/admin/support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
-                <Route path="/admin/logs" element={<AdminRoute><AdminLogs /></AdminRoute>} />
-                <Route path="/admin/waitlist" element={<AdminRoute><AdminWaitlist /></AdminRoute>} />
+                {/* Admin Routes with Animated Entrance */}
+                <Route element={<AdminRouteLayout />}>
+                  <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
+                  <Route path="/admin/auto-trade" element={<AdminRoute><AdminAutoTrade /></AdminRoute>} />
+                  <Route path="/admin/settlements" element={<AdminRoute><AdminSettlements /></AdminRoute>} />
+                  <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+                  <Route path="/admin/deleted" element={<AdminRoute><AdminDeleted /></AdminRoute>} />
+                  <Route path="/admin/trading" element={<AdminRoute><AdminTrading /></AdminRoute>} />
+                  <Route path="/admin/finance" element={<AdminRoute><AdminFinance /></AdminRoute>} />
+                  <Route path="/admin/support" element={<AdminRoute><AdminSupport /></AdminRoute>} />
+                  <Route path="/admin/logs" element={<AdminRoute><AdminLogs /></AdminRoute>} />
+                  <Route path="/admin/waitlist" element={<AdminRoute><AdminWaitlist /></AdminRoute>} />
+                </Route>
 
-                <Route path="*" element={<NotFound />} />
+                <Route path="*" element={<PageTransition className="w-full min-h-screen flex flex-col"><NotFound /></PageTransition>} />
               </Routes>
             </Suspense>
             <FloatingHelpButton />

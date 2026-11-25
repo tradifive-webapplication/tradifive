@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PageTransition } from "./PageTransition";
 import { Search, Bell, Clock, ChevronLeft, Sparkles, AlertTriangle, XCircle, ShieldAlert, Timer, X, Bot, Menu, Monitor, Zap, Gauge, Plus, Star } from "lucide-react";
 import AppSidebar from "./AppSidebar";
 import FloatingAICoach from "./FloatingAICoach";
@@ -63,8 +64,23 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   const comingSoonInfo = getComingSoonInfo(location.pathname);
   const [isPeeking, setIsPeeking] = useState(false);
 
+  const isCommunityRoute =
+    location.pathname.startsWith('/home') ||
+    location.pathname.startsWith('/discover') ||
+    location.pathname.startsWith('/marketplace') ||
+    location.pathname.startsWith('/channel') ||
+    location.pathname.startsWith('/store') ||
+    location.pathname.startsWith('/learning') ||
+    location.pathname.startsWith('/courses');
+  const transitionKey = isCommunityRoute ? 'community' : location.pathname;
+
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setIsPeeking(false);
+    if (contentScrollRef.current) {
+      contentScrollRef.current.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+    }
   }, [location.pathname]);
 
   useEffect(() => {
@@ -831,17 +847,17 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
             {/* Internal Content Area - Scrollable STRICTLY inside the floating rounded box */}
             <div
+              ref={contentScrollRef}
               style={{ WebkitOverflowScrolling: "touch" }}
               className={`flex-1 min-h-0 ${noScroll ? "overflow-hidden flex flex-col" : "overflow-y-auto overscroll-y-contain scrollbar-hide"} ${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-8" : "p-3 sm:p-5 md:p-8 pb-8"}`}
             >
-              <motion.div
-                initial={{ opacity: location.pathname === '/settings' ? 1 : 0, y: location.pathname === '/settings' ? 0 : 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: location.pathname === '/settings' ? 0 : 0.4, ease: "easeOut" }}
+              <PageTransition
+                key={transitionKey}
+                enableGlowSweep={!isCommunityRoute}
                 className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : "min-h-full flex flex-col"} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[2px] opacity-85 pointer-events-none select-none" : ""}`}
               >
                 {children}
-              </motion.div>
+              </PageTransition>
             </div>
 
             {/* Coming Soon Veil Overlay - Confined strictly to THIS page (<main>) */}

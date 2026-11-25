@@ -1,9 +1,15 @@
-import { Outlet } from "react-router-dom";
-import { Suspense } from "react";
+import { Outlet, useLocation } from "react-router-dom";
+import { Suspense, useEffect } from "react";
 import { AuthGuard } from "./AuthGuard";
 import { MaintenanceGuard } from "./MaintenanceGuard";
 
 export const ProtectedLayout = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+  }, [location.pathname]);
+
   return (
     <AuthGuard>
       <MaintenanceGuard>

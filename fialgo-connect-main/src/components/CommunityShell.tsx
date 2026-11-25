@@ -2,6 +2,7 @@ import React, { Suspense, createContext, useContext, useEffect, useRef, useState
 import { Outlet, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
+import { PageTransition } from "@/components/PageTransition";
 import CommunityHeaderBar, { CommunityTabId } from "@/components/CommunityHeaderBar";
 import InlineNotificationsPanel from "@/components/InlineNotificationsPanel";
 import { supabase } from "@/lib/supabase";
@@ -204,11 +205,9 @@ export default function CommunityShell() {
                 </div>
               </motion.div>
             ) : (
-              <motion.div
+              <PageTransition
                 key={activeTab}
-                initial={{ opacity: 0, x: direction * 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                enableGlowSweep={false}
                 className={
                   isFixedHeightRoute
                     ? "w-full h-full min-h-0 flex flex-col overflow-hidden"
@@ -224,7 +223,7 @@ export default function CommunityShell() {
                 >
                   <Outlet />
                 </Suspense>
-              </motion.div>
+              </PageTransition>
             )}
           </div>
         </div>

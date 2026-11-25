@@ -332,8 +332,8 @@ export default function BottomNav() {
                     <div className="flex items-center gap-3">
                       <div className="relative w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-300 flex items-center justify-center shrink-0">
                         <Activity set="curved" stroke="bold" primaryColor="currentColor" size={18} />
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs">
-                          <Lock size={9} className="stroke-[3]" />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white dark:bg-[#1C1C1F] border border-slate-200 dark:border-white/15 text-slate-500 dark:text-zinc-400 flex items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.06)]">
+                          <Lock size={9} className="stroke-[2.5]" />
                         </div>
                       </div>
                       <div className="flex flex-col">
@@ -341,7 +341,7 @@ export default function BottomNav() {
                           <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
                             AutoTrade
                           </span>
-                          <span className="px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-zinc-400 text-[9px] font-semibold">
                             Locked
                           </span>
                         </div>
@@ -350,7 +350,7 @@ export default function BottomNav() {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 text-amber-500 text-[11px] font-semibold">
+                    <div className="flex items-center gap-1.5 text-slate-400 dark:text-zinc-500 text-[11px] font-medium">
                       <Lock size={12} />
                       <span>Locked</span>
                     </div>

@@ -16,19 +16,16 @@ export default function AutoTradeLocked() {
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="max-w-md w-full text-center bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] rounded-[24px] p-6 sm:p-8 shadow-[0_4px_24px_rgba(15,23,42,0.06)] dark:shadow-none relative overflow-hidden"
         >
-          {/* Subtle ambient glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-
           {/* Locked Icon Badge */}
-          <div className="relative mx-auto w-16 h-16 rounded-2xl bg-gradient-to-b from-amber-50 to-amber-100/60 dark:from-amber-500/15 dark:to-amber-500/5 border border-amber-200/80 dark:border-amber-500/25 flex items-center justify-center text-amber-500 shadow-sm mb-5">
-            <Lock size={28} className="stroke-[2.5]" />
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs">
-              <Activity size={12} className="stroke-[2.5]" />
+          <div className="relative mx-auto w-14 h-14 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.08] flex items-center justify-center text-slate-700 dark:text-zinc-200 shadow-xs mb-5">
+            <Lock size={24} className="stroke-[2]" />
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shadow-xs">
+              <Activity size={10} className="stroke-[2.5]" />
             </div>
           </div>
 
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[11px] font-bold uppercase tracking-wider mb-3">
-            <Lock size={11} className="stroke-[2.5]" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-zinc-300 text-[11px] font-medium mb-3">
+            <Lock size={11} className="stroke-[2]" />
             Feature Currently Locked
           </span>
 

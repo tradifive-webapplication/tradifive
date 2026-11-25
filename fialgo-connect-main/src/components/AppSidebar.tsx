@@ -1813,8 +1813,8 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                         >
                           <pillar.icon size={18} set="curved" stroke="bold" primaryColor="currentColor" strokeWidth={isActive ? 2.5 : 2} className="relative z-10" />
                           {isLocked && (
-                            <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-xs z-20">
-                              <Lock size={8} className="stroke-[2.5]" />
+                            <div className="absolute top-1 right-1 w-3.5 h-3.5 rounded-full bg-white dark:bg-[#1C1C1F] border border-slate-200/90 dark:border-white/15 text-slate-500 dark:text-zinc-400 flex items-center justify-center shadow-[0_1px_2px_rgba(0,0,0,0.06)] z-20">
+                              <Lock size={8} className="stroke-[2.3]" />
                             </div>
                           )}
                           {isActive && (
@@ -2160,7 +2160,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
                         <p.icon size={13} primaryColor="currentColor" stroke="bold" />
                         <span>{p.label}</span>
                         {isLocked && (
-                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9px] font-bold">
+                          <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-zinc-400 text-[9px] font-semibold border border-slate-200/70 dark:border-white/10">
                             <Lock size={8} className="stroke-[2.5]" />
                           </span>
                         )}
