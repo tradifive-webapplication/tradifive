@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ChevronLeft,
@@ -7,9 +8,11 @@ import {
   Share,
   RefreshCw,
   Check,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/usePlan";
 
 export interface NewsCalendarEvent {
   id: string;
@@ -123,6 +126,8 @@ export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
   externalImpacts,
   onExternalImpactsChange,
 }) => {
+  const { isStarter } = usePlan();
+  const navigate = useNavigate();
   const [events, setEvents] = useState<NewsCalendarEvent[]>(() => {
     try {
       const cached = localStorage.getItem("tf_calendar_cache_v2");
@@ -338,11 +343,11 @@ export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
 
   return (
     <section
-      className={
+      className={`relative overflow-hidden ${
         compact
           ? "bg-white dark:bg-[#17171A] rounded-[22px] p-4 shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none border border-slate-200/80 dark:border-white/[0.08]"
           : "bg-white dark:bg-[#17171A] rounded-[16px] p-4 sm:p-5 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none border border-slate-200/80 dark:border-white/[0.07]"
-      }
+      }`}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-2 mb-3">
@@ -360,7 +365,16 @@ export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
           <div className="relative" ref={filterRef}>
             <button
               type="button"
-              onClick={() => setFiltersOpen((o) => !o)}
+              onClick={() => {
+                if (isStarter) {
+                  toast.info("Pro Feature · News Filters", {
+                    description: "Upgrade to Pro to filter economic events by impact and currency.",
+                    action: { label: "Upgrade", onClick: () => navigate("/upgrade") },
+                  });
+                  return;
+                }
+                setFiltersOpen((o) => !o);
+              }}
               className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11.5px] font-medium transition-colors cursor-pointer ${
                 filtersOpen || activeFilterCount > 0
                   ? "bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white"
@@ -466,8 +480,9 @@ export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
         </div>
       </div>
 
-      {/* Mode Switcher + Day Stepper Row */}
-      <div className={`flex items-center justify-between gap-1.5 ${compact ? "mb-2.5 flex-wrap" : "mb-3.5"}`}>
+      {/* Mode Switcher + Day Stepper Row & Events */}
+      <div className={`flex flex-col min-h-[200px] ${isStarter ? "blur-[3.5px] select-none pointer-events-none opacity-45" : ""}`}>
+        <div className={`flex items-center justify-between gap-1.5 ${compact ? "mb-2.5 flex-wrap" : "mb-3.5"}`}>
         <div className="inline-flex items-center p-0.5 rounded-[11px] bg-slate-100/90 dark:bg-white/[0.06]">
           {(["day", "week"] as const).map((mode) => (
             <button
@@ -678,6 +693,30 @@ export const DashboardNewsCard: React.FC<DashboardNewsCardProps> = ({
             : ""}
         </span>
       </div>
+      </div>
+
+      {isStarter && (
+        <div className="absolute inset-x-0 bottom-0 top-[52px] z-20 flex flex-col items-center justify-center p-4 pointer-events-auto">
+          <div className="backdrop-blur-md bg-white/90 dark:bg-[#18181b]/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl p-5 text-center flex flex-col items-center max-w-[270px]">
+            <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 shadow-xs">
+              <Lock size={15} strokeWidth={2.2} />
+            </div>
+            <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+              Economic Calendar
+            </h4>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 mb-3.5 leading-relaxed">
+              Real-time high-impact macroeconomic event feeds &amp; currency impact filters require Pro or Elite.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/upgrade")}
+              className="tactile-white-pill px-4 py-1.5 rounded-full text-[11.5px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 };

@@ -19,6 +19,9 @@ import JournalCalendar from "./JournalCalendar";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useJournalSettings } from "@/contexts/JournalSettingsContext";
 import { useTradingTheme } from "@/hooks/useTradingTheme";
+import { useNavigate } from "react-router-dom";
+import { usePlan } from "@/hooks/usePlan";
+import { Lock } from "lucide-react";
 
 const CARD_SURFACE =
   "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none";
@@ -286,6 +289,8 @@ export default function JournalCharts({
     balance: rawBalance,
     loading: dataLoading,
   } = useDashboardData();
+  const { isStarter } = usePlan();
+  const navigate = useNavigate();
 
   const recentTrades = demoData ? demoData.allTrades : rawRecentTrades || [];
   const initialBalance = demoData ? demoData.balance : rawBalance || 0;
@@ -847,10 +852,41 @@ export default function JournalCharts({
           </div>
         }
         filter={ddFilter}
-        onFilter={setDdFilter}
+        onFilter={isStarter ? () => navigate("/upgrade") : setDdFilter}
         filters={["1W", "1M", "All"]}
       >
-        {loading ? (
+        {isStarter ? (
+          <div className="relative w-full h-[250px] overflow-hidden flex items-center justify-center">
+            <div className="absolute inset-0 blur-[5px] select-none pointer-events-none opacity-40">
+              <ResponsiveContainer width="100%" height={250}>
+                <AreaChart
+                  data={filteredData.length > 0 ? filteredData : [{ date: 'Nov 12', value: -140 }, { date: 'Nov 19', value: -280 }, { date: 'Nov 25', value: 0 }]}
+                  margin={{ top: 6, right: 8, left: -6, bottom: 0 }}
+                >
+                  <Area type="linear" dataKey="value" stroke={chartColor} strokeWidth={2} fill={chartColor} fillOpacity={0.15} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="relative z-10 backdrop-blur-md bg-white/90 dark:bg-[#18181b]/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl p-5 text-center flex flex-col items-center max-w-[280px]">
+              <div className="w-9 h-9 rounded-full bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-2 shadow-xs">
+                <Lock size={15} strokeWidth={2.2} />
+              </div>
+              <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+                Drawdown Analysis
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 mb-3 leading-relaxed">
+                Peak-to-trough equity curves, underwater drawdown &amp; risk metrics require Pro or Elite.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate("/upgrade")}
+                className="tactile-white-pill px-4 py-1.5 rounded-full text-[11.5px] font-bold text-rose-600 dark:text-rose-400 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        ) : loading ? (
           <ChartSkeleton />
         ) : !hasData ? (
           <EmptyChartHint message="Measures peak-to-trough equity drawdown." />
@@ -941,7 +977,35 @@ export default function JournalCharts({
           </div>
         }
       >
-        {loading ? (
+        {isStarter ? (
+          <div className="relative w-full h-[250px] overflow-hidden flex items-center justify-center">
+            <div className="absolute inset-0 blur-[5px] select-none pointer-events-none opacity-40">
+              <ResponsiveContainer width="100%" height={250}>
+                <ScatterChart margin={{ top: 10, right: 10, left: -6, bottom: 0 }}>
+                  <Scatter data={[{ dur: 300, pnl: 400 }, { dur: 900, pnl: -200 }, { dur: 3600, pnl: 650 }]} fill={profitColor} />
+                </ScatterChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="relative z-10 backdrop-blur-md bg-white/90 dark:bg-[#18181b]/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl p-5 text-center flex flex-col items-center max-w-[280px]">
+              <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 shadow-xs">
+                <Lock size={15} strokeWidth={2.2} />
+              </div>
+              <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+                Trade Duration
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 mb-3 leading-relaxed">
+                Scatter analysis correlating position holding duration with realized profit/loss requires Pro or Elite.
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate("/upgrade")}
+                className="tactile-white-pill px-4 py-1.5 rounded-full text-[11.5px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          </div>
+        ) : loading ? (
           <ChartSkeleton />
         ) : !hasData ? (
           <EmptyChartHint message="Compare trade hold time against P&L." />

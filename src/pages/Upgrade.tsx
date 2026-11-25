@@ -187,7 +187,10 @@ export default function Upgrade() {
                 category: "Broker & Journal Core",
                 features: [
                   { name: "Live MT5 Broker Sync", starter: "0 (Manual & CSV)", pro: "1 Account", elite: "Up to 3 Accounts" },
-                  { name: "Trading Journal & Calendar", starter: "Basic", pro: "Full + Screenshots", elite: "Full + AI Strategy Grading" },
+                  { name: "Trading Journal & Calendar", starter: "Basic overview", pro: "Full breakdown + Intraday P&L", elite: "Full + AI Strategy Grading" },
+                  { name: "TradiFive Score & Behavioral Radar", starter: "Preview (Locked)", pro: "Full 5-Axis Diagnostics", elite: "Full + Peer Benchmarks" },
+                  { name: "Drawdown & Duration Curves", starter: false, pro: true, elite: true },
+                  { name: "Economic News & Calendar", starter: "Preview (Blurred)", pro: "Full Real-Time", elite: "Full + High Impact Alerts" },
                   { name: "PDF Statement Exports", starter: false, pro: true, elite: true },
                   { name: "AI Auto-Trade", tooltip: "AI-assisted automated execution (Coming Soon).", starter: false, pro: false, elite: "Coming Soon" },
                 ]

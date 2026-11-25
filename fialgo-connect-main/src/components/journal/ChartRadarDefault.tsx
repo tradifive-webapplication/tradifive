@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Info, Lock, TrendingUp } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { usePlan } from "@/hooks/usePlan";
+import { toast } from "sonner";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { useTradingTheme } from "@/hooks/useTradingTheme";
 import {
@@ -35,6 +38,8 @@ export function ChartRadarDefault({
   const { recentTrades: rawRecentTrades } = useDashboardData();
   const recentTrades = demoTrades || rawRecentTrades || [];
   const { config: tradingTheme } = useTradingTheme();
+  const { isStarter } = usePlan();
+  const navigate = useNavigate();
 
   // Timeframe selector state: '30d' or 'all'
   const [timeframe, setTimeframe] = useState<"30d" | "all">("all");
@@ -292,8 +297,8 @@ export function ChartRadarDefault({
     <div
       className={
         frameless
-          ? "flex flex-col h-full px-0.5 pt-0.5 pb-1 select-none"
-          : "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none overflow-hidden flex flex-col h-full p-4 sm:p-5 select-none"
+          ? "flex flex-col h-full relative px-0.5 pt-0.5 pb-1 select-none"
+          : "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none overflow-hidden relative flex flex-col h-full p-4 sm:p-5 select-none"
       }
     >
       {/* ── 1. Header (Title, Subtitle, Timeframe Tabs, Overall Score) ── */}
@@ -327,7 +332,16 @@ export function ChartRadarDefault({
           <div className="flex items-center gap-3 mt-1.5">
             <button
               type="button"
-              onClick={() => setTimeframe("30d")}
+              onClick={() => {
+                if (isStarter) {
+                  toast.info("Pro Feature · Score History", {
+                    description: "Upgrade to Pro to toggle timeframe scoring between 30 days and All Time.",
+                    action: { label: "Upgrade", onClick: () => navigate("/upgrade") },
+                  });
+                  return;
+                }
+                setTimeframe("30d");
+              }}
               className={`text-[11.5px] pb-0.5 transition-all cursor-pointer ${
                 timeframe === "30d"
                   ? "font-semibold text-slate-900 dark:text-white border-b-2 border-slate-900 dark:border-white"
@@ -338,7 +352,16 @@ export function ChartRadarDefault({
             </button>
             <button
               type="button"
-              onClick={() => setTimeframe("all")}
+              onClick={() => {
+                if (isStarter) {
+                  toast.info("Pro Feature · Score History", {
+                    description: "Upgrade to Pro to toggle timeframe scoring between 30 days and All Time.",
+                    action: { label: "Upgrade", onClick: () => navigate("/upgrade") },
+                  });
+                  return;
+                }
+                setTimeframe("all");
+              }}
               className={`text-[11.5px] pb-0.5 transition-all cursor-pointer ${
                 timeframe === "all"
                   ? "font-semibold text-slate-900 dark:text-white border-b-2 border-slate-900 dark:border-white"
@@ -360,6 +383,8 @@ export function ChartRadarDefault({
           </span>
         </div>
       </div>
+
+      <div className={`flex-1 flex flex-col min-h-0 relative ${isStarter ? "blur-[4px] select-none pointer-events-none opacity-40" : ""}`}>
 
       {/* ── 2. Radar Chart Canvas (Interactive Polygon & Spokes) ── */}
       <div className="flex-1 flex items-center justify-center min-h-[195px] max-h-[225px] w-full relative py-1">
@@ -535,6 +560,30 @@ export function ChartRadarDefault({
           );
         })}
       </div>
+      </div>
+
+      {isStarter && (
+        <div className="absolute inset-x-0 bottom-0 top-[68px] z-20 flex flex-col items-center justify-center p-4">
+          <div className="backdrop-blur-md bg-white/90 dark:bg-[#18181b]/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl p-5 text-center flex flex-col items-center max-w-[270px]">
+            <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 shadow-xs">
+              <Lock size={15} strokeWidth={2.2} />
+            </div>
+            <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+              TradiFive Score
+            </h4>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 mb-3.5 leading-relaxed">
+              5-axis behavioral radar diagnostics, discipline scoring &amp; peer benchmarking require Pro or Elite.
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate("/upgrade")}
+              className="tactile-white-pill px-4 py-1.5 rounded-full text-[11.5px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -19,6 +19,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { supabase } from "@/integrations/supabase/client";
 import { EXISTING_OFFICIAL_ALGOS } from "@/pages/Discover";
 import { formatUTCDate, formatHoldDuration } from "@/utils/tradeUtils";
+import { usePlan } from "@/hooks/usePlan";
 import { toast } from "sonner";
 
 const EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
@@ -100,6 +101,7 @@ interface TerminalLog {
 
 function TradeHistoryContent() {
   const navigate = useNavigate();
+  const { isStarter } = usePlan();
   const { isConnected, isAlgoRunning, recentTrades, accountMetrics, refetch } = useDashboardData();
   const { currency, formatMoney } = useJournalSettings();
 
@@ -409,6 +411,16 @@ function TradeHistoryContent() {
   };
 
   const handleTradeClick = (trade: any) => {
+    if (isStarter) {
+      toast.info("Pro Feature · Detailed Trade Breakdown", {
+        description: "Upgrade to Pro to view execution metrics, price levels, setups, and notes.",
+        action: {
+          label: "Upgrade",
+          onClick: () => navigate("/upgrade"),
+        },
+      });
+      return;
+    }
     const isBuy = trade.trade_type === 0 || String(trade.trade_type || trade.type).toUpperCase().includes("BUY");
     const mapped = {
       id: Number(trade.ticket || 0) || trade.id,

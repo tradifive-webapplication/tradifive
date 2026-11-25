@@ -14,6 +14,7 @@ import {
   Quote,
   Check,
   TrendingUp,
+  Lock,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import Portfolio from "./dashboard/Portfolio";
@@ -22,6 +23,8 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useMarket } from "@/contexts/MarketContext";
 import { supabase } from "@/lib/supabase";
 import { useTradingTheme } from "@/hooks/useTradingTheme";
+import { usePlan } from "@/hooks/usePlan";
+import { toast } from "sonner";
 import PerformanceChart from "@/components/charts/PerformanceChart";
 import ShareProfileModal from "@/components/ShareProfileModal";
 import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
@@ -186,6 +189,7 @@ const Dashboard = () => {
 
   const { activeMarket } = useMarket();
   const currSym = activeMarket === "indian" ? "₹" : "$";
+  const { isStarter, canAccess } = usePlan();
 
   const [pnlRange, setPnlRange] = useState<PnlRange>("all");
   const [demoMode, setDemoMode] = useState<boolean>(() => {
@@ -770,10 +774,29 @@ const Dashboard = () => {
                       <motion.button
                         whileTap={{ scale: 0.95 }}
                         type="button"
-                        onClick={() => setHidePnl((v) => !v)}
+                        onClick={() => {
+                          if (isStarter || !canAccess('balance_hiding')) {
+                            toast.info("Pro Feature · Privacy Mode", {
+                              description: "Upgrade to Pro to blur and hide sensitive P&L and account values.",
+                              action: {
+                                label: "Upgrade",
+                                onClick: () => navigate("/upgrade"),
+                              },
+                            });
+                            return;
+                          }
+                          setHidePnl((v) => !v);
+                        }}
                         className="tactile-white-pill rounded-[10px] px-2.5 py-1 text-[11.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-                        title={hidePnl ? "Show amounts" : "Blur amounts"}
+                        title={
+                          isStarter
+                            ? "Pro Feature: Upgrade to hide values"
+                            : hidePnl
+                            ? "Show amounts"
+                            : "Blur amounts"
+                        }
                       >
+                        {isStarter && <Lock size={11} className="text-blue-500 shrink-0" />}
                         {hidePnl ? <Eye size={12.5} /> : <EyeOff size={12.5} />}
                         <span>{hidePnl ? "Show" : "Hide"}</span>
                       </motion.button>

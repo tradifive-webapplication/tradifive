@@ -18,6 +18,7 @@ import {
   Flame,
   Clock,
   Tag,
+  Lock,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import JournalMetrics from "@/components/journal/JournalMetrics";
@@ -504,12 +505,31 @@ function JournalContent() {
               {/* Edit / Reorder Layout */}
               <button
                 type="button"
-                onClick={() => setIsEditMode((v) => !v)}
+                onClick={() => {
+                  if (isStarter) {
+                    toast.info("Pro Feature · Layout Customization", {
+                      description: "Upgrade to Pro to customize and reorder your journal dashboard layout.",
+                      action: {
+                        label: "Upgrade",
+                        onClick: () => navigate("/upgrade"),
+                      },
+                    });
+                    return;
+                  }
+                  setIsEditMode((v) => !v);
+                }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   isEditMode ? "tactile-pill-active" : ""
-                }`}
-                title={isEditMode ? "Save layout order" : "Drag & reorder journal cards"}
+                } ${isStarter ? "opacity-80" : ""}`}
+                title={
+                  isStarter
+                    ? "Pro Feature: Upgrade to customize layout"
+                    : isEditMode
+                    ? "Save layout order"
+                    : "Drag & reorder journal cards"
+                }
               >
+                {isStarter && <Lock size={12} className="text-blue-500 shrink-0" />}
                 {isEditMode ? (
                   <>
                     <Check size={13} strokeWidth={2.8} />
@@ -780,7 +800,8 @@ function JournalContent() {
               </div>
 
               {/* Col 3: Extremes, Streaks & Tagged Setups */}
-              <div className={`${SURFACE_CARD} p-4 sm:p-5 flex flex-col justify-between gap-4`}>
+              <div className={`${SURFACE_CARD} p-4 sm:p-5 flex flex-col justify-between gap-4 relative overflow-hidden`}>
+                <div className={`flex flex-col justify-between h-full gap-4 ${isStarter ? "blur-[4px] select-none pointer-events-none opacity-40" : ""}`}>
                 <div>
                   <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white tracking-tight">
                     Extremes &amp; setups
@@ -900,6 +921,30 @@ function JournalContent() {
                     </div>
                   )}
                 </div>
+                </div>
+
+                {isStarter && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10 pointer-events-auto">
+                    <div className="backdrop-blur-md bg-white/90 dark:bg-[#18181b]/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl p-5 text-center flex flex-col items-center max-w-[270px]">
+                      <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 shadow-xs">
+                        <Lock size={15} strokeWidth={2.2} />
+                      </div>
+                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+                        Extremes &amp; Setups
+                      </h4>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 mb-3.5 leading-relaxed">
+                        Best/worst execution metrics, holding time stats &amp; playbook tag performance require Pro or Elite.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/upgrade")}
+                        className="tactile-white-pill px-4 py-1.5 rounded-full text-[11.5px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+                      >
+                        Upgrade to Pro
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.section>
 
@@ -910,6 +955,16 @@ function JournalContent() {
                 demoData={demoData}
                 onImportCsv={() => openLogModal("import")}
                 onTradeClick={(trade) => {
+                  if (isStarter) {
+                    toast.info("Pro Feature · Detailed Trade Breakdown", {
+                      description: "Upgrade to Pro to view detailed execution metrics, price levels, setups, and notes.",
+                      action: {
+                        label: "Upgrade",
+                        onClick: () => navigate("/upgrade"),
+                      },
+                    });
+                    return;
+                  }
                   const mapped = {
                     id: Number(trade.ticket || 0) || trade.id,
                     asset: trade.symbol,

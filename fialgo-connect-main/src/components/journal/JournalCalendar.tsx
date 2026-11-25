@@ -1,10 +1,13 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Info, ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { Skeleton } from "@/components/ui/skeleton";
 import DailyJournalModal from "./DailyJournalModal";
 import { useJournalSettings } from "@/contexts/JournalSettingsContext";
 import { useTradingTheme } from "@/hooks/useTradingTheme";
+import { usePlan } from "@/hooks/usePlan";
+import { toast } from "sonner";
 
 export default function JournalCalendar({
   loading,
@@ -14,6 +17,8 @@ export default function JournalCalendar({
   demoData?: { allTrades: any[]; balance: number } | null;
 }) {
   const { recentTrades: rawRecentTrades, balance: rawBalance } = useDashboardData();
+  const { isStarter } = usePlan();
+  const navigate = useNavigate();
 
   const recentTrades = demoData ? demoData.allTrades : rawRecentTrades || [];
   const balance = demoData ? demoData.balance : rawBalance || 0;
@@ -305,6 +310,16 @@ export default function JournalCalendar({
                           trades={dayData?.trades}
                           isToday={isToday}
                           onClick={() => {
+                            if (isStarter) {
+                              toast.info("Pro Feature · Daily Performance", {
+                                description: "Upgrade to Pro to view detailed daily performance breakdowns, intraday P&L charts & emotional states.",
+                                action: {
+                                  label: "Upgrade",
+                                  onClick: () => navigate("/upgrade"),
+                                },
+                              });
+                              return;
+                            }
                             if (day) {
                               setSelectedDateObj(
                                 new Date(

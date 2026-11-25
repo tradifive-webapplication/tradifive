@@ -2505,21 +2505,6 @@ export default function Home() {
                                             {/* Tab 1: Layout Toggles */}
                                             {customizeActiveTab === 'layout' && (
                                                 <div className="space-y-3">
-                                                    {!canAccess('home_customize') && (
-                                                        <div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/20 flex items-center justify-between gap-3">
-                                                            <div className="min-w-0">
-                                                                <p className="text-[12px] font-semibold text-slate-900 dark:text-white">Pro Feature · Customize Home Layout</p>
-                                                                <p className="text-[11px] text-slate-500 dark:text-zinc-400">Upgrade to Pro to show or hide sidebar panels.</p>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => { setShowCustomizeModal(false); navigate('/upgrade'); }}
-                                                                className="px-3 py-1.5 rounded-full tactile-white-pill text-[11px] font-semibold shrink-0 cursor-pointer"
-                                                            >
-                                                                Upgrade
-                                                            </button>
-                                                        </div>
-                                                    )}
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-[12px] font-medium text-slate-500 dark:text-zinc-400">Sidebar widgets</span>
                                                         <button
@@ -2556,15 +2541,40 @@ export default function Home() {
                                                         </button>
                                                     </div>
 
-                                                    <div className={`rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06] ${!canAccess('home_customize') ? 'opacity-60 pointer-events-none' : ''}`}>
-                                                        <div className="py-2.5"><ToggleRow label="Profile Card" checked={showProfileCard} onChange={(v) => handleToggle(setShowProfileCard, v)} /></div>
-                                                        <div className="py-2.5"><ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} /></div>
-                                                        <div className="py-2.5"><ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} /></div>
-                                                        <div className="py-2.5"><ToggleRow label="Community Reach" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} /></div>
-                                                        <div className="py-2.5"><ToggleRow label="Follow Requests" checked={showRequests} onChange={(v) => handleToggle(setShowRequests, v)} /></div>
-                                                        <div className="py-2.5"><ToggleRow label="Suggestions" checked={showSuggestions} onChange={(v) => handleToggle(setShowSuggestions, v)} /></div>
-                                                        <div className="py-2.5"><ToggleRow label="Top Winning Streaks" checked={showStreaks} onChange={(v) => handleToggle(setShowStreaks, v)} /></div>
-                                                        <div className="py-2.5"><ToggleRow label="Top Disciplined" checked={showDisciplined} onChange={(v) => handleToggle(setShowDisciplined, v)} /></div>
+                                                    <div className="relative rounded-xl overflow-hidden">
+                                                        <div className={`rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06] ${!canAccess('home_customize') ? 'blur-[3px] select-none pointer-events-none opacity-40' : ''}`}>
+                                                            <div className="py-2.5"><ToggleRow label="Profile Card" checked={showProfileCard} onChange={(v) => handleToggle(setShowProfileCard, v)} /></div>
+                                                            <div className="py-2.5"><ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} /></div>
+                                                            <div className="py-2.5"><ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} /></div>
+                                                            <div className="py-2.5"><ToggleRow label="Community Reach" checked={showFollowers} onChange={(v) => handleToggle(setShowFollowers, v)} /></div>
+                                                            <div className="py-2.5"><ToggleRow label="Follow Requests" checked={showRequests} onChange={(v) => handleToggle(setShowRequests, v)} /></div>
+                                                            <div className="py-2.5"><ToggleRow label="Suggestions" checked={showSuggestions} onChange={(v) => handleToggle(setShowSuggestions, v)} /></div>
+                                                            <div className="py-2.5"><ToggleRow label="Top Winning Streaks" checked={showStreaks} onChange={(v) => handleToggle(setShowStreaks, v)} /></div>
+                                                            <div className="py-2.5"><ToggleRow label="Top Disciplined" checked={showDisciplined} onChange={(v) => handleToggle(setShowDisciplined, v)} /></div>
+                                                        </div>
+
+                                                        {!canAccess('home_customize') && (
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10 pointer-events-auto">
+                                                                <div className="backdrop-blur-md bg-white/90 dark:bg-[#18181b]/90 border border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl p-5 text-center flex flex-col items-center max-w-[270px]">
+                                                                    <div className="w-9 h-9 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2 shadow-xs">
+                                                                        <Lock size={15} strokeWidth={2.2} />
+                                                                    </div>
+                                                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                                        Customize Layout
+                                                                    </h4>
+                                                                    <p className="text-[11px] text-slate-500 dark:text-zinc-400 mt-1 mb-3.5 leading-relaxed">
+                                                                        Customizing and toggling sidebar widgets is available on Pro &amp; Elite plans.
+                                                                    </p>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => { setShowCustomizeModal(false); navigate('/upgrade'); }}
+                                                                        className="tactile-white-pill px-4 py-1.5 rounded-full text-[11.5px] font-bold text-blue-600 dark:text-blue-400 cursor-pointer shadow-sm hover:scale-[1.02] active:scale-95 transition-all"
+                                                                    >
+                                                                        Upgrade to Pro
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
