@@ -1,5 +1,27 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { addXP } from "@/utils/gamification";
+
+const PROFILE_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const profileContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.055, delayChildren: 0.03 },
+  },
+};
+
+const profileCardVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.44, ease: PROFILE_EXPO_OUT },
+  },
+};
 import DashboardLayout from "@/components/DashboardLayout";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
@@ -1089,10 +1111,15 @@ export default function UserProfilePublic() {
         <div className="max-w-4xl lg:max-w-[1440px] mx-auto w-full space-y-5">
 
           {/* --- UNIFIED 2-COLUMN BENTO: Left scrolls (Profile Header + Tabs/Posts), Right stays pinned/sticky (Stats + Performance + Streak + Calendar) --- */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          <motion.div
+            variants={profileContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start"
+          >
 
             {/* ITEM 1: Profile Header Card (Left column row 1 on desktop; #1 on mobile) */}
-            <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-1 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden relative flex flex-col">
+            <motion.div variants={profileCardVariants} className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-1 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden relative flex flex-col">
               {/* Cover Banner */}
               <div className="h-44 sm:h-56 w-full relative bg-slate-200 dark:bg-[#1A1A1E] overflow-hidden">
                 {/* Top-Left Back Button Overlay */}
@@ -1275,19 +1302,24 @@ export default function UserProfilePublic() {
                   )}
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* ITEM 2: Pinned Right Analytics Column (Right column on desktop; sticky) */}
             <div className="lg:col-span-5 xl:col-span-6 lg:col-start-8 xl:col-start-7 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-4 flex flex-col gap-4 min-w-0">
 
               {/* --- QUICK STATS: COMPACT 1-LINE ROW --- */}
               {(() => {
+                const winRateNum = parseFloat(String(safeWinRate).replace(/[^0-9.-]/g, "")) || 0;
+                const roiNum = parseFloat(String(safeRoi).replace(/[^0-9.-]/g, "")) || 0;
+                const avgRRNum = parseFloat(String(safeAvgRR).replace(/[^0-9.-]/g, "")) || 0;
+                const streakNum = parseInt(String(safeStreak).replace(/[^0-9-]/g, ""), 10) || 0;
+
                 const visibleCards = [
-                  { title: "Trades", shortTitle: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
-                  { title: "Win Rate", shortTitle: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
-                  { title: "Net ROI", shortTitle: "ROI", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
-                  { title: "Avg RR", shortTitle: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={12} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
-                  { title: "Streak", shortTitle: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={12} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
+                  { title: "Trades", shortTitle: "Trades", value: <AnimatedNumber value={safeTradesCount} duration={850} format={(v) => Math.round(v).toLocaleString()} />, isHidden: (!privacySettings.show_trades || isLocked), icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
+                  { title: "Win Rate", shortTitle: "Win Rate", value: <><AnimatedNumber value={winRateNum} duration={850} delay={50} />%</>, isHidden: (!privacySettings.show_winrate || isLocked), icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
+                  { title: "Net ROI", shortTitle: "ROI", value: <><AnimatedNumber value={roiNum} duration={850} delay={100} format={(v) => `${v > 0 ? "+" : ""}${v.toFixed(2)}%`} /></>, isHidden: (!privacySettings.show_roi || isLocked), icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
+                  { title: "Avg RR", shortTitle: "Avg RR", value: <><AnimatedNumber value={avgRRNum} duration={850} delay={140} format={(v) => `${v.toFixed(2)}R`} /></>, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={12} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
+                  { title: "Streak", shortTitle: "Streak", value: <><AnimatedNumber value={streakNum} duration={800} delay={180} /> {streakNum === 1 ? "Day" : "Days"}</>, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={12} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
                 ].filter(card => !card.isHidden);
 
                 if (visibleCards.length === 0) return null;
@@ -1298,7 +1330,8 @@ export default function UserProfilePublic() {
                     style={{ gridTemplateColumns: `repeat(${visibleCards.length}, minmax(0, 1fr))` }}
                   >
                     {visibleCards.map((card, idx) => (
-                      <div
+                      <motion.div
+                        variants={profileCardVariants}
                         key={idx}
                         className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-[18px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0"
                       >
@@ -1311,10 +1344,10 @@ export default function UserProfilePublic() {
                             {card.icon}
                           </div>
                         </div>
-                        <p className={`text-[12.5px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                        <p className={`text-[12.5px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate tabular-nums ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
                           {card.value}
                         </p>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 );
@@ -1322,7 +1355,7 @@ export default function UserProfilePublic() {
 
               {/* --- TRADING PERFORMANCE CARD --- */}
               {!isLocked && privacySettings.show_performance !== false && (
-                <div className="bg-white dark:bg-[#1A1A1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col gap-3">
+                <motion.div variants={profileCardVariants} className="bg-white dark:bg-[#1A1A1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col gap-3">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
 
@@ -1407,7 +1440,7 @@ export default function UserProfilePublic() {
                     </div>
 
                   </div>
-                </div>
+                </motion.div>
               )}
 
               {/* --- TRADING STREAK & CALENDAR ROW --- */}
@@ -1430,7 +1463,7 @@ export default function UserProfilePublic() {
                       : '15 Days Ago';
 
                     return (
-                      <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-3 h-full">
+                      <motion.div variants={profileCardVariants} className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-3 h-full">
                         <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                           <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                             <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
@@ -1504,13 +1537,13 @@ export default function UserProfilePublic() {
                             <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> {idleDaysCount} Idle
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })()}
 
                   {/* Performance Calendar Card */}
                   {privacySettings.show_calendar !== false && (
-                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
+                    <motion.div variants={profileCardVariants} className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                         <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                           <span className="p-1 rounded-md bg-blue-500/10 text-blue-500">
@@ -1610,7 +1643,7 @@ export default function UserProfilePublic() {
                           <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> No Trade
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                 </div>
@@ -1619,7 +1652,7 @@ export default function UserProfilePublic() {
             </div>
 
             {/* ITEM 3: Unified Sculpted Card for Tabs Bar + Posts / Trades / Strategies Feed (Left column row 2) */}
-            <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-2 min-w-0 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden">
+            <motion.div variants={profileCardVariants} className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-2 min-w-0 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden">
 
               {/* --- SYSTEMIC TABS BAR --- */}
               <div className="flex items-center w-full border-b border-slate-200/85 dark:border-white/[0.08] px-2 pt-1 relative z-10 overflow-x-auto no-scrollbar bg-white dark:bg-[#1A1A1E]">
@@ -1729,9 +1762,9 @@ export default function UserProfilePublic() {
                   userFeedsRender
                 )}
               </div>
-            </div>
+            </motion.div>
 
-          </div>
+          </motion.div>
         </div>
       </div>
 

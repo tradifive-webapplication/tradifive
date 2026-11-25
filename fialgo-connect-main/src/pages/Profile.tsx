@@ -1,5 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
+
+const PROFILE_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
+
+const profileContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.055, delayChildren: 0.03 },
+  },
+};
+
+const profileCardVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.44, ease: PROFILE_EXPO_OUT },
+  },
+};
 import {
   AlertDialog,
   AlertDialogClose,
@@ -1131,10 +1153,15 @@ export default function Profile() {
           <div className="max-w-4xl lg:max-w-[1440px] mx-auto w-full space-y-5">
 
             {/* --- UNIFIED 2-COLUMN BENTO: Left scrolls (Profile Header + Tabs/Posts), Right stays pinned/sticky (Stats + Performance + Streak + Calendar) --- */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <motion.div
+              variants={profileContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start"
+            >
 
               {/* ITEM 1: Profile Header Card (Left column row 1 on desktop; #1 on mobile) */}
-              <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-1 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden relative flex flex-col">
+              <motion.div variants={profileCardVariants} className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-1 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden relative flex flex-col">
 
                 {/* Cover Banner */}
                 <div className="h-44 sm:h-56 w-full relative bg-slate-200 dark:bg-[#1A1A1E] overflow-hidden">
@@ -1288,19 +1315,24 @@ export default function Profile() {
                   </div>
 
                 </div>
-              </div>
+              </motion.div>
 
               {/* ITEM 2: Pinned Right Analytics Column (No overflow clipping so all card borders & shadows render cleanly on all 4 sides) */}
               <div className="lg:col-span-5 xl:col-span-6 lg:col-start-8 xl:col-start-7 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-4 flex flex-col gap-4 min-w-0">
 
               {/* --- QUICK STATS: COMPACT 1-LINE ROW (All visible stats fit cleanly in 1 Line even on iPhone 16) --- */}
               {(() => {
+                const winRateNum = parseFloat(String(winRateVal).replace(/[^0-9.-]/g, "")) || 0;
+                const roiNum = parseFloat(String(roiVal).replace(/[^0-9.-]/g, "")) || 0;
+                const avgRRNum = parseFloat(String(avgRRVal).replace(/[^0-9.-]/g, "")) || 0;
+                const streakNum = parseInt(String(streakVal).replace(/[^0-9-]/g, ""), 10) || 0;
+
                 const visibleCards = [
-                  { title: "Trades", shortTitle: "Trades", value: totalTradesCount.toLocaleString(), isHidden: privacySettings.show_trades === false, icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
-                  { title: "Win Rate", shortTitle: "Win Rate", value: winRateVal, isHidden: privacySettings.show_winrate === false, icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
-                  { title: "Net ROI", shortTitle: "ROI", value: roiVal, isHidden: privacySettings.show_roi === false, icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
-                  { title: "Avg RR", shortTitle: "Avg RR", value: avgRRVal, isHidden: privacySettings.show_avg_rr === false, icon: <WrappedTarget set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
-                  { title: "Streak", shortTitle: "Streak", value: streakVal, isHidden: privacySettings.show_streak === false, icon: <WrappedFlame set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
+                  { title: "Trades", shortTitle: "Trades", value: <AnimatedNumber value={totalTradesCount} duration={850} format={(v) => Math.round(v).toLocaleString()} />, isHidden: privacySettings.show_trades === false, icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
+                  { title: "Win Rate", shortTitle: "Win Rate", value: <><AnimatedNumber value={winRateNum} duration={850} delay={50} />%</>, isHidden: privacySettings.show_winrate === false, icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
+                  { title: "Net ROI", shortTitle: "ROI", value: <><AnimatedNumber value={roiNum} duration={850} delay={100} format={(v) => `${v > 0 ? "+" : ""}${v.toFixed(2)}%`} /></>, isHidden: privacySettings.show_roi === false, icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
+                  { title: "Avg RR", shortTitle: "Avg RR", value: <><AnimatedNumber value={avgRRNum} duration={850} delay={140} format={(v) => `${v.toFixed(2)}R`} /></>, isHidden: privacySettings.show_avg_rr === false, icon: <WrappedTarget set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
+                  { title: "Streak", shortTitle: "Streak", value: <><AnimatedNumber value={streakNum} duration={800} delay={180} /> {streakNum === 1 ? "Day" : "Days"}</>, isHidden: privacySettings.show_streak === false, icon: <WrappedFlame set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
                 ].filter(c => !c.isHidden);
 
                 if (visibleCards.length === 0) return null;
@@ -1311,7 +1343,7 @@ export default function Profile() {
                     style={{ gridTemplateColumns: `repeat(${visibleCards.length}, minmax(0, 1fr))` }}
                   >
                     {visibleCards.map((card, idx) => (
-                      <div key={idx} className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-[18px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0">
+                      <motion.div variants={profileCardVariants} key={idx} className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-[18px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0">
                         <div className="flex flex-col-reverse min-[440px]:flex-row min-[440px]:items-center justify-between gap-1 mb-1 sm:mb-1.5">
                           <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">
                             <span className="sm:hidden">{card.shortTitle}</span>
@@ -1321,10 +1353,10 @@ export default function Profile() {
                             {card.icon}
                           </div>
                         </div>
-                        <p className={`text-[12.5px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                        <p className={`text-[12.5px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate tabular-nums ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
                           {card.value}
                         </p>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 );
@@ -1332,7 +1364,7 @@ export default function Profile() {
 
               {/* --- TRADING PERFORMANCE CARD (Compact & Real-Time; controlled by Settings) --- */}
               {privacySettings.show_performance !== false && (
-                <div className="bg-white dark:bg-[#1A1A1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col gap-3">
+                <motion.div variants={profileCardVariants} className="bg-white dark:bg-[#1A1A1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col gap-3">
                   <div className="flex items-center justify-between gap-2">
                     <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
 
@@ -1417,10 +1449,8 @@ export default function Profile() {
                     </div>
 
                   </div>
-                </div>
+                </motion.div>
               )}
-
-              {/* --- TRADING STREAK & CALENDAR ROW (Right below Trading Performance on desktop & mobile!) --- */}
               {(privacySettings.show_streak !== false || privacySettings.show_calendar !== false) && (
                 <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2' : ''} gap-3.5 w-full`}>
 
@@ -1439,7 +1469,7 @@ export default function Profile() {
                       : '15 Days Ago';
 
                     return (
-                      <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-3 h-full">
+                      <motion.div variants={profileCardVariants} className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-3 h-full">
                         <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                           <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                             <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
@@ -1513,13 +1543,13 @@ export default function Profile() {
                             <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> {idleDaysCount} Idle
                           </span>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })()}
 
                   {/* Performance Calendar Widget — Real Data */}
                   {privacySettings.show_calendar !== false && (
-                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
+                    <motion.div variants={profileCardVariants} className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
                       <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
                         <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                           <span className="p-1 rounded-md bg-blue-500/10 text-blue-500">
@@ -1617,7 +1647,7 @@ export default function Profile() {
                           <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> No Trade
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
 
                 </div>
@@ -1626,7 +1656,7 @@ export default function Profile() {
               </div>
 
               {/* ITEM 3: Unified Sculpted Card for Tabs Bar + Posts / Trades / Strategies Feed */}
-              <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-2 min-w-0 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden">
+              <motion.div variants={profileCardVariants} className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-2 min-w-0 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden">
 
               {/* --- SYSTEMIC TABS BAR --- */}
               <div className="flex items-center w-full border-b border-slate-200/85 dark:border-white/[0.08] px-2 pt-1 relative z-10 overflow-x-auto no-scrollbar bg-white dark:bg-[#1A1A1E]">
@@ -1838,9 +1868,9 @@ export default function Profile() {
                 </div>
 
               </div>
-              </div>
+              </motion.div>
 
-            </div>
+            </motion.div>
 
           </div>
         </div>
