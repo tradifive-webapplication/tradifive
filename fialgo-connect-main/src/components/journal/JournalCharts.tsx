@@ -22,7 +22,6 @@ import { useTradingTheme } from "@/hooks/useTradingTheme";
 import { useNavigate } from "react-router-dom";
 import { usePlan } from "@/hooks/usePlan";
 import { Lock } from "lucide-react";
-import { MorphingText } from "@/components/ui/morphing-text";
 
 const CARD_SURFACE =
   "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none";
@@ -869,18 +868,15 @@ export default function JournalCharts({
         filters={["1W", "1M", "All"]}
         isLocked={isStarter}
         lockedOverlay={
-          <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
+          <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[340px] w-full">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lock size={14} strokeWidth={2.4} />
               </div>
-              <div className="min-w-0 flex flex-col justify-center w-[130px] sm:w-[155px]">
-                <MorphingText
-                  texts={["Drawdown Analysis", "Pro & Elite"]}
-                  align="left"
-                  maxBlur={4}
-                  className="h-[18px] text-[13px] font-bold text-slate-900 dark:text-white"
-                />
+              <div className="min-w-0 flex flex-col justify-center">
+                <span className="btn-shine text-[13px] font-bold leading-tight">
+                  Drawdown Analysis
+                </span>
                 <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 mt-0.5">
                   Pro &amp; Elite
                 </p>
@@ -988,18 +984,15 @@ export default function JournalCharts({
         }
         isLocked={isStarter}
         lockedOverlay={
-          <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
+          <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[340px] w-full">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
                 <Lock size={14} strokeWidth={2.4} />
               </div>
-              <div className="min-w-0 flex flex-col justify-center w-[130px] sm:w-[155px]">
-                <MorphingText
-                  texts={["Trade Duration", "Pro & Elite"]}
-                  align="left"
-                  maxBlur={4}
-                  className="h-[18px] text-[13px] font-bold text-slate-900 dark:text-white"
-                />
+              <div className="min-w-0 flex flex-col justify-center">
+                <span className="btn-shine text-[13px] font-bold leading-tight">
+                  Trade Duration
+                </span>
                 <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 mt-0.5">
                   Pro &amp; Elite
                 </p>

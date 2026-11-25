@@ -309,13 +309,7 @@ const journalMenu = [
 
 const aiCoachMenu = [
 
-  { path: "/ai-coach", icon: WrappedSparkles, label: "AI Coach Insights" },
-
-  { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat" },
-
-  { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback" },
-
-  { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals" },
+  { path: "/ai-coach", icon: WrappedSparkles, label: "AI Coach" },
 
 ];
 
@@ -1398,15 +1392,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         return [
 
-          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach Insights" },
-
-          { path: "/ai-coach/chat", icon: WrappedIconly(Message), label: "Coach Chat" },
-
-          { path: "/ai-coach/feedback", icon: WrappedIconly(Notification), label: "Trade Feedback" },
-
-          { path: "/ai-coach/goals", icon: WrappedIconly(TicketStar), label: "Trading Goals" },
-
-          { path: "/analytics", icon: WrappedIconly(Graph), label: "Performance Analytics" },
+          { path: "/ai-coach", icon: WrappedIconly(Chat), label: "AI Coach" },
 
         ];
 

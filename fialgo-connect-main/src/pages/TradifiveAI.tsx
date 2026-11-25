@@ -47,7 +47,10 @@ import {
   AudioLines,
   ArrowUp,
   X,
-  Crown
+  Crown,
+  TrendingUp,
+  Target,
+  CheckCircle2
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { supabase } from "@/lib/supabase";
@@ -77,12 +80,19 @@ interface ChatSession {
   messages: Message[];
 }
 
+const stripContextPrefix = (text: string) =>
+  (text || "").replace(/^\[context:[^\]]+\]\s*/i, "").trim();
+
+const SURFACE_CARD =
+  "bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_10px_26px_-10px_rgba(15,23,42,0.07)] dark:shadow-none";
+
 export default function TradifiveAI() {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [showSidebarSearch, setShowSidebarSearch] = useState(false);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -116,7 +126,6 @@ export default function TradifiveAI() {
   const [typingPlaceholder, setTypingPlaceholder] = useState("");
   const [isThinking, setIsThinking] = useState(false);
   const [userName, setUserName] = useState("there");
-  const [showCustomize, setShowCustomize] = useState(false);
   const [showTopup, setShowTopup] = useState(false);
   const [userBio, setUserBio] = useState("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -170,6 +179,7 @@ export default function TradifiveAI() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const plusMenuRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<any>(null);
   const { accountMetrics, recentTrades, isDemoMode, balance, equity, drawdown, isConnected } = useDashboardData();
   const { activeMarket } = useMarket();
@@ -358,52 +368,28 @@ export default function TradifiveAI() {
 
   function TradifiveAISkeleton() {
     return (
-      <div className="flex h-[calc(100vh-140px)] overflow-hidden bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] relative rounded-3xl border border-slate-200/60 dark:border-white/5 shadow-sm select-none animate-pulse">
-        {/* Sidebar column (workspace navigation) */}
-        <div className="w-[290px] shrink-0 border-r border-slate-200/50 dark:border-white/5 bg-white/40 dark:bg-[#1E1F22]/80 backdrop-blur-md p-5 space-y-6 relative z-10">
-          <div className="h-4.5 w-24 bg-slate-200 dark:bg-slate-800/80 rounded" />
-          <div className="h-11 w-full bg-slate-200 dark:bg-slate-800/80 rounded-xl" />
-          <div className="h-9 w-full bg-slate-200 dark:bg-slate-800/80 rounded-xl" />
-          <div className="space-y-3 pt-4">
-            <div className="h-3 w-28 bg-slate-200 dark:bg-slate-800/80 rounded" />
+      <div className="flex h-full overflow-hidden bg-[#F5F7FA] dark:bg-[#0D0D10] relative select-none animate-pulse">
+        {/* Sidebar column */}
+        <div className="w-[280px] shrink-0 border-r border-slate-200/70 dark:border-white/[0.07] bg-white dark:bg-[#141417] p-5 space-y-5 hidden md:block">
+          <div className="h-4 w-24 bg-slate-200 dark:bg-white/10 rounded" />
+          <div className="h-10 w-full bg-slate-200 dark:bg-white/10 rounded-xl" />
+          <div className="space-y-2.5 pt-2">
+            <div className="h-3 w-28 bg-slate-200 dark:bg-white/10 rounded" />
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 w-full bg-slate-200 dark:bg-slate-800/80 rounded-xl" />
+              <div key={i} className="h-12 w-full bg-slate-100 dark:bg-white/[0.05] rounded-xl" />
             ))}
           </div>
         </div>
 
         {/* Main interaction console */}
-        <div className="flex-1 flex flex-col bg-transparent relative z-10">
-          {/* Header */}
-          <div className="h-14 px-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800/80" />
-              <div className="h-3.5 w-36 bg-slate-200 dark:bg-slate-800/80 rounded" />
-            </div>
-            <div className="h-7 w-20 bg-slate-200 dark:bg-slate-800/80 rounded-lg" />
+        <div className="flex-1 flex flex-col bg-transparent p-6 space-y-6">
+          <div className="h-12 w-full max-w-md bg-white dark:bg-[#17171A] rounded-2xl border border-slate-200/70 dark:border-white/[0.07]" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-24 bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07]" />
+            ))}
           </div>
-
-          {/* Chat message thread */}
-          <div className="flex-1 p-6 space-y-6">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800/80 shrink-0" />
-              <div className="p-4 rounded-[20px] bg-slate-100 dark:bg-slate-850 w-2/3 space-y-2">
-                <div className="h-3 w-full bg-slate-200 dark:bg-slate-800/80 rounded" />
-                <div className="h-3 w-5/6 bg-slate-200 dark:bg-slate-800/80 rounded" />
-              </div>
-            </div>
-            <div className="flex items-start gap-3 justify-end">
-              <div className="p-4 rounded-[20px] bg-indigo-50/20 dark:bg-indigo-950/10 w-1/2 space-y-2">
-                <div className="h-3 w-full bg-slate-200 dark:bg-slate-800/80 rounded" />
-                <div className="h-3 w-2/3 bg-slate-200 dark:bg-slate-800/80 rounded" />
-              </div>
-            </div>
-          </div>
-
-          {/* Input box */}
-          <div className="p-4 px-6 border-t border-slate-200/60 dark:border-white/5">
-            <div className="h-12 w-full bg-slate-50 dark:bg-[#1E1E1E] rounded-2xl" />
-          </div>
+          <div className="flex-1 bg-white dark:bg-[#17171A] rounded-[18px] border border-slate-200/70 dark:border-white/[0.07]" />
         </div>
       </div>
     );
@@ -411,7 +397,6 @@ export default function TradifiveAI() {
 
   // Safe Guard / Custom settings save
   const handleSaveCustomize = async () => {
-    setShowCustomize(false);
     if (user) {
       localStorage.setItem(`tradifive_ai_persona_${user.id}`, activePersona);
       localStorage.setItem(`tradifive_ai_drawdown_${user.id}`, String(customDrawdown));
@@ -554,7 +539,7 @@ I have processed your **Dashboard Performance Metrics** context. Here is your St
     }
 
     // Trade History Context Trigger
-    if (normalized.includes("[context: trade history]")) {
+    if (normalized.includes("[context: trade history]") || normalized.includes("execution mistakes")) {
       return `### 🔄 Custom Audit • MT5 Trade History Analysis
 
 I have completed a deep diagnostic run on your recent **MetaTrader 5 Trade History** (EUR/USD & XAU/USD):
@@ -574,7 +559,7 @@ I have completed a deep diagnostic run on your recent **MetaTrader 5 Trade Histo
     }
 
     // Risk Guard Settings Context Trigger
-    if (normalized.includes("[context: risk guard settings]")) {
+    if (normalized.includes("[context: risk guard settings]") || normalized.includes("drawdown risk check")) {
       return `### 🛡️ Custom Audit • Risk Safeguard Configurations
 
 Here is the strategic analysis of your active **Risk Guard Limits**:
@@ -959,7 +944,8 @@ Our AI servers are currently busy or experiencing an error. Please try again lat
 
     if (!isMock) {
       if (!targetSessionId) {
-        const title = isImageSim ? "Chart Image Analysis" : (text.length > 25 ? text.substring(0, 25) + "..." : text);
+        const cleanPrompt = stripContextPrefix(text);
+        const title = isImageSim ? "Chart Image Analysis" : (cleanPrompt.length > 28 ? cleanPrompt.substring(0, 28) + "..." : cleanPrompt);
         const newId = await createSession(title, activePersona);
         if (newId) {
           targetSessionId = newId;
@@ -1198,133 +1184,137 @@ ${JSON.stringify(contextData)}`;
   );
 
   const renderInputConsole = () => {
-    const isNewChat = messages.length === 0;
-
     return (
-      <div className="w-full space-y-4">
-        {/* Outer container card - only styled as a premium card in new chat */}
-        <div className={isNewChat
-          ? "bg-white/70 dark:bg-[#18181B]/60 border border-slate-200/80 dark:border-white/5 rounded-[20px] p-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] dark:shadow-none space-y-3 relative group/box text-left w-full"
-          : "relative w-full"
-        }>
-
+      <div className="w-full">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files && e.target.files[0]) {
+              handleSimulateScreenshot();
+              e.target.value = "";
+            }
+          }}
+        />
+        <div className={`${SURFACE_CARD} p-3.5 sm:p-4 space-y-2.5 text-left w-full`}>
+          {/* Top Credits & Upgrade Row */}
           {creditsLeft === 0 ? (
-            <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-[13px] font-semibold text-slate-600 dark:text-slate-300">
-                You are out of free messages until 12:00 AM
+            <div className="flex items-center justify-between gap-2 px-1">
+              <span className="text-[12px] font-semibold text-rose-600 dark:text-rose-400">
+                Daily AI credits exhausted until 12:00 AM
               </span>
-              <button onClick={() => navigate('/settings?tab=ai')} className="px-3.5 py-1 bg-white text-slate-900 rounded-[6px] text-[12px] font-bold hover:bg-slate-100 transition-colors shadow-sm">
+              <button
+                type="button"
+                onClick={() => navigate('/upgrade')}
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11.5px] font-bold transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+              >
                 Upgrade
               </button>
             </div>
           ) : (
-            <div className="flex justify-between items-center mb-2 px-1">
-              <div className="text-[11px] font-semibold text-slate-500">
+            <div className="flex flex-wrap justify-between items-center gap-2 px-1">
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/[0.08] text-[11px] font-semibold text-slate-600 dark:text-slate-300 tabular-nums">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                 Credits: {creditsLeft} / {maxCredits}
               </div>
-              <button onClick={() => navigate('/settings?tab=ai')} className="text-[11px] font-bold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300 hover:underline transition-colors flex items-center gap-1">
-                <Zap size={10} className="fill-current" /> Need extra credits? Upgrade plan
+              <button
+                type="button"
+                onClick={() => navigate('/upgrade')}
+                className="text-[11px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
+              >
+                <Zap size={11} className="fill-current" />
+                <span>Need extra credits? Upgrade plan</span>
               </button>
             </div>
           )}
 
-          {/* Premium Input Box Container styled with rotating conic gradient layers from Uiverse */}
-          <div id="poda">
-            {/* Conic Glow layers */}
-            <div className="poda-glow pointer-events-none hidden dark:block" />
-            <div className="poda-darkBorderBg pointer-events-none hidden dark:block" />
-            <div className="poda-white pointer-events-none hidden dark:block" />
-            <div className="poda-border pointer-events-none hidden dark:block" />
-
-            <div className={`bg-white dark:bg-[#010201] rounded-[10px] px-4 py-2.5 flex flex-row items-center gap-2.5 relative z-10 w-full shadow-sm dark:shadow-none border border-slate-200 dark:border-transparent ${isRecording
-                ? "border-red-500/40"
-                : ""
-              }`}>
-
-              {isRecording ? (
-                <div className="flex-1 flex items-center justify-between px-2 py-0.5">
-                  <div className="flex items-center gap-3">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-                    </span>
-                    <span className="text-[12px] font-bold text-slate-300">
-                      Recording audio: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}
-                    </span>
-                    {/* Animated audio visualizer bars */}
-                    <div className="flex items-end gap-0.5 h-3.5">
-                      {[4, 8, 12, 6, 14, 8, 4, 10, 6].map((h, i) => (
-                        <motion.div
-                          key={i}
-                          animate={{ height: [h, h * 0.3, h] }}
-                          transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.05 }}
-                          className="w-0.5 bg-red-500 rounded-full"
-                          style={{ height: h }}
-                        />
-                      ))}
-                    </div>
+          {/* Unified Clean Input Box */}
+          <div
+            className={`bg-slate-50/90 dark:bg-[#111114] rounded-xl px-3.5 py-2.5 flex flex-row items-center gap-2.5 w-full border transition-all ${
+              isRecording
+                ? "border-rose-500/60 ring-2 ring-rose-500/15"
+                : "border-slate-200/80 dark:border-white/[0.08] focus-within:bg-white dark:focus-within:bg-[#16161A] focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/15"
+            }`}
+          >
+            {isRecording ? (
+              <div className="flex-1 flex items-center justify-between px-1 py-0.5">
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                  </span>
+                  <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 tabular-nums">
+                    Recording audio: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}
+                  </span>
+                  <div className="flex items-end gap-0.5 h-3.5">
+                    {[4, 8, 12, 6, 14, 8, 4, 10, 6].map((h, i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ height: [h, h * 0.3, h] }}
+                        transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.05 }}
+                        className="w-0.5 bg-rose-500 rounded-full"
+                        style={{ height: h }}
+                      />
+                    ))}
                   </div>
-                  <button
-                    onClick={handleToggleRecord}
-                    className="px-3 py-1 bg-red-500 hover:bg-red-650 text-white rounded-lg text-[10px] font-extrabold tracking-wider uppercase transition-all shadow-md active:scale-95 animate-pulse"
-                  >
-                    Done
-                  </button>
                 </div>
-              ) : (
-                <>
-                  {/* Left: Image upload button */}
-                  <div className="relative flex items-center">
-                    <button
-                      className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0"
-                      title="Upload Image"
-                    >
-                      <ImageIcon size={16} strokeWidth={2} />
-                    </button>
-                  </div>
+                <button
+                  type="button"
+                  onClick={handleToggleRecord}
+                  className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10.5px] font-bold tracking-wide uppercase transition-all shadow-sm active:scale-95 cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.07] transition-colors shrink-0 cursor-pointer"
+                  title="Upload Chart Screenshot"
+                >
+                  <ImageIcon size={15} strokeWidth={2} />
+                </button>
 
-                  {/* Divider */}
-                  <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0" />
+                <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0" />
 
-                  {/* Center Input Text Area */}
-                  <textarea
-                    ref={textareaRef}
-                    rows={1}
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
-                    placeholder={typingPlaceholder}
-                    className="flex-1 bg-transparent text-[14px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 border-none outline-none resize-none py-0 max-h-12 no-scrollbar focus:ring-0 focus:outline-none leading-normal self-center"
-                  />
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
+                  placeholder={typingPlaceholder || "Ask your AI Coach about trades, risk, or psychology..."}
+                  className="flex-1 bg-transparent text-[13.5px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 border-none outline-none resize-none py-0 max-h-20 no-scrollbar focus:ring-0 focus:outline-none leading-normal self-center"
+                />
 
-                  {/* Audio Memo button */}
-                  <button
-                    onClick={handleToggleRecord}
-                    className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors shrink-0"
-                    title="Record Voice Memo"
-                  >
-                    <IconlyVoice set="curved" primaryColor="currentColor" size={16} stroke="bold" strokeWidth={2} />
-                  </button>
+                <button
+                  type="button"
+                  onClick={handleToggleRecord}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.07] transition-colors shrink-0 cursor-pointer"
+                  title="Record Voice Memo"
+                >
+                  <IconlyVoice set="curved" primaryColor="currentColor" size={16} stroke="bold" strokeWidth={2} />
+                </button>
 
-                  {/* Divider */}
-                  <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0" />
-
-                  {/* Send button (up arrow circular) */}
-                  <button
-                    onClick={() => handleSendMessage()}
-                    disabled={!input.trim() || isThinking}
-                    className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 active:scale-90 shrink-0 ${input.trim() && !isThinking
-                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm hover:brightness-110"
-                        : "text-slate-400 dark:text-slate-400 cursor-not-allowed bg-slate-100 dark:bg-transparent"
-                      }`}
-                  >
-                    <IconlyArrowUp set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} />
-                  </button>
-                </>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => handleSendMessage()}
+                  disabled={!input.trim() || isThinking}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95 shrink-0 ${
+                    input.trim() && !isThinking
+                      ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm cursor-pointer"
+                      : "text-slate-400 dark:text-neutral-500 cursor-not-allowed bg-slate-200/70 dark:bg-white/[0.06]"
+                  }`}
+                >
+                  <IconlyArrowUp set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2.2} />
+                </button>
+              </>
+            )}
           </div>
-
         </div>
       </div>
     );
@@ -1336,189 +1326,45 @@ ${JSON.stringify(contextData)}`;
       breadcrumbs={[
         { label: "AI Coach", path: "/ai-coach" },
         ...(messages.length > 0
-          ? [{ label: currentSessionId ? sessions.find(s => s.id === currentSessionId)?.title || "Custom Session" : "Custom Session" }]
+          ? [{ label: currentSessionId ? sessions.find(s => s.id === currentSessionId)?.title || "Custom Session" : "Active Consultation" }]
           : [])
       ]}
       noPadding={true}
       noScroll={true}
       headerActions={
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {messages.length > 0 && (
             <button
+              type="button"
               onClick={handleNewChat}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-[#2C2C2C] hover:bg-slate-50 dark:hover:bg-[#1E1E1E] text-[12px] font-bold text-slate-650 dark:text-slate-350 transition-all active:scale-[0.98] bg-white dark:bg-[#1C1C1E]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#17171A] hover:bg-slate-50 dark:hover:bg-white/[0.05] text-[12px] font-semibold text-slate-700 dark:text-slate-200 transition-all active:scale-[0.98] cursor-pointer"
             >
-              <RotateCcw size={13} /> Clear Chat
+              <RotateCcw size={13} />
+              <span>Clear Chat</span>
             </button>
           )}
         </div>
       }
     >
-      <div className="flex flex-1 h-full w-full overflow-hidden bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] relative font-sans">
+      <div className="flex flex-1 h-full w-full overflow-hidden bg-[#F5F7FA] dark:bg-[#0D0D10] relative font-sans">
         <style>{`
-          #poda {
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-          }
-          .poda-white,
-          .poda-border,
-          .poda-darkBorderBg,
-          .poda-glow {
-            position: absolute;
-            overflow: hidden;
-            z-index: 0;
-          }
-          .poda-glow {
-            top: -15px;
-            bottom: -15px;
-            left: -15px;
-            right: -15px;
-            border-radius: 12px;
-            filter: blur(15px);
-            opacity: 0.25;
-          }
-          .poda-darkBorderBg {
-            top: -2.5px;
-            bottom: -2.5px;
-            left: -2.5px;
-            right: -2.5px;
-            border-radius: 12px;
-            filter: blur(2px);
-          }
-          .poda-white {
-            top: -2px;
-            bottom: -2px;
-            left: -2px;
-            right: -2px;
-            border-radius: 10px;
-            filter: blur(1.5px);
-          }
-          .poda-border {
-            top: -0.75px;
-            bottom: -0.75px;
-            left: -0.75px;
-            right: -0.75px;
-            border-radius: 11px;
-            filter: blur(0.5px);
-          }
-          
-          .poda-white::before,
-          .poda-border::before,
-          .poda-darkBorderBg::before,
-          .poda-glow::before {
-            content: "";
-            z-index: -2;
-            text-align: center;
-            top: 50%;
-            left: 50%;
-            position: absolute;
-            width: 900px;
-            height: 900px;
-            background-repeat: no-repeat;
-            background-position: 0 0;
-            transition: all 2s ease;
-          }
-
-          .poda-white::before {
-            transform: translate(-50%, -50%) rotate(83deg);
-            filter: brightness(1.15);
-            background-image: conic-gradient(
-              rgba(0, 0, 0, 0) 0%,
-              #a099d8,
-              rgba(0, 0, 0, 0) 8%,
-              rgba(0, 0, 0, 0) 50%,
-              #dfa2da,
-              rgba(0, 0, 0, 0) 58%
-            );
-          }
-          .poda-border::before {
-            transform: translate(-50%, -50%) rotate(70deg);
-            filter: brightness(1.1);
-            background-image: conic-gradient(
-              #1c191c,
-              #402fb5 5%,
-              #1c191c 14%,
-              #1c191c 50%,
-              #cf30aa 60%,
-              #1c191c 64%
-            );
-          }
-          .poda-darkBorderBg::before {
-            transform: translate(-50%, -50%) rotate(82deg);
-            background-image: conic-gradient(
-              rgba(0, 0, 0, 0),
-              #18116a,
-              rgba(0, 0, 0, 0) 10%,
-              rgba(0, 0, 0, 0) 50%,
-              #6e1b60,
-              rgba(0, 0, 0, 0) 60%
-            );
-          }
-          .poda-glow::before {
-            transform: translate(-50%, -50%) rotate(60deg);
-            background-image: conic-gradient(
-              #000,
-              #402fb5 5%,
-              #000 38%,
-              #000 50%,
-              #cf30aa 60%,
-              #000 87%
-            );
-          }
-
-          #poda:hover > .poda-darkBorderBg::before {
-            transform: translate(-50%, -50%) rotate(-98deg);
-          }
-          #poda:hover > .poda-glow::before {
-            transform: translate(-50%, -50%) rotate(-120deg);
-          }
-          #poda:hover > .poda-white::before {
-            transform: translate(-50%, -50%) rotate(-97deg);
-          }
-          #poda:hover > .poda-border::before {
-            transform: translate(-50%, -50%) rotate(-110deg);
-          }
-
-          #poda:focus-within > .poda-darkBorderBg::before {
-            transform: translate(-50%, -50%) rotate(442deg);
-            transition: all 4s ease;
-          }
-          #poda:focus-within > .poda-glow::before {
-            transform: translate(-50%, -50%) rotate(420deg);
-            transition: all 4s ease;
-          }
-          #poda:focus-within > .poda-white::before {
-            transform: translate(-50%, -50%) rotate(443deg);
-            transition: all 4s ease;
-          }
-          #poda:focus-within > .poda-border::before {
-            transform: translate(-50%, -50%) rotate(430deg);
-            transition: all 4s ease;
-          }
-
           .loader {
-            --fill-color: #2563eb; /* Blue in light mode */
-            --shine-color: rgba(37, 99, 235, 0.4);
+            --fill-color: #2563eb;
+            --shine-color: rgba(37, 99, 235, 0.35);
             transform: scale(0.2);
             width: 100px;
             height: 100px;
             position: relative;
             filter: drop-shadow(0 0 6px var(--shine-color));
           }
-          
           .dark .loader {
-            --fill-color: #ffffff; /* White in dark mode */
+            --fill-color: #ffffff;
             --shine-color: #ffffff33;
           }
-
           .loader #pegtopone {
             position: absolute;
             animation: flowe-one 1s linear infinite;
           }
-
           .loader #pegtoptwo {
             position: absolute;
             opacity: 0;
@@ -1526,7 +1372,6 @@ ${JSON.stringify(contextData)}`;
             animation: flowe-two 1s linear infinite;
             animation-delay: 0.3s;
           }
-
           .loader #pegtopthree {
             position: absolute;
             opacity: 0;
@@ -1534,443 +1379,327 @@ ${JSON.stringify(contextData)}`;
             animation: flowe-three 1s linear infinite;
             animation-delay: 0.6s;
           }
-
           .loader svg g path:first-child {
             fill: var(--fill-color);
           }
-
           @keyframes flowe-one {
-            0% {
-              transform: scale(0.5) translateY(-200px);
-              opacity: 0;
-            }
-            25% {
-              transform: scale(0.75) translateY(-100px);
-              opacity: 1;
-            }
-            50% {
-              transform: scale(1) translateY(0px);
-              opacity: 1;
-            }
-            75% {
-              transform: scale(0.5) translateY(50px);
-              opacity: 1;
-            }
-            100% {
-              transform: scale(0) translateY(100px);
-              opacity: 0;
-            }
+            0% { transform: scale(0.5) translateY(-200px); opacity: 0; }
+            25% { transform: scale(0.75) translateY(-100px); opacity: 1; }
+            50% { transform: scale(1) translateY(0px); opacity: 1; }
+            75% { transform: scale(0.5) translateY(50px); opacity: 1; }
+            100% { transform: scale(0) translateY(100px); opacity: 0; }
           }
-
           @keyframes flowe-two {
-            0% {
-              transform: scale(0.5) rotateZ(-10deg) translateY(-200px) translateX(-100px);
-              opacity: 0;
-            }
-            25% {
-              transform: scale(1) rotateZ(-5deg) translateY(-100px) translateX(-50px);
-              opacity: 1;
-            }
-            50% {
-              transform: scale(1) rotateZ(0deg) translateY(0px) translateX(-25px);
-              opacity: 1;
-            }
-            75% {
-              transform: scale(0.5) rotateZ(5deg) translateY(50px) translateX(0px);
-              opacity: 1;
-            }
-            100% {
-              transform: scale(0) rotateZ(10deg) translateY(100px) translateX(25px);
-              opacity: 0;
-            }
+            0% { transform: scale(0.5) rotateZ(-10deg) translateY(-200px) translateX(-100px); opacity: 0; }
+            25% { transform: scale(1) rotateZ(-5deg) translateY(-100px) translateX(-50px); opacity: 1; }
+            50% { transform: scale(1) rotateZ(0deg) translateY(0px) translateX(-25px); opacity: 1; }
+            75% { transform: scale(0.5) rotateZ(5deg) translateY(50px) translateX(0px); opacity: 1; }
+            100% { transform: scale(0) rotateZ(10deg) translateY(100px) translateX(25px); opacity: 0; }
           }
-
           @keyframes flowe-three {
-            0% {
-              transform: scale(0.5) rotateZ(10deg) translateY(-200px) translateX(100px);
-              opacity: 0;
-            }
-            25% {
-              transform: scale(1) rotateZ(5deg) translateY(-100px) translateX(50px);
-              opacity: 1;
-            }
-            50% {
-              transform: scale(1) rotateZ(0deg) translateY(0px) translateX(25px);
-              opacity: 1;
-            }
-            75% {
-              transform: scale(0.5) rotateZ(-5deg) translateY(50px) translateX(0px);
-              opacity: 1;
-            }
-            100% {
-              transform: scale(0) rotateZ(-10deg) translateY(100px) translateX(-25px);
-              opacity: 0;
-            }
+            0% { transform: scale(0.5) rotateZ(10deg) translateY(-200px) translateX(100px); opacity: 0; }
+            25% { transform: scale(1) rotateZ(5deg) translateY(-100px) translateX(50px); opacity: 1; }
+            50% { transform: scale(1) rotateZ(0deg) translateY(0px) translateX(25px); opacity: 1; }
+            75% { transform: scale(0.5) rotateZ(-5deg) translateY(50px) translateX(0px); opacity: 1; }
+            100% { transform: scale(0) rotateZ(-10deg) translateY(100px) translateX(-25px); opacity: 0; }
           }
         `}</style>
 
-        {/* FLAT SIDE NAVIGATION (LEFT) - Made slightly more spacious ("little big") and awesome look */}
+        {/* AI CONSOLE LEFT SIDEBAR */}
         <motion.div
           initial={false}
-          animate={{ width: isSidebarCollapsed ? 80 : 290 }}
-          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className={`bg-white/40 dark:bg-[#1E1F22]/80 backdrop-blur-md border-r border-slate-200/50 dark:border-white/5 ${isSidebarCollapsed ? "hidden md:flex" : "flex"} flex-col h-full shrink-0 relative z-10 overflow-hidden`}
+          animate={{ width: isSidebarCollapsed ? 72 : 280 }}
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          className={`bg-white dark:bg-[#141417] border-r border-slate-200/70 dark:border-white/[0.07] ${isSidebarCollapsed ? "hidden md:flex" : "flex"} flex-col h-full shrink-0 relative z-10 overflow-hidden`}
         >
-          {/* Header Area - Extremely clean, Menu button centered when collapsed */}
-          <div className="h-14 px-5 flex items-center justify-between border-b border-slate-100 dark:border-white/5">
+          {/* Sidebar Header */}
+          <div className="h-14 px-4 flex items-center justify-between border-b border-slate-100 dark:border-white/[0.06]">
             {!isSidebarCollapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center"
-              >
-                <span className="text-[12px] font-semibold text-slate-550 dark:text-slate-400 uppercase tracking-widest">AI Console</span>
-              </motion.div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-blue-600" />
+                <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-widest">
+                  AI Console
+                </span>
+              </div>
             )}
             <button
+              type="button"
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className={`p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-[#1E1E1E] text-slate-400 hover:text-slate-650 transition-all focus:outline-none ${isSidebarCollapsed ? "mx-auto" : ""
-                }`}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/[0.06] text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors cursor-pointer ${
+                isSidebarCollapsed ? "mx-auto" : ""
+              }`}
+              title={isSidebarCollapsed ? "Expand Console" : "Collapse Console"}
             >
-              <Menu size={18} />
+              <Menu size={16} />
             </button>
           </div>
 
-          {/* Navigation Items */}
-          <div className="flex-1 overflow-y-auto pt-5 flex flex-col no-scrollbar" >
+          {/* Sidebar Body */}
+          <div className="flex-1 overflow-y-auto p-3.5 flex flex-col gap-4 no-scrollbar">
+            {/* Primary New Chat Button */}
+            <button
+              type="button"
+              onClick={handleNewChat}
+              className={`flex items-center gap-2.5 w-full rounded-xl transition-all h-10 font-bold shadow-sm cursor-pointer active:scale-[0.98] ${
+                isSidebarCollapsed
+                  ? "justify-center px-0 bg-blue-600 hover:bg-blue-700 text-white"
+                  : "px-3.5 bg-blue-600 hover:bg-blue-700 text-white text-[13px]"
+              }`}
+              title="New Consultation"
+            >
+              <Plus size={16} strokeWidth={2.5} className="shrink-0" />
+              {!isSidebarCollapsed && <span>New Chat</span>}
+            </button>
 
-            {/* Top Workspace buttons: New Chat & Search are aligned systematically */}
-            <div className="px-4">
-              <button
-                onClick={handleNewChat}
-                className={`flex items-center gap-3 w-full rounded-full transition-all h-11 border ${isSidebarCollapsed
-                    ? "justify-center px-0 hover:bg-slate-100 dark:hover:bg-white/[0.04] border-slate-200 dark:border-white/[0.06] text-slate-600 dark:text-slate-400"
-                    : "px-4 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 font-bold border-purple-100 dark:border-purple-500/20 hover:bg-purple-100 dark:hover:bg-purple-500/20 shadow-sm"
-                  }`}
-              >
-                <IconlyPlus set="curved" primaryColor="currentColor" size={16} className="shrink-0" stroke="bold" strokeWidth={2} />
-                {!isSidebarCollapsed && (
-                  <motion.span
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-[14px] tracking-tight font-semibold"
-                  >
-                    New Chat
-                  </motion.span>
-                )}
-              </button>
-            </div>
-
-            {/* Spacer — positions audits at ~40% from top */}
-            <div style={{ minHeight: '30%' }} />
-
-            {/* Historic Consultations list */}
+            {/* Historic Consultations list (directly below, no awkward empty void) */}
             {!isSidebarCollapsed && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.36, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
-                className="flex-1 flex flex-col px-4 overflow-hidden"
-              >
-                <div className="flex items-center justify-between px-1 mb-2.5 shrink-0">
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">Recent Audits</span>
-                  <Search size={15} strokeWidth={2.5} className="text-slate-400 cursor-pointer hover:text-slate-700 dark:hover:text-white transition-colors" onClick={() => { const el = document.getElementById('sidebar-search'); if (el) { const isHidden = el.style.display === 'none'; el.style.display = isHidden ? 'block' : 'none'; if (isHidden) el.focus(); if (!isHidden) setSearchQuery(''); } }} />
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex items-center justify-between px-1 mb-2 shrink-0">
+                  <span className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest">
+                    Recent Audits
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !showSidebarSearch;
+                      setShowSidebarSearch(next);
+                      if (!next) setSearchQuery("");
+                    }}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+                    title="Search Audits"
+                  >
+                    <Search size={13} />
+                  </button>
                 </div>
-                <input
-                  id="sidebar-search"
-                  type="text"
-                  placeholder="Search audits..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{ display: 'none' }}
-                  className="w-full bg-slate-50 dark:bg-[#1A1A1D] border border-slate-200 dark:border-white/[0.08] rounded-xl py-2 px-3 text-[13px] font-medium text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 mb-2 shrink-0 shadow-inner"
-                />
+
+                {showSidebarSearch && (
+                  <input
+                    type="text"
+                    placeholder="Search audits..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                    className="w-full bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.08] rounded-xl py-1.5 px-3 text-[12px] font-medium text-slate-800 dark:text-white outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-600/15 transition-all placeholder:text-slate-400 mb-2 shrink-0"
+                  />
+                )}
+
                 <div className="flex-1 overflow-y-auto space-y-1 no-scrollbar">
                   {filteredSessions.map((session) => (
                     <div
                       key={session.id}
                       onClick={() => handleLoadSession(session.id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-xl text-left cursor-pointer transition-all group relative border ${currentSessionId === session.id
-                          ? "bg-slate-100 dark:bg-white/[0.06] border-slate-200/60 dark:border-white/[0.06] text-slate-900 dark:text-white"
-                          : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-                        }`}
+                      className={`w-full flex items-center justify-between gap-2 p-2.5 rounded-xl text-left cursor-pointer transition-all group border ${
+                        currentSessionId === session.id
+                          ? "bg-slate-100/90 dark:bg-white/[0.08] border-slate-200/80 dark:border-white/[0.1] text-slate-900 dark:text-white shadow-2xs"
+                          : "bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-white/[0.04] text-slate-600 dark:text-neutral-400"
+                      }`}
                     >
-                      <div className="flex items-start gap-2.5 overflow-hidden w-[85%]">
-                        <IconlyMessage
-                          set="curved"
-                          primaryColor="currentColor"
-                          size={15}
-                          stroke="bold"
-                          strokeWidth={2}
-                          className={`shrink-0 mt-0.5 transition-colors ${currentSessionId === session.id
-                              ? "text-slate-600 dark:text-slate-300"
+                      <div className="flex items-start gap-2.5 overflow-hidden flex-1 min-w-0">
+                        <MessageSquare
+                          size={14}
+                          className={`shrink-0 mt-0.5 transition-colors ${
+                            currentSessionId === session.id
+                              ? "text-blue-600 dark:text-blue-400"
                               : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
-                            }`}
+                          }`}
                         />
-                        <div className="overflow-hidden">
-                          <p className={`text-[13px] font-semibold truncate leading-snug ${currentSessionId === session.id
+                        <div className="overflow-hidden min-w-0">
+                          <p className={`text-[12.5px] font-semibold truncate leading-snug ${
+                            currentSessionId === session.id
                               ? "text-slate-900 dark:text-white"
-                              : "text-slate-700 dark:text-slate-300"
-                            }`}>{session.title}</p>
-                          <p className={`text-[11px] font-medium truncate mt-0.5 ${currentSessionId === session.id
-                              ? "text-slate-500 dark:text-slate-400"
-                              : "text-slate-400 dark:text-slate-400"
-                            }`}>{session.lastMessage}</p>
+                              : "text-slate-700 dark:text-slate-200"
+                          }`}>
+                            {stripContextPrefix(session.title)}
+                          </p>
+                          <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 truncate mt-0.5">
+                            {stripContextPrefix(session.lastMessage)}
+                          </p>
                         </div>
                       </div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowSessionsDropdown(showSessionsDropdown === session.id ? null : session.id);
-                        }}
-                        className={`p-1 rounded opacity-0 group-hover:opacity-100 transition-all focus:outline-none ${currentSessionId === session.id
-                            ? "text-slate-650 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
-                            : "text-slate-400 hover:text-slate-650 dark:hover:text-slate-300"
-                          }`}
-                      >
-                        <MoreVertical size={12} />
-                      </button>
 
-                      {/* Dropdown Menu for Deleting Sessions */}
-                      {showSessionsDropdown === session.id && (
-                        <div className="absolute right-2 top-8 z-30 bg-white dark:bg-[#1C1C1C] border border-slate-200/80 dark:border-[#2C2C2C] shadow-lg rounded-lg py-1 w-24">
-                          <button
-                            onClick={(e) => handleDeleteSession(e, session.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 w-full text-[10.5px] font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all text-left"
-                          >
-                            <Trash2 size={10} /> Delete
-                          </button>
-                        </div>
-                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteSession(e, session.id)}
+                        className="w-6 h-6 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/15 transition-all cursor-pointer shrink-0"
+                        title="Delete audit"
+                      >
+                        <Trash2 size={13} />
+                      </button>
                     </div>
                   ))}
                   {filteredSessions.length === 0 && (
-                    <div className="text-center py-6 text-slate-500 text-[12px] font-medium">
-                      No active search matches.
+                    <div className="text-center py-8 px-2 text-slate-400 dark:text-neutral-500 text-[11.5px] font-medium">
+                      No saved consultations yet. Start a new chat above.
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             )}
           </div>
 
-          {/* MT5 Account Context Panel (Sidebar Footer) - Made proper, borderless, clean & professional */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
-            className="p-4 border-t border-slate-100 dark:border-white/5 bg-slate-50/30 dark:bg-black/20 backdrop-blur-sm"
-          >
+          {/* MT5 / Broker Bridge Card (Sidebar Footer) */}
+          <div className="p-3.5 border-t border-slate-100 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
             {!isSidebarCollapsed ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-1.5 px-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest leading-none">Active MT5 Bridge</span>
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-widest leading-none">
+                    Active MT5 Bridge
+                  </span>
                 </div>
-                <div className="bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] rounded-[20px] p-3.5 border-2 border-white dark:border-white/5 flex items-center justify-between shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none">
-                  {isConnected ? (
-                    <>
-                      <div className="overflow-hidden">
-                        <p className="text-[12px] font-bold text-slate-700 dark:text-slate-200 truncate leading-snug">
-                          {accountMetrics?.name || "Connected Workspace"}
-                        </p>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-400 font-semibold leading-none mt-1">
-                          {activeMarket === 'indian' ? 'Broker' : 'MT5'} #{accountMetrics?.account_number || '000000'}
-                        </p>
-                      </div>
-                      <div className="bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-extrabold text-[8.5px] uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0 border border-emerald-500/20">
-                        Live
-                      </div>
-                    </>
-                  ) : (
-                    <div className="w-full flex justify-center">
-                      <span className="text-[12px] font-bold text-slate-400 hover:text-indigo-500 transition-colors cursor-pointer" onClick={() => navigate('/settings?tab=trading')}>
-                        Connect Broker
-                      </span>
+                {isConnected ? (
+                  <div className="bg-white dark:bg-[#17171A] rounded-xl p-3 border border-slate-200/80 dark:border-white/[0.08] shadow-2xs flex items-center justify-between gap-2">
+                    <div className="overflow-hidden">
+                      <p className="text-[12px] font-bold text-slate-800 dark:text-white truncate leading-snug">
+                        {accountMetrics?.name || "Connected Workspace"}
+                      </p>
+                      <p className="text-[10px] text-slate-400 dark:text-neutral-400 font-semibold leading-none mt-1 tabular-nums">
+                        {activeMarket === 'indian' ? 'Broker' : 'MT5'} #{accountMetrics?.account_number || '000000'}
+                      </p>
                     </div>
-                  )}
-                </div>
+                    <span className="bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0 border border-emerald-500/20">
+                      Live
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate('/settings?tab=trading')}
+                    className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-white/[0.04] text-[12px] font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-all cursor-pointer text-center active:scale-[0.98]"
+                  >
+                    Connect Broker
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="flex justify-center py-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse border-2 border-white dark:border-[#151515] shadow-sm" />
+              <div className="flex justify-center py-1" title={isConnected ? "MT5 Bridge Live" : "Broker Not Connected"}>
+                <span className={`w-2.5 h-2.5 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
               </div>
             )}
-          </motion.div>
+          </div>
         </motion.div>
 
-        {/* MAIN CHAT CONTENT AREA (RIGHT) */}
+        {/* MAIN CONTENT AREA (RIGHT) */}
         <div className="flex-1 flex flex-col h-full bg-transparent relative z-10 overflow-hidden">
+          {/* Mobile sidebar button when collapsed */}
+          <div className="md:hidden px-4 pt-3 flex items-center justify-between shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+              className="w-8 h-8 rounded-lg border border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-[#17171A] flex items-center justify-center text-slate-600 dark:text-slate-300 cursor-pointer shrink-0"
+              title="Toggle History"
+            >
+              <Menu size={15} />
+            </button>
+          </div>
 
-          {/* Message List Grid */}
           <div
             ref={scrollRef}
-            className={`flex-1 flex flex-col items-center px-4 md:px-8 overflow-y-auto scroll-smooth no-scrollbar ${messages.length === 0 ? "justify-center pb-12" : "justify-start pt-6 pb-48 md:pb-56"
-              }`}
+            className={`flex-1 flex flex-col items-center px-4 md:px-8 overflow-y-auto scroll-smooth no-scrollbar ${
+              messages.length === 0 ? "justify-center py-8" : "justify-start pt-6 pb-48 md:pb-52"
+            }`}
           >
             {messages.length === 0 ? (
-              <div className="w-full max-w-2xl text-center flex flex-col items-center justify-center pt-2 sm:pt-4">
-                {/* Sparkle Loader above welcome */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="mb-6"
-                >
-                  <div className="loader text-blue-600 dark:text-white relative flex items-center justify-center" style={{ transform: 'scale(0.35)' }}>
-                    <svg id="pegtopone" viewBox="0 0 100 100" width="100" height="100">
-                      <defs>
-                        <filter id="shine-w">
-                          <feGaussianBlur stdDeviation={3} />
-                        </filter>
-                        <mask id="mask-w">
-                          <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="white" />
-                        </mask>
-                        <radialGradient id="wg-1" cx={50} cy={66} fx={50} fy={66} r={30} gradientTransform="translate(0 35) scale(1 0.5)" gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="black" stopOpacity="0.3" />
-                          <stop offset="50%" stopColor="black" stopOpacity="0.1" />
-                          <stop offset="100%" stopColor="black" stopOpacity={0} />
-                        </radialGradient>
-                        <radialGradient id="wg-2" cx={55} cy={20} fx={55} fy={20} r={30} gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="white" stopOpacity="0.3" />
-                          <stop offset="50%" stopColor="white" stopOpacity="0.1" />
-                          <stop offset="100%" stopColor="white" stopOpacity={0} />
-                        </radialGradient>
-                        <radialGradient id="wg-3" cx={85} cy={50} fx={85} fy={50} xlinkHref="#wg-2" />
-                        <radialGradient id="wg-4" cx={50} cy={58} fx={50} fy={58} r={60} gradientTransform="translate(0 47) scale(1 0.2)" xlinkHref="#wg-3" />
-                        <linearGradient id="wg-5" x1={50} y1={90} x2={50} y2={10} gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="black" stopOpacity="0.2" />
-                          <stop offset="40%" stopColor="black" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <g>
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="currentColor" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg-1)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="none" stroke="white" opacity={0.3} strokeWidth={3} filter="url(#shine-w)" mask="url(#mask-w)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg-2)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg-3)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg-4)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg-5)" />
-                      </g>
-                    </svg>
-                    <svg id="pegtoptwo" viewBox="0 0 100 100" width="100" height="100">
-                      <defs>
-                        <filter id="shine-w2">
-                          <feGaussianBlur stdDeviation={3} />
-                        </filter>
-                        <mask id="mask-w2">
-                          <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="white" />
-                        </mask>
-                        <radialGradient id="wg2-1" cx={50} cy={66} fx={50} fy={66} r={30} gradientTransform="translate(0 35) scale(1 0.5)" gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="black" stopOpacity="0.3" />
-                          <stop offset="50%" stopColor="black" stopOpacity="0.1" />
-                          <stop offset="100%" stopColor="black" stopOpacity={0} />
-                        </radialGradient>
-                        <radialGradient id="wg2-2" cx={55} cy={20} fx={55} fy={20} r={30} gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="white" stopOpacity="0.3" />
-                          <stop offset="50%" stopColor="white" stopOpacity="0.1" />
-                          <stop offset="100%" stopColor="white" stopOpacity={0} />
-                        </radialGradient>
-                        <radialGradient id="wg2-3" cx={85} cy={50} fx={85} fy={50} xlinkHref="#wg2-2" />
-                        <radialGradient id="wg2-4" cx={50} cy={58} fx={50} fy={58} r={60} gradientTransform="translate(0 47) scale(1 0.2)" xlinkHref="#wg2-3" />
-                        <linearGradient id="wg2-5" x1={50} y1={90} x2={50} y2={10} gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="black" stopOpacity="0.2" />
-                          <stop offset="40%" stopColor="black" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <g>
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="currentColor" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg2-1)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="none" stroke="white" opacity={0.3} strokeWidth={3} filter="url(#shine-w2)" mask="url(#mask-w2)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg2-2)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg2-3)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg2-4)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg2-5)" />
-                      </g>
-                    </svg>
-                    <svg id="pegtopthree" viewBox="0 0 100 100" width="100" height="100">
-                      <defs>
-                        <filter id="shine-w3">
-                          <feGaussianBlur stdDeviation={3} />
-                        </filter>
-                        <mask id="mask-w3">
-                          <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="white" />
-                        </mask>
-                        <radialGradient id="wg3-1" cx={50} cy={66} fx={50} fy={66} r={30} gradientTransform="translate(0 35) scale(1 0.5)" gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="black" stopOpacity="0.3" />
-                          <stop offset="50%" stopColor="black" stopOpacity="0.1" />
-                          <stop offset="100%" stopColor="black" stopOpacity={0} />
-                        </radialGradient>
-                        <radialGradient id="wg3-2" cx={55} cy={20} fx={55} fy={20} r={30} gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="white" stopOpacity="0.3" />
-                          <stop offset="50%" stopColor="white" stopOpacity="0.1" />
-                          <stop offset="100%" stopColor="white" stopOpacity={0} />
-                        </radialGradient>
-                        <radialGradient id="wg3-3" cx={85} cy={50} fx={85} fy={50} xlinkHref="#wg3-2" />
-                        <radialGradient id="wg3-4" cx={50} cy={58} fx={50} fy={58} r={60} gradientTransform="translate(0 47) scale(1 0.2)" xlinkHref="#wg3-3" />
-                        <linearGradient id="wg3-5" x1={50} y1={90} x2={50} y2={10} gradientUnits="userSpaceOnUse">
-                          <stop offset="0%" stopColor="black" stopOpacity="0.2" />
-                          <stop offset="40%" stopColor="black" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <g>
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="currentColor" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg3-1)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="none" stroke="white" opacity={0.3} strokeWidth={3} filter="url(#shine-w3)" mask="url(#mask-w3)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg3-2)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg3-3)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg3-4)" />
-                        <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#wg3-5)" />
-                      </g>
-                    </svg>
-                  </div>
-                </motion.div>
+              <div className="w-full max-w-2xl text-center flex flex-col items-center justify-center space-y-6">
+                {/* Crisp Sparkle Badge + Welcome Title */}
+                <div className="space-y-2.5 flex flex-col items-center">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    className="w-11 h-11 rounded-2xl bg-blue-50 dark:bg-blue-500/15 border border-blue-200/70 dark:border-blue-500/25 flex items-center justify-center text-blue-600 dark:text-blue-400 shadow-xs mb-1"
+                  >
+                    <Sparkles size={20} strokeWidth={2.2} />
+                  </motion.div>
 
-                {/* Clean Warm Welcome Title */}
-                <motion.div
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-                  className="space-y-2.5"
-                >
-                  <h1 className="text-3xl lg:text-4xl font-semibold tracking-tight leading-tight bg-gradient-to-r from-slate-900 via-blue-600 to-slate-500 dark:from-white dark:via-blue-500 dark:to-slate-500 bg-clip-text text-transparent inline-block">
-                    Good to See You!
+                  <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    Good to See You, <span className="text-blue-600 dark:text-blue-400">{userName}</span>
                   </h1>
-                  <h2 className="text-2xl lg:text-3xl font-medium text-slate-700 dark:text-slate-300 tracking-tight leading-tight">
-                    How Can I Be of Assistance?
-                  </h2>
-                  <p className="text-[13px] md:text-[14px] text-slate-400 dark:text-slate-400 max-w-md mx-auto font-medium leading-relaxed pt-1">
-                    I'm available 24/7 for you. Ask me anything.
+                  <p className="text-[13.5px] sm:text-[14.5px] text-slate-500 dark:text-neutral-400 max-w-md mx-auto font-medium">
+                    Your 24/7 trading copilot is synced. Pick an audit card or ask anything below.
                   </p>
-                </motion.div>
+                </div>
 
-                {/* Input Console centered for new chat */}
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.44, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-                  className="w-full max-w-2xl mt-6 sm:mt-8"
-                >
+                {/* Consistent 2x2 Quick Audit Prompt Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full text-left">
+                  {[
+                    {
+                      title: "Audit Recent Trades",
+                      desc: "Inspect win-rate, spreads & setup leaks",
+                      prompt: "Audit my recent trade history and highlight any execution mistakes.",
+                      icon: TrendingUp,
+                      tone: "bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400",
+                    },
+                    {
+                      title: "Drawdown Risk Check",
+                      desc: "Review exposure vs. daily loss limits",
+                      prompt: "Run a drawdown risk check on my current Risk Guard settings.",
+                      icon: ShieldCheck,
+                      tone: "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                    },
+                    {
+                      title: "Optimal Lot Calculator",
+                      desc: "Exact position size for 0.5% account risk",
+                      prompt: "Calculate my optimal lot size for 0.5% risk across EUR/USD and XAU/USD.",
+                      icon: Target,
+                      tone: "bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-400",
+                    },
+                    {
+                      title: "Psychology & Tilt Scan",
+                      desc: "Detect overtrading or FOMO patterns",
+                      prompt: "What trading psychology mistakes am I repeating and how do I stop revenge trading?",
+                      icon: Brain,
+                      tone: "bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400",
+                    },
+                  ].map((card) => {
+                    const Icon = card.icon;
+                    return (
+                      <button
+                        key={card.title}
+                        type="button"
+                        onClick={() => handleSendMessage(card.prompt)}
+                        className={`${SURFACE_CARD} p-3.5 flex items-center gap-3 text-left hover:border-blue-500/40 hover:shadow-md transition-all cursor-pointer group active:scale-[0.99]`}
+                      >
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${card.tone}`}>
+                          <Icon size={16} strokeWidth={2.2} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[12.5px] font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                            {card.title}
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-neutral-400 truncate mt-0.5">
+                            {card.desc}
+                          </p>
+                        </div>
+                        <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600 group-hover:text-blue-500 transition-colors shrink-0" />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Centered Input Console */}
+                <div className="w-full pt-1">
                   {renderInputConsole()}
-                </motion.div>
+                </div>
               </div>
             ) : (
               <div className="w-full max-w-2xl space-y-5 py-4">
                 {messages.map((msg, i) => (
                   <motion.div
                     key={i}
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                     className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
-
-
-                    <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-[80%]`}>
-                      <div className={`px-4 py-2.5 text-[14px] leading-relaxed tracking-[-0.01em] text-slate-800 dark:text-slate-100 shadow-2xs overflow-hidden border transition-all ${msg.role === 'user'
-                          ? 'rounded-tl-[20px] rounded-bl-[20px] rounded-br-[20px] rounded-tr-none bg-white border-slate-200/60 dark:bg-[#1E1E1E] dark:border-white/5'
-                          : 'rounded-tr-[20px] rounded-br-[20px] rounded-bl-[20px] rounded-tl-none bg-white border-slate-200/60 dark:bg-[#1E1E1E] dark:border-white/5'
-                        }`}>
+                    <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[80%]`}>
+                      <div
+                        className={`px-4 py-3 text-[13.5px] sm:text-[14px] leading-relaxed tracking-[-0.01em] overflow-hidden transition-all ${
+                          msg.role === 'user'
+                            ? 'rounded-2xl rounded-tr-sm bg-blue-600 text-white shadow-sm'
+                            : `${SURFACE_CARD} rounded-2xl rounded-tl-sm text-slate-800 dark:text-slate-100`
+                        }`}
+                      >
                         {msg.role === 'ai' ? (
                           <div className="prose dark:prose-invert max-w-none text-[13.5px] md:text-[14px]">
                             <ReactMarkdown
@@ -1981,177 +1710,69 @@ ${JSON.stringify(contextData)}`;
                                 li: ({ children }) => <li className="text-slate-600 dark:text-slate-300">{children}</li>,
                                 strong: ({ children }) => <strong className="font-bold text-slate-900 dark:text-white">{children}</strong>,
                                 table: ({ children }) => (
-                                  <div className="overflow-x-auto my-3 rounded-xl border border-slate-200 dark:border-white/[0.06]">
-                                    <table className="min-w-full divide-y divide-slate-200 dark:divide-white/[0.06]">{children}</table>
+                                  <div className="overflow-x-auto my-3 rounded-xl border border-slate-200 dark:border-white/[0.08]">
+                                    <table className="min-w-full divide-y divide-slate-200 dark:divide-white/[0.08]">{children}</table>
                                   </div>
                                 ),
-                                th: ({ children }) => <th className="px-3 py-2 bg-slate-50 dark:bg-white/[0.03] text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{children}</th>,
-                                td: ({ children }) => <td className="px-3 py-2 text-[12px] font-medium text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/[0.06]">{children}</td>,
+                                th: ({ children }) => <th className="px-3 py-2 bg-slate-50 dark:bg-white/[0.04] text-left text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{children}</th>,
+                                td: ({ children }) => <td className="px-3 py-2 text-[12px] font-medium text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/[0.08]">{children}</td>,
                                 blockquote: ({ children }) => (
-                                  <div className="my-3 p-3.5 bg-indigo-50 dark:bg-indigo-500/[0.15] border-l-4 border-indigo-500 dark:border-indigo-400/50 rounded-r-xl">
+                                  <div className="my-3 p-3.5 bg-blue-50 dark:bg-blue-500/15 border-l-4 border-blue-600 dark:border-blue-400 rounded-r-xl">
                                     {children}
                                   </div>
                                 )
                               }}
                             >
-                              {!msg.isOutOfCredits && msg.content}
+                              {!msg.isOutOfCredits ? msg.content : ""}
                             </ReactMarkdown>
 
-                            {msg.isOutOfCredits ? (
-                              <div className="mt-3 w-full flex flex-col gap-3">
+                            {msg.isOutOfCredits && (
+                              <div className="mt-1 w-full flex flex-col gap-3">
                                 <div className="flex items-center gap-2">
-                                  <div className="p-1.5 rounded-lg bg-indigo-500/20 text-indigo-400">
+                                  <div className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400">
                                     <Zap className="w-4 h-4" />
                                   </div>
-                                  <h4 className="font-bold text-[14px] text-white">AI Credits Exhausted</h4>
+                                  <h4 className="font-bold text-[14px] text-slate-900 dark:text-white">AI Credits Exhausted</h4>
                                 </div>
-                                <p className="text-[13px] font-medium text-slate-300 leading-relaxed">
+                                <p className="text-[13px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
                                   You've reached your daily limit for the AI Coach. Upgrade your plan to unlock more credits and continue chatting instantly.
                                 </p>
                                 <button
-                                  onClick={() => navigate("/settings?tab=ai")}
-                                  className="mt-1 flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl font-bold text-[13px] shadow-md shadow-indigo-500/20 transition-all active:scale-[0.98]"
+                                  type="button"
+                                  onClick={() => navigate("/upgrade")}
+                                  className="mt-1 flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-[13px] shadow-sm transition-all active:scale-[0.98] cursor-pointer"
                                 >
                                   <Crown className="w-4 h-4" />
                                   <span>Upgrade Plan</span>
                                 </button>
                               </div>
-                            ) : null}
+                            )}
                           </div>
                         ) : (
                           <div className="space-y-2">
                             {msg.isImage && msg.imageUrl && (
-                              <div className="rounded-lg overflow-hidden border border-white/10 max-w-sm mb-1.5">
+                              <div className="rounded-xl overflow-hidden border border-white/20 max-w-sm mb-1.5">
                                 <img src={msg.imageUrl} alt="Uploaded chart analysis" className="w-full object-cover h-40" />
                               </div>
                             )}
-                            <p className="font-medium whitespace-pre-wrap">{msg.content}</p>
+                            <p className="font-medium whitespace-pre-wrap text-white">{stripContextPrefix(msg.content)}</p>
                           </div>
                         )}
                       </div>
-                      <span className="text-[9px] text-slate-500 font-medium mt-1.5 px-1 flex items-center gap-1 tracking-wide">
-                        {msg.role === 'ai' ? "AI" : "You"} • {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <span className="text-[10px] text-slate-400 dark:text-neutral-500 font-medium mt-1.5 px-1 flex items-center gap-1 tracking-wide">
+                        {msg.role === 'ai' ? "AI Coach" : "You"} · {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
                   </motion.div>
                 ))}
 
                 {isThinking && (
-                  <div className="flex gap-3 justify-start items-start">
-                    <div className="w-7 h-7 flex items-center justify-center shrink-0 mt-1.5">
-                      <div className="loader relative flex items-center justify-center shrink-0">
-                        <svg id="pegtopone" viewBox="0 0 100 100" width="100" height="100">
-                          <defs>
-                            <filter id="shine">
-                              <feGaussianBlur stdDeviation={3} />
-                            </filter>
-                            <mask id="mask">
-                              <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="white" />
-                            </mask>
-                            <radialGradient id="gradient-1" cx={50} cy={66} fx={50} fy={66} r={30} gradientTransform="translate(0 35) scale(1 0.5)" gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="black" stopOpacity="0.3" />
-                              <stop offset="50%" stopColor="black" stopOpacity="0.1" />
-                              <stop offset="100%" stopColor="black" stopOpacity={0} />
-                            </radialGradient>
-                            <radialGradient id="gradient-2" cx={55} cy={20} fx={55} fy={20} r={30} gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="white" stopOpacity="0.3" />
-                              <stop offset="50%" stopColor="white" stopOpacity="0.1" />
-                              <stop offset="100%" stopColor="white" stopOpacity={0} />
-                            </radialGradient>
-                            <radialGradient id="gradient-3" cx={85} cy={50} fx={85} fy={50} xlinkHref="#gradient-2" />
-                            <radialGradient id="gradient-4" cx={50} cy={58} fx={50} fy={58} r={60} gradientTransform="translate(0 47) scale(1 0.2)" xlinkHref="#gradient-3" />
-                            <linearGradient id="gradient-5" x1={50} y1={90} x2={50} y2={10} gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="black" stopOpacity="0.2" />
-                              <stop offset="40%" stopColor="black" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <g>
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="currentColor" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-1)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="none" stroke="white" opacity={0.3} strokeWidth={3} filter="url(#shine)" mask="url(#mask)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-2)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-3)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-4)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-5)" />
-                          </g>
-                        </svg>
-                        <svg id="pegtoptwo" viewBox="0 0 100 100" width="100" height="100">
-                          <defs>
-                            <filter id="shine">
-                              <feGaussianBlur stdDeviation={3} />
-                            </filter>
-                            <mask id="mask">
-                              <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="white" />
-                            </mask>
-                            <radialGradient id="gradient-1" cx={50} cy={66} fx={50} fy={66} r={30} gradientTransform="translate(0 35) scale(1 0.5)" gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="black" stopOpacity="0.3" />
-                              <stop offset="50%" stopColor="black" stopOpacity="0.1" />
-                              <stop offset="100%" stopColor="black" stopOpacity={0} />
-                            </radialGradient>
-                            <radialGradient id="gradient-2" cx={55} cy={20} fx={55} fy={20} r={30} gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="white" stopOpacity="0.3" />
-                              <stop offset="50%" stopColor="white" stopOpacity="0.1" />
-                              <stop offset="100%" stopColor="white" stopOpacity={0} />
-                            </radialGradient>
-                            <radialGradient id="gradient-3" cx={85} cy={50} fx={85} fy={50} xlinkHref="#gradient-2" />
-                            <radialGradient id="gradient-4" cx={50} cy={58} fx={50} fy={58} r={60} gradientTransform="translate(0 47) scale(1 0.2)" xlinkHref="#gradient-3" />
-                            <linearGradient id="gradient-5" x1={50} y1={90} x2={50} y2={10} gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="black" stopOpacity="0.2" />
-                              <stop offset="40%" stopColor="black" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <g>
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="currentColor" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-1)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="none" stroke="white" opacity={0.3} strokeWidth={3} filter="url(#shine)" mask="url(#mask)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-2)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-3)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-4)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-5)" />
-                          </g>
-                        </svg>
-                        <svg id="pegtopthree" viewBox="0 0 100 100" width="100" height="100">
-                          <defs>
-                            <filter id="shine">
-                              <feGaussianBlur stdDeviation={3} />
-                            </filter>
-                            <mask id="mask">
-                              <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="white" />
-                            </mask>
-                            <radialGradient id="gradient-1" cx={50} cy={66} fx={50} fy={66} r={30} gradientTransform="translate(0 35) scale(1 0.5)" gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="black" stopOpacity="0.3" />
-                              <stop offset="50%" stopColor="black" stopOpacity="0.1" />
-                              <stop offset="100%" stopColor="black" stopOpacity={0} />
-                            </radialGradient>
-                            <radialGradient id="gradient-2" cx={55} cy={20} fx={55} fy={20} r={30} gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="white" stopOpacity="0.3" />
-                              <stop offset="50%" stopColor="white" stopOpacity="0.1" />
-                              <stop offset="100%" stopColor="white" stopOpacity={0} />
-                            </radialGradient>
-                            <radialGradient id="gradient-3" cx={85} cy={50} fx={85} fy={50} xlinkHref="#gradient-2" />
-                            <radialGradient id="gradient-4" cx={50} cy={58} fx={50} fy={58} r={60} gradientTransform="translate(0 47) scale(1 0.2)" xlinkHref="#gradient-3" />
-                            <linearGradient id="gradient-5" x1={50} y1={90} x2={50} y2={10} gradientUnits="userSpaceOnUse">
-                              <stop offset="0%" stopColor="black" stopOpacity="0.2" />
-                              <stop offset="40%" stopColor="black" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <g>
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="currentColor" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-1)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="none" stroke="white" opacity={0.3} strokeWidth={3} filter="url(#shine)" mask="url(#mask)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-2)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-3)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-4)" />
-                            <path d="M63,37c-6.7-4-4-27-13-27s-6.3,23-13,27-27,4-27,13,20.3,9,27,13,4,27,13,27,6.3-23,13-27,27-4,27-13-20.3-9-27-13Z" fill="url(#gradient-5)" />
-                          </g>
-                        </svg>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-start max-w-[80%]">
-                      <div className="px-4 py-3 text-[14px] bg-white/[0.04] backdrop-blur-sm border border-white/[0.06] rounded-2xl rounded-tl-md flex items-center h-[44px]">
-                        <span className="text-[11px] font-medium text-slate-500 tracking-widest uppercase animate-pulse">THINKING...</span>
-                      </div>
+                  <div className="flex gap-3 justify-start items-center">
+                    <div className={`${SURFACE_CARD} px-4 py-2.5 flex items-center gap-2.5`}>
+                      <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping" />
+                      <span className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 tracking-widest uppercase">
+                        Analyzing metrics...
+                      </span>
                     </div>
                   </div>
                 )}
@@ -2160,8 +1781,8 @@ ${JSON.stringify(contextData)}`;
           </div>
 
           {messages.length > 0 && (
-            <div className="absolute bottom-5 inset-x-0 px-4 z-10 flex justify-center">
-              <div className="w-full max-w-2xl">
+            <div className="absolute bottom-4 inset-x-0 px-4 z-10 flex justify-center pointer-events-none">
+              <div className="w-full max-w-2xl pointer-events-auto">
                 {renderInputConsole()}
               </div>
             </div>
@@ -2169,140 +1790,6 @@ ${JSON.stringify(contextData)}`;
         </div>
       </div>
 
-      {/* CUSTOMIZE AI DIALOG (MODAL) */}
-      <AnimatePresence>
-        {showCustomize && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowCustomize(false)}
-              className="absolute inset-0 bg-slate-900/10 backdrop-blur-sm dark:bg-black/35 animate-fade-in"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 10 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
-              className="w-full max-w-md bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] rounded-[24px] p-6 relative z-10 shadow-[0_20px_50px_rgba(0,0,0,0.15)] border-2 border-white dark:border-white/5"
-            >
-              {/* Modal Header */}
-              <div className="flex items-start justify-between mb-5">
-                <div className="space-y-1.5">
-                  <h2 className="text-[17px] font-bold text-slate-800 dark:text-white tracking-tight leading-none">Guidance Configurations</h2>
-                  <p className="text-[12px] text-slate-450 dark:text-slate-400 leading-normal font-semibold">
-                    Adjust the analytical thresholds and safeguards for your trading assistant.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowCustomize(false)}
-                  className="p-1.5 hover:bg-slate-50 dark:hover:bg-[#1E1E1E] rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <div className="space-y-5">
-
-                {/* Tone Selectors */}
-                <div className="space-y-2">
-                  <label className="block text-[12px] font-bold text-slate-700 dark:text-slate-200">Active Coach Tone</label>
-                  <div className="bg-slate-100/80 dark:bg-[#1A1A1C] p-1.5 rounded-2xl flex gap-1.5 border border-slate-200/10 dark:border-[#252527]">
-                    {[
-                      { id: "Analytical Quant", label: "Analytical" },
-                      { id: "Strict Guard", label: "Strict Audit" },
-                      { id: "Mindset Partner", label: "Mindset" }
-                    ].map(item => (
-                      <button
-                        key={item.id}
-                        onClick={() => setActivePersona(item.id as any)}
-                        className={`flex-1 py-2 rounded-xl text-center text-[12px] font-bold transition-all duration-200 ${activePersona === item.id
-                            ? "bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] text-slate-855 dark:text-white shadow-sm border border-slate-200 dark:border-white/5"
-                            : "text-slate-550 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-255"
-                          }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Personal Experience Bio */}
-                <div className="space-y-2">
-                  <label className="block text-[12px] font-bold text-slate-700 dark:text-slate-200">Trader Experience & Strategy Focus</label>
-                  <textarea
-                    rows={3}
-                    value={userBio}
-                    onChange={(e) => setUserBio(e.target.value)}
-                    placeholder="e.g., I trade XAU/USD breakout setups using 15m intervals. I struggle with scaling positions too early or chasing rallies..."
-                    className="w-full bg-slate-100/50 dark:bg-[#1A1A1D]/50 border-2 border-slate-200/60 dark:border-[#222225] rounded-xl p-3 text-[12.5px] font-medium text-slate-755 dark:text-slate-350 outline-none focus:ring-1 focus:ring-indigo-500/25 placeholder:text-slate-400"
-                  />
-                </div>
-
-                {/* Drawdown Alert Threshold */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200">Max Drawdown Alert Trigger</span>
-                    <span className="text-[12px] font-bold text-indigo-600 dark:text-indigo-400">{customDrawdown.toFixed(1)}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="5.0"
-                    step="0.1"
-                    value={customDrawdown}
-                    onChange={(e) => setCustomDrawdown(parseFloat(e.target.value))}
-                    className="w-full accent-indigo-600 h-1 bg-slate-100 dark:bg-[#1E1E1E] rounded-lg appearance-none cursor-pointer focus:outline-none"
-                  />
-                </div>
-
-                {/* Emotional Cooldown Freeze Time */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200">Post-Loss Freeze Lockout</span>
-                    <span className="text-[12px] font-bold text-indigo-600 dark:text-indigo-400">{customCooldown} Minutes</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="5"
-                    max="120"
-                    step="5"
-                    value={customCooldown}
-                    onChange={(e) => setCustomCooldown(parseInt(e.target.value))}
-                    className="w-full accent-indigo-600 h-1 bg-slate-100 dark:bg-[#1E1E1E] rounded-lg appearance-none cursor-pointer"
-                  />
-                </div>
-
-                {/* Profit Cap Target */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[12px] font-bold text-slate-700 dark:text-slate-200">Daily Profit Target Lock</span>
-                    <span className="text-[12px] font-semibold text-indigo-600 dark:text-indigo-400">{customProfitCap.toFixed(1)}%</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1.0"
-                    max="10.0"
-                    step="0.5"
-                    value={customProfitCap}
-                    onChange={(e) => setCustomProfitCap(parseFloat(e.target.value))}
-                    className="w-full accent-indigo-600 h-1 bg-slate-100 dark:bg-[#1E1E1E] rounded-lg appearance-none cursor-pointer"
-                  />
-                </div>
-
-                {/* Confirm Save */}
-                <button
-                  onClick={handleSaveCustomize}
-                  className="w-full py-3 bg-indigo-650 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl font-bold text-[13px] tracking-wide shadow-md shadow-indigo-600/10 dark:shadow-indigo-950/20 transition-all active:scale-[0.98] mt-2"
-                >
-                  Save Configurations
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </DashboardLayout>
   );
 }

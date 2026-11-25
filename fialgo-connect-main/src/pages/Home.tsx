@@ -14,7 +14,6 @@ import FeedCard from "@/components/FeedCard";
 import HomeProfileCard from "@/components/HomeProfileCard";
 import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { MorphingText } from "@/components/ui/morphing-text";
 
 const HOME_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -2556,18 +2555,15 @@ export default function Home() {
 
                                                         {!canAccess('home_customize') && (
                                                             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 z-10 pointer-events-auto">
-                                                                <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[320px] w-full">
+                                                                <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[340px] w-full">
                                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                                         <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
                                                                             <Lock size={14} strokeWidth={2.4} />
                                                                         </div>
-                                                                        <div className="min-w-0 flex flex-col justify-center w-[130px] sm:w-[155px]">
-                                                                            <MorphingText
-                                                                                texts={["Customize Layout", "Pro & Elite"]}
-                                                                                align="left"
-                                                                                maxBlur={4}
-                                                                                className="h-[18px] text-[13px] font-bold text-slate-900 dark:text-white"
-                                                                            />
+                                                                        <div className="min-w-0 flex flex-col justify-center">
+                                                                            <span className="btn-shine text-[13px] font-bold leading-tight">
+                                                                                Customize Layout
+                                                                            </span>
                                                                             <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 mt-0.5">
                                                                                 Pro &amp; Elite
                                                                             </p>

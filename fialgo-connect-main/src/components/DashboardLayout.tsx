@@ -604,7 +604,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 location.pathname === '/dashboard' ||
                 location.pathname === '/journal' ||
                 location.pathname === '/risk-guard' ||
-                location.pathname === '/ai-coach' ? (
+                location.pathname.startsWith('/ai-coach') ? (
                   <div onClick={() => navigate('/home')} className="flex items-center gap-2 cursor-pointer">
                     <img src="/tf-logo.png" alt="Logo" className="w-[24px] h-[24px] sm:w-[30px] sm:h-[30px] object-contain shrink-0" />
                     <img
