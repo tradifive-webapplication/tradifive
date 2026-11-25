@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
 import { RiskScoreCard } from "@/components/RiskScoreCard";
-import { RiskGuardTelemetry } from "@/components/RiskGuardTelemetry";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import {
   Zap,
@@ -259,8 +258,6 @@ export default function RiskGuard() {
   const {
     balance,
     equity,
-    drawdown,
-    recentTrades,
     isConnected,
     lastClosedTrade,
     tradesToday,
@@ -1146,30 +1143,6 @@ export default function RiskGuard() {
                       ))}
                     </div>
                   </div>
-                </motion.section>
-
-                {/* 1B. Live Analytics Band: Horizontal Striped Bars & Equity Curve */}
-                <motion.section variants={sectionVariants}>
-                  <RiskGuardTelemetry
-                    sym={sym}
-                    balance={balance || 0}
-                    equity={equity || balance || 0}
-                    drawdown={drawdown || 0}
-                    todayProfit={todayProfit || 0}
-                    tradesToday={tradesToday || 0}
-                    recentTrades={recentTrades || []}
-                    isConnected={isConnected}
-                    maxDrawdown={maxDrawdown}
-                    drawdownGuardActive={drawdownGuardActive}
-                    tradeLimit={tradeLimit}
-                    disciplineActive={disciplineActive}
-                    dailyProfitTarget={dailyProfitTarget}
-                    dailyProfitTargetActive={dailyProfitTargetActive}
-                    maxLot={maxLot}
-                    maxLotActive={maxLotActive}
-                    stopLossRequired={stopLossRequired}
-                    activeRulesCount={tabCounts.total}
-                  />
                 </motion.section>
 
                 {/* 2. Category Tabs Directly Below Protocol Architecture */}
@@ -2615,7 +2588,6 @@ export default function RiskGuard() {
                 <RiskScoreCard
                   score={avgDisciplineScore ?? 0}
                   activeGuardsCount={tabCounts.total}
-                  categoryCounts={tabCounts}
                 />
               </motion.aside>
             </div>

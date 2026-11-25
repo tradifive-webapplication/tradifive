@@ -1722,18 +1722,4 @@ svg.recharts-surface:focus-visible {
   }
 }
 
-/* 3D Animated Striped Horizontal Progress Bar (Rewards & Risk Guard) */
-@keyframes uiverseStripeMove {
-  0% { background-position: 0 0; }
-  100% { background-position: 64px 0; }
-}
-@keyframes uiverseLightShimmer {
-  0%, 100% { opacity: 0.95; }
-  50% { opacity: 1; filter: brightness(1.12); }
-}
-.uiverse-stripe-bar {
-  animation: uiverseStripeMove 3.2s linear infinite, uiverseLightShimmer 2s ease-in-out infinite;
-  background-size: 64px 100% !important;
-}
-
 
