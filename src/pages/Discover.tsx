@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import DashboardLayout from "@/components/DashboardLayout";
-import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark } from "lucide-react";
+import { CommunityPageWrapper } from "@/components/CommunityShell";
+import { Cpu, Camera, X, Upload, Image as ImageIcon, Check, ArrowRight, ShieldCheck, Zap, Copy, QrCode, Sparkles, Star, TrendingUp, KeyRound, ExternalLink, Eye, Info, Download, CheckCircle2, AlertCircle, HelpCircle, Smartphone, Landmark, Bookmark, Globe, UserPlus } from "lucide-react";
 import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { Search as IconlySearch, Lock as IconlyLock, AddUser as IconlyAddUser, Discovery as IconlyDiscovery, CloseSquare as IconlyCloseSquare, TicketStar as IconlyTicketStar, Bag as IconlyBag } from "react-iconly";
 import { supabase } from "@/lib/supabase";
 import { useDiscoverData } from "@/hooks/useDiscoverData";
+import { getMergedSocialLinks } from "@/components/ProfileSocialIcons";
 
 import { motion, AnimatePresence } from "framer-motion";
 import LeaderboardPanel from "@/components/LeaderboardPanel";
@@ -92,6 +93,40 @@ const VerifiedBadge = () => (
     </span>
 );
 
+// Bespoke visual badge generator for algorithms and quantitative trading strategies
+const getAlgoVisual = (algo: MarketplaceProduct) => {
+    const isFiAlgo = algo.id === "algo-fialgo-v1" || algo.name?.includes("FiAlgo");
+    if (isFiAlgo || algo.thumbnailUrl) {
+        return (
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-amber-500/15 to-amber-500/5 dark:from-amber-400/10 dark:to-transparent border border-amber-500/30 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                <img src={algo.thumbnailUrl || "/fialgo-v1-box.png"} alt={algo.name} className="w-full h-full object-contain drop-shadow" />
+            </div>
+        );
+    }
+
+    if (algo.name?.includes("Alpha Momentum") || algo.category === "Algo") {
+        return (
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-cyan-500/15 to-blue-600/10 dark:from-cyan-400/15 dark:to-blue-500/5 border border-cyan-500/30 dark:border-cyan-400/20 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                <Cpu size={20} strokeWidth={2.2} />
+            </div>
+        );
+    }
+
+    if (algo.name?.includes("London Breakout") || algo.pairs?.includes("GBP/USD")) {
+        return (
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-emerald-500/15 to-teal-600/10 dark:from-emerald-400/15 dark:to-teal-500/5 border border-emerald-500/30 dark:border-emerald-400/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+                <TrendingUp size={20} strokeWidth={2.2} />
+            </div>
+        );
+    }
+
+    return (
+        <div className="w-11 h-11 rounded-xl bg-gradient-to-b from-purple-500/15 to-indigo-600/10 dark:from-purple-400/15 dark:to-indigo-500/5 border border-purple-500/30 dark:border-purple-400/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
+            <ShieldCheck size={20} strokeWidth={2.2} />
+        </div>
+    );
+};
+
 export default function Discover() {
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -111,13 +146,40 @@ export default function Discover() {
     const [purchasedItems, setPurchasedItems] = useState<string[]>(() => {
         try {
             const saved = localStorage.getItem("tradifive_purchased_algos");
-            return saved ? JSON.parse(saved) : ["algo-scalper-ai"];
+            return saved ? JSON.parse(saved) : [];
         } catch (e) {
-            return ["algo-scalper-ai"];
+            return [];
         }
     });
     const [addedUsers, setAddedUsers] = useState<string[]>([]);
     const [joinedChannels, setJoinedChannels] = useState<string[]>([]);
+    const [followDeltas, setFollowDeltas] = useState<Record<string, number>>({});
+    const [showInlineNotifications, setShowInlineNotifications] = useState(false);
+    const [savedTraders, setSavedTraders] = useState<string[]>(() => {
+        try {
+            const saved = localStorage.getItem("tradifive_saved_traders");
+            return saved ? JSON.parse(saved) : [];
+        } catch {
+            return [];
+        }
+    });
+
+    const handleToggleSaveTrader = (e: React.MouseEvent, traderId: string) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setSavedTraders(prev => {
+            const next = prev.includes(traderId) ? prev.filter(id => id !== traderId) : [...prev, traderId];
+            try {
+                localStorage.setItem("tradifive_saved_traders", JSON.stringify(next));
+            } catch { }
+            if (next.includes(traderId)) {
+                toast.success("Trader saved to bookmarks");
+            } else {
+                toast("Removed from bookmarks");
+            }
+            return next;
+        });
+    };
 
     const [detailsModalProduct, setDetailsModalProduct] = useState<MarketplaceProduct | null>(null);
     const [purchaseModalProduct, setPurchaseModalProduct] = useState<any>(null);
@@ -370,10 +432,64 @@ export default function Discover() {
     const handleAddUser = async (e: React.MouseEvent, id: string) => {
         e.preventDefault();
         e.stopPropagation();
-        if (!addedUsers.includes(id)) {
+        if (!user?.id) {
+            toast.error("Please log in to follow traders");
+            return;
+        }
+
+        const isCurrentlyFollowing = addedUsers.includes(id);
+
+        if (isCurrentlyFollowing) {
+            // Unfollow
+            setAddedUsers(prev => prev.filter(uId => uId !== id));
+            setFollowDeltas(prev => ({
+                ...prev,
+                [id]: (prev[id] || 0) - 1,
+            }));
+            const { error } = await supabase
+                .from('social_follows')
+                .delete()
+                .eq('follower_id', user.id)
+                .eq('following_id', id);
+            if (error) {
+                console.error("Unfollow error:", error);
+            } else {
+                toast.info("Unfollowed trader");
+            }
+        } else {
+            // Follow
             setAddedUsers(prev => [...prev, id]);
-            if (user?.id) {
-                await supabase.from('social_follows').insert([{ follower_id: user.id, following_id: id }]);
+            setFollowDeltas(prev => ({
+                ...prev,
+                [id]: (prev[id] || 0) + 1,
+            }));
+            const { error } = await supabase
+                .from('social_follows')
+                .insert([{ follower_id: user.id, following_id: id }]);
+            if (error) {
+                console.error("Follow error:", error);
+            } else {
+                toast.success("Following trader");
+                // Trigger real-time follower notification
+                const myName = user.user_metadata?.full_name || user.user_metadata?.username || user.email?.split('@')[0] || 'A trader';
+                const myUsername = user.user_metadata?.username || user.email?.split('@')[0];
+                const myAvatar = user.user_metadata?.avatar_url || null;
+
+                supabase.from('notifications').insert([{
+                    user_id: id,
+                    type: 'FOLLOW',
+                    title: 'New Follower',
+                    message: `${myName} started following you!`,
+                    priority: 'normal',
+                    is_read: false,
+                    metadata: {
+                        sender_id: user.id,
+                        sender_username: myUsername,
+                        sender_name: myName,
+                        sender_avatar: myAvatar,
+                        action: 'follow_back'
+                    }
+                }]).then(() => {});
             }
         }
     };
@@ -426,11 +542,11 @@ export default function Discover() {
         return {
             id: c.id,
             name: c.name,
-            onlineCount: (charCodeSum * 7) % 300 + 15,
-            memberCount: (c as any).memberCount || c.member_count || ((charCodeSum * 19) % 2000 + 500),
+            onlineCount: 0,
+            memberCount: (c as any).memberCount || c.member_count || 1,
             description: c.description || "Official Tradifive communication channel.",
             icon: c.icon || "C",
-            avatar_url: (c as any).avatar_url || c.avatar_url || `https://i.pravatar.cc/150?img=${charCodeSum % 70}`,
+            avatar_url: (c as any).avatar_url || c.avatar_url || null,
             cover_url: (c as any).cover_url || c.cover_url || fallbackCovers[charCodeSum % fallbackCovers.length],
             locked: c.channel_type === "private" || c.channel_type === "premium"
         };
@@ -438,15 +554,16 @@ export default function Discover() {
 
     const finalTraders = useMemo(() => traders
         .filter(t => {
-            const name = (t.full_name || t.username || '').trim().toLowerCase();
+            const name = ((t as any).display_name || t.full_name || t.username || '').trim().toLowerCase();
             return name.length > 0 && !PLACEHOLDER_NAMES.includes(name);
         })
         .map((t, idx) => {
-            const name = t.full_name || t.username || "Active Trader";
+            const name = (t as any).display_name || t.full_name || t.username || "Active Trader";
             const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
             return {
                 id: t.id,
                 name: name,
+                username: t.username || t.id,
                 avatar: t.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
                 winRate: t.win_rate ? `${t.win_rate}%` : "-",
                 profit: t.roi_all_time ? `${t.roi_all_time >= 0 ? '+' : ''}${t.roi_all_time}%` : "-",
@@ -457,75 +574,113 @@ export default function Discover() {
         }), [traders]);
 
     const finalPeople = useMemo(() => people
-        .filter(p => {
-            const name = (p.full_name || p.username || '').trim().toLowerCase();
-            return name.length > 0 && !PLACEHOLDER_NAMES.includes(name);
-        })
+        .filter(p => p && p.id)
         .map((p) => {
-            const name = p.full_name || p.username || "Active User";
+            const rawName = ((p as any).display_name || p.full_name || (p.first_name ? `${p.first_name} ${p.last_name || ''}`.trim() : null) || '').trim();
+            const isPlaceholder = !rawName || PLACEHOLDER_NAMES.includes(rawName.toLowerCase());
+            const name = isPlaceholder ? (p.username || "Trader " + p.id.slice(0, 4)) : rawName;
             const charCodeSum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
 
-            const fallbackCovers = [
-                'https://images.unsplash.com/photo-1551288049-bebda4e38f71',
-                'https://images.unsplash.com/photo-1642543492481-44e81e3914a7',
-                'https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf',
-                'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3',
-                'https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f',
-                'https://images.unsplash.com/photo-1526628953301-3e589a6a8b74'
-            ];
+            const joinedDate = p.created_at ? new Date(p.created_at) : null;
+            const joinedFormatted = joinedDate
+                ? `Joined ${joinedDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
+                : 'Community Trader';
+
+            const rawWinRate = p.win_rate;
+            const rawRoi = p.roi_all_time;
+            const hasRealStats = Boolean((rawWinRate && rawWinRate > 0) || (rawRoi !== null && rawRoi !== undefined && rawRoi !== 0));
+
+            // Community social stats: Following & Followers (real DB counts from social_follows)
+            const baseFollowers = Number((p as any).followers_count ?? 0);
+            const baseFollowing = Number((p as any).following_count ?? 0);
+            const delta = followDeltas[p.id] || 0;
+            const followersCount = Math.max(0, baseFollowers + delta);
+            const followingCount = Math.max(0, baseFollowing);
+
+            const formatStatNum = (n: number) => {
+                if (n >= 1000) return `${(n / 1000).toFixed(1).replace(/\.0$/, '')}K`;
+                return `${n}`;
+            };
+
+            const followersFormatted = formatStatNum(followersCount);
+            const followingFormatted = formatStatNum(followingCount);
+
+            const rawStyle = (p as any).trading_style;
+            let userTags: string[] = [];
+            if (rawStyle && rawStyle !== 'Discipline Trader') {
+                const parts = String(rawStyle).split(',').map((s: string) => s.trim()).filter(Boolean);
+                if (parts.length > 0) {
+                    userTags = parts;
+                }
+            }
+            if (userTags.length === 0) {
+                const fallbackStyles = ['Day trading', 'SMC', 'Price Action', 'Swing trading', 'Scalping'];
+                userTags = [fallbackStyles[charCodeSum % fallbackStyles.length]];
+            }
+            const cleanTradingStyle = userTags[0];
+
+            const displaySubtitle = p.username ? `@${p.username} · ${cleanTradingStyle}` : cleanTradingStyle;
+
+            const rawSocial = getMergedSocialLinks(p as any);
+            const normalizedSocial = {
+                instagram: rawSocial.instagram ? (rawSocial.instagram.startsWith('http') ? rawSocial.instagram : `https://instagram.com/${rawSocial.instagram.replace(/^@/, '')}`) : '',
+                youtube: rawSocial.youtube ? (rawSocial.youtube.startsWith('http') ? rawSocial.youtube : `https://youtube.com/@${rawSocial.youtube.replace(/^@/, '')}`) : '',
+                twitter: rawSocial.twitter ? (rawSocial.twitter.startsWith('http') ? rawSocial.twitter : `https://x.com/${rawSocial.twitter.replace(/^@/, '')}`) : '',
+                website: rawSocial.website ? (rawSocial.website.startsWith('http') ? rawSocial.website : `https://${rawSocial.website}`) : '',
+                discord: rawSocial.discord || '',
+            };
+            const hasSocials = Boolean(normalizedSocial.instagram || normalizedSocial.youtube || normalizedSocial.twitter || normalizedSocial.website || normalizedSocial.discord);
+
+            const cleanSlug = (p.username ? String(p.username).trim().replace(/^@+/, '') : '') || p.id;
 
             return {
                 id: p.id,
                 name: name,
-                username: p.username || name.replace(/\s+/g, '').toLowerCase(),
-                handle: p.username ? `@${p.username}` : "@user",
+                username: p.username || p.id,
+                userSlug: cleanSlug,
+                handle: p.username ? `@${p.username}` : `@${name.replace(/\s+/g, '').toLowerCase()}`,
                 avatar: p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`,
-                cover_url: (p as any).cover_url || fallbackCovers[charCodeSum % fallbackCovers.length],
-                winRate: p.win_rate ? `${p.win_rate}%` : "-",
-                profit: p.roi_all_time ? `${p.roi_all_time >= 0 ? '+' : ''}${p.roi_all_time}%` : "-",
+                cover_url: p.banner_url || (p as any).cover_url || '',
+                followingFormatted,
+                followersFormatted,
+                tradingStyle: cleanTradingStyle,
+                userTags,
+                displaySubtitle,
+                socialLinks: normalizedSocial,
+                hasSocials,
+                joinedFormatted,
+                is_pro: Boolean(p.is_pro),
+                total_trades: (p as any).total_trades || 0,
                 onlineCount: (charCodeSum * 19) % 200 + 1,
                 memberCount: 0,
                 mutual: (charCodeSum * 7) % 15
             };
-        }), [people]);
+        }), [people, followDeltas]);
 
-    function DiscoverSkeleton() {
+    function DiscoverCardsSkeleton() {
         return (
-            <div className="w-full font-sans pb-32 bg-[#F8FAFC] dark:bg-[#000000] text-slate-800 dark:text-slate-100 h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide select-none animate-pulse">
-                {/* Hero Section Skeleton */}
-                <div className="w-full relative overflow-hidden h-[240px] sm:h-[300px]">
-                     <div className="absolute inset-0 bg-slate-200/60 dark:bg-[#1E1E1E]" />
-                     <div className="relative z-10 pt-16 px-6 md:px-12 lg:px-20 max-w-7xl mx-auto flex flex-col items-center sm:items-start text-center sm:text-left space-y-4">
-                        <div className="h-10 sm:h-12 w-64 sm:w-96 bg-slate-300 dark:bg-slate-700 rounded-xl" />
-                        <div className="h-5 sm:h-6 w-full max-w-2xl bg-slate-300 dark:bg-slate-700/60 rounded-md" />
-                        <div className="h-5 sm:h-6 w-3/4 max-w-xl bg-slate-300 dark:bg-slate-700/60 rounded-md" />
-                     </div>
-                </div>
-                
-                {/* Tabs Skeleton */}
-                <div className="w-full max-w-7xl mx-auto px-6 md:px-12 lg:px-20 mt-8 mb-6 flex gap-3 overflow-x-auto scrollbar-hide">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                        <div key={i} className="h-10 w-28 bg-slate-200 dark:bg-[#1E1E1E] rounded-full shrink-0" />
-                    ))}
-                </div>
-
-                {/* Grid Skeleton */}
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 md:px-8 xl:px-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
+            <div className="space-y-4">
+                <div className="h-6 w-36 bg-slate-200/80 dark:bg-white/[0.08] rounded-md animate-pulse" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                        <div key={i} className="bg-white dark:bg-[#1A1A1A] rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/5 flex flex-col h-[340px] relative">
-                            {/* Cover */}
-                            <div className="h-[143px] w-full bg-slate-200 dark:bg-[#222] relative shrink-0" />
-                            {/* Avatar */}
-                            <div className="absolute left-4 top-[115px] w-12 h-12 rounded-full border-[4px] border-white dark:border-[#1A1A1A] bg-slate-300 dark:bg-slate-700 z-20" />
-                            {/* Body */}
-                            <div className="pt-10 px-4 pb-4 flex flex-col gap-3 flex-grow">
-                                <div className="h-5 w-3/4 bg-slate-200 dark:bg-slate-800/60 rounded" />
-                                <div className="h-3 w-1/2 bg-slate-200 dark:bg-slate-800/40 rounded" />
-                                <div className="mt-auto grid grid-cols-2 gap-3">
-                                    <div className="h-10 bg-slate-100 dark:bg-[#1E1E1E] rounded-xl" />
-                                    <div className="h-10 bg-slate-100 dark:bg-[#1E1E1E] rounded-xl" />
+                        <div 
+                            key={i} 
+                            className="bg-white dark:bg-[#1A1A1E] rounded-[20px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.03)] flex flex-col justify-between overflow-hidden animate-pulse h-[260px]"
+                        >
+                            {/* Shimmer cover */}
+                            <div className="w-full h-24 sm:h-26 bg-slate-200/70 dark:bg-white/[0.04] relative shrink-0" />
+                            <div className="px-4 pb-4 pt-0 flex-1 flex flex-col justify-between relative z-10">
+                                <div>
+                                    <div className="flex items-end justify-between -mt-6 mb-2.5">
+                                        <div className="w-11 h-11 rounded-full ring-[3px] ring-white dark:ring-[#1A1A1E] bg-slate-300 dark:bg-white/[0.08] shrink-0" />
+                                    </div>
+                                    <div className="h-4 w-3/4 bg-slate-200/80 dark:bg-white/[0.08] rounded-md mb-2" />
+                                    <div className="h-3 w-1/2 bg-slate-200/60 dark:bg-white/[0.05] rounded-md" />
                                 </div>
-                                <div className="h-10 w-full bg-slate-200 dark:bg-slate-800/50 rounded-xl mt-1" />
+                                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100 dark:border-white/[0.05]">
+                                    <div className="h-3 w-1/3 bg-slate-200/60 dark:bg-white/[0.05] rounded" />
+                                    <div className="h-7 w-20 ml-auto bg-slate-200/80 dark:bg-white/[0.08] rounded-full" />
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -534,28 +689,174 @@ export default function Discover() {
         );
     }
 
-    if (!authChecked || loading) {
+    const renderAlgoCard = (algo: MarketplaceProduct, isFlagshipOverride?: boolean) => {
+        const isPurchased = purchasedItems.includes(algo.id);
+        const isFlagship = isFlagshipOverride ?? (algo.id === "algo-fialgo-v1" || algo.name === "FiAlgo V1");
+
         return (
-            <DashboardLayout breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
-                <div className="h-full overflow-y-auto w-full scrollbar-hide">
-                    <DiscoverSkeleton />
+            <div
+                key={algo.id}
+                className={`rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 relative group min-h-[440px] bg-white dark:bg-[#151518] border ${
+                    isFlagship
+                        ? "border-amber-500/35 dark:border-amber-400/30 shadow-[0_2px_16px_rgba(245,158,11,0.06)] hover:border-amber-500/60 dark:hover:border-amber-400/50"
+                        : "border-slate-200/90 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-slate-300 dark:hover:border-white/20"
+                } hover:shadow-[0_12px_32px_-8px_rgba(0,0,0,0.12)] hover:-translate-y-0.5`}
+            >
+                <div>
+                    {/* Top Row: Refined Single Flagship Badge & Star Rating */}
+                    <div className="flex items-center justify-between gap-2 mb-3.5">
+                        <div className="flex items-center gap-1.5">
+                            {isFlagship ? (
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/25">
+                                    <Sparkles size={11} className="text-amber-500 fill-amber-500" />
+                                    Flagship EA
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wider uppercase bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
+                                    {algo.badge || algo.category}
+                                </span>
+                            )}
+                        </div>
+                        {algo.rating && (
+                            <div className="inline-flex items-center gap-1 text-[11px] font-mono text-slate-600 dark:text-zinc-400">
+                                <Star size={11.5} className="text-amber-400 fill-amber-400" />
+                                <span className="font-bold text-slate-900 dark:text-white">{algo.rating}</span>
+                                {algo.reviewsCount && (
+                                    <span className="text-[10px] text-slate-400 dark:text-zinc-500">({algo.reviewsCount})</span>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Product Box Art & Title */}
+                    <div className="flex items-start gap-3 mb-3.5">
+                        {getAlgoVisual(algo)}
+                        <div className="min-w-0 flex-1">
+                            <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-snug tracking-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                {algo.name}
+                            </h3>
+                            <div className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-zinc-400 mt-1 flex-wrap">
+                                <span className="font-medium text-slate-700 dark:text-zinc-300">by {algo.creatorName}</span>
+                                <VerifiedBadge />
+                                {algo.version && (
+                                    <span className="text-[10px] text-slate-400 dark:text-zinc-500 font-mono">· {algo.version}</span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Instrument & Timeframe Specs Strip */}
+                    {algo.pairs && (
+                        <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.05] mb-3">
+                            <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                                {algo.pairs.map(p => (
+                                    <span key={p} className="inline-flex items-center gap-1 text-[10.5px] font-mono font-medium text-slate-700 dark:text-zinc-300 truncate">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                        {p}
+                                    </span>
+                                ))}
+                            </div>
+                            {algo.timeframe && (
+                                <span className="text-[10px] font-mono text-slate-400 dark:text-zinc-500 shrink-0 uppercase tracking-tight">
+                                    {algo.timeframe}
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Metrics 3-tile Row (Institutional Segmented Box) */}
+                    <div className="grid grid-cols-3 divide-x divide-slate-200/70 dark:divide-white/[0.06] rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.05] mb-3 text-center overflow-hidden">
+                        <div className="py-2 px-1">
+                            <div className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500 mb-0.5">
+                                WIN RATE
+                            </div>
+                            <div className="text-[13px] font-bold font-mono text-emerald-600 dark:text-emerald-400 tabular-nums">
+                                {algo.winRate || "—"}
+                            </div>
+                        </div>
+                        <div className="py-2 px-1">
+                            <div className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500 mb-0.5">
+                                AVG RETURN
+                            </div>
+                            <div className="text-[13px] font-bold font-mono text-slate-900 dark:text-white tabular-nums">
+                                {algo.monthlyReturn || "—"}
+                            </div>
+                        </div>
+                        <div className="py-2 px-1">
+                            <div className="text-[9px] font-mono font-bold tracking-wider uppercase text-slate-400 dark:text-zinc-500 mb-0.5">
+                                MAX DD
+                            </div>
+                            <div className="text-[13px] font-bold font-mono text-slate-600 dark:text-zinc-400 tabular-nums">
+                                {algo.drawdown || "—"}
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="text-[12px] text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed mb-4 min-h-[36px]">
+                        {algo.description}
+                    </p>
                 </div>
-            </DashboardLayout>
+
+                {/* Price & Action Footer */}
+                <div className="pt-3.5 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between mt-auto gap-2">
+                    <div>
+                        <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500 block leading-none mb-1">
+                            Lifetime License
+                        </span>
+                        <div className="text-[17px] font-bold font-mono text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
+                            <span className="text-xs font-semibold text-slate-400 dark:text-zinc-500">{algo.currency || "₹"}</span>
+                            <span>{Number(algo.price || 10000).toLocaleString("en-IN")}</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => setDetailsModalProduct(algo)}
+                            className="h-8 px-3 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-700 dark:text-zinc-300 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors cursor-pointer select-none"
+                            title="Inspect algorithm details"
+                        >
+                            <Eye size={12.5} />
+                            <span>Details</span>
+                        </button>
+
+                        {isPurchased ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setPurchaseModalProduct(algo);
+                                    setPurchaseStep("activated");
+                                    const isFiAlgo = algo.name?.includes("FiAlgo") || algo.id?.includes("fialgo");
+                                    const prefix = isFiAlgo ? "FIALGO-V1" : algo.name?.includes("Scalper") ? "SCALP" : algo.name?.includes("Swing") ? "SWING" : algo.name?.includes("HFT") ? "HFT" : "GRID";
+                                    const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
+                                    setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
+                                }}
+                                className="h-8 px-3.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 select-none"
+                            >
+                                <Check size={13} strokeWidth={2.5} />
+                                <span>Active</span>
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => handlePurchase(algo)}
+                                className="h-8 px-3.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-slate-950 text-xs font-bold shadow-xs transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border border-transparent select-none"
+                            >
+                                <span>Buy</span>
+                                <ArrowRight size={12.5} strokeWidth={2.2} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
         );
-    }
+    };
 
-
-
-
-
-
-
-
+    const isColdLoading = loading && finalPeople.length === 0 && finalMentors.length === 0 && channels.length === 0 && finalTraders.length === 0;
 
     return (
-        <DashboardLayout breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
-            <div className="w-full font-sans pb-32 bg-white dark:bg-transparent text-slate-800 dark:text-slate-100 h-full overflow-y-auto overflow-x-hidden relative scrollbar-hide">
-
+        <CommunityPageWrapper breadcrumbs={[{ label: "Discover", path: "/discover" }]} noPadding={true} noScroll={true}>
+            <div className="w-full font-sans pb-32 bg-white dark:bg-transparent text-slate-800 dark:text-slate-100 relative">
                 {/* 1. DISCORD TOP BAR NAVIGATION (STICKY) */}
                 <div className="w-full flex justify-center sticky top-0 z-50 border-b border-slate-100 dark:border-white/5 bg-white/80 dark:bg-[#1C1C21]/80 backdrop-blur-md">
                     <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 flex flex-col md:flex-row md:items-stretch justify-between gap-4">
@@ -627,7 +928,7 @@ export default function Discover() {
                 </div>
 
                 {/* Unified Gradient Wrapper for Hero */}
-                <div className="w-full bg-gradient-to-br from-[#ECEDF2] to-[#E2E4FB] dark:bg-none dark:bg-[#1E1E1E] relative overflow-hidden">
+                <div className="w-full bg-gradient-to-br from-[#ECEDF2] to-[#E2E4FB] dark:bg-none dark:bg-[#1E1E1E] relative overflow-hidden border-b border-slate-200/60 dark:border-white/5">
                     {/* Faded Discord Blurple Blobs (Unified) */}
                     <div
                         className="absolute inset-0 pointer-events-none z-0"
@@ -643,11 +944,11 @@ export default function Discover() {
                     {!searchQuery && (
                         <div className="w-full flex justify-center relative select-none">
                             <style>
-                                {``}
+                                {`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap');`}
                             </style>
                             {activeTab === "Marketplace" ? (
                                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
-                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontWeight: 900 }}>
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
                                         Algorithm <br />Marketplace
                                     </h1>
                                     <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
@@ -656,11 +957,11 @@ export default function Discover() {
                                 </div>
                             ) : (
                                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
-                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontWeight: 900 }}>
+                                    <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
                                         Find your community <br />on Tradifive
                                     </h1>
                                     <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
-                                        Discover top trading circles. Share alpha, debate market trends, and level up your financial journey together.
+                                        From gaming, to music, to learning, there's a place for you. Discover top trading circles, share alpha, and level up together.
                                     </p>
                                 </div>
                             )}
@@ -671,43 +972,103 @@ export default function Discover() {
                 {/* Main Content Area */}
                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 mt-4 space-y-8">
 
-                    {/* Search Results Drawer */}
+                    {/* Search Results Section */}
                     <AnimatePresence>
                         {searchQuery.trim() && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="overflow-hidden"
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                                className="space-y-4"
                             >
-                                <div className="bg-white dark:bg-[#1E1E1E] p-6 rounded-xl border border-slate-200 dark:border-white/5">
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-                                        Search Results ({searching ? "Searching..." : `${searchResults.length} found`})
-                                    </h2>
-                                    {searchResults.length === 0 && !searching ? (
-                                        <p className="text-sm text-slate-500 py-6 text-center">No results found.</p>
-                                    ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
-                                            {searchResults.map(profile => {
-                                                const displayName = profile.full_name || profile.username || "Active User";
-                                                const displaySlug = profile.username || "user";
-                                                return (
-                                                    <Link key={profile.id} to={`/user/${displaySlug}`} className="bg-white dark:bg-[#1E1E1E] p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:shadow-md transition-all flex items-center gap-3 group">
-                                                        <img src={profile.avatar_url || "/default-avatar.svg"} alt={displayName} className="w-12 h-12 rounded-full object-cover" />
-                                                        <div>
-                                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors">{displayName}</h3>
-                                                            <p className="text-xs text-slate-500">@{displaySlug}</p>
-                                                        </div>
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                {/* Clean Unboxed Header */}
+                                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/[0.07] pb-3">
+                                    <div className="flex items-center gap-2.5">
+                                        <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                            Search Results
+                                        </h2>
+                                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-zinc-400 text-[11.5px] font-medium tabular-nums">
+                                            {searching ? "Searching..." : `${searchResults.length} found`}
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSearchQuery("")}
+                                        className="text-[12px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+                                    >
+                                        Clear
+                                    </button>
                                 </div>
+
+                                {searching ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {[1, 2, 3].map((i) => (
+                                            <div key={i} className="p-3.5 rounded-2xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.07] flex items-center gap-3 animate-pulse">
+                                                <div className="w-11 h-11 rounded-full bg-slate-200 dark:bg-white/10 shrink-0" />
+                                                <div className="space-y-2 flex-1">
+                                                    <div className="h-3.5 w-28 bg-slate-200 dark:bg-white/10 rounded" />
+                                                    <div className="h-2.5 w-20 bg-slate-200 dark:bg-white/10 rounded" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : searchResults.length === 0 ? (
+                                    <div className="py-12 px-6 text-center rounded-2xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/75 dark:border-white/[0.07]">
+                                        <p className="text-[14px] font-semibold text-slate-800 dark:text-zinc-200">
+                                            No traders found for &ldquo;{searchQuery.trim()}&rdquo;
+                                        </p>
+                                        <p className="text-[12px] text-slate-400 dark:text-zinc-500 mt-1">
+                                            Try searching by a different name or @username.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {searchResults.map(profile => {
+                                            const displayName = (profile as any).display_name || profile.full_name || profile.username || "Active User";
+                                            const displaySlug = profile.username || profile.id;
+                                            const displayHandle = profile.username ? `@${profile.username}` : "Trader";
+                                            return (
+                                                <Link
+                                                    key={profile.id}
+                                                    to={`/user/${displaySlug}`}
+                                                    className="bg-white dark:bg-[#17171A] p-3.5 rounded-2xl border border-slate-200/85 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50/60 dark:hover:bg-white/[0.03] shadow-[0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-none transition-all flex items-center justify-between gap-3 group"
+                                                >
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <img
+                                                            src={profile.avatar_url || "/default-avatar.svg"}
+                                                            alt={displayName}
+                                                            className="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-200/80 dark:border-white/10 bg-slate-100 dark:bg-zinc-800"
+                                                            onError={handleImageError}
+                                                        />
+                                                        <div className="min-w-0">
+                                                            <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate leading-snug">
+                                                                {displayName}
+                                                            </h3>
+                                                            <p className="text-[12px] text-slate-400 dark:text-zinc-500 truncate mt-0.5">
+                                                                {displayHandle}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-[11.5px] font-medium text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200 transition-colors shrink-0 pr-1">
+                                                        View →
+                                                    </span>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                     </AnimatePresence>
 
+
+                    {/* Cold Loading Updated Skeleton (Only if data is taking time on very first cold fetch) */}
+                    {isColdLoading && !searchQuery && (
+                        <div className="py-2">
+                            <DiscoverCardsSkeleton />
+                        </div>
+                    )}
 
                     {/* ── LEADERBOARD TAB ──────────────────────────────────────────────── */}
                     {activeTab === "Leaderboard" && !searchQuery && (
@@ -721,61 +1082,247 @@ export default function Discover() {
                     )}
 
                     {/* People */}
-                    {(activeTab === "All" || activeTab === "People") && !searchQuery && (
+                    {!isColdLoading && (activeTab === "All" || activeTab === "People") && !searchQuery && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                            <h2 className="text-xl font-bold text-[#060607] dark:text-[#F2F3F5]">
-                                People
-                            </h2>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {finalPeople.map((person, index) => {
-                                    const userSlug = person.username;
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                        People
+                                    </h2>
+                                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                                        Active traders and community members across Tradifive
+                                    </p>
+                                </div>
+                                {activeTab === "All" && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTabChange("People")}
+                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <span>View all people</span>
+                                        <ArrowRight size={13} strokeWidth={2.2} />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                {finalPeople.map((person) => {
+                                    const userSlug = person.userSlug || person.username || person.id;
                                     return (
                                         <div
                                             key={person.id}
-                                            className="relative group bg-[#FFFFFF] dark:bg-[#1E1E1E] rounded-2xl p-4 border border-slate-200/60 dark:border-white/5 shadow-[0_2px_4px_rgba(0,0,0,0.02)] hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between h-[136px]"
+                                            onClick={() => navigate(`/user/${userSlug}`)}
+                                            className="group bg-white dark:bg-[#1A1A1E] rounded-[20px] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_-4px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer"
                                         >
-                                            {/* Top Row: Avatar + Name + Follow Button */}
-                                            <div className="flex items-center gap-3 w-full z-10">
-                                                <div className="w-10 h-10 rounded-full overflow-hidden bg-white border border-slate-100 dark:border-slate-800 shadow-sm shrink-0">
-                                                    <img
-                                                        src={person.avatar || '/default-avatar.svg'}
-                                                        alt={person.name}
-                                                        className="w-full h-full object-cover"
-                                                        onError={handleImageError}
+                                            {/* Cover Banner (User-uploaded cover photo only, or clean empty surface) */}
+                                            <div className={`relative w-full h-24 sm:h-26 overflow-hidden shrink-0 rounded-t-[20px] ${
+                                                person.cover_url
+                                                    ? 'bg-slate-900'
+                                                    : 'bg-slate-100/90 dark:bg-white/[0.04] border-b border-slate-200/50 dark:border-white/[0.05]'
+                                            }`}>
+                                                {person.cover_url && (
+                                                    <>
+                                                        <img
+                                                            src={person.cover_url}
+                                                            alt={person.name}
+                                                            className="w-full h-full object-cover select-none"
+                                                        />
+                                                        {/* Soft bottom gradient fog scrim seamlessly blending into card body */}
+                                                        <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/60 dark:to-transparent pointer-events-none" />
+                                                    </>
+                                                )}
+
+                                                {/* Floating Frosted Bookmark Button (Slightly smaller, refined & tactile) */}
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => handleToggleSaveTrader(e, person.id)}
+                                                    className={`absolute top-2.5 right-2.5 w-[34px] h-[34px] rounded-full backdrop-blur-md border flex items-center justify-center transition-all cursor-pointer shadow-xs hover:shadow hover:scale-105 active:scale-90 ${
+                                                        savedTraders.includes(person.id)
+                                                            ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-300 shadow-md scale-105'
+                                                            : person.cover_url
+                                                            ? 'bg-black/35 hover:bg-black/55 text-white border-white/40'
+                                                            : 'bg-white/80 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 border-slate-200/80 dark:border-white/10'
+                                                    }`}
+                                                    title={savedTraders.includes(person.id) ? "Saved trader" : "Bookmark trader"}
+                                                >
+                                                    <Bookmark
+                                                        size={15}
+                                                        strokeWidth={2.2}
+                                                        className={
+                                                            savedTraders.includes(person.id)
+                                                                ? "fill-white text-white"
+                                                                : person.cover_url
+                                                                ? "fill-transparent text-white"
+                                                                : "fill-transparent text-slate-600 dark:text-zinc-300"
+                                                        }
                                                     />
-                                                </div>
-                                                <div className="flex-grow min-w-0">
-                                                    <span className="text-sm font-extrabold text-[#060607] dark:text-[#F2F3F5] leading-tight line-clamp-1 group-hover:text-blue-500 transition-colors">
-                                                        {person.name}
-                                                    </span>
-                                                    <p className="text-[11px] font-semibold text-[#4E5058] dark:text-[#B5BAC1] truncate">
-                                                        {person.handle}
-                                                    </p>
-                                                </div>
-                                                <div className="shrink-0">
-                                                    <FollowButton
-                                                        isFollowing={addedUsers.includes(person.id)}
-                                                        onToggleFollow={(e) => handleAddUser(e, person.id)}
-                                                        disabled={addedUsers.includes(person.id)}
-                                                    />
-                                                </div>
+                                                </button>
                                             </div>
 
-                                            {/* Bottom Row: Stats & Mutual Connections */}
-                                            <div className="space-y-1.5 z-10">
-                                                {/* Stats grid */}
-                                                <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-[#4E5058] dark:text-[#B5BAC1]">
-                                                    <div className="bg-slate-50 dark:bg-white/5 rounded-lg px-2.5 py-1 border border-slate-100 dark:border-white/5 flex justify-between items-center">
-                                                        <span className="text-[10px] uppercase text-slate-400 dark:text-slate-500 font-bold">Win Rate</span>
-                                                        <span className="text-emerald-500 dark:text-emerald-400 font-bold">{person.winRate}</span>
+                                            {/* Card Body (Compact & Elegant) */}
+                                            <div className="px-4 pt-0 pb-3.5 flex-1 flex flex-col justify-between relative z-10">
+                                                <div>
+                                                    {/* Top Row: Overlapping Avatar + Social Links (Moved higher & smaller) */}
+                                                    <div className="flex items-end justify-between -mt-7 mb-2">
+                                                        <div className="relative shrink-0 block group/avatar">
+                                                            <img
+                                                                src={person.avatar || '/default-avatar.svg'}
+                                                                alt={person.name}
+                                                                className="w-11 h-11 rounded-full object-cover ring-[3px] ring-white dark:ring-[#1A1A1E] bg-slate-100 dark:bg-white/10 shadow-md group-hover/avatar:ring-blue-200 dark:group-hover/avatar:ring-blue-900/40 transition-all"
+                                                                onError={handleImageError}
+                                                            />
+                                                            {person.is_pro && (
+                                                                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[8px] font-black shadow-xs ring-1.5 ring-white dark:ring-[#1A1A1E]" title="Verified Pro Trader">
+                                                                    ★
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Right side: User Social Links (Instagram, YouTube, Twitter/X, Website) if present */}
+                                                        {person.hasSocials && (
+                                                            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-slate-100/90 hover:bg-slate-200/90 dark:bg-white/[0.08] dark:hover:bg-white/[0.12] border border-slate-200/60 dark:border-white/10 transition-colors shadow-2xs">
+                                                                {person.socialLinks.instagram && (
+                                                                    <a
+                                                                        href={person.socialLinks.instagram}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-pink-600 dark:hover:text-pink-400 flex items-center justify-center transition-all"
+                                                                        title="Instagram"
+                                                                    >
+                                                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+                                                                            <rect x="2.5" y="2.5" width="19" height="19" rx="5" />
+                                                                            <circle cx="12" cy="12" r="4.2" />
+                                                                            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                                                                        </svg>
+                                                                    </a>
+                                                                )}
+                                                                {person.socialLinks.youtube && (
+                                                                    <a
+                                                                        href={person.socialLinks.youtube}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-400 flex items-center justify-center transition-all"
+                                                                        title="YouTube"
+                                                                    >
+                                                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
+                                                                            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                )}
+                                                                {person.socialLinks.twitter && (
+                                                                    <a
+                                                                        href={person.socialLinks.twitter}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-black dark:hover:text-white flex items-center justify-center transition-all"
+                                                                        title="Twitter / X"
+                                                                    >
+                                                                        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
+                                                                            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                                                        </svg>
+                                                                    </a>
+                                                                )}
+                                                                {person.socialLinks.website && (
+                                                                    <a
+                                                                        href={person.socialLinks.website}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="w-6 h-6 rounded-full hover:bg-white dark:hover:bg-white/20 text-slate-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-blue-400 flex items-center justify-center transition-all"
+                                                                        title="Website"
+                                                                    >
+                                                                        <Globe size={14} strokeWidth={2.2} />
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <div className="bg-slate-50 dark:bg-white/5 rounded-lg px-2.5 py-1 border border-slate-100 dark:border-white/5 flex justify-between items-center">
-                                                        <span className="text-[10px] uppercase text-slate-400 dark:text-slate-500 font-bold">Est. ROI</span>
-                                                        <span className="text-indigo-500 dark:text-indigo-400 font-bold">{person.profit}</span>
+
+                                                    {/* Trader Name & Badges */}
+                                                    <div className="mb-2">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="text-[14.5px] font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
+                                                                {person.name}
+                                                            </div>
+                                                            {person.is_pro && <VerifiedBadge />}
+                                                        </div>
+
+                                                        {/* Username + Signup Tags (Trading style / Edge tags selected at signup or updated in Settings) */}
+                                                        <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                                                            <span className="text-[11.5px] font-medium text-slate-400 dark:text-zinc-400">
+                                                                {person.handle}
+                                                            </span>
+                                                            {person.userTags && person.userTags.slice(0, 2).map((tag: string, idx: number) => (
+                                                                <span
+                                                                    key={idx}
+                                                                    className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-medium bg-slate-100 text-slate-600 dark:bg-white/[0.08] dark:text-zinc-300 border border-slate-200/60 dark:border-white/10"
+                                                                >
+                                                                    {tag}
+                                                                </span>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 </div>
+
+                                                {/* Bottom Row: Following & Followers on left + Follow Pill Button on right */}
+                                                <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] mt-auto">
+                                                    {/* Following & Followers counts with subtle vertical divider */}
+                                                    <div className="flex items-center gap-2.5 shrink-0">
+                                                        {/* Following */}
+                                                        <div className="text-left">
+                                                            <div className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                                                                {person.followingFormatted}
+                                                            </div>
+                                                            <span className="text-[9.5px] text-slate-400 dark:text-zinc-400 lowercase block mt-1 leading-none">
+                                                                following
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="w-[1px] h-4.5 bg-slate-200/80 dark:bg-white/10 shrink-0 mx-0.5" />
+
+                                                        {/* Followers */}
+                                                        <div className="text-left">
+                                                            <div className="text-[13px] font-bold text-slate-900 dark:text-white tabular-nums leading-none">
+                                                                {person.followersFormatted}
+                                                            </div>
+                                                            <span className="text-[9.5px] text-slate-400 dark:text-zinc-500 lowercase block mt-1 leading-none">
+                                                                followers
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Right side: Follow / Following Black Tactile Pill Button (Matching user design) */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleAddUser(e, person.id);
+                                                        }}
+                                                        className={`h-8 px-3.5 rounded-full text-[12px] font-bold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap active:scale-95 ${
+                                                            addedUsers.includes(person.id)
+                                                                ? 'bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-white/10 dark:hover:bg-white/15 dark:text-white border border-slate-200/90 dark:border-white/15 shadow-2xs'
+                                                                : 'bg-[#121214] hover:bg-black text-white dark:bg-white dark:text-[#121214] dark:hover:bg-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.25)] border border-white/10 dark:border-transparent'
+                                                        }`}
+                                                        title={addedUsers.includes(person.id) ? "Following trader" : "Follow trader"}
+                                                    >
+                                                        {addedUsers.includes(person.id) ? (
+                                                            <>
+                                                                <Check size={13} strokeWidth={2.4} className="text-emerald-500 shrink-0" />
+                                                                <span>Following</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <UserPlus size={13} strokeWidth={2.4} className="shrink-0" />
+                                                                <span>Follow</span>
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </div>
-                                            <Link to={`/user/${userSlug}`} className="absolute inset-0 z-0" />
                                         </div>
                                     );
                                 })}
@@ -783,199 +1330,84 @@ export default function Discover() {
                         </motion.div>
                     )}
 
-                    {/* Featured Trading Algorithms (Preview on All tab) */}
+                    {/* Featured Trading Algorithms & Strategies (Preview on All tab) */}
                     {(activeTab === "All") && !searchQuery && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-2">
-                            <div className="flex items-center justify-between">
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
+                            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-1">
                                 <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                            Institutional Algos
+                                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
+                                            Institutional Algos & Strategies
                                         </span>
-                                        <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
-                                            MT5 Compatible · Lifetime License
+                                        <span className="text-[10px] font-mono font-medium text-slate-500 dark:text-zinc-400">
+                                            MT5 Certified · Lifetime License
                                         </span>
                                     </div>
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-[#F2F3F5] tracking-tight">
-                                        Featured Trading Algorithms
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                        Featured Trading Algorithms & Strategies
                                     </h2>
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={() => handleTabChange("Marketplace")}
-                                    className="text-xs font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 flex items-center gap-1.5 transition-colors group cursor-pointer"
+                                    className="h-8 px-3.5 rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.04] hover:bg-slate-50 dark:hover:bg-white/[0.08] text-slate-700 dark:text-zinc-300 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer transition-colors self-start sm:self-auto shrink-0 shadow-xs select-none"
                                 >
                                     <span>Browse Marketplace</span>
-                                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                                    <ArrowRight size={13} strokeWidth={2.2} />
                                 </button>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                                {EXISTING_OFFICIAL_ALGOS.map((algo) => {
-                                    const isPurchased = purchasedItems.includes(algo.id);
-                                    const isFlagship = algo.id === "algo-fialgo-v1" || algo.name === "FiAlgo V1";
-                                    return (
-                                        <div
-                                            key={algo.id}
-                                            className="rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[410px] bg-white dark:bg-[#1E1E22] border border-slate-200/80 dark:border-white/10 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.12),0_4px_12px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-1"
-                                        >
-                                            <div>
-                                                {/* Top Row: Refined Single Flagship Badge & Star Rating */}
-                                                <div className="flex items-center justify-between gap-2 mb-3.5">
-                                                    <div className="flex items-center gap-1.5">
-                                                        {isFlagship ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-blue-600 text-white shadow-xs">
-                                                                <Sparkles size={11} className="text-amber-300 fill-amber-300" />
-                                                                Flagship EA
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
-                                                                {algo.category}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {algo.rating && (
-                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
-                                                            <Star size={11} className="text-amber-400 fill-amber-400" />
-                                                            <span className="font-bold text-slate-900 dark:text-white">{algo.rating}</span>
-                                                            {algo.reviewsCount && (
-                                                                <span className="text-[10px] text-slate-400 dark:text-slate-500">({algo.reviewsCount})</span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Product Box Art & Title */}
-                                                <div className="flex items-center gap-3 mb-3.5">
-                                                    {(algo.thumbnailUrl || algo.name.includes("FiAlgo")) ? (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/10 dark:to-white/5 border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                                                            <img src={algo.thumbnailUrl || "/fialgo-v1-box.png"} alt={algo.name} className="w-full h-full object-contain drop-shadow" />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                                            <Cpu size={22} strokeWidth={2.2} />
-                                                        </div>
-                                                    )}
-                                                    <div className="min-w-0">
-                                                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                            {algo.name}
-                                                        </h3>
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                            <span className="font-medium text-slate-600 dark:text-slate-300">by {algo.creatorName}</span>
-                                                            <VerifiedBadge />
-                                                            {algo.version && (
-                                                                <span className="text-[10px] text-slate-400 font-mono">· {algo.version}</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Instrument & Timeframe Specs Strip */}
-                                                {algo.pairs && (
-                                                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-xs">
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            {algo.pairs.map(p => (
-                                                                <span key={p} className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                                                    {p}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                        {algo.timeframe && (
-                                                            <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 font-mono">
-                                                                {algo.timeframe}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Metrics 3-tile Row */}
-                                                <div className="grid grid-cols-3 gap-1.5 p-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-center">
-                                                    <div className="py-1 px-1">
-                                                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">WIN RATE</div>
-                                                        <div className="text-sm font-black text-emerald-600 dark:text-emerald-400">{algo.winRate}</div>
-                                                    </div>
-                                                    <div className="py-1 px-1 border-x border-slate-200/60 dark:border-white/5">
-                                                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">AVG RETURN</div>
-                                                        <div className="text-sm font-black text-blue-600 dark:text-blue-400">{algo.monthlyReturn}</div>
-                                                    </div>
-                                                    <div className="py-1 px-1">
-                                                        <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">MAX DD</div>
-                                                        <div className="text-sm font-black text-slate-700 dark:text-slate-200">{algo.drawdown}</div>
-                                                    </div>
-                                                </div>
-
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                                                    {algo.description}
-                                                </p>
-                                            </div>
-
-                                            {/* Price & Action Footer */}
-                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
-                                                <div>
-                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block leading-none mb-1">
-                                                        Lifetime License
-                                                    </span>
-                                                    <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
-                                                        <span className="text-sm font-bold text-slate-500">{algo.currency || "₹"}</span>
-                                                        <span>{algo.price.toLocaleString("en-IN")}</span>
-                                                    </div>
-                                                </div>
-
-                                                {isPurchased ? (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => navigate('/order-history')}
-                                                        className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs"
-                                                    >
-                                                        <Check size={13} strokeWidth={2.5} />
-                                                        <span>Active EA</span>
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handlePurchase(algo)}
-                                                        className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-sm shadow-blue-500/25 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border-none"
-                                                    >
-                                                        <span>Buy</span>
-                                                        <ArrowRight size={13} strokeWidth={2.2} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+                                {EXISTING_OFFICIAL_ALGOS.map((algo) => renderAlgoCard(algo))}
                             </div>
                         </motion.div>
                     )}
 
                     {/* Featured Channels heading / Mentors */}
                     {(activeTab === "All" || activeTab === "Mentors") && !searchQuery && finalMentors.length > 0 && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-3 pt-6">
-                            <h2 className="text-xl font-bold text-[#060607] dark:text-[#F2F3F5]">
-                                Featured Mentors
-                            </h2>
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                        Featured Mentors
+                                    </h2>
+                                    <p className="text-xs text-slate-500 dark:text-zinc-400">
+                                        Verified trading educators and top signal providers
+                                    </p>
+                                </div>
+                                {activeTab === "All" && (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleTabChange("Mentors")}
+                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                                    >
+                                        <span>View all mentors</span>
+                                        <ArrowRight size={13} strokeWidth={2.2} />
+                                    </button>
+                                )}
+                            </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {finalMentors.slice(0, 8).map((mentor, index) => {
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+                                {finalMentors.slice(0, 8).map((mentor) => {
                                     const userSlug = mentor.username;
                                     return (
                                         <div
                                             key={mentor.id}
-                                            className="relative group bg-[#FFFFFF] dark:bg-[#1E1E1E] rounded-2xl overflow-hidden border border-slate-200/60 dark:border-white/5 shadow-[0_2px_4px_rgba(0,0,0,0.04)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col h-[340px]"
+                                            className="group bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-slate-200/80 dark:border-white/[0.08] shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-200 flex flex-col h-[320px] relative"
                                         >
                                             {(!mentor.cover_url || mentor.cover_url === '/default-cover.png') ? (
-                                                <div className="h-[143px] w-full relative shrink-0 bg-slate-100 dark:bg-[#1A1A1A] flex items-center justify-center text-slate-400 dark:text-slate-700 border-b border-slate-200 dark:border-white/5">
-                                                    <Camera size={28} className="opacity-40" />
+                                                <div className="h-[110px] w-full relative shrink-0 bg-slate-100 dark:bg-white/[0.04] flex items-center justify-center text-slate-400 dark:text-zinc-500 border-b border-slate-200/70 dark:border-white/[0.06]">
+                                                    <Camera size={24} className="opacity-40" />
                                                 </div>
                                             ) : (
                                                 <div
-                                                    className="h-[143px] w-full relative shrink-0"
+                                                    className="h-[110px] w-full relative shrink-0 border-b border-slate-200/70 dark:border-white/[0.06]"
                                                     style={{ background: `url(${mentor.cover_url}) center/cover no-repeat` }}
-                                                ></div>
+                                                />
                                             )}
 
                                             {/* Circular Overlapping Avatar */}
-                                            <div className="absolute left-4 top-[115px] w-12 h-12 rounded-full overflow-hidden bg-white border-[4px] border-white dark:border-[#1E1E1E] shadow-sm z-20">
+                                            <div className="absolute left-4 top-[86px] w-12 h-12 rounded-full overflow-hidden bg-white dark:bg-[#1A1A1E] ring-4 ring-white dark:ring-[#1A1A1E] shadow-xs z-20">
                                                 <img
                                                     src={mentor.avatar || '/default-avatar.svg'}
                                                     alt={mentor.name}
@@ -987,23 +1419,22 @@ export default function Discover() {
                                             {/* Card Content body */}
                                             <div className="pt-8 px-4 pb-4 flex flex-col flex-grow justify-between relative z-10">
                                                 <div>
-                                                    <div className="flex items-center gap-1.5 mb-1.5">
-                                                        <span className="text-sm font-extrabold text-[#060607] dark:text-[#F2F3F5] leading-tight line-clamp-1 group-hover:text-blue-500 transition-colors">
+                                                    <div className="flex items-center gap-1.5 mb-1">
+                                                        <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-tight line-clamp-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                                             {mentor.name}
                                                         </span>
                                                         {mentor.verified && <VerifiedBadge />}
                                                     </div>
-                                                    <p className="text-xs font-semibold text-[#4E5058] dark:text-[#B5BAC1] line-clamp-2 leading-relaxed">
+                                                    <p className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">
                                                         {mentor.title}
                                                     </p>
                                                 </div>
 
                                                 {/* Stats Footer Row */}
-                                                <div className="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-white/[0.06]">
                                                     <FollowButton
                                                         isFollowing={addedUsers.includes(mentor.id)}
                                                         onToggleFollow={(e) => handleAddUser(e, mentor.id)}
-                                                        disabled={addedUsers.includes(mentor.id)}
                                                         className="relative z-30"
                                                     />
                                                 </div>
@@ -1020,189 +1451,64 @@ export default function Discover() {
 
                     {/* ── ALGO MARKETPLACE TAB ────────────────────────────────────────── */}
                     {(activeTab === "Marketplace") && !searchQuery && (
-                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-12">
-                            {/* Marketplace Filters */}
-                            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2">
-                                {['All', 'Algo', 'Strategy', 'Indicator', 'Mentorship'].map(cat => {
-                                    const count = cat === 'All' ? storeListings.length : storeListings.filter(l => l.category === cat).length;
-                                    return (
-                                        <button
-                                            key={cat}
-                                            onClick={() => setMarketplaceFilter(cat)}
-                                            className={`px-4 py-1.5 rounded-full text-xs font-extrabold transition-all shrink-0 border ${marketplaceFilter === cat
-                                                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-slate-900 dark:border-white shadow-sm'
-                                                    : 'bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-[#B5BAC1] border-slate-200/80 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
+                        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-12 pt-2 sm:pt-4">
+                            {/* Marketplace Filters Dock (Consistent Tactile Segmented Style, No Clipping) */}
+                            <div className="pt-2 pb-1">
+                                <div className="inline-flex items-center gap-1.5 p-1 bg-slate-100/90 dark:bg-white/[0.04] rounded-2xl border border-slate-200/70 dark:border-white/5 overflow-x-auto no-scrollbar max-w-full shadow-2xs">
+                                    {['All', 'Algo', 'Strategy', 'Indicator', 'Mentorship'].map(cat => {
+                                        const count = cat === 'All' ? storeListings.length : storeListings.filter(l => l.category === cat).length;
+                                        const isSel = marketplaceFilter === cat;
+                                        return (
+                                            <button
+                                                key={cat}
+                                                type="button"
+                                                onClick={() => setMarketplaceFilter(cat)}
+                                                className={`h-[34px] px-3.5 sm:px-4 rounded-xl text-xs font-semibold select-none inline-flex items-center gap-2 transition-all shrink-0 cursor-pointer active:scale-95 ${
+                                                    isSel
+                                                        ? 'bg-white dark:bg-[#1E1E22] text-slate-900 dark:text-white shadow-xs font-bold'
+                                                        : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                                                 }`}
-                                        >
-                                            {cat} {count > 0 ? `(${count})` : ''}
-                                        </button>
-                                    );
-                                })}
+                                            >
+                                                <span>{cat}</span>
+                                                {count > 0 && (
+                                                    <span className={`text-[10px] px-1.5 py-0.2 rounded-md font-bold tabular-nums ${
+                                                        isSel 
+                                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' 
+                                                            : 'bg-slate-200/80 dark:bg-white/10 text-slate-600 dark:text-zinc-300'
+                                                    }`}>
+                                                        {count}
+                                                    </span>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
 
                             {/* Algos Grid */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                                {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product) => {
-                                    const isPurchased = purchasedItems.includes(product.id);
-                                    const isFlagship = product.id === "algo-fialgo-v1" || product.name === "FiAlgo V1";
-
-                                    return (
-                                        <div
-                                            key={product.id}
-                                            className={`rounded-2xl p-5 flex flex-col justify-between transition-all duration-300 relative group min-h-[410px] bg-white dark:bg-[#1E1E22] ${
-                                                isFlagship
-                                                    ? 'border border-blue-500/30 dark:border-blue-400/30 shadow-[0_2px_12px_-2px_rgba(37,99,235,0.08),0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_16px_32px_-8px_rgba(37,99,235,0.16)] hover:-translate-y-1'
-                                                    : 'border border-slate-200/80 dark:border-white/10 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)] hover:shadow-[0_16px_32px_-8px_rgba(0,0,0,0.10)] hover:-translate-y-1'
-                                            }`}
-                                        >
-                                            <div>
-                                                {/* Top Row: Refined Single Flagship Badge & Star Rating */}
-                                                <div className="flex items-center justify-between gap-2 mb-3.5">
-                                                    <div className="flex items-center gap-1.5">
-                                                        {isFlagship ? (
-                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10.5px] font-bold bg-blue-600 text-white shadow-xs">
-                                                                <Sparkles size={11} className="text-amber-300 fill-amber-300" />
-                                                                Flagship EA
-                                                            </span>
-                                                        ) : (
-                                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10.5px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-white/10">
-                                                                {product.category}
-                                                            </span>
-                                                        )}
-                                                        {product.badge && product.badge !== "Flagship EA" && (
-                                                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-white/10">
-                                                                {product.badge}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {product.rating && (
-                                                        <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-white/5 px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10">
-                                                            <Star size={11} className="text-amber-400 fill-amber-400" />
-                                                            <span className="font-bold text-slate-900 dark:text-white">{product.rating}</span>
-                                                            {product.reviewsCount && (
-                                                                <span className="text-[10px] text-slate-400 dark:text-slate-500">({product.reviewsCount})</span>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                {/* Product Box Art & Title */}
-                                                <div className="flex items-center gap-3 mb-3.5">
-                                                    {(product.thumbnailUrl || product.name.includes("FiAlgo")) ? (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-white/10 dark:to-white/5 border border-slate-200/80 dark:border-white/10 p-1 flex items-center justify-center shrink-0 shadow-xs group-hover:scale-105 transition-transform duration-200">
-                                                            <img src={product.thumbnailUrl || "/fialgo-v1-box.png"} alt={product.name} className="w-full h-full object-contain drop-shadow" />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-200">
-                                                            <Cpu size={22} strokeWidth={2.2} />
-                                                        </div>
-                                                    )}
-                                                    <div className="min-w-0">
-                                                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                                                            {product.name}
-                                                        </h3>
-                                                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                            <span className="font-medium text-slate-600 dark:text-slate-300">by {product.creatorName}</span>
-                                                            <VerifiedBadge />
-                                                            {product.version && (
-                                                                <span className="text-[10px] text-slate-400 font-mono">· {product.version}</span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Instrument & Timeframe Specs Strip */}
-                                                {product.pairs && (
-                                                    <div className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-xs">
-                                                        <div className="flex items-center gap-1.5 flex-wrap">
-                                                            {product.pairs.map(p => (
-                                                                <span key={p} className="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 dark:text-slate-200">
-                                                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                                                                    {p}
-                                                                </span>
-                              ))}
-                                                        </div>
-                                                        {product.timeframe && (
-                                                            <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 font-mono">
-                                                                {product.timeframe}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-
-                                                {/* Metrics 3-tile Row */}
-                                                {product.winRate && (
-                                                    <div className="grid grid-cols-3 gap-1.5 p-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/5 mb-3 text-center">
-                                                        <div className="py-1 px-1">
-                                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">WIN RATE</div>
-                                                            <div className="text-sm font-black text-emerald-600 dark:text-emerald-400">{product.winRate}</div>
-                                                        </div>
-                                                        <div className="py-1 px-1 border-x border-slate-200/60 dark:border-white/5">
-                                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">AVG RETURN</div>
-                                                            <div className="text-sm font-black text-blue-600 dark:text-blue-400">{product.monthlyReturn || "—"}</div>
-                                                        </div>
-                                                        <div className="py-1 px-1">
-                                                            <div className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-0.5">MAX DD</div>
-                                                            <div className="text-sm font-black text-slate-700 dark:text-slate-200">{product.drawdown || "—"}</div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
-                                                    {product.description}
-                                                </p>
-                                            </div>
-
-                                            {/* Price & Action Footer */}
-                                            <div className="pt-3.5 border-t border-slate-100 dark:border-white/5 flex items-center justify-between mt-auto">
-                                                <div>
-                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block leading-none mb-1">
-                                                        Lifetime License
-                                                    </span>
-                                                    <div className="text-lg font-black text-slate-900 dark:text-white tracking-tight flex items-baseline gap-0.5">
-                                                        <span className="text-sm font-bold text-slate-500">{product.currency || "₹"}</span>
-                                                        <span>{Number(product.price || 10000).toLocaleString("en-IN")}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        onClick={() => setDetailsModalProduct(product)}
-                                                        className="px-3.5 py-1.5 rounded-lg border border-slate-200/80 dark:border-white/10 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                                                    >
-                                                        <Eye size={13} />
-                                                        <span>Details</span>
-                                                    </button>
-
-                                                    {isPurchased ? (
-                                                        <button
-                                                            onClick={() => {
-                                                                setPurchaseModalProduct(product);
-                                                                setPurchaseStep("activated");
-                                                                const isFiAlgo = product.name?.includes("FiAlgo") || product.id?.includes("fialgo");
-                                                                const prefix = isFiAlgo ? "FIALGO-V1" : product.name?.includes("Scalper") ? "SCALP" : product.name?.includes("Swing") ? "SWING" : product.name?.includes("HFT") ? "HFT" : "GRID";
-                                                                const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
-                                                                setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
-                                                            }}
-                                                            className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-semibold hover:bg-emerald-500/20 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
-                                                        >
-                                                            <Check size={13} strokeWidth={2.5} />
-                                                            <span>Active</span>
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => handlePurchase(product)}
-                                                            className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-xs transition-all active:scale-95 flex items-center gap-1 cursor-pointer border-none"
-                                                        >
-                                                            <span>Buy</span>
-                                                            <ArrowRight size={13} strokeWidth={2.5} />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
+                                {storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).length === 0 ? (
+                                    <div className="py-14 px-6 max-w-md mx-auto my-6 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#18181b] shadow-2xs text-center col-span-full">
+                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 flex items-center justify-center text-slate-700 dark:text-white mx-auto mb-3 shadow-2xs">
+                                            <Cpu size={20} className="text-slate-500 dark:text-zinc-400" />
                                         </div>
-                                    );
-                                })}
+                                        <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                                            No {marketplaceFilter} Listed Yet
+                                        </h3>
+                                        <p className="text-[12px] text-slate-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto leading-relaxed">
+                                            There are currently no verified community items under this category.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => setMarketplaceFilter('All')}
+                                            className="mt-4 h-8 px-4 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-[12px] font-bold hover:opacity-90 active:scale-95 transition-all cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+                                        >
+                                            <span>View All Products</span>
+                                        </button>
+                                    </div>
+                                ) : (
+                                    storeListings.filter(l => marketplaceFilter === 'All' || l.category === marketplaceFilter).map((product) => renderAlgoCard(product))
+                                )}
                             </div>
                         </motion.div>
                     )}
@@ -1223,27 +1529,19 @@ export default function Discover() {
                             {/* Modal Header */}
                             <div className="flex justify-between items-start border-b border-slate-100 dark:border-white/10 pb-4">
                                 <div className="flex items-center gap-3.5">
-                                    {(detailsModalProduct.thumbnailUrl || detailsModalProduct.name?.includes("FiAlgo")) ? (
-                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 border border-blue-500/20 p-1.5 flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-                                            <img src={detailsModalProduct.thumbnailUrl || "/fialgo-v1-box.png"} alt={detailsModalProduct.name} className="w-full h-full object-contain drop-shadow" />
-                                        </div>
-                                    ) : (
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-blue-500/20">
-                                            <Cpu size={24} strokeWidth={2.2} />
-                                        </div>
-                                    )}
+                                    {getAlgoVisual(detailsModalProduct)}
                                     <div>
                                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                            <span className="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                            <span className="text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-700 dark:text-zinc-300 border border-slate-200/80 dark:border-white/10">
                                                 {detailsModalProduct.category || "Algo"}
                                             </span>
                                             {detailsModalProduct.badge && (
-                                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-white/10">
+                                                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20">
                                                     {detailsModalProduct.badge}
                                                 </span>
                                             )}
                                         </div>
-                                        <h3 className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
                                             {detailsModalProduct.name}
                                         </h3>
                                         <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -1265,43 +1563,43 @@ export default function Discover() {
 
                             {/* Performance Grid */}
                             <div>
-                                <h4 className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-2">
+                                <h4 className="text-[10.5px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
                                     Verified Metrics & Specs
                                 </h4>
                                 <div className="grid grid-cols-3 gap-2.5">
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">WIN RATE</div>
-                                        <div className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">WIN RATE</div>
+                                        <div className="text-base font-bold font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 tabular-nums">
                                             {detailsModalProduct.winRate || "73%"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">AVG MONTHLY</div>
-                                        <div className="text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">AVG MONTHLY</div>
+                                        <div className="text-base font-bold font-mono text-slate-900 dark:text-white mt-0.5 tabular-nums">
                                             {detailsModalProduct.monthlyReturn || "+18–42%"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">MAX DRAWDOWN</div>
-                                        <div className="text-base font-black text-slate-700 dark:text-slate-300 mt-0.5">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">MAX DRAWDOWN</div>
+                                        <div className="text-base font-bold font-mono text-slate-700 dark:text-slate-300 mt-0.5 tabular-nums">
                                             {detailsModalProduct.drawdown || "3.2%"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">PAIRS</div>
-                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">PAIRS</div>
+                                        <div className="text-xs font-bold font-mono text-slate-900 dark:text-white mt-1">
                                             {detailsModalProduct.pairs ? (Array.isArray(detailsModalProduct.pairs) ? detailsModalProduct.pairs.join(", ") : detailsModalProduct.pairs) : "XAUUSD"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">TIMEFRAME</div>
-                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">TIMEFRAME</div>
+                                        <div className="text-xs font-bold font-mono text-slate-900 dark:text-white mt-1">
                                             {detailsModalProduct.timeframe || "M15 / H1"}
                                         </div>
                                     </div>
                                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/5 text-center">
-                                        <div className="text-[9px] font-extrabold uppercase tracking-widest text-slate-400">PLATFORM</div>
-                                        <div className="text-xs font-bold text-slate-900 dark:text-white mt-1">
+                                        <div className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400">PLATFORM</div>
+                                        <div className="text-xs font-bold font-mono text-slate-900 dark:text-white mt-1">
                                             MetaTrader 5
                                         </div>
                                     </div>
@@ -1356,7 +1654,7 @@ export default function Discover() {
                                 <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => setDetailsModalProduct(null)}
-                                        className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all cursor-pointer"
+                                        className="h-10 px-4 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-700 dark:text-slate-200 text-xs font-semibold transition-all cursor-pointer"
                                     >
                                         Close
                                     </button>
@@ -1372,7 +1670,7 @@ export default function Discover() {
                                                 const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
                                                 setGeneratedLicenseKey(isFiAlgo ? `FIALGO-V1-${randomHex}-${Date.now().toString().slice(-4)}` : `TRDF-${prefix}-${randomHex}-${Date.now().toString().slice(-4)}`);
                                             }}
-                                            className="px-5 py-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
+                                            className="h-10 px-5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-xs font-bold hover:bg-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5"
                                         >
                                             <Check size={14} strokeWidth={3} />
                                             <span>Active License</span>
@@ -1384,7 +1682,7 @@ export default function Discover() {
                                                 setDetailsModalProduct(null);
                                                 handlePurchase(prod);
                                             }}
-                                            className="px-6 py-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white text-xs font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_3px_8px_rgba(37,99,235,0.35)] transition-all duration-150 active:scale-[0.985] flex items-center gap-2 cursor-pointer border-none"
+                                            className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-slate-950 text-xs font-bold shadow-sm transition-all active:scale-[0.985] flex items-center gap-2 cursor-pointer border-none"
                                         >
                                             <span>Buy License Now</span>
                                             <ArrowRight size={14} strokeWidth={2.5} />
@@ -1842,6 +2140,6 @@ export default function Discover() {
                 .scrollbar-hide::-webkit-scrollbar { display: none; }
                 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
             `}} />
-        </DashboardLayout>
+        </CommunityPageWrapper>
     )
 }

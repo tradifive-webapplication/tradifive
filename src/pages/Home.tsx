@@ -2299,47 +2299,65 @@ export default function Home() {
                                 
                                 
                                 {currentTab === 'saved' && (
-                                    <div className="space-y-6">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight shrink-0">Saved Posts</h2>
-                                            <div className="bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 px-4 py-2 rounded-full text-sm font-medium">
-                                                {savedPosts.length} {savedPosts.length === 1 ? 'Item' : 'Items'}
+                                    <motion.div
+                                        variants={homeCardVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        className="flex flex-col"
+                                    >
+                                        {/* Sticky Column Header matching Feed Header */}
+                                        <div className="flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-slate-200/85 dark:border-white/[0.09] sticky top-0 z-30 bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md">
+                                            <div>
+                                                <h2 className="text-[17px] sm:text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                                                    Saved Posts
+                                                </h2>
+                                                <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                                    Bookmarked chart setups &amp; market notes
+                                                </p>
                                             </div>
+                                            <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/[0.08] text-slate-600 dark:text-zinc-300 text-[11.5px] font-semibold tabular-nums shrink-0">
+                                                {savedPosts.length} {savedPosts.length === 1 ? 'item' : 'items'}
+                                            </span>
                                         </div>
 
                                         {isLoadingSaved ? (
-                                            <div className="space-y-4">
+                                            <div className="p-4 sm:p-5 space-y-4">
                                                 {[1, 2].map((i) => (
-                                                    <div key={i} className="p-6 rounded-3xl bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-white/5 animate-pulse space-y-4">
+                                                    <div key={i} className="p-5 rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06] animate-pulse space-y-3.5">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800" />
-                                                            <div className="space-y-2">
-                                                                <div className="h-3 w-28 bg-slate-200 dark:bg-slate-800 rounded" />
-                                                                <div className="h-2 w-16 bg-slate-200 dark:bg-slate-800 rounded" />
+                                                            <div className="w-9 h-9 rounded-full bg-slate-200 dark:bg-white/10" />
+                                                            <div className="space-y-1.5">
+                                                                <div className="h-3 w-28 bg-slate-200 dark:bg-white/10 rounded" />
+                                                                <div className="h-2.5 w-16 bg-slate-200 dark:bg-white/10 rounded" />
                                                             </div>
                                                         </div>
-                                                        <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-800 rounded" />
+                                                        <div className="h-3.5 w-3/4 bg-slate-200 dark:bg-white/10 rounded" />
                                                     </div>
                                                 ))}
                                             </div>
                                         ) : savedPosts.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white dark:bg-[#1C1C1E] rounded-3xl border border-slate-200/80 dark:border-white/5 shadow-sm">
-                                                <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
-                                                    <Bookmark className="w-6 h-6" />
+                                            <div className="px-4 sm:px-6 py-10 sm:py-14">
+                                                <div className="flex flex-col items-center justify-center py-14 px-6 text-center rounded-2xl bg-slate-50/60 dark:bg-white/[0.02] border border-slate-200/75 dark:border-white/[0.07]">
+                                                    <div className="w-11 h-11 rounded-xl bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-zinc-200 flex items-center justify-center shadow-2xs mb-4">
+                                                        <Bookmark className="w-5 h-5" strokeWidth={2} />
+                                                    </div>
+                                                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-white tracking-tight mb-1.5">
+                                                        No saved posts yet
+                                                    </h3>
+                                                    <p className="text-[12.5px] text-slate-500 dark:text-zinc-400 max-w-[290px] mb-5 leading-relaxed">
+                                                        Bookmark trading insights, chart setups, or market discussions from the feed to view them here anytime.
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => navigate('/home')}
+                                                        className="px-5 h-9 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[12.5px] font-semibold transition-all shadow-xs active:scale-95 cursor-pointer"
+                                                    >
+                                                        Browse Community Feed
+                                                    </button>
                                                 </div>
-                                                <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">No saved posts yet</h3>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mb-5 leading-relaxed">
-                                                    Bookmark trading insights, chart setups, or market discussions from the feed to view them here anytime.
-                                                </p>
-                                                <button
-                                                    onClick={() => navigate('/home')}
-                                                    className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-xs font-semibold transition-all shadow-sm active:scale-95 cursor-pointer"
-                                                >
-                                                    Browse Community Feed
-                                                </button>
                                             </div>
                                         ) : (
-                                            <div>
+                                            <div className="divide-y divide-slate-200/80 dark:divide-white/[0.08]">
                                                 {savedPosts.map((post: any) => (
                                                     <FeedCard
                                                         key={post.id}
@@ -2356,7 +2374,7 @@ export default function Home() {
                                                 ))}
                                             </div>
                                         )}
-                                    </div>
+                                    </motion.div>
                                 )}
 
 

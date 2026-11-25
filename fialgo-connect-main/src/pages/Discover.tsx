@@ -972,40 +972,92 @@ export default function Discover() {
                 {/* Main Content Area */}
                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 mt-4 space-y-8">
 
-                    {/* Search Results Drawer */}
+                    {/* Search Results Section */}
                     <AnimatePresence>
                         {searchQuery.trim() && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className="overflow-hidden"
+                                initial={{ opacity: 0, y: 8 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -4 }}
+                                transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                                className="space-y-4"
                             >
-                                <div className="bg-white dark:bg-[#1E1E1E] p-6 rounded-xl border border-slate-200 dark:border-white/5">
-                                    <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-                                        Search Results ({searching ? "Searching..." : `${searchResults.length} found`})
-                                    </h2>
-                                    {searchResults.length === 0 && !searching ? (
-                                        <p className="text-sm text-slate-500 py-6 text-center">No results found.</p>
-                                    ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-6">
-                                            {searchResults.map(profile => {
-                                                const displayName = (profile as any).display_name || profile.full_name || profile.username || "Active User";
-                                                const displaySlug = profile.username || profile.id;
-                                                const displayHandle = profile.username ? `@${profile.username}` : displayName;
-                                                return (
-                                                    <Link key={profile.id} to={`/user/${displaySlug}`} className="bg-white dark:bg-[#1E1E1E] p-4 rounded-xl border border-slate-200 dark:border-white/5 hover:shadow-md transition-all flex items-center gap-3 group">
-                                                        <img src={profile.avatar_url || "/default-avatar.svg"} alt={displayName} className="w-12 h-12 rounded-full object-cover" onError={handleImageError} />
-                                                        <div className="min-w-0">
-                                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-500 transition-colors truncate">{displayName}</h3>
-                                                            <p className="text-xs text-slate-500 truncate">{displayHandle}</p>
-                                                        </div>
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
+                                {/* Clean Unboxed Header */}
+                                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-white/[0.07] pb-3">
+                                    <div className="flex items-center gap-2.5">
+                                        <h2 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                            Search Results
+                                        </h2>
+                                        <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-zinc-400 text-[11.5px] font-medium tabular-nums">
+                                            {searching ? "Searching..." : `${searchResults.length} found`}
+                                        </span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setSearchQuery("")}
+                                        className="text-[12px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+                                    >
+                                        Clear
+                                    </button>
                                 </div>
+
+                                {searching ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {[1, 2, 3].map((i) => (
+                                            <div key={i} className="p-3.5 rounded-2xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.07] flex items-center gap-3 animate-pulse">
+                                                <div className="w-11 h-11 rounded-full bg-slate-200 dark:bg-white/10 shrink-0" />
+                                                <div className="space-y-2 flex-1">
+                                                    <div className="h-3.5 w-28 bg-slate-200 dark:bg-white/10 rounded" />
+                                                    <div className="h-2.5 w-20 bg-slate-200 dark:bg-white/10 rounded" />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : searchResults.length === 0 ? (
+                                    <div className="py-12 px-6 text-center rounded-2xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/75 dark:border-white/[0.07]">
+                                        <p className="text-[14px] font-semibold text-slate-800 dark:text-zinc-200">
+                                            No traders found for &ldquo;{searchQuery.trim()}&rdquo;
+                                        </p>
+                                        <p className="text-[12px] text-slate-400 dark:text-zinc-500 mt-1">
+                                            Try searching by a different name or @username.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {searchResults.map(profile => {
+                                            const displayName = (profile as any).display_name || profile.full_name || profile.username || "Active User";
+                                            const displaySlug = profile.username || profile.id;
+                                            const displayHandle = profile.username ? `@${profile.username}` : "Trader";
+                                            return (
+                                                <Link
+                                                    key={profile.id}
+                                                    to={`/user/${displaySlug}`}
+                                                    className="bg-white dark:bg-[#17171A] p-3.5 rounded-2xl border border-slate-200/85 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50/60 dark:hover:bg-white/[0.03] shadow-[0_1px_2px_rgba(15,23,42,0.03)] dark:shadow-none transition-all flex items-center justify-between gap-3 group"
+                                                >
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <img
+                                                            src={profile.avatar_url || "/default-avatar.svg"}
+                                                            alt={displayName}
+                                                            className="w-11 h-11 rounded-full object-cover shrink-0 border border-slate-200/80 dark:border-white/10 bg-slate-100 dark:bg-zinc-800"
+                                                            onError={handleImageError}
+                                                        />
+                                                        <div className="min-w-0">
+                                                            <h3 className="text-[13.5px] font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate leading-snug">
+                                                                {displayName}
+                                                            </h3>
+                                                            <p className="text-[12px] text-slate-400 dark:text-zinc-500 truncate mt-0.5">
+                                                                {displayHandle}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <span className="text-[11.5px] font-medium text-slate-400 group-hover:text-slate-700 dark:group-hover:text-zinc-200 transition-colors shrink-0 pr-1">
+                                                        View →
+                                                    </span>
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                     </AnimatePresence>

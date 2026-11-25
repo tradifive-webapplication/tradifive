@@ -17,44 +17,44 @@ const SURFACE_CARD =
 const INNER_CARD =
   "p-3.5 sm:p-4 rounded-[16px] bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06]";
 
-// ─── PARTNERSHIP TIERS CONFIGURATION ──────────────────────────────────────────
+// ─── PARTNERSHIP TIERS CONFIGURATION (SUBSCRIPTION RECURRING) ──────────────────
 const AFFILIATE_TIERS = [
   {
     tier: "Tier 1",
     name: "Starter Partner",
-    milestone: "1–4 Traders",
+    milestone: "1–4 Subscribers",
     minTraders: 1,
     maxTraders: 4,
-    upfrontBonus: "₹1,000",
-    upfrontNum: 1000,
-    profitOverride: "5.0%",
-    perks: ["₹1,000 instant setup commission", "5% weekly profit share override", "Weekly UPI / Bank payouts"],
+    upfrontBonus: "10%",
+    upfrontNum: 140,
+    profitOverride: "₹140/mo Pro · ₹280/mo Elite",
+    perks: ["10% recurring monthly commission", "Friend gets 5% off first plan", "Weekly UPI / Bank payouts"],
     badgeColor: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/25",
     accent: "from-blue-600 to-cyan-600"
   },
   {
     tier: "Tier 2",
-    name: "Growth Affiliate",
-    milestone: "5–9 Traders",
+    name: "Growth Partner",
+    milestone: "5–14 Subscribers",
     minTraders: 5,
-    maxTraders: 9,
-    upfrontBonus: "₹1,500",
-    upfrontNum: 1500,
-    profitOverride: "7.5%",
-    perks: ["₹1,500 instant setup commission", "7.5% weekly profit share override", "Priority WhatsApp Desk clearance", "Exclusive TradiFive Partner badge"],
+    maxTraders: 14,
+    upfrontBonus: "15%",
+    upfrontNum: 210,
+    profitOverride: "₹210/mo Pro · ₹420/mo Elite",
+    perks: ["15% recurring monthly commission", "Friend gets 5% off first plan", "Priority UPI / Bank clearance", "Exclusive TradiFive Partner badge"],
     badgeColor: "bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/25",
     accent: "from-violet-600 to-purple-600"
   },
   {
     tier: "Tier 3",
-    name: "Institutional VIP Desk",
-    milestone: "10+ Traders",
-    minTraders: 10,
+    name: "Ambassador",
+    milestone: "15+ Subscribers",
+    minTraders: 15,
     maxTraders: 999,
-    upfrontBonus: "₹2,000",
-    upfrontNum: 2000,
-    profitOverride: "10.0%",
-    perks: ["₹2,000 instant setup commission", "10% weekly profit share override", "Dedicated Account Executive", "Custom branded landing page"],
+    upfrontBonus: "20%",
+    upfrontNum: 280,
+    profitOverride: "₹280/mo Pro · ₹560/mo Elite",
+    perks: ["20% recurring monthly commission", "Friend gets 5% off first plan", "Dedicated Partner Support", "Custom creator highlight"],
     badgeColor: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25",
     accent: "from-amber-500 to-yellow-500"
   }
@@ -93,21 +93,21 @@ export default function Referrals() {
 
   // Determine current tier
   const currentTier = React.useMemo(() => {
-    if (activeBrokers >= 10) return AFFILIATE_TIERS[2];
+    if (activeBrokers >= 15) return AFFILIATE_TIERS[2];
     if (activeBrokers >= 5) return AFFILIATE_TIERS[1];
     return AFFILIATE_TIERS[0];
   }, [activeBrokers]);
 
   const nextTier = React.useMemo(() => {
     if (activeBrokers < 5) return AFFILIATE_TIERS[1];
-    if (activeBrokers < 10) return AFFILIATE_TIERS[2];
+    if (activeBrokers < 15) return AFFILIATE_TIERS[2];
     return null;
   }, [activeBrokers]);
 
   const progressToNext = React.useMemo(() => {
-    if (activeBrokers >= 10) return 100;
+    if (activeBrokers >= 15) return 100;
     if (activeBrokers >= 5) {
-      return Math.round(((activeBrokers - 5) / 5) * 100);
+      return Math.round(((activeBrokers - 5) / 10) * 100);
     }
     return Math.round((activeBrokers / 5) * 100);
   }, [activeBrokers]);
@@ -159,8 +159,8 @@ export default function Referrals() {
             const active = refs.filter(r => r.status === "completed").length;
             setActiveBrokers(active);
 
-            // Compute commissions based on tiers
-            const rate = active >= 10 ? 2000 : active >= 5 ? 1500 : 1000;
+            // Compute recurring monthly commissions based on tiers (Pro ₹1,399 baseline)
+            const rate = active >= 15 ? 280 : active >= 5 ? 210 : 140;
             const earned = active * rate;
             const pending = (refs.length - active) * rate;
 
@@ -181,8 +181,8 @@ export default function Referrals() {
                   year: "numeric"
                 }),
                 status: isActive ? "active" : "pending",
-                commission: isActive ? `+₹${rate.toLocaleString()}` : `₹${rate.toLocaleString()} Pending`,
-                payoutStatus: isActive ? "Settled" : "Awaiting MT5 Setup"
+                commission: isActive ? `+₹${rate.toLocaleString()}/mo` : `₹${rate.toLocaleString()}/mo Potential`,
+                payoutStatus: isActive ? "Settled" : "Awaiting Subscription"
               };
             });
             setReferredList(mapped);
@@ -212,18 +212,18 @@ export default function Referrals() {
     navigator.clipboard.writeText(val);
     setCopied(true);
     toast.success(isDirectCode || activeTab === "code" ? "Referral code copied!" : "Referral link copied!", {
-      description: "Share it with traders to earn ₹2,000 + 10% weekly profit share."
+      description: "Friends get 5% off their first plan & you earn up to 20% recurring monthly commission."
     });
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const shareText = `Automate your trading with FiAlgo V1 on TradiFive. Precision Gold (XAUUSD) execution with weekly 50/50 profit share. Sign up with my partner link: ${referralLink}`;
+  const shareText = `Upgrade your trading discipline with TradiFive (Risk Guard, Smart Journal & AI Coach). Use my referral link to get 5% off your first Pro or Elite plan: ${referralLink}`;
 
   const handleNativeShare = async () => {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Join TradiFive Automated Trading",
+          title: "Get 5% Off TradiFive Pro & Elite",
           text: shareText,
           url: referralLink,
         });
@@ -236,7 +236,7 @@ export default function Referrals() {
   const handleRequestPayout = () => {
     if (earnedCash <= 0) {
       toast.info("No settled commission available yet", {
-        description: "Your commission activates automatically when your referred traders link their MT5 account."
+        description: "Your recurring commission activates automatically when your referred friends subscribe to Pro or Elite."
       });
       return;
     }
@@ -296,7 +296,7 @@ Please verify and process my remittance. Thank you!`;
                 Partner &amp; Referral Program
               </h1>
               <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed">
-                Earn up to <strong className="text-slate-800 dark:text-slate-200 font-bold">₹2,000 instant cash bonus</strong> per trader + <strong className="text-emerald-600 dark:text-emerald-400 font-bold">10% weekly profit share overrides</strong> when friends activate FiAlgo V1 automated trading.
+                Give friends <strong className="text-slate-800 dark:text-slate-200 font-bold">5% OFF</strong> their first Pro or Elite subscription and earn up to <strong className="text-emerald-600 dark:text-emerald-400 font-bold">20% recurring monthly commission</strong> for as long as they stay subscribed.
               </p>
             </div>
 
@@ -336,7 +336,7 @@ Please verify and process my remittance. Thank you!`;
               ₹{earnedCash.toLocaleString()}
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-emerald-600/90 dark:text-emerald-400/90 truncate">
-              {activeBrokers > 0 ? `${activeBrokers} Active bot${activeBrokers > 1 ? "s" : ""}` : "100% direct payout"} · Cleared
+              {activeBrokers > 0 ? `${activeBrokers} Active sub${activeBrokers > 1 ? "s" : ""}` : "Recurring monthly"} · Cleared
             </p>
           </div>
 
@@ -352,23 +352,23 @@ Please verify and process my remittance. Thank you!`;
               ₹{pendingCash.toLocaleString()}
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-amber-600/90 dark:text-amber-400/90 truncate">
-              {totalReferred - activeBrokers} in queue · Pending setup
+              {totalReferred - activeBrokers} signed up · Free plan
             </p>
           </div>
 
-          {/* Card 3: Active Traders */}
+          {/* Card 3: Paid Subscribers */}
           <div className="p-4 sm:p-5 rounded-2xl relative overflow-hidden group transition-all duration-300 shadow-[0_2px_8px_rgba(0,0,0,0.03)] border bg-sky-500/[0.04] dark:bg-sky-500/[0.08] border-sky-500/25">
             <div className="absolute top-4 right-4 text-sky-600/30 group-hover:text-sky-600/60 transition-colors">
               <Users size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
-              Active Traders
+              Paid Subscribers
             </span>
             <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate">
               {activeBrokers} <span className="text-xs font-semibold text-slate-400">/ {totalReferred}</span>
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-sky-600/90 dark:text-sky-400/90 truncate">
-              Verified MT5 Engine · Live
+              Active Pro &amp; Elite Plans
             </p>
           </div>
 
@@ -378,13 +378,13 @@ Please verify and process my remittance. Thank you!`;
               <Trophy size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
-              Affiliate Tier
+              Partner Tier
             </span>
             <h3 className="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-white tracking-tight leading-none truncate">
               {currentTier.name}
             </h3>
             <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-violet-600/90 dark:text-violet-400/90 truncate">
-              <span>{currentTier.profitOverride} Override</span>
+              <span>{currentTier.upfrontBonus} Recurring</span>
               <span className="font-mono text-[10px] opacity-75">{progressToNext}%</span>
             </div>
           </div>
@@ -395,13 +395,13 @@ Please verify and process my remittance. Thank you!`;
               <Award size={18} />
             </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5 truncate">
-              Network Consistency
+              Conversion Rate
             </span>
             <h3 className="text-[20px] sm:text-[22px] xl:text-[24px] font-bold text-indigo-600 dark:text-indigo-400 tracking-tight leading-none truncate">
-              {totalReferred > 0 ? Math.round((activeBrokers / totalReferred) * 100) : 100}%
+              {totalReferred > 0 ? Math.round((activeBrokers / totalReferred) * 100) : 0}%
             </h3>
             <p className="text-[11px] font-semibold mt-2 text-indigo-600/90 dark:text-indigo-400/90 truncate">
-              Partner Consistency Grade A+
+              Friend Discount: 5% OFF
             </p>
           </div>
 
@@ -555,7 +555,7 @@ Please verify and process my remittance. Thank you!`;
                     </p>
                   </div>
                   <span className="text-[10px] font-mono font-extrabold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-200/60 dark:border-indigo-500/20">
-                    {activeBrokers} Active Traders
+                    {activeBrokers} Paid Subscribers
                   </span>
                 </div>
 
@@ -590,10 +590,10 @@ Please verify and process my remittance. Thank you!`;
                           <div className="pt-1 pb-1">
                             <div className="text-[22px] sm:text-[24px] font-bold text-emerald-600 dark:text-emerald-400">
                               {tier.upfrontBonus}
-                              <span className="text-xs font-semibold text-slate-400 ml-1">/ Trader</span>
+                              <span className="text-xs font-semibold text-slate-400 ml-1">Recurring / mo</span>
                             </div>
-                            <div className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
-                              + {tier.profitOverride} Weekly Override
+                            <div className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 mt-0.5">
+                              {tier.profitOverride}
                             </div>
                           </div>
 
@@ -621,7 +621,7 @@ Please verify and process my remittance. Thank you!`;
                     How The Referral Program Works
                   </h3>
                   <p className="text-xs sm:text-[13px] text-slate-500 dark:text-slate-400 font-medium">
-                    Fully automated, verified via MetaTrader 5 and directly paid to your bank every {settlementDay}.
+                    Automatic subscription tracking with direct UPI / bank payouts every {settlementDay}.
                   </p>
                 </div>
 
@@ -634,7 +634,7 @@ Please verify and process my remittance. Thank you!`;
                       Share Your Link
                     </h4>
                     <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                      Send your partner link to fellow traders via WhatsApp, Telegram, or social media.
+                      Send your partner link or code to fellow traders via WhatsApp, Telegram, or social media.
                     </p>
                   </div>
 
@@ -643,10 +643,10 @@ Please verify and process my remittance. Thank you!`;
                       2
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1">
-                      They Connect MT5
+                      Friend Gets 5% Off
                     </h4>
                     <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                      Your friend activates FiAlgo V1 with ₹9,999 setup fee. The system instantly credits your commission.
+                      Your friend signs up and saves 5% on their first TradiFive Pro (₹1,399/mo) or Elite (₹2,799/mo) plan.
                     </p>
                   </div>
 
@@ -655,10 +655,10 @@ Please verify and process my remittance. Thank you!`;
                       3
                     </div>
                     <h4 className="text-xs font-bold text-slate-900 dark:text-white mb-1">
-                      Weekly Direct Payout
+                      Recurring Monthly Income
                     </h4>
                     <p className="text-[11.5px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                      Earn up to ₹2,000 cash per setup + ongoing weekly 50/50 profit overrides every {settlementDay}.
+                      Earn 10% to 20% recurring commission every month they stay subscribed, paid every {settlementDay}.
                     </p>
                   </div>
                 </div>
@@ -743,7 +743,7 @@ Please verify and process my remittance. Thank you!`;
                                   : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20"
                               }`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${trader.status === "active" ? "bg-emerald-500" : "bg-amber-500"}`} />
-                                <span>{trader.status === "active" ? "FiAlgo Active" : "Pending Setup"}</span>
+                                <span>{trader.status === "active" ? "Subscribed" : "Free Plan"}</span>
                               </span>
                             </td>
                             <td className="py-3 px-3 text-right">
@@ -797,7 +797,7 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                   <div className="flex justify-between text-slate-600 dark:text-slate-400">
                     <span>Min. Withdrawal:</span>
-                    <strong className="text-slate-900 dark:text-white font-bold">₹1,000 (1 Trader)</strong>
+                    <strong className="text-slate-900 dark:text-white font-bold">₹500</strong>
                   </div>
                 </div>
 
@@ -816,26 +816,26 @@ Please verify and process my remittance. Thank you!`;
               </div>
             </div>
 
-            {/* Quick Pitch Bullet Points for Traders */}
+            {/* Why Traders Subscribe */}
             <div className={SURFACE_CARD}>
               <div className="space-y-3 text-xs">
                 <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
                   <Sparkles size={14} className="text-indigo-500" />
-                  <span>How to Pitch FiAlgo V1</span>
+                  <span>Why Traders Subscribe</span>
                 </h4>
 
                 <div className="space-y-2 text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                   <div className={INNER_CARD}>
-                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">1. Zero Manual Work:</strong>
-                    FiAlgo V1 executes M1 gold trades automatically with hardware stop-loss protection.
+                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">1. 5% Instant Discount:</strong>
+                    Friends save 5% immediately on Pro (₹1,399/mo) or Elite (₹2,799/mo) with your link.
                   </div>
                   <div className={INNER_CARD}>
-                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">2. Aligned Interests:</strong>
-                    Only a ₹9,999 setup fee with weekly 50/50 profit share. Zero commission on red days.
+                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">2. Complete Discipline Suite:</strong>
+                    Includes Risk Guard drawdown shields, Smart Trade Journal, and 24/7 AI Coach.
                   </div>
                   <div className={INNER_CARD}>
-                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">3. Capital Safety:</strong>
-                    100% of user capital stays locked in their own verified broker account.
+                    <strong className="text-slate-900 dark:text-white block font-bold mb-0.5">3. True Recurring Income:</strong>
+                    Every monthly renewal adds 10%–20% straight to your commission wallet automatically.
                   </div>
                 </div>
               </div>
@@ -856,7 +856,7 @@ Please verify and process my remittance. Thank you!`;
                   </div>
                   <div>
                     <strong className="text-slate-800 dark:text-slate-200 block font-bold mb-0.5">Is there any referral limit?</strong>
-                    No limit! Refer unlimited traders and unlock Tier 3 VIP 10% overrides forever.
+                    No limit! Refer unlimited traders and unlock 20% recurring monthly commission forever.
                   </div>
                   <div>
                     <strong className="text-slate-800 dark:text-slate-200 block font-bold mb-0.5">How do I track referred friends?</strong>
