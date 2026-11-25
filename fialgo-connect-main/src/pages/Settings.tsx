@@ -1,4 +1,5 @@
 import { RunningNumber } from '@/components/ui/RunningNumber';
+import { AnimatedInput } from '@/components/ui/animated-input';
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -1384,7 +1385,7 @@ export default function Settings() {
                    {/* 2. Search Settings Box */}
                    <div className="relative">
                       <Search set="curved" stroke="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={15} />
-                      <input
+                      <AnimatedInput
                          type="text"
                          placeholder="Search settings"
                          value={searchQuery}
@@ -1680,7 +1681,7 @@ export default function Settings() {
                   {/* Search Settings Pill */}
                   <div className="relative">
                      <Search stroke="bold" set="curved" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={14} />
-                     <input
+                     <AnimatedInput
                         type="text"
                         placeholder="Search settings"
                         value={searchQuery}
@@ -2881,15 +2882,15 @@ export default function Settings() {
                                                       <>
                                                          <div>
                                                             <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Login ID</label>
-                                                            <input type="text" required placeholder="e.g. 98310842" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
+                                                            <AnimatedInput type="text" required placeholder="e.g. 98310842" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
                                                          </div>
                                                          <div>
                                                             <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Investor Password</label>
-                                                            <input type="password" required className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
+                                                            <AnimatedInput type="password" required className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
                                                          </div>
                                                          <div>
                                                             <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Server</label>
-                                                            <input type="text" required placeholder="e.g. Vantage-Live-1" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
+                                                            <AnimatedInput type="text" required placeholder="e.g. Vantage-Live-1" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
                                                          </div>
                                                       </>
                                                    ) : (
@@ -2897,7 +2898,7 @@ export default function Settings() {
                                                          {selectedBrokerToConnect !== 'dhan' && (
                                                             <div>
                                                                <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">API Key Token</label>
-                                                               <input 
+                                                               <AnimatedInput 
                                                                   type="text" 
                                                                   required 
                                                                   value={brokerApiKey}
@@ -2909,7 +2910,7 @@ export default function Settings() {
                                                          )}
                                                          <div>
                                                             <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Client ID</label>
-                                                            <input 
+                                                            <AnimatedInput 
                                                                type="text" 
                                                                required 
                                                                value={brokerClientId}
@@ -3197,7 +3198,7 @@ export default function Settings() {
                      Have a code? Add it before your next billing cycle and it counts on your next payment.
                   </p>
                   <div className="flex items-center gap-2">
-                     <input
+                     <AnimatedInput
                         type="text"
                         placeholder="Discount code"
                         value={discountCodeInput}
@@ -3614,53 +3615,53 @@ export default function Settings() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">First Name</label>
-                              <input type="text" value={profile.firstName} onChange={e => setProfile({...profile, firstName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.firstName} onChange={e => setProfile({...profile, firstName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Last Name</label>
-                              <input type="text" value={profile.lastName} onChange={e => setProfile({...profile, lastName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.lastName} onChange={e => setProfile({...profile, lastName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                         </div>
                         <div>
                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Username</label>
-                           <input type="text" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           <AnimatedInput type="text" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                         </div>
                         <div>
                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Email</label>
-                           <input type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           <AnimatedInput type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Address</label>
-                              <input type="text" value={profile.address || ''} onChange={e => setProfile({...profile, address: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.address || ''} onChange={e => setProfile({...profile, address: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">City</label>
-                              <input type="text" value={profile.city || ''} onChange={e => setProfile({...profile, city: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.city || ''} onChange={e => setProfile({...profile, city: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">State</label>
-                              <input type="text" value={profile.state || ''} onChange={e => setProfile({...profile, state: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.state || ''} onChange={e => setProfile({...profile, state: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Zip Code</label>
-                              <input type="text" value={profile.zipCode || ''} onChange={e => setProfile({...profile, zipCode: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.zipCode || ''} onChange={e => setProfile({...profile, zipCode: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Country</label>
-                              <input type="text" value={profile.country || ''} onChange={e => setProfile({...profile, country: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.country || ''} onChange={e => setProfile({...profile, country: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Date of Birth</label>
-                              <input type="text" value={profile.dob || ''} onChange={e => setProfile({...profile, dob: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.dob || ''} onChange={e => setProfile({...profile, dob: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Gender</label>
-                              <input type="text" value={profile.gender || ''} onChange={e => setProfile({...profile, gender: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.gender || ''} onChange={e => setProfile({...profile, gender: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                            </div>
                         </div>
                         <div className="pt-4 border-t border-slate-100 dark:border-[#333333] flex justify-end items-center gap-3">
@@ -3697,7 +3698,7 @@ export default function Settings() {
                      <div className="space-y-4">
                         <div>
                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Phone Number</label>
-                           <input type="tel" placeholder="+1 (555) 000-0000" className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           <AnimatedInput type="tel" placeholder="+1 (555) 000-0000" className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
                         </div>
                         <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-[#333333]">
                            <button type="button" onClick={() => setShowSmsModal(false)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors">Cancel</button>

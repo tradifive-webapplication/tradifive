@@ -20,6 +20,7 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from "@/components/ui/input-otp";
+import { AnimatedInput } from "@/components/ui/animated-input";
 import tradifiveLogo from "@/assets/tradifive-login-logo.png";
 import { supabase } from "@/lib/supabase";
 import { PushableButton } from "@/components/PushableButton";
@@ -722,7 +723,7 @@ export default function Login() {
                             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                               <IconlyUser set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                             </div>
-                            <input
+                            <AnimatedInput
                               type="text"
                               value={firstName}
                               onChange={(e) => setFirstName(e.target.value)}
@@ -738,7 +739,7 @@ export default function Login() {
                             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                               <IconlyUser set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                             </div>
-                            <input
+                            <AnimatedInput
                               type="text"
                               value={lastName}
                               onChange={(e) => setLastName(e.target.value)}
@@ -758,7 +759,7 @@ export default function Login() {
                       <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                         <IconlyMessage set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                       </div>
-                      <input
+                      <AnimatedInput
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -787,7 +788,7 @@ export default function Login() {
                       <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                         <IconlyLock set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                       </div>
-                      <input
+                      <AnimatedInput
                         type={showPw ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -799,7 +800,7 @@ export default function Login() {
                       <button
                         type="button"
                         onClick={() => setShowPw(!showPw)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors z-10"
                       >
                         {showPw ? <IconlyHide set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} /> : <IconlyShow set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />}
                       </button>
@@ -819,7 +820,7 @@ export default function Login() {
                           <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                             <IconlyLock set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                           </div>
-                          <input
+                          <AnimatedInput
                             type={showPw ? "text" : "password"}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -892,7 +893,7 @@ export default function Login() {
                         <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                           <IconlyMessage set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                         </div>
-                        <input
+                        <AnimatedInput
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}

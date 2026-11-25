@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { validateUsername } from "@/utils/usernameValidation";
+import { AnimatedInput } from "@/components/ui/animated-input";
 
 interface OnboardingFlowProps {
   user: User;
@@ -403,7 +404,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                   </h1>
 
                   <div className="mb-2">
-                    <input
+                    <AnimatedInput
                       type="text"
                       autoFocus
                       value={name}
@@ -435,7 +436,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
 
                   <div className="mb-2 relative flex items-center border-b border-zinc-800 focus-within:border-white transition-colors">
                     <span className="text-[22px] sm:text-3xl text-zinc-600 font-bold mr-1">@</span>
-                    <input
+                    <AnimatedInput
                       type="text"
                       autoFocus
                       value={handle}

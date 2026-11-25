@@ -1,3 +1,4 @@
+import { AnimatedInput } from '@/components/ui/animated-input';
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -175,7 +176,7 @@ export default function ResetPassword() {
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                     <Lock size={16} />
                   </div>
-                  <input
+                  <AnimatedInput
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -202,7 +203,7 @@ export default function ResetPassword() {
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors">
                     <Lock size={16} />
                   </div>
-                  <input
+                  <AnimatedInput
                     type={showPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}

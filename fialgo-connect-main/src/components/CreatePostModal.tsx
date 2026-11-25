@@ -1,3 +1,4 @@
+import { AnimatedInput } from '@/components/ui/animated-input';
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -1222,11 +1223,11 @@ export default function CreatePostModal({
                             <button type="button" onClick={() => setSignalData(s => ({ ...s, action: "Sell" }))} className={`flex-1 py-1.5 text-xs font-bold rounded-md ${signalData.action === "Sell" ? "bg-rose-500 text-white" : "text-slate-500"}`}>Sell / Short</button>
                           </div>
                        </div>
-                       <input type="text" value={signalData.asset} onChange={(e) => setSignalData(s => ({ ...s, asset: e.target.value.toUpperCase() }))} placeholder="Asset (e.g. XAUUSD)" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-indigo-500 font-bold uppercase" />
-                       <input type="text" value={signalData.entry} onChange={(e) => setSignalData(s => ({ ...s, entry: e.target.value }))} placeholder="Entry Price" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-indigo-500" />
+                       <AnimatedInput type="text" value={signalData.asset} onChange={(e) => setSignalData(s => ({ ...s, asset: e.target.value.toUpperCase() }))} placeholder="Asset (e.g. XAUUSD)" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-indigo-500 font-bold uppercase" />
+                       <AnimatedInput type="text" value={signalData.entry} onChange={(e) => setSignalData(s => ({ ...s, entry: e.target.value }))} placeholder="Entry Price" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-indigo-500" />
                        <div className="grid grid-cols-2 gap-2">
-                         <input type="text" value={signalData.tp} onChange={(e) => setSignalData(s => ({ ...s, tp: e.target.value }))} placeholder="Target (TP)" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-emerald-500 text-emerald-600" />
-                         <input type="text" value={signalData.sl} onChange={(e) => setSignalData(s => ({ ...s, sl: e.target.value }))} placeholder="Stop (SL)" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-rose-500 text-rose-600" />
+                         <AnimatedInput type="text" value={signalData.tp} onChange={(e) => setSignalData(s => ({ ...s, tp: e.target.value }))} placeholder="Target (TP)" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-emerald-500 text-emerald-600" />
+                         <AnimatedInput type="text" value={signalData.sl} onChange={(e) => setSignalData(s => ({ ...s, sl: e.target.value }))} placeholder="Stop (SL)" className="px-3 py-2 text-sm bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-zinc-800 rounded-lg outline-none focus:border-rose-500 text-rose-600" />
                        </div>
                     </div>
                  </div>

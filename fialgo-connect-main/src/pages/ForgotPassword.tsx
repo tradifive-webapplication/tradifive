@@ -1,3 +1,4 @@
+import { AnimatedInput } from '@/components/ui/animated-input';
 import { useState } from "react";
 import {
    Message as IconlyMessage,
@@ -89,7 +90,7 @@ export default function ForgotPassword() {
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                     <IconlyMessage set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                   </div>
-                  <input
+                  <AnimatedInput
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
