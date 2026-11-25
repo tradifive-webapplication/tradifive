@@ -66,19 +66,21 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group !z-[999999]"
-      style={{ zIndex: 999999 }}
+      style={{ zIndex: 999999, ["--width" as any]: "440px" }}
       position="top-center"
       icons={{
-        success: <CheckCircle2 className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#10b981]" />,
-        error: <AlertCircle className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#f97316]" />,
-        info: <Info className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#64748b]" /> }}
+        success: <CheckCircle2 className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#10b981] shrink-0" />,
+        error: <AlertCircle className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#f97316] shrink-0" />,
+        info: <Info className="h-[18px] w-[18px] text-[#FFFFFF] fill-[#64748b] shrink-0" /> }}
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-white dark:group-[.toaster]:bg-[#18181b] group-[.toaster]:border group-[.toaster]:border-slate-200/90 dark:group-[.toaster]:border-white/10 group-[.toaster]:text-slate-800 dark:group-[.toaster]:text-slate-100 group-[.toaster]:shadow-[inset_0_1px_0_rgba(255,255,255,1),0_8px_24px_-4px_rgba(0,0,0,0.12)] dark:group-[.toaster]:shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_8px_24px_-4px_rgba(0,0,0,0.4)] group-[.toaster]:rounded-xl group-[.toaster]:py-2.5 group-[.toaster]:px-6 font-sans text-[13.5px] font-bold tracking-normal flex items-center justify-center gap-2.5",
-          description: "group-[.toast]:text-slate-500 dark:group-[.toast]:text-slate-400 text-[12px] font-medium",
-          actionButton: "group-[.toast]:bg-blue-600 group-[.toast]:text-white font-bold text-[12px] px-3.5 py-1 rounded-lg shadow-xs active:scale-[0.985]",
-          cancelButton: "group-[.toast]:bg-slate-100 dark:group-[.toast]:bg-white/10 group-[.toast]:text-slate-700 dark:group-[.toast]:text-slate-200 font-semibold rounded-lg text-[12px] px-3 py-1 active:scale-[0.985]",
+            "group toast sm:!w-[440px] !max-w-[calc(100vw-24px)] group-[.toaster]:bg-white dark:group-[.toaster]:bg-[#18181b] group-[.toaster]:border group-[.toaster]:border-slate-200/90 dark:group-[.toaster]:border-white/10 group-[.toaster]:text-slate-800 dark:group-[.toaster]:text-slate-100 group-[.toaster]:shadow-[inset_0_1px_0_rgba(255,255,255,1),0_10px_28px_-6px_rgba(15,23,42,0.14)] dark:group-[.toaster]:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_10px_28px_-6px_rgba(0,0,0,0.45)] group-[.toaster]:rounded-2xl group-[.toaster]:py-3 group-[.toaster]:px-4 font-sans flex items-center gap-3",
+          content: "flex-1 min-w-0",
+          title: "text-[13px] font-semibold tracking-tight leading-snug text-slate-900 dark:text-white",
+          description: "group-[.toast]:text-slate-500 dark:group-[.toast]:text-zinc-400 text-[12px] font-normal leading-snug mt-0.5",
+          actionButton: "!ml-auto shrink-0 !h-8 !px-3.5 !rounded-full group-[.toast]:bg-blue-600 hover:group-[.toast]:bg-blue-700 group-[.toast]:text-white !font-semibold !text-[12px] shadow-xs transition-all active:scale-[0.98]",
+          cancelButton: "shrink-0 !h-8 !px-3 !rounded-full group-[.toast]:bg-slate-100 dark:group-[.toast]:bg-white/10 group-[.toast]:text-slate-700 dark:group-[.toast]:text-slate-200 !font-medium !text-[12px] transition-all active:scale-[0.98]",
         } }}
       {...props}
     />

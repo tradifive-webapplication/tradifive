@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Search, Plus, X, MoreHorizontal, Heart, MessageSquare, MessageCircle, MessageSquareText, MessageCircleMore, Share, Share2, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Calendar, Globe, Sliders, PlayCircle, Play, Pause, CheckCircle2, Crown, Send, Volume2, VolumeX, Edit2, Trash2, AlertTriangle, Link2, Sparkles, ChevronRight } from "lucide-react";
+import { Search, Plus, X, MoreHorizontal, Heart, MessageSquare, MessageCircle, MessageSquareText, MessageCircleMore, Share, Share2, Bookmark, UserPlus, UserCheck, Flame, ShieldCheck, TrendingUp, Layers, Eye, Repeat2, BarChart2, MapPin, Calendar, Globe, Sliders, PlayCircle, Play, Pause, CheckCircle2, Crown, Send, Volume2, VolumeX, Edit2, Trash2, AlertTriangle, Link2, Sparkles, ChevronRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,8 +10,16 @@ import { addXP } from "@/utils/gamification";
 import { supabase } from "@/lib/supabase";
 import ReactMarkdown from "react-markdown";
 import { UserHoverCard } from "@/components/UserHoverCard";
+import PostActionBar from "@/components/PostActionBar";
 
-import { Heart as IconlyHeart, Upload as IconlySend, Bookmark as IconlyBookmark } from "react-iconly";
+import {
+  Chat as IconlyChat,
+  Swap as IconlySwap,
+  Heart as IconlyHeart,
+  Bookmark as IconlyBookmark,
+  Chart as IconlyChart,
+  Upload as IconlySend,
+} from "react-iconly";
 import {
   AlertDialog,
   AlertDialogClose,
@@ -137,18 +145,224 @@ function FeedCard({
     const navigate = useNavigate();
 
 
+    const authorId =
+        typeof feed.user_id === "object"
+            ? (feed.user_id as any)?.id || ""
+            : feed.user_id || (feed.profiles as any)?.id || "";
+    const isOwnPost = Boolean(
+        currentUserId && authorId && String(authorId) === String(currentUserId)
+    );
     const authorName = feed.profiles?.full_name || "Anonymous Trader";
     const authorHandle = feed.profiles?.username ? `@${feed.profiles.username}` : "@anonymous";
     const targetProfileParam = feed.profiles?.username || feed.user_id || authorHandle.replace('@', '');
     const authorAvatar = feed.profiles?.avatar_url || "/default-avatar.svg";
     const rawImages = Array.isArray(feed.media_urls) ? feed.media_urls : [];
-    const images = rawImages.filter(url => typeof url === 'string' && url.trim() !== '' && !url.trim().startsWith('{') && !url.trim().startsWith('['));
+    const images =
+        feed.media_type === 'video'
+            ? []
+            : rawImages.filter(
+                  (url) =>
+                      typeof url === 'string' &&
+                      url.trim() !== '' &&
+                      !url.trim().startsWith('{') &&
+                      !url.trim().startsWith('[')
+              );
     const tags = feed.tags || [];
     const comments = feed.comment_count ?? feed.comments_count ?? 0;
     const initialBookmarked = feed.bookmark_count ? feed.bookmark_count > 0 : false;
     const [isExpanded, setIsExpanded] = useState(false);
-    const shouldShowReadMore = feed.content && (feed.content.length > 450 || feed.content.split('\n').length > 4);
+
+    // Parse optional location & optional heading (`### Heading`) from feed.content
+    let parsedBody = feed.content || "";
+    let parsedLocation = "";
+    let parsedHeading = "";
+    const locMatch = parsedBody.match(/^📍\s+(.+)(?:\n|$)/);
+    if (locMatch) {
+        parsedLocation = locMatch[1].trim();
+        parsedBody = parsedBody.replace(/^📍\s+.+(?:\n|$)/, "");
+    }
+    const headingMatch = parsedBody.match(/^###\s+(.+)(?:\n|$)/);
+    if (headingMatch) {
+        parsedHeading = headingMatch[1].trim();
+        parsedBody = parsedBody.replace(/^###\s+.+(?:\n|$)/, "");
+    }
+    parsedBody = parsedBody.trim();
+
+    // Filter out tags already typed inline in parsedBody so they don't appear twice
+    const inlineTagsLower = new Set(
+        Array.from(parsedBody.matchAll(/#([A-Za-z0-9_]+)/g)).map((m) => m[1].toLowerCase())
+    );
+    const extraTags = tags.filter((tag: string) => !inlineTagsLower.has(tag.toLowerCase()));
+
+    const renderStyledText = (text: string) => {
+        const tokenRegex = /(\$[A-Za-z][A-Za-z0-9._-]{0,14}|#[A-Za-z0-9_]+|@[A-Za-z0-9_.]+)/g;
+        const parts = text.split(tokenRegex);
+        return parts.map((part, idx) => {
+            if (!part) return null;
+            if (part.startsWith("$") || part.startsWith("#")) {
+                return (
+                    <span key={idx} className="text-blue-600 dark:text-blue-400 font-medium">
+                        {part}
+                    </span>
+                );
+            }
+            if (part.startsWith("@")) {
+                return (
+                    <span
+                        key={idx}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/user/${part.slice(1)}`);
+                        }}
+                        className="text-blue-600 dark:text-blue-400 font-medium hover:underline cursor-pointer"
+                    >
+                        {part}
+                    </span>
+                );
+            }
+            return <React.Fragment key={idx}>{part}</React.Fragment>;
+        });
+    };
+
+    const shouldShowReadMore = parsedBody && (parsedBody.length > 450 || parsedBody.split('\n').length > 5);
     const [localShareCount, setLocalShareCount] = useState(feed.share_count || 0);
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    // Repost state & count
+    const [isReposted, setIsReposted] = useState<boolean>(() => {
+        try {
+            const reposts = JSON.parse(localStorage.getItem("tradifive_reposted_posts") || "{}");
+            return Boolean(reposts[feed.id]);
+        } catch {
+            return false;
+        }
+    });
+    const [localRepostCount, setLocalRepostCount] = useState<number>(() => {
+        const base = Number((feed as any).repost_count ?? feed.share_count ?? 0);
+        try {
+            const counts = JSON.parse(localStorage.getItem("tradifive_repost_counts") || "{}");
+            return typeof counts[feed.id] === "number" ? Math.max(base, counts[feed.id]) : base;
+        } catch {
+            return base;
+        }
+    });
+
+    // Views count & real viewport impression tracker
+    const [localViewCount, setLocalViewCount] = useState<number>(() => {
+        const base = Number((feed as any).view_count ?? (feed as any).views_count ?? 0);
+        try {
+            const counts = JSON.parse(localStorage.getItem("tradifive_view_counts") || "{}");
+            return typeof counts[feed.id] === "number" ? Math.max(base, counts[feed.id]) : base;
+        } catch {
+            return base;
+        }
+    });
+
+    useEffect(() => {
+        const el = cardRef.current;
+        if (!el || !feed.id) return;
+
+        const recordView = async () => {
+            try {
+                const viewed: Record<string, boolean> = JSON.parse(
+                    sessionStorage.getItem("tradifive_viewed_posts") || "{}"
+                );
+                if (viewed[feed.id]) return;
+                viewed[feed.id] = true;
+                sessionStorage.setItem("tradifive_viewed_posts", JSON.stringify(viewed));
+
+                setLocalViewCount((prev) => {
+                    const next = prev + 1;
+                    try {
+                        const counts = JSON.parse(localStorage.getItem("tradifive_view_counts") || "{}");
+                        counts[feed.id] = next;
+                        localStorage.setItem("tradifive_view_counts", JSON.stringify(counts));
+                    } catch { /* ignore */ }
+                    return next;
+                });
+
+                if (!String(feed.id).startsWith("local-")) {
+                    const { data: postData } = await supabase
+                        .from("social_posts")
+                        .select("view_count")
+                        .eq("id", feed.id)
+                        .maybeSingle();
+                    const dbCount = Number((postData as any)?.view_count ?? 0) + 1;
+                    await supabase
+                        .from("social_posts")
+                        .update({ view_count: dbCount } as any)
+                        .eq("id", feed.id);
+                }
+            } catch {
+                // Ignore transient errors on view increment
+            }
+        };
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    recordView();
+                    observer.disconnect();
+                }
+            },
+            { threshold: 0.45 }
+        );
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, [feed.id]);
+
+    const formatCompactViews = (count: number) => {
+        if (count >= 1_000_000) return `${(count / 1_000_000).toFixed(1).replace(/\.0$/, "")}M`;
+        if (count >= 1_000) return `${(count / 1_000).toFixed(1).replace(/\.0$/, "")}K`;
+        return String(count);
+    };
+
+    const handleRepost = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!currentUserId) {
+            toast.error("Please log in to repost.");
+            return;
+        }
+        const nextReposted = !isReposted;
+        setIsReposted(nextReposted);
+        const nextCount = Math.max(0, localRepostCount + (nextReposted ? 1 : -1));
+        setLocalRepostCount(nextCount);
+
+        try {
+            const reposts = JSON.parse(localStorage.getItem("tradifive_reposted_posts") || "{}");
+            if (nextReposted) {
+                reposts[feed.id] = true;
+                toast.success("Reposted!");
+            } else {
+                delete reposts[feed.id];
+                toast.info("Repost removed");
+            }
+            localStorage.setItem("tradifive_reposted_posts", JSON.stringify(reposts));
+
+            const counts = JSON.parse(localStorage.getItem("tradifive_repost_counts") || "{}");
+            counts[feed.id] = nextCount;
+            localStorage.setItem("tradifive_repost_counts", JSON.stringify(counts));
+        } catch { /* ignore */ }
+
+        if (!String(feed.id).startsWith("local-")) {
+            try {
+                const { data: postData } = await supabase
+                    .from("social_posts")
+                    .select("share_count")
+                    .eq("id", feed.id)
+                    .maybeSingle();
+                const currentDbCount = Number(postData?.share_count ?? 0);
+                const updatedDbCount = Math.max(0, currentDbCount + (nextReposted ? 1 : -1));
+                await supabase
+                    .from("social_posts")
+                    .update({ share_count: updatedDbCount })
+                    .eq("id", feed.id);
+            } catch (err) {
+                console.error("Error updating repost count in Supabase:", err);
+            }
+        }
+    };
 
     const [isBookmarked, setIsBookmarked] = useState(() => {
         const bookmarks = JSON.parse(localStorage.getItem("fialgo_local_bookmarks") || "{}");
@@ -241,8 +455,14 @@ function FeedCard({
                 await navigator.clipboard.writeText(shareData.url);
                 toast.success("Link copied to clipboard!");
             }
-        } catch (err) {
-            console.error("Error sharing:", err);
+        } catch (err: any) {
+            if (err?.name === 'AbortError') return;
+            try {
+                await navigator.clipboard.writeText(shareData.url);
+                toast.success("Link copied to clipboard!");
+            } catch (_) {
+                console.error("Error sharing:", err);
+            }
         }
     };
 
@@ -409,25 +629,33 @@ function FeedCard({
     const hasVotedOrOwns = votedOption !== null || feed.user_id === currentUserId;
 
     return (
-        <div className="p-4 sm:p-5 md:p-6 rounded-[24px] sm:rounded-[32px] bg-white dark:bg-[#1C1C1E] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100/50 dark:border-white/5 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3 text-left">
-                    <UserHoverCard
-                        userId={feed.user_id || ""}
-                        username={authorHandle}
-                        authorName={authorName}
-                        authorAvatar={authorAvatar}
-                        currentUserId={currentUserId}
-                        isFollowing={followedUsers[feed.user_id || ""]}
-                        onToggleFollow={onToggleFollow}
-                    >
-                        <Link to={`/user/${targetProfileParam}`} className="shrink-0 hover:opacity-85 transition-opacity block">
-                            <img src={authorAvatar} alt={authorName} className="w-10 h-10 rounded-full bg-slate-200 object-cover" onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
-                        </Link>
-                    </UserHoverCard>
-                    <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
+        <div ref={cardRef} className="px-4 py-3.5 sm:px-5 sm:py-4 bg-white dark:bg-transparent border-b border-slate-200/85 dark:border-white/[0.09] transition-colors">
+            <div className="flex items-start gap-3">
+                {/* Left Column: Avatar */}
+                <UserHoverCard
+                    userId={feed.user_id || ""}
+                    username={authorHandle}
+                    authorName={authorName}
+                    authorAvatar={authorAvatar}
+                    currentUserId={currentUserId}
+                    isFollowing={followedUsers[feed.user_id || ""]}
+                    onToggleFollow={onToggleFollow}
+                >
+                    <Link to={`/user/${targetProfileParam}`} className="shrink-0 hover:opacity-85 transition-opacity block">
+                        <img
+                            src={authorAvatar}
+                            alt={authorName}
+                            className="w-10 h-10 rounded-full bg-slate-200 dark:bg-white/10 object-cover border border-slate-200/60 dark:border-white/10"
+                            onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
+                        />
+                    </Link>
+                </UserHoverCard>
+
+                {/* Right Column: Header, Heading, Text, Tags, Media, Actions */}
+                <div className="flex-1 min-w-0">
+                    {/* Header Row */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                             <UserHoverCard
                                 userId={feed.user_id || ""}
                                 username={authorHandle}
@@ -437,13 +665,14 @@ function FeedCard({
                                 isFollowing={followedUsers[feed.user_id || ""]}
                                 onToggleFollow={onToggleFollow}
                             >
-                                <Link to={`/user/${targetProfileParam}`} className="hover:opacity-85 transition-opacity group/feedcard block">
-                                    <p className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight group-hover/feedcard:text-blue-500 transition-colors">{authorName}</p>
+                                <Link to={`/user/${targetProfileParam}`} className="hover:opacity-85 transition-opacity group/feedcard block min-w-0">
+                                    <p className="text-[15px] font-bold text-slate-900 dark:text-white leading-tight truncate group-hover/feedcard:text-blue-600 dark:group-hover/feedcard:text-blue-400 transition-colors">
+                                        {authorName}
+                                    </p>
                                 </Link>
                             </UserHoverCard>
-                            <span className="text-[12px] text-slate-400 dark:text-zinc-400 font-medium select-none">{authorHandle}</span>
                             {feed.created_at && (
-                                <span className="text-[12px] text-slate-400 dark:text-zinc-400">
+                                <span className="text-[13.5px] text-slate-400 dark:text-zinc-500 font-normal shrink-0">
                                     · {formatDistanceToNow(new Date(feed.created_at), { addSuffix: false })
                                         .replace("about ", "")
                                         .replace("less than a minute ago", "now")
@@ -466,139 +695,155 @@ function FeedCard({
                                 </div>
                             )}
                         </div>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    {feed.profiles?.account_type === 'creator' && (
-                        <button className="text-[12px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-[#222] px-3 py-1.5 rounded-[10px] hover:bg-slate-200 dark:hover:bg-[#333] transition-colors">
-                            Channel
-                        </button>
-                    )}
 
-                    {/* AI Coach Summary Trigger */}
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            window.dispatchEvent(new CustomEvent("open-floating-ai-coach", {
-                                detail: {
-                                    text: `Summarize and review this post by ${authorName} (${authorHandle}):\n\n"${feed.content}"`,
-                                    autoSend: true,
-                                    postContext: {
-                                        authorName,
-                                        authorHandle,
-                                        authorAvatar,
-                                        content: feed.content,
-                                        mediaUrls: images.length > 0 ? images : (feed.media_url ? [feed.media_url] : []),
-                                        mediaType: feed.media_type || 'image',
-                                        timestamp: feed.created_at,
-                                        postType: feed.post_type
-                                    }
-                                }
-                            }));
-                        }}
-                        className="p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all text-slate-400 hover:text-blue-500"
-                        title="AI Coach Summary"
-                    >
-                        <Sparkles size={18} />
-                    </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {feed.profiles?.account_type === 'creator' && (
+                                <button className="text-[12px] font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-[#222] px-3 py-1.5 rounded-[10px] hover:bg-slate-200 dark:hover:bg-[#333] transition-colors">
+                                    Channel
+                                </button>
+                            )}
 
-                    {/* Floating Actions Menu Dropdown */}
-                    <div className="relative">
-                        <button
-                            onClick={() => setShowDropdown(!showDropdown)}
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors ml-1 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60"
-                        >
-                            <MoreHorizontal size={20} />
-                        </button>
-                        {showDropdown && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
-                                <div className="absolute right-0 mt-2 w-44 rounded-2xl bg-white dark:bg-[#1C2031] border border-slate-250 dark:border-slate-850 shadow-xl z-20 py-1.5 text-left font-sans animate-in fade-in slide-in-from-top-1 duration-150">
-                                    {feed.user_id !== currentUserId ? (
-                                        <button
-                                            onClick={() => {
-                                                setShowDropdown(false);
-                                                toast.success("Post reported successfully!");
-                                            }}
-                                            className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252C42] hover:text-rose-500 text-left transition-colors flex items-center gap-2 group"
-                                        >
-                                            <AlertTriangle size={14} className="text-slate-400 group-hover:text-rose-500 transition-colors shrink-0" />
-                                            <span>Report Post</span>
-                                        </button>
-                                    ) : (
+                            {/* Consistent Follow / Following Tactile Pill Button */}
+                            {authorId && !isOwnPost && (
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        onToggleFollow(authorId, authorName);
+                                    }}
+                                    className={`px-3 py-1 rounded-full text-[11.5px] font-semibold whitespace-nowrap cursor-pointer select-none flex items-center gap-1 ${
+                                        followedUsers[authorId]
+                                            ? "tactile-white-pill"
+                                            : "tactile-black-pill"
+                                    }`}
+                                >
+                                    {followedUsers[authorId] ? (
                                         <>
+                                            <UserCheck size={11} strokeWidth={2.4} /> Following
+                                        </>
+                                    ) : (
+                                        "Follow"
+                                    )}
+                                </button>
+                            )}
+
+                            {/* Floating Actions Menu Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800/60 cursor-pointer"
+                                >
+                                    <MoreHorizontal size={19} />
+                                </button>
+                                {showDropdown && (
+                                    <>
+                                        <div className="fixed inset-0 z-10" onClick={() => setShowDropdown(false)} />
+                                        <div className="absolute right-0 mt-2 w-44 rounded-2xl bg-white dark:bg-[#1C2031] border border-slate-250 dark:border-slate-850 shadow-xl z-20 py-1.5 text-left font-sans animate-in fade-in slide-in-from-top-1 duration-150">
+                                            {feed.user_id !== currentUserId ? (
+                                                <button
+                                                    onClick={() => {
+                                                        setShowDropdown(false);
+                                                        toast.success("Post reported successfully!");
+                                                    }}
+                                                    className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252C42] hover:text-rose-500 text-left transition-colors flex items-center gap-2 group"
+                                                >
+                                                    <AlertTriangle size={14} className="text-slate-400 group-hover:text-rose-500 transition-colors shrink-0" />
+                                                    <span>Report Post</span>
+                                                </button>
+                                            ) : (
+                                                <>
+                                                    <button
+                                                        onClick={() => {
+                                                            setShowDropdown(false);
+                                                            if (onEdit) onEdit(feed);
+                                                        }}
+                                                        className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252C42] hover:text-blue-500 text-left transition-colors flex items-center gap-2 group"
+                                                    >
+                                                        <Edit2 size={14} className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
+                                                        <span>Edit Post</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            setShowDropdown(false);
+                                                            setShowDeleteConfirm(true);
+                                                        }}
+                                                        className="w-full px-4 py-2.5 text-xs font-bold text-rose-500 hover:bg-slate-50 dark:hover:bg-[#252C42] text-left transition-colors flex items-center gap-2 group"
+                                                    >
+                                                        <Trash2 size={14} className="text-rose-400 group-hover:text-rose-500 transition-colors shrink-0" />
+                                                        <span>Delete Post</span>
+                                                    </button>
+                                                </>
+                                            )}
                                             <button
                                                 onClick={() => {
                                                     setShowDropdown(false);
-                                                    if (onEdit) onEdit(feed);
+                                                    navigator.clipboard.writeText(window.location.origin + `/post/${feed.id}`);
+                                                    toast.success("Post link copied!");
                                                 }}
                                                 className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252C42] hover:text-blue-500 text-left transition-colors flex items-center gap-2 group"
                                             >
-                                                <Edit2 size={14} className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
-                                                <span>Edit Post</span>
+                                                <Link2 size={14} className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
+                                                <span>Copy Post Link</span>
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setShowDropdown(false);
-                                                    setShowDeleteConfirm(true);
+                                                    navigator.clipboard.writeText(window.location.origin + "/user/" + (feed.profiles?.username || ""));
+                                                    toast.success("Profile link copied!");
                                                 }}
-                                                className="w-full px-4 py-2.5 text-xs font-bold text-rose-500 hover:bg-slate-50 dark:hover:bg-[#252C42] text-left transition-colors flex items-center gap-2 group"
+                                                className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252C42] hover:text-blue-500 text-left transition-colors flex items-center gap-2 group"
                                             >
-                                                <Trash2 size={14} className="text-rose-400 group-hover:text-rose-500 transition-colors shrink-0" />
-                                                <span>Delete Post</span>
+                                                <Link2 size={14} className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
+                                                <span>Copy Profile Link</span>
                                             </button>
-                                        </>
-                                    )}
-                                    <button
-                                        onClick={() => {
-                                            setShowDropdown(false);
-                                            navigator.clipboard.writeText(window.location.origin + `/post/${feed.id}`);
-                                            toast.success("Post link copied!");
-                                        }}
-                                        className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252C42] hover:text-blue-500 text-left transition-colors flex items-center gap-2 group"
-                                    >
-                                        <Link2 size={14} className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
-                                        <span>Copy Post Link</span>
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setShowDropdown(false);
-                                            navigator.clipboard.writeText(window.location.origin + "/user/" + (feed.profiles?.username || ""));
-                                            toast.success("Profile link copied!");
-                                        }}
-                                        className="w-full px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-[#252C42] hover:text-blue-500 text-left transition-colors flex items-center gap-2 group"
-                                    >
-                                        <Link2 size={14} className="text-slate-400 group-hover:text-blue-500 transition-colors shrink-0" />
-                                        <span>Copy Profile Link</span>
-                                    </button>
-                                </div>
-                            </>
-                        )}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
 
-            {/* Content & Tags */}
-            <div className={`text-[15px] font-medium tracking-tight text-slate-800 dark:text-slate-200 mb-3 mt-2 prose prose-sm dark:prose-invert max-w-none prose-p:leading-[1.5] prose-p:font-medium prose-p:text-[15px] prose-p:tracking-tight prose-a:text-blue-500 break-words ${!isExpanded && shouldShowReadMore ? 'line-clamp-4' : ''}`}>
-                {feed.content && <ReactMarkdown>{feed.content}</ReactMarkdown>}
-            </div>
-            {shouldShowReadMore && (
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="font-bold text-blue-500 dark:text-blue-400 -mt-2 mb-3 hover:underline focus:outline-none text-[13px]"
-                >
-                    {isExpanded ? 'show less' : 'read more'}
-                </button>
-            )}
+                    {/* Optional Location */}
+                    {parsedLocation && (
+                        <div className="inline-flex items-center gap-1 text-[11.5px] font-medium text-slate-400 dark:text-zinc-500 mt-1">
+                            <MapPin size={11} />
+                            <span>{parsedLocation}</span>
+                        </div>
+                    )}
 
-            {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                    {tags.map((tag: string) => (
-                        <span key={tag} className="text-[12px] font-bold text-blue-500">#{tag}</span>
-                    ))}
-                </div>
-            )}
+                    {/* Optional Post Heading */}
+                    {parsedHeading && (
+                        <h3 className="text-[16px] font-bold text-slate-900 dark:text-white leading-snug tracking-tight mt-1.5 mb-1 break-words">
+                            {parsedHeading}
+                        </h3>
+                    )}
+
+                    {/* Body Text */}
+                    {parsedBody && (
+                        <div className={`text-[15px] font-normal text-slate-800 dark:text-slate-200 leading-[1.48] whitespace-pre-wrap break-words ${parsedHeading ? 'mb-2' : 'mt-1.5 mb-2'} ${!isExpanded && shouldShowReadMore ? 'line-clamp-5' : ''}`}>
+                            {renderStyledText(parsedBody)}
+                        </div>
+                    )}
+                    {shouldShowReadMore && (
+                        <button
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            className="font-semibold text-slate-900 dark:text-white -mt-1 mb-2.5 hover:underline focus:outline-none text-[13.5px] cursor-pointer"
+                        >
+                            {isExpanded ? 'Show less' : 'Show more'}
+                        </button>
+                    )}
+
+                    {/* Blue Hashtags Row */}
+                    {extraTags.length > 0 && (
+                        <div className="flex flex-wrap gap-x-2 gap-y-1 mb-3">
+                            {extraTags.map((tag: string) => (
+                                <span key={tag} className="text-[14.5px] font-medium text-blue-600 dark:text-blue-400">
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
 
             {/* Media Rendering */}
             {images.length > 0 ? (
@@ -887,62 +1132,25 @@ function FeedCard({
 
 
 
-            {/* Actions Footer */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-white/5">
-                <div className="flex items-center gap-6">
-                    <button
-                        onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            if (!isLiked) {
-                                setShowLikeBurst(true);
-                                setTimeout(() => setShowLikeBurst(false), 800);
-
-                            }
-                            onLike(feed.id);
-                        }}
-                        className={`flex items-center gap-2 transition-all group ${isLiked ? "text-rose-500" : "text-slate-400 hover:text-rose-500"
-                            }`}
-                    >
-                        <div className="p-2 -m-2 transition-transform duration-200 group-active:scale-90 flex items-center justify-center relative">
-                            <AnimatePresence>
-                                {showLikeBurst && <LikeBurst />}
-                            </AnimatePresence>
-                            <IconlyHeart size={18} set={isLiked ? "bold" : "curved"} stroke="bold" primaryColor="currentColor" className={`transition-all duration-300 [transition-timing-function:cubic-bezier(0.175,0.885,0.32,1.275)] group-hover:scale-120 group-hover:rotate-6 ${isLiked ? "fill-current" : ""}`} />
-                        </div>
-                        <span className="text-[13px] font-bold text-slate-600 dark:text-slate-300 transition-colors duration-200 group-hover:text-rose-500">
-                            <AnimatedCounter value={likes} />
-                        </span>
-                    </button>
-                    <button
-                        onClick={() => setShowComments(!showComments)}
-                        className={`flex items-center gap-2 transition-all group ${showComments ? "text-indigo-500 dark:text-indigo-400" : "text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400"
-                            }`}
-                    >
-                        <div className="p-2 -m-2 transition-transform duration-200 group-active:scale-90 flex items-center justify-center">
-                            <ChatWithLines size={18} set={showComments ? "bold" : "curved"} stroke="bold" className={`transition-all duration-300 [transition-timing-function:cubic-bezier(0.175,0.885,0.32,1.275)] group-hover:scale-110 ${showComments ? 'text-indigo-500' : ''}`} />
-                        </div>
-                        <span className="text-[13px] font-bold text-slate-600 dark:text-slate-300 transition-colors duration-200 group-hover:text-indigo-500 dark:group-hover:text-indigo-400">
-                            <AnimatedCounter value={localCommentsCount} />
-                        </span>
-                    </button>
-                    <button
-                        onClick={handleShare}
-                        className="flex items-center gap-2 text-slate-400 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all group"
-                    >
-                        <div className="p-2 -m-2 transition-transform duration-200 group-active:scale-90 flex items-center justify-center">
-                            <IconlySend size={18} set="curved" stroke="bold" primaryColor="currentColor" className="transition-all duration-300 [transition-timing-function:cubic-bezier(0.175,0.885,0.32,1.275)] group-hover:scale-110 group-hover:-translate-y-0.5" />
-                        </div>
-                    </button>
+                    {/* Redesigned Real-time Action Bar */}
+                    <PostActionBar
+                        postId={feed.id}
+                        post={feed}
+                        currentUserId={currentUserId}
+                        initialLiked={isLiked}
+                        initialLikes={likes}
+                        initialComments={localCommentsCount}
+                        initialReposted={isReposted}
+                        initialReposts={localRepostCount}
+                        initialBookmarked={isBookmarked}
+                        initialViews={localViewCount}
+                        onLike={onLike}
+                        className="pt-2.5"
+                    />
                 </div>
-                <button onClick={handleBookmark} className="text-slate-400 hover:text-blue-500 transition-all group">
-                    <div className="p-2 -m-2 transition-transform duration-200 group-active:scale-90 flex items-center justify-center">
-                        <IconlyBookmark size={18} set="curved" stroke="bold" primaryColor="currentColor" className={`transition-all duration-300 [transition-timing-function:cubic-bezier(0.175,0.885,0.32,1.275)] group-hover:scale-120 group-hover:-rotate-6 ${isBookmarked ? 'text-blue-500 fill-current' : ''}`} />
-                    </div>
-                </button>
             </div>
 
-            {/* Real-time centered Comment Modal Dialog or Full Screen Media Viewer */}
+            {/* Real-time Post & Replies View (or Fullscreen Media Viewer) */}
             <CommentModal
                 isOpen={showComments || !!focusedImageUrl}
                 onClose={() => { setShowComments(false); setFocusedImageUrl(null); }}
@@ -951,24 +1159,40 @@ function FeedCard({
                 post={feed}
                 onCommentsCountChange={(newCount) => setLocalCommentsCount(newCount)}
                 focusedImageUrl={focusedImageUrl}
+                isLiked={isLiked}
+                likes={likes}
+                onLike={onLike}
+                isReposted={isReposted}
+                repostCount={localRepostCount}
+                onRepost={handleRepost}
+                viewCount={localViewCount}
+                isBookmarked={isBookmarked}
+                onBookmark={handleBookmark}
+                onShare={handleShare}
+                isFollowing={Boolean(feed.user_id && followedUsers[feed.user_id])}
+                onToggleFollow={onToggleFollow}
             />
 
             {/* Delete Confirmation Modal */}
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <AlertDialogPopup className="bg-white dark:bg-[#121212] border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-xl max-w-sm">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-slate-900 dark:text-white font-bold text-xl mb-2">Delete Post</AlertDialogTitle>
-                        <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
+                <AlertDialogPopup bottomStickOnMobile={false} className="bg-white dark:bg-[#161618] border border-slate-200/90 dark:border-white/10 rounded-[22px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-2xl max-w-[380px] w-full p-6">
+                    <AlertDialogHeader className="p-0 text-left space-y-1.5">
+                        <AlertDialogTitle className="text-slate-900 dark:text-white font-bold text-[17px] tracking-tight leading-snug">
+                            Delete Post?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
                             Are you sure you want to delete this post? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter className="mt-6 flex justify-end gap-3">
-                        <AlertDialogClose render={<button className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-[#222] text-slate-800 dark:text-slate-200 font-semibold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm" />}>Cancel</AlertDialogClose>
-                        <AlertDialogClose 
+                    <AlertDialogFooter variant="bare" className="p-0 mt-5 flex flex-row items-center justify-end gap-2.5">
+                        <AlertDialogClose render={<button type="button" className="h-9 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-[#252528] text-slate-700 dark:text-slate-200 font-semibold text-[12.5px] transition-all active:scale-[0.98] cursor-pointer" />}>
+                            Cancel
+                        </AlertDialogClose>
+                        <AlertDialogClose
                             onClick={() => {
                                 if (onDelete) onDelete(feed.id);
                             }}
-                            render={<button className="h-[38px] px-5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25" />}
+                            render={<button type="button" className="h-9 px-4 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-semibold text-[12.5px] transition-all active:scale-[0.98] shadow-sm shadow-rose-600/20 cursor-pointer" />}
                         >
                             Yes, Delete
                         </AlertDialogClose>

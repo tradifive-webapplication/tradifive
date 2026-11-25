@@ -652,8 +652,8 @@ export default function CreatePostModal({
           .eq("user_id", userId)
           .gte("created_at", startOfDay.toISOString());
         if ((count ?? 0) >= dailyPostLimit) {
-          toast.error("Daily Post Limit Reached (1/day)", {
-            description: "Standard allows 1 Home Feed post per day. Upgrade to Pro for unlimited posts.",
+          toast.error("Daily post limit reached (1/day)", {
+            description: "Standard allows 1 post/day. Upgrade to Pro for unlimited posts.",
           });
           return;
         }

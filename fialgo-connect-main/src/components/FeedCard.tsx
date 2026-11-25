@@ -1175,20 +1175,24 @@ function FeedCard({
 
             {/* Delete Confirmation Modal */}
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-                <AlertDialogPopup className="bg-white dark:bg-[#121212] border-slate-200 dark:border-white/5 p-6 rounded-2xl shadow-xl max-w-sm">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-slate-900 dark:text-white font-bold text-xl mb-2">Delete Post</AlertDialogTitle>
-                        <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
+                <AlertDialogPopup bottomStickOnMobile={false} className="bg-white dark:bg-[#161618] border border-slate-200/90 dark:border-white/10 rounded-[22px] shadow-[0_20px_50px_rgba(15,23,42,0.18)] dark:shadow-2xl max-w-[380px] w-full p-6">
+                    <AlertDialogHeader className="p-0 text-left space-y-1.5">
+                        <AlertDialogTitle className="text-slate-900 dark:text-white font-bold text-[17px] tracking-tight leading-snug">
+                            Delete Post?
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">
                             Are you sure you want to delete this post? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <AlertDialogFooter className="mt-6 flex justify-end gap-3">
-                        <AlertDialogClose render={<button className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-[#222] text-slate-800 dark:text-slate-200 font-semibold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm" />}>Cancel</AlertDialogClose>
-                        <AlertDialogClose 
+                    <AlertDialogFooter variant="bare" className="p-0 mt-5 flex flex-row items-center justify-end gap-2.5">
+                        <AlertDialogClose render={<button type="button" className="h-9 px-4 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] hover:bg-slate-50 dark:hover:bg-[#252528] text-slate-700 dark:text-slate-200 font-semibold text-[12.5px] transition-all active:scale-[0.98] cursor-pointer" />}>
+                            Cancel
+                        </AlertDialogClose>
+                        <AlertDialogClose
                             onClick={() => {
                                 if (onDelete) onDelete(feed.id);
                             }}
-                            render={<button className="h-[38px] px-5 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25" />}
+                            render={<button type="button" className="h-9 px-4 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-semibold text-[12.5px] transition-all active:scale-[0.98] shadow-sm shadow-rose-600/20 cursor-pointer" />}
                         >
                             Yes, Delete
                         </AlertDialogClose>
