@@ -27,6 +27,7 @@ import { IndianBrokerConnector } from "@/components/IndianBrokerConnector";
 import { useTrading } from "@/contexts/TradingContext";
 import { useMarket } from "@/contexts/MarketContext";
 import { usePlan } from "@/hooks/usePlan";
+import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
 const BROKERS = [
@@ -46,7 +47,7 @@ export default function BrokerConnect() {
   const [selectedBroker, setSelectedBroker] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
-  const { isProOrElite } = usePlan();
+  const { isProOrElite, brokerAccountLimit, plan } = usePlan();
   const { activeMarket } = useMarket();
 
   const filteredBrokers = BROKERS.filter(b =>
@@ -94,13 +95,41 @@ export default function BrokerConnect() {
                 {filteredBrokers.map((broker) => (
                   <button
                     key={broker.id}
-                    onClick={() => {
-                      if (!isProOrElite && !['mt5', 'dhan', 'zerodha'].includes(broker.id)) {
-                        toast.error("Premium Feature", {
-                          description: "Upgrade to connect live proprietary brokers."
+                    onClick={async () => {
+                      const isIndianApi = ['dhan', 'zerodha', 'upstox', 'fyers'].includes(broker.id);
+                      if (!isIndianApi && brokerAccountLimit <= 0) {
+                        toast.error("Pro Plan Required", {
+                          description: "Live MT5 auto-sync starts on Pro (1 account) and Elite (up to 3 accounts). Standard includes manual & CSV logging."
                         });
                         navigate('/upgrade');
                         return;
+                      }
+                      if (!isProOrElite && !isIndianApi) {
+                        toast.error("Upgrade Required", {
+                          description: "Upgrade to Pro or Elite to connect live global brokers."
+                        });
+                        navigate('/upgrade');
+                        return;
+                      }
+                      if (broker.id === 'mt5') {
+                        try {
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (session?.user?.id) {
+                            const { count } = await supabase
+                              .from('mt5_accounts')
+                              .select('id', { count: 'exact', head: true })
+                              .eq('user_id', session.user.id);
+                            if ((count ?? 0) >= brokerAccountLimit) {
+                              toast.error("MT5 Account Limit Reached", {
+                                description: plan === 'pro'
+                                  ? "Pro allows 1 live MT5 account. Upgrade to Elite for up to 3 accounts."
+                                  : `Your ${plan.toUpperCase()} plan allows up to ${brokerAccountLimit} live MT5 accounts.`
+                              });
+                              navigate('/upgrade');
+                              return;
+                            }
+                          }
+                        } catch {}
                       }
                       setSelectedBroker(broker.id);
                     }}

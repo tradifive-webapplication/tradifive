@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import EmojiPicker from "emoji-picker-react";
 import { playSound } from "@/utils/soundEffects";
+import { usePlan } from "@/hooks/usePlan";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -81,6 +82,7 @@ export default function CreatePostModal({
   initialMediaType = null,
   variant = "modal"
 }: CreatePostModalProps) {
+  const { dailyPostLimit, isStarter } = usePlan();
   // Base states
   const [heading, setHeading] = useState("");
   const [content, setContent] = useState("");
@@ -637,6 +639,25 @@ export default function CreatePostModal({
     if (!heading.trim() && !content.trim() && mediaPreviews.length === 0 && attachmentType !== "poll") {
       toast.error("Please add some text or media to your post!");
       return;
+    }
+
+    // Enforce daily post cap on Standard plan (1 post / day)
+    if (mode === "create" && isStarter && Number.isFinite(dailyPostLimit) && userId) {
+      try {
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        const { count } = await supabase
+          .from("social_posts")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", userId)
+          .gte("created_at", startOfDay.toISOString());
+        if ((count ?? 0) >= dailyPostLimit) {
+          toast.error("Daily Post Limit Reached (1/day)", {
+            description: "Standard allows 1 Home Feed post per day. Upgrade to Pro for unlimited posts.",
+          });
+          return;
+        }
+      } catch {}
     }
 
     let finalPostType = "text";

@@ -8,9 +8,11 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { usePlan } from '@/hooks/usePlan';
 import { toast } from 'sonner';
 
 export const MT5Connector: React.FC = () => {
+  const { brokerAccountLimit, plan } = usePlan();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,9 +24,33 @@ export const MT5Connector: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (brokerAccountLimit <= 0) {
+      toast.error('Upgrade to Pro or Elite', {
+        description: 'Live MT5 account sync is not available on the free Standard plan.',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        const { count } = await supabase
+          .from('mt5_accounts')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', session.user.id);
+        if ((count ?? 0) >= brokerAccountLimit) {
+          toast.error('Account Limit Reached', {
+            description: plan === 'pro'
+              ? 'Pro supports 1 MT5 account. Upgrade to Elite for up to 3 accounts.'
+              : `Your ${plan.toUpperCase()} plan supports up to ${brokerAccountLimit} MT5 accounts.`,
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('deploy-metaapi-account', {
         body: {
           accountNumber: formData.accountNumber,

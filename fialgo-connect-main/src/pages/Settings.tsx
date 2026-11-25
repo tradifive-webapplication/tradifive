@@ -247,8 +247,8 @@ export default function Settings() {
             }).eq('id', user.id);
             localStorage.setItem('tradifive_selected_plan', newPlan);
             localStorage.setItem('tradifive_cached_plan', newPlan);
-            const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-            const newMax = limits[newPlan] || 20;
+            const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+            const newMax = limits[newPlan] || 5;
             localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
             window.dispatchEvent(new Event('tradifive_profile_update'));
          }
@@ -612,8 +612,8 @@ export default function Settings() {
                      localStorage.setItem('tradifive_selected_plan', plan);
                      currentPlan = plan;
                      
-                     const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-                     const newMax = limits[plan as keyof typeof limits] || 100;
+                     const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+                     const newMax = limits[plan as keyof typeof limits] || 50;
                      localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
                      
                      try {
@@ -639,8 +639,8 @@ export default function Settings() {
             
             setSelectedPlan(currentPlan);
             
-            const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-            const max = limits[currentPlan as keyof typeof limits] || 20;
+            const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+            const max = limits[currentPlan as keyof typeof limits] || 5;
             
             // Load profile details from database
             const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();

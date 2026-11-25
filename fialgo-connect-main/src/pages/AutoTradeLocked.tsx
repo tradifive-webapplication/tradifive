@@ -24,17 +24,17 @@ export default function AutoTradeLocked() {
             </div>
           </div>
 
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-zinc-300 text-[11px] font-medium mb-3">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-[11px] font-semibold mb-3">
             <Lock size={11} className="stroke-[2]" />
-            Feature Currently Locked
+            Elite Early Access · Coming Soon
           </span>
 
           <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">
-            AutoTrade Under Maintenance
+            AI Auto-Trade Coming Soon
           </h2>
 
           <p className="text-[13px] text-slate-500 dark:text-neutral-400 leading-relaxed mb-6">
-            Our automated bot execution engine and algorithm modules are currently locked while undergoing scheduled upgrades and calibrations.
+            AI-assisted automated execution is launching soon for Elite members while undergoing final risk calibrations.
           </p>
 
           <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] mb-6 text-left flex items-start gap-3">

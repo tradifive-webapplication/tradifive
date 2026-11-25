@@ -182,42 +182,43 @@ export default function Upgrade() {
           <div className="space-y-6">
             {[
               {
-                category: "Trading Core",
+                category: "Broker & Journal Core",
                 features: [
-                  { name: "Broker Connections", starter: "1", pro: "Up to 6", elite: "Unlimited" },
-                  { name: "Executions/day", starter: "5/day", pro: "Unlimited", elite: "Unlimited" },
-                  { name: "Trading Journal", starter: "Basic", pro: "Full + Calendar", elite: "Full + Behavioral Analytics" },
-                  { name: "Automated Trading", tooltip: "Automation assists execution bots.", starter: false, pro: false, elite: "Early Access" },
+                  { name: "Live MT5 Broker Sync", starter: "0 (Manual & CSV)", pro: "1 Account", elite: "Up to 3 Accounts" },
+                  { name: "Trading Journal & Calendar", starter: "Basic", pro: "Full + Screenshots", elite: "Full + AI Strategy Grading" },
+                  { name: "PDF Statement Exports", starter: false, pro: true, elite: true },
+                  { name: "AI Auto-Trade", tooltip: "AI-assisted automated execution (Coming Soon).", starter: false, pro: false, elite: "Coming Soon" },
                 ]
               },
               {
                 category: "AI & Intelligence",
                 features: [
-                  { name: "AI Coach Credits", starter: "10/day", pro: "50/day", elite: "100/day" },
-                  { name: "AI Trade Feedback", starter: "Post-trade score", pro: "Real-time feedback", elite: "Strategy-level analysis" },
+                  { name: "AI Coach Credits", starter: "5/day", pro: "50/day", elite: "150/day" },
+                  { name: "AI Trade Feedback", starter: "Basic Q&A", pro: "Live trade review", elite: "Weekly Deep Psychology" },
                 ]
               },
               {
-                category: "Risk Management",
+                category: "Risk Management & Alerts",
                 features: [
-                  { name: "Risk Guard Killswitch", starter: "Core limits", pro: "Advanced controls", elite: "Strategy-level controls" },
-                  { name: "Revenge-trade Protection", starter: false, pro: true, elite: true },
+                  { name: "Risk Guard Protection", starter: "Basic loss alert", pro: "Revenge Shield & Cooldown", elite: "Full Kill-Switch & News Lock" },
+                  { name: "Real-Time Alerts", starter: false, pro: "In-app & Push", elite: "Instant Telegram & WhatsApp" },
                 ]
               },
               {
-                category: "Community & Privacy",
+                category: "Home Feed, Channels & Privacy",
                 features: [
-                  { name: "Trading Competitions", starter: false, pro: "1/month", elite: "2/month" },
+                  { name: "Home Feed Posts & Watchlist", starter: "1 post/day · 3 pairs", pro: "Unlimited + Layout Edit", elite: "Unlimited + Priority Boost" },
+                  { name: "Channels Creation", starter: "1 Public Channel", pro: "Up to 3 Private/Public", elite: "Unlimited VIP & Paid" },
                   { name: "Balance Hiding (Privacy Mode)", starter: false, pro: true, elite: true },
-                  { name: "Private Channels", starter: false, pro: true, elite: true },
+                  { name: "Trading Competitions", starter: false, pro: "1/month", elite: "2/month (2x XP)" },
                 ]
               },
               {
-                category: "Elite Mentorship",
+                category: "Elite Mentorship & Referrals",
                 features: [
-                  { name: "Mentor account monitoring access", starter: false, pro: true, elite: true },
-                  { name: "Shared trading workspace", starter: false, pro: false, elite: true },
-                  { name: "Performance Reviews", starter: false, pro: false, elite: "Personalized" },
+                  { name: "Mentor account monitoring", starter: false, pro: false, elite: true },
+                  { name: "Verified Badge & Workspace", starter: false, pro: false, elite: true },
+                  { name: "Refer & Earn Commission", starter: true, pro: true, elite: true },
                   { name: "Customer Support", starter: "Community", pro: "Priority Support", elite: "24/7 VIP Dedicated" },
                 ]
               }

@@ -46,8 +46,8 @@ export default function CurrentPlanTab() {
         }).eq('id', user.id);
         localStorage.setItem('tradifive_selected_plan', newPlan);
         localStorage.setItem('tradifive_cached_plan', newPlan);
-        const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-        const newMax = limits[newPlan] || 20;
+        const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+        const newMax = limits[newPlan] || 5;
         localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
         window.dispatchEvent(new Event('tradifive_profile_update'));
       }
@@ -136,27 +136,27 @@ export default function CurrentPlanTab() {
         {/* Quota Highlights Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-6 border-t border-slate-100 dark:border-white/10">
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Broker Links</div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">MT5 Sync</div>
             <div className="text-sm font-bold text-slate-800 dark:text-white">
-              {activePlan === 'starter' ? '1 Active' : activePlan === 'pro' ? 'Up to 6' : 'Unlimited'}
+              {activePlan === 'starter' ? '0 (Manual/CSV)' : activePlan === 'pro' ? '1 Live Account' : 'Up to 3 Accounts'}
             </div>
           </div>
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">AI Coach</div>
             <div className="text-sm font-bold text-slate-800 dark:text-white">
-              {activePlan === 'starter' ? '20 Credits/day' : activePlan === 'pro' ? '100 Credits/day' : '350 Credits/day'}
+              {activePlan === 'starter' ? '5 Credits/day' : activePlan === 'pro' ? '50 Credits/day' : '150 Credits/day'}
             </div>
           </div>
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
             <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Risk Guard</div>
             <div className="text-sm font-bold text-slate-800 dark:text-white">
-              {activePlan === 'starter' ? 'Core Limits' : activePlan === 'pro' ? 'Revenge Shield' : 'Strategy Killswitch'}
+              {activePlan === 'starter' ? 'Basic Alert' : activePlan === 'pro' ? 'Revenge Shield' : 'Full Killswitch'}
             </div>
           </div>
           <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5">
-            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Executions</div>
+            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Feed & Channels</div>
             <div className="text-sm font-bold text-slate-800 dark:text-white">
-              {activePlan === 'starter' ? '5 / day' : 'Unlimited'}
+              {activePlan === 'starter' ? '1 Post · 1 Public' : activePlan === 'pro' ? 'Unlimited · 3 Private' : 'VIP · Boosted'}
             </div>
           </div>
         </div>
@@ -192,8 +192,8 @@ export default function CurrentPlanTab() {
             </DialogTitle>
             <DialogDescription className="text-slate-500 mt-2 text-sm leading-relaxed">
               {downgradeModalPlan === 'starter'
-                ? 'Your daily AI credits will revert to 20/day, broker connections will be limited to 1, and automated trading features will be paused.'
-                : 'By downgrading to Pro (₹1,399/mo), broker connections will be set to 6 and AI credits will be 100/day.'}
+                ? 'Your daily AI credits will revert to 5/day, live MT5 sync and Home customization will be locked, and feed posts will be capped at 1/day.'
+                : 'By downgrading to Pro (₹1,399/mo), live MT5 accounts will be limited to 1, channels to 3, and AI credits to 50/day.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2.5 sm:justify-end">

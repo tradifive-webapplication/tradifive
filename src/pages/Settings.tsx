@@ -1,3 +1,4 @@
+import { RunningNumber } from '@/components/ui/RunningNumber';
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -6,18 +7,20 @@ import DashboardLayout from '@/components/DashboardLayout';
 import logoOnly from '@/assets/Logo_only.png';
 import defaultAvatar from '@/assets/default-avatar.svg';
 import AccountTab from '@/components/settings/AccountTab';
-import ProfileTab from '@/components/settings/ProfileTab';
+import ProfileTab, { TactileBoxButton } from '@/components/settings/ProfileTab';
 import HelpTab from '@/components/settings/HelpTab';
 import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
 import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
 import { supabase } from '@/lib/supabase';
+import { performAppLogout } from '@/utils/logout';
 import { useMarket } from '@/contexts/MarketContext';
 import { toast } from 'sonner';
 import { applyThemeWithTransition } from '@/utils/themeTransition';
 import { getGamificationState, saveGamificationState } from '@/utils/gamification';
 import { validateUsername } from '@/utils/usernameValidation';
 import { PricingCards } from '@/components/PricingCards';
+import { initiateRazorpayCheckout } from '@/lib/razorpay';
 import ThemeSwitch from '@/components/ThemeSwitch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
@@ -29,28 +32,48 @@ import {
    ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
    CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
    AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
-   ChevronLeft, Sliders, Copy } from 'lucide-react';
+   ChevronLeft, Sliders, Copy, Pencil, HelpCircle, MousePointer } from 'lucide-react';
+import { triggerHaptic } from '@/utils/haptics';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight } from 'react-iconly';
+import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
+import { useTradingTheme } from '@/hooks/useTradingTheme';
+import { TradingThemeId } from '@/utils/tradingTheme';
 
 const TAB_TITLES: Record<string, string> = {
-   account: "My Account",
+   account: "Account & Security",
    general: "General Details",
-   profile: "Edit Profile & Privacy",
+   profile: "Profile",
    security: "Account & Security",
    privacy: "Privacy & Community",
    appearance: "Theme & Display",
    notifications: "Notifications",
    trading_preferences: "Trading & Risk Config",
-   ai: "AI Assistant",
-   trading: "Broker & Integrations",
+   ai: "AI Coach",
+   trading: "Accounts & Brokers",
    subscription: "Subscription",
    channel: "Channel Settings",
    creator: "Creator Account",
    help: "Help Center",
    report: "Report a Problem",
    terms: "Terms & Policies"
+};
+
+const TAB_SUBTITLES: Record<string, string> = {
+   profile: "Your card, bio, avatar, banner and privacy preferences",
+   account: "Manage email, password, sessions, standing and data export",
+   security: "Protect your account with password and session controls",
+   privacy: "Control profile visibility and community privacy",
+   notifications: "Choose which trade alerts and activity pings you receive",
+   trading_preferences: "Break-even range, risk circuit breaker and symbol preferences",
+   trading: "Connect MetaTrader 5 and Indian broker accounts",
+   ai: "Customize your TradiFive AI Coach persona and guardrails",
+   subscription: "Manage your active plan, perks and billing history",
+   appearance: "Switch light or dark theme and display preferences",
+   channel: "Configure your community channel and messaging settings",
+   creator: "Manage creator monetization, payouts and subscriber perks",
+   help: "Guides, FAQs and direct TradiFive support",
+   report: "Share bugs or issues directly with our engineering team",
 };
 
 const PushableButton = ({ children, onClick, type = 'primary', className = '', ...props }: any) => {
@@ -160,7 +183,7 @@ export default function Settings() {
    const { activeMarket } = useMarket();
 
    const normalizeTab = (rawTab: string | null) => {
-      if (!rawTab) return 'account';
+      if (!rawTab) return 'profile';
       if (rawTab === 'plan') return 'subscription';
       if (rawTab === 'profiles') return 'profile';
       if (rawTab === 'File Setup') return 'trading';
@@ -180,6 +203,9 @@ export default function Settings() {
          }
          setActiveTab(normalizeTab(rawTab));
          setMobileShowDetails(true);
+         if (rawTab === 'profiles') {
+            setIsDesktopEditingProfile(true);
+         }
       } else {
          setMobileShowDetails(false);
       }
@@ -203,9 +229,82 @@ export default function Settings() {
    // Billing State
    const [billingHistory, setBillingHistory] = useState<any[]>([]);
    const [loadingBilling, setLoadingBilling] = useState(true);
+   const [downgradeModalPlan, setDowngradeModalPlan] = useState<'starter' | 'pro' | null>(null);
+   const [isChangingPlan, setIsChangingPlan] = useState(false);
+   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annually'>('monthly');
+   const [discountCodeInput, setDiscountCodeInput] = useState('');
+   const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
+   const [showRefundModal, setShowRefundModal] = useState(false);
+
+   const applyPlanChange = async (newPlan: 'starter' | 'pro' | 'elite') => {
+      setIsChangingPlan(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (user) {
+            await supabase.from('profiles').update({
+               subscription_status: newPlan,
+               plan_type: newPlan,
+            }).eq('id', user.id);
+            localStorage.setItem('tradifive_selected_plan', newPlan);
+            localStorage.setItem('tradifive_cached_plan', newPlan);
+            const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+            const newMax = limits[newPlan] || 5;
+            localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
+            window.dispatchEvent(new Event('tradifive_profile_update'));
+         }
+         setActivePlan(newPlan);
+         setSelectedPlan(newPlan);
+         toast.success(`Plan updated to ${newPlan === 'starter' ? 'Standard' : newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}!`);
+      } catch (err: any) {
+         console.error('Error applying plan change:', err);
+         toast.error('Failed to change plan. Please try again.');
+      } finally {
+         setIsChangingPlan(false);
+         setDowngradeModalPlan(null);
+      }
+   };
+
+   const handleSettingsUpgrade = async (plan: 'starter' | 'pro' | 'elite') => {
+      if (plan === 'starter') {
+         setDowngradeModalPlan('starter');
+         return;
+      }
+      const price = plan === 'pro' ? 1399 : 2799;
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         await initiateRazorpayCheckout({
+            amount: price * 100,
+            currency: 'INR',
+            name: 'TradiFive',
+            description: `${plan.toUpperCase()} Membership Upgrade`,
+            receipt: `sett_upg_${plan}_${Date.now()}`,
+            notes: {
+               plan,
+               userId: user?.id || 'guest',
+            },
+            prefill: {
+               email: user?.email || undefined,
+               name: userProfile?.display_name || user?.user_metadata?.full_name || undefined,
+            },
+            onSuccess: async () => {
+               await applyPlanChange(plan);
+            },
+         });
+      } catch (err: any) {
+         console.error('Settings upgrade error:', err);
+         toast.error(err.message || 'Failed to start checkout.');
+      }
+   };
+
+   const handleSettingsDowngrade = (plan: 'starter' | 'pro' | 'elite') => {
+      if (plan === 'starter' || plan === 'pro') {
+         setDowngradeModalPlan(plan);
+      }
+   };
    
    // Modals State
    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+   const [isDesktopEditingProfile, setIsDesktopEditingProfile] = useState(false);
    const [showSmsModal, setShowSmsModal] = useState(false);
    const [isConnectingBroker, setIsConnectingBroker] = useState(false);
    const [selectedBrokerToConnect, setSelectedBrokerToConnect] = useState('');
@@ -256,36 +355,59 @@ export default function Settings() {
       account_type: 'personal'
    });
 
-   // Notifications State
-   const [globalOff, setGlobalOff] = useState(false);
-   const [globalEmailOnly, setGlobalEmailOnly] = useState(false);
-   const [notifications, setNotifications] = useState({
-      messages: [
-         { id: 'direct', label: 'Direct Messages', push: true, app: true, email: false },
-         { id: 'group', label: 'Group Messages', push: true, app: true, email: false },
-         { id: 'mentions', label: 'Mentions & Tags', push: true, app: true, email: true },
-      ],
-      text: [
-         { id: 'sms_alerts', label: 'SMS Security Alerts', push: true, app: false, email: false },
-         { id: 'push_marketing', label: 'Push Marketing & Promos', push: false, app: false, email: false },
-      ],
+   // Notifications State with Persistence
+   const [globalOff, setGlobalOff] = useState(() => {
+      try {
+         return localStorage.getItem('tradifive_notif_global_off') === 'true';
+      } catch {
+         return false;
+      }
+   });
+   const [globalEmailOnly, setGlobalEmailOnly] = useState(() => {
+      try {
+         return localStorage.getItem('tradifive_notif_email_only') === 'true';
+      } catch {
+         return false;
+      }
+   });
+   const [soundAlertsEnabled, setSoundAlertsEnabled] = useState(() => {
+      try {
+         return localStorage.getItem('tradifive_notif_sound') !== 'false';
+      } catch {
+         return true;
+      }
+   });
+
+   const DEFAULT_NOTIFICATIONS = {
       alerts: [
-         { id: 'trade', label: 'Trade Execution Alerts', push: true, app: true, email: true },
-         { id: 'price', label: 'Price Drops & Spikes', push: true, app: true, email: false },
-         { id: 'risk', label: 'Risk Guard Warnings', push: true, app: true, email: true },
+         { id: 'trade', label: 'Trade Execution Fills', desc: 'Instant alert when a manual or algo order opens or closes.', push: true, app: true, email: true },
+         { id: 'price', label: 'Price Targets & Stop Loss Hits', desc: 'Real-time alert when market hits your take-profit or stop-loss.', push: true, app: true, email: false },
+         { id: 'risk', label: 'RiskGuard & Drawdown Limits', desc: 'Immediate alarm when approaching max daily drawdown or exposure limit.', push: true, app: true, email: true },
       ],
       ai_coach: [
-         { id: 'insights', label: 'AI Coach Insights', push: true, app: true, email: false },
-         { id: 'weekly_report', label: 'Weekly Performance Reports', push: false, app: true, email: true },
+         { id: 'insights', label: 'Real-Time Psychology Insights', desc: 'AI Coach alerts when detecting revenge trading or emotional pacing.', push: true, app: true, email: false },
+         { id: 'weekly_report', label: 'Monday Performance Audit Statement', desc: 'Notification when your weekly audited statement is ready to download.', push: true, app: true, email: true },
+         { id: 'morning_plan', label: 'Daily Pre-Market Directives', desc: 'Morning notification to review your trading rules before market open.', push: false, app: true, email: false },
       ],
-      channels: [
-         { id: 'announcements', label: 'Channel Announcements', push: true, app: true, email: true },
-         { id: 'replies', label: 'Replies & Threads', push: true, app: true, email: false },
+      messages: [
+         { id: 'direct', label: 'Direct Messages & Mentions', desc: 'Private messages from other traders, channels, and @mentions.', push: true, app: true, email: false },
+         { id: 'group', label: 'Channel & Group Activities', desc: 'Replies, pinned messages, and trade ideas in followed channels.', push: false, app: true, email: false },
       ],
-      inboxes: [
-         { id: 'news', label: 'Community News', push: false, app: true, email: true },
-         { id: 'invites', label: 'Friend & Group Invites', push: true, app: true, email: false },
-      ]
+      text: [
+         { id: 'sms_alerts', label: 'Security & 2FA Login Alerts', desc: 'Immediate notification when an unrecognized login or IP is detected.', push: true, app: true, email: true },
+         { id: 'settlements', label: 'Weekly Profit Settlements', desc: 'Payout confirmations, profit share invoices, and wallet receipts.', push: true, app: true, email: true },
+      ],
+   };
+
+   const [notifications, setNotifications] = useState(() => {
+      try {
+         const saved = localStorage.getItem('tradifive_user_notifications');
+         if (saved) {
+            const parsed = JSON.parse(saved);
+            return { ...DEFAULT_NOTIFICATIONS, ...parsed };
+         }
+      } catch {}
+      return DEFAULT_NOTIFICATIONS;
    });
 
     // Appearance State
@@ -294,6 +416,25 @@ export default function Settings() {
    const [layoutDensity, setLayoutDensity] = useState('comfortable');
    const [terminalLogging, setTerminalLogging] = useState(false);
    const [fullScreenLayout, setFullScreenLayout] = useState(() => localStorage.getItem('fialgo_full_screen') === 'true');
+   const { themeId: pnlTheme, changeTheme: changePnlTheme, THEMES: PNL_THEMES } = useTradingTheme();
+   const [cursorStyle, setCursorStyle] = useState<"3d" | "dot" | "system">(() => {
+     if (typeof window === "undefined") return "3d";
+     return (localStorage.getItem('tradifive_cursor_style') as "3d" | "dot" | "system") || "3d";
+   });
+
+   const handleCursorStyleChange = (style: "3d" | "dot" | "system") => {
+     setCursorStyle(style);
+     try {
+       localStorage.setItem('tradifive_cursor_style', style);
+       window.dispatchEvent(new CustomEvent('tradifive_cursor_change', { detail: style }));
+     } catch (_) {}
+     const names: Record<string, string> = {
+       "3d": "3D Glossy Arrow",
+       "dot": "Minimal Precision Dot",
+       "system": "Classic System Default",
+     };
+     toast.success(`${names[style]} cursor selected`);
+   };
 
    // New Tab States
    const [language, setLanguage] = useState('en');
@@ -307,7 +448,6 @@ export default function Settings() {
    
    const [bgFadeStyle, setBgFadeStyle] = useState(() => localStorage.getItem('fialgo_bg_fade_style') || 'purple');
    const [lastSyncedTime, setLastSyncedTime] = useState('Just now');
-   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly');
    
    // Creator Settings
    const [creatorHandle, setCreatorHandle] = useState('');
@@ -472,8 +612,8 @@ export default function Settings() {
                      localStorage.setItem('tradifive_selected_plan', plan);
                      currentPlan = plan;
                      
-                     const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-                     const newMax = limits[plan as keyof typeof limits] || 100;
+                     const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+                     const newMax = limits[plan as keyof typeof limits] || 50;
                      localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
                      
                      try {
@@ -499,8 +639,8 @@ export default function Settings() {
             
             setSelectedPlan(currentPlan);
             
-            const limits = { starter: 20, pro: 100, elite: 350, institutional: 1000 };
-            const max = limits[currentPlan as keyof typeof limits] || 20;
+            const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
+            const max = limits[currentPlan as keyof typeof limits] || 5;
             
             // Load profile details from database
             const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -518,6 +658,11 @@ export default function Settings() {
                if (data.account_type) {
                   setPrivacySettings(prev => ({ ...prev, account_type: data.account_type }));
                }
+               let savedLocalSocial: Record<string, string> = {};
+               try {
+                  const s = localStorage.getItem(`tradifive_social_links_${user.id}`);
+                  if (s) savedLocalSocial = JSON.parse(s);
+               } catch (_) {}
                setProfile({
                   firstName: data.first_name || '',
                   lastName: data.last_name || '',
@@ -529,10 +674,12 @@ export default function Settings() {
                   bannerUrl: data.banner_url || '',
                   bio: data.bio || '',
                   tags: data.trading_style ? data.trading_style.split(',') : [],
-                  website: data.website || '',
-                  twitter: data.twitter_url || '',
-                  instagram: data.instagram_url || '',
-                  youtube: data.youtube_url || '',
+                  website: data.website || savedLocalSocial.website || '',
+                  twitter: data.twitter_url || savedLocalSocial.twitter || '',
+                  instagram: data.instagram_id || data.instagram_url || savedLocalSocial.instagram || '',
+                  youtube: data.youtube_url || savedLocalSocial.youtube || '',
+                  discord: data.discord_url || data.discord || savedLocalSocial.discord || '',
+                  tradingview: data.tradingview_url || data.tradingview || savedLocalSocial.tradingview || '',
                   address: data.address || '',
                   city: data.city || '',
                   state: data.state || '',
@@ -638,18 +785,30 @@ export default function Settings() {
    }, []);
 
    const handleToggle = (category: string, id: string, type: 'app' | 'push' | 'email') => {
-      setNotifications(prev => ({
-         ...prev,
-         [category]: (prev as any)[category].map((n: any) => 
-            n.id === id ? { ...n, [type]: !n[type] } : n
-         )
-      }));
+      setNotifications(prev => {
+         const next = {
+            ...prev,
+            [category]: (prev as any)[category].map((n: any) => 
+               n.id === id ? { ...n, [type]: !n[type] } : n
+            )
+         };
+         try {
+            localStorage.setItem('tradifive_user_notifications', JSON.stringify(next));
+         } catch {}
+         return next;
+      });
+      triggerHaptic('selection');
+      toast.success('Notification preferences updated');
    };
 
    const handleGlobalOff = () => {
       const newState = !globalOff;
       setGlobalOff(newState);
       if (newState) setGlobalEmailOnly(false);
+      try {
+         localStorage.setItem('tradifive_notif_global_off', String(newState));
+         if (newState) localStorage.setItem('tradifive_notif_email_only', 'false');
+      } catch {}
       
       const newNotifs = { ...notifications };
       Object.keys(newNotifs).forEach(key => {
@@ -658,12 +817,20 @@ export default function Settings() {
          }));
       });
       setNotifications(newNotifs);
+      try {
+         localStorage.setItem('tradifive_user_notifications', JSON.stringify(newNotifs));
+      } catch {}
+      toast(newState ? 'All alerts paused (DND active)' : 'Notifications restored');
    };
 
    const handleEmailOnly = () => {
       const newState = !globalEmailOnly;
       setGlobalEmailOnly(newState);
       if (newState) setGlobalOff(false);
+      try {
+         localStorage.setItem('tradifive_notif_email_only', String(newState));
+         if (newState) localStorage.setItem('tradifive_notif_global_off', 'false');
+      } catch {}
       
       const newNotifs = { ...notifications };
       Object.keys(newNotifs).forEach(key => {
@@ -672,6 +839,33 @@ export default function Settings() {
          }));
       });
       setNotifications(newNotifs);
+      try {
+         localStorage.setItem('tradifive_user_notifications', JSON.stringify(newNotifs));
+      } catch {}
+      toast(newState ? 'Email-only mode enabled' : 'Multi-channel notifications active');
+   };
+
+   const handleResetNotificationDefaults = () => {
+      setGlobalOff(false);
+      setGlobalEmailOnly(false);
+      setSoundAlertsEnabled(true);
+      setNotifications(DEFAULT_NOTIFICATIONS);
+      try {
+         localStorage.removeItem('tradifive_user_notifications');
+         localStorage.setItem('tradifive_notif_global_off', 'false');
+         localStorage.setItem('tradifive_notif_email_only', 'false');
+         localStorage.setItem('tradifive_notif_sound', 'true');
+      } catch {}
+      toast.success('Notification settings reset to defaults');
+   };
+
+   const handleToggleSound = () => {
+      const next = !soundAlertsEnabled;
+      setSoundAlertsEnabled(next);
+      try {
+         localStorage.setItem('tradifive_notif_sound', String(next));
+      } catch {}
+      toast(next ? 'Sound chimes enabled' : 'Sound chimes muted');
    };
 
    const handleUpdateProfile = async (e?: React.FormEvent) => {
@@ -724,6 +918,18 @@ export default function Settings() {
          localStorage.setItem("tradifive_cached_account_type", privacySettings.account_type || 'personal');
          window.dispatchEvent(new Event("storage"));
          
+         // Save social links locally so Profile & Public Profile display them immediately
+         const socialLinksPayload = {
+            website: profile.website || '',
+            instagram: profile.instagram || '',
+            youtube: profile.youtube || '',
+            discord: (profile as any).discord || '',
+            tradingview: (profile as any).tradingview || '',
+            twitter: profile.twitter || '',
+         };
+         localStorage.setItem(`tradifive_social_links_${user.id}`, JSON.stringify(socialLinksPayload));
+         localStorage.setItem(`tradifive_social_links_user_${effectiveUsername.toLowerCase()}`, JSON.stringify(socialLinksPayload));
+
          const updatedCache = {
             id: user.id,
             first_name: profile.firstName,
@@ -733,6 +939,12 @@ export default function Settings() {
             avatar_url: profile.avatarUrl,
             banner_url: profile.bannerUrl,
             bio: profile.bio,
+            website: profile.website || '',
+            instagram_id: profile.instagram || '',
+            youtube_url: profile.youtube || '',
+            discord: (profile as any).discord || '',
+            tradingview: (profile as any).tradingview || '',
+            twitter_url: profile.twitter || '',
             location: profile.city,
             country: profile.country,
             country_emoji: profile.countryEmoji
@@ -927,15 +1139,16 @@ export default function Settings() {
       setReportDescription('');
    };
 
-   // Define structural settings categories for left sidebar
+   // Define structural settings categories for left sidebar (grouped like ACCOUNT / TRADING / APP)
    const sidebarSections = [
       {
-         title: "My Account",
+         title: "Account",
          items: [
+            { id: "profile", label: "Profile", icon: User },
             { 
                id: "account", 
-               label: "Account", 
-               icon: User,
+               label: "Account & Security", 
+               icon: ShieldDone,
                children: [
                   { id: "account-info", label: "Account Info" },
                   { id: "password-security", label: "Password & Security" },
@@ -945,40 +1158,25 @@ export default function Settings() {
                   { id: "data-export", label: "Export & Privacy" },
                   { id: "danger-zone", label: "Danger Zone" }
                ]
-            }
-         ]
-      },
-      {
-         title: "Personalization",
-         items: [
-            { id: "appearance", label: "Theme & Display", icon: Category },
+            },
             { id: "notifications", label: "Notifications", icon: Notification }
          ]
       },
       {
-         title: "AI & Trading Tools",
+         title: "Trading",
          items: [
             { id: "trading_preferences", label: "Trading & Risk Config", icon: Sliders },
-            { id: "ai", label: "AI Coach", icon: Sparkles },
-            { id: "trading", label: "Broker & Integrations", icon: Swap }
+            { id: "trading", label: "Accounts & Brokers", icon: Wallet },
+            { id: "ai", label: "AI Coach", icon: Sparkles }
          ]
       },
       {
-         title: "Billing",
+         title: "App",
          items: [
-            { id: "subscription", label: "Subscription", icon: Wallet }
-         ]
-      },
-      {
-         title: "Community & Channels",
-         items: [
+            { id: "appearance", label: "Preferences", icon: Category },
+            { id: "subscription", label: "Subscription", icon: TicketStar },
             { id: "channel", label: "Channel Settings", icon: Chat },
-            { id: "creator", label: "Creator Account", icon: TicketStar }
-         ]
-      },
-      {
-         title: "Support",
-         items: [
+            { id: "creator", label: "Creator Account", icon: Star },
             { id: "help", label: "Help Center", icon: InfoCircle },
             { id: "report", label: "Report a Problem", icon: Danger },
             { id: "logout", label: "Log Out", icon: Logout }
@@ -1058,132 +1256,521 @@ export default function Settings() {
          <div className="absolute inset-0 hidden sm:block" onClick={handleCloseSettings} />
 
          {/* Centered Settings Dialog Modal Box */}
-         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[880px] max-w-[1440px] rounded-none sm:rounded-[16px] bg-white dark:bg-[#121212] text-slate-800 dark:text-[#dbdee1] flex overflow-hidden shadow-2xl border-0 sm:border sm:border-slate-200/60 dark:sm:border-white/5 z-10 pb-16 md:pb-0">
+         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[860px] max-w-[1160px] rounded-none sm:rounded-[24px] bg-white dark:bg-[#141417] text-slate-800 dark:text-[#dbdee1] flex flex-col overflow-hidden shadow-[0_24px_80px_rgba(15,23,42,0.22)] border-0 sm:border sm:border-slate-200/70 dark:sm:border-white/[0.08] z-10 pb-16 md:pb-0">
             
-            {/* LEFT SIDEBAR PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'hidden md:flex' : 'flex'} w-full md:w-64 bg-[#f2f3f5] dark:bg-[#1E1E1E] flex-col h-full min-h-0 border-r border-slate-200/60 dark:border-white/5 shrink-0`}>
-               {/* Mobile Header for Settings Sidebar */}
-               <div className="flex md:hidden items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1C] shrink-0">
-                  <span className="text-[14px] font-extrabold uppercase tracking-wider text-slate-800 dark:text-white">Settings</span>
-                  <button onClick={handleCloseSettings} className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-white/10 text-slate-500 hover:text-slate-700 dark:hover:text-white">
-                     <X size={16} />
+            {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
+            <div className="hidden md:block relative shrink-0 select-none">
+               <div className="relative h-[132px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-900">
+                  <img
+                     src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                     alt="Profile banner"
+                     className="w-full h-full object-cover object-center"
+                     onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                  />
+                  {/* Smooth fade melting cover cleanly into white/dark surface */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/55 to-transparent dark:from-[#141417] dark:via-[#141417]/55" />
+
+                  {/* Top-Right Translucent Close Circle */}
+                  <button
+                     type="button"
+                     onClick={handleCloseSettings}
+                     className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/45 hover:bg-black/65 backdrop-blur-sm text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer"
+                     title="Close Settings"
+                     aria-label="Close Settings"
+                  >
+                     <X size={15} strokeWidth={2.2} />
                   </button>
                </div>
 
-               <div className="py-6 px-4 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-                            {/* Mini Profile Display */}
-                  <div 
-                     onClick={() => {
-                        setActiveTab('profile');
-                        setMobileShowDetails(true);
-                     }}
-                     className="group bg-slate-200/50 dark:bg-[#121212] p-3 rounded-[16px] flex items-center gap-3 shadow-sm border border-slate-300/30 dark:border-transparent cursor-pointer hover:bg-slate-300/30 dark:hover:bg-[#292929]/50 transition-all"
+               {/* Overlapping Avatar + Identity Row */}
+               <div className="relative z-10 -mt-12 px-7 pb-3 flex items-end gap-3.5">
+                  <button
+                     type="button"
+                     onClick={() => setActiveTab('profile')}
+                     className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#141417] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800 shrink-0 cursor-pointer active:scale-95 transition-transform"
+                     aria-label="View profile settings"
                   >
-                     <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-slate-300 dark:bg-[#1E1E1E] shadow-inner">
-                        <img 
-                           src={profile.avatarUrl || defaultAvatar} 
-                           alt="Avatar" 
-                           className="w-full h-full object-cover" 
-                           onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
-                        />
-                     </div>
-                     <div className="min-w-0 flex-1 text-left">
-                        <p className="text-[12px] font-semibold text-slate-800 dark:text-white truncate leading-tight">
-                           {displayName}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                           <span className="text-[11px] text-blue-500 dark:text-blue-400 font-bold tracking-wide group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
-                              edit profile
-                           </span>
-                           <Edit stroke="bold" set="curved" size={12} className="text-blue-500 dark:text-blue-400 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors" />
-                        </div>
-                     </div>
-                     <div className="text-slate-500 dark:text-slate-400 p-1">
-                        <User stroke="bold" set="curved" size={18} />
-                     </div>
+                     <img
+                        src={profile.avatarUrl || defaultAvatar}
+                        alt={displayName}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                     />
+                  </button>
+                  <div className="min-w-0 pb-1">
+                     <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+                        {displayName}
+                     </h2>
+                     <p className="text-[12.5px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                        @{profile.username || "trader"} · <span className="capitalize">{activePlan}</span>
+                     </p>
                   </div>
+               </div>
+            </div>
 
-                  {/* Navigation Search Input */}
+            {/* ── MAIN MODAL BODY (Mobile list/detail OR Desktop 2-column sidebar + content) ── */}
+            <div className="flex flex-1 min-h-0 overflow-hidden">
+            
+             {/* ── MOBILE SETTINGS NAVIGATION (Matching Reference Picture 2) ── */}
+             <div className={`${mobileShowDetails ? 'hidden' : 'flex md:hidden'} w-full bg-[#F4F5F7] dark:bg-[#121215] flex-col h-full min-h-0 overflow-y-auto amazing-scrollbar select-none`}>
+                {/* Mobile Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/60 dark:border-white/5 bg-white dark:bg-[#1A1A1E] shrink-0 sticky top-0 z-20">
+                   <h1 className="text-[17px] font-bold text-slate-900 dark:text-white">Settings</h1>
+                   <button 
+                      onClick={handleCloseSettings} 
+                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer"
+                      aria-label="Close settings"
+                   >
+                      <X size={15} />
+                   </button>
+                </div>
+
+                <div className="p-4 space-y-4 pb-28">
+                   {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
+                   <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
+                      {/* Banner Image with smooth bottom fade */}
+                      <div className="relative h-36 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                         <img
+                            src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                            alt="Cover"
+                            className="w-full h-full object-cover object-center"
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                         />
+                         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40" />
+                      </div>
+
+                      {/* Overlapping Avatar */}
+                      <div className="relative -mt-9 ml-4 flex items-end justify-between pr-4">
+                         <div className="w-16 h-16 rounded-full border-2 border-white dark:border-[#1A1A1E] shadow-md overflow-hidden bg-white dark:bg-neutral-800 shrink-0">
+                            <img
+                               src={profile.avatarUrl || "/nikil_avatar.jpg"}
+                               alt={displayName}
+                               className="w-full h-full object-cover"
+                               onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                            />
+                         </div>
+                      </div>
+
+                      {/* Name, Username & Edit button row */}
+                      <div className="px-4 pt-2.5 pb-4 flex items-center justify-between">
+                         <div className="min-w-0 pr-3">
+                            <h2 className="text-[16px] font-bold text-slate-900 dark:text-white truncate leading-tight">
+                               {displayName}
+                            </h2>
+                            <p className="text-[12px] text-slate-400 dark:text-neutral-500 font-normal mt-0.5 truncate">
+                               @{profile.username || "nikhilharake"}
+                            </p>
+                         </div>
+                         <TactileBoxButton
+                            onClick={() => {
+                               triggerHaptic("selection");
+                               setActiveTab("profile");
+                               setMobileShowDetails(true);
+                            }}
+                            className="h-9 px-4 shrink-0"
+                            title="Edit profile"
+                         >
+                            <Pencil size={13.5} strokeWidth={2.4} className="text-slate-900 dark:text-white shrink-0" />
+                            <span className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-none tracking-tight">Edit</span>
+                         </TactileBoxButton>
+                      </div>
+                   </div>
+
+                   {/* 2. Search Settings Box */}
+                   <div className="relative">
+                      <Search set="curved" stroke="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={15} />
+                      <input
+                         type="text"
+                         placeholder="Search settings"
+                         value={searchQuery}
+                         onChange={(e) => setSearchQuery(e.target.value)}
+                         className="w-full bg-[#EAECEF] dark:bg-[#1E1E22] rounded-xl pl-9 pr-8 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 border border-transparent focus:outline-none focus:border-blue-500 transition-colors"
+                      />
+                      {searchQuery && (
+                         <button
+                            onClick={() => setSearchQuery('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                         >
+                            Clear
+                         </button>
+                      )}
+                   </div>
+
+                   {/* 3. Grouped Settings Lists (Matching Reference Picture 2) */}
+                   <div className="space-y-4 pt-1">
+                      {/* Section: ACCOUNT */}
+                      {(!searchQuery || "account profile activity trophies security notifications delete history privacy".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               ACCOUNT
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "profile".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('profile'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <User set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Profile</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "activity".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('active-sessions'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Activity set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Activity</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "trophies badges standing".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('account-standing'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Star set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Trophies & Standing</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "security password green check".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('password-security'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Security & Password</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "notifications alerts".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('notifications'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Notification set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Notifications</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "delete history privacy data".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('account'); setActiveSubTab('data-export'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Document set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Data & Privacy</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+                            </div>
+                         </div>
+                      )}
+
+                      {/* Section: TRADING */}
+                      {(!searchQuery || "trading break-even risk accounts circuit breaker symbol pricing".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               TRADING
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "break-even range risk".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Setting set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Break-even Range & Risk</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "accounts brokers".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Wallet set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Accounts & Brokers</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "risk circuit breaker".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Risk Circuit Breaker</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "symbol pricing market".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Swap set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Symbol Pricing</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+                            </div>
+                         </div>
+                      )}
+
+                      {/* Section: PREFERENCES & SUPPORT */}
+                      {(!searchQuery || "subscription theme appearance help report logout".includes(searchQuery.toLowerCase())) && (
+                         <div>
+                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
+                               PREFERENCES & SUPPORT
+                            </h3>
+                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
+                               {(!searchQuery || "subscription plan billing".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('subscription'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <TicketStar set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Subscription & Plan</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "theme appearance display".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('appearance'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Category set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Theme & Display</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "help center desk support".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('help'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <InfoCircle set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Help Center</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "report problem issue".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('report'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Danger set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Report a Problem</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               <button
+                                  type="button"
+                                  onClick={() => setShowLogoutConfirm(true)}
+                                  className="w-full flex items-center justify-between p-3.5 hover:bg-rose-50/50 dark:hover:bg-rose-500/10 active:bg-rose-100/50 transition-colors cursor-pointer text-left"
+                               >
+                                  <div className="flex items-center gap-3">
+                                     <div className="text-rose-500">
+                                        <Logout set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                     </div>
+                                     <span className="text-[13.5px] font-semibold text-rose-500">Log Out</span>
+                                  </div>
+                               </button>
+                            </div>
+                         </div>
+                      )}
+                   </div>
+                </div>
+             </div>
+
+             {/* ── DESKTOP SIDEBAR PANEL (Clean White Rail with Elevated Active Pill) ── */}
+             <div className="hidden md:flex w-[256px] bg-white dark:bg-[#141417] flex-col h-full min-h-0 shrink-0">
+
+               <div className="pt-1 pb-5 px-5 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+                  {/* Search Settings Pill */}
                   <div className="relative">
-                     <Search stroke="bold" set="curved" className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-[#949ba4]" size={14} />
-                     <input 
-                        type="text" 
-                        placeholder="Search settings..." 
+                     <Search stroke="bold" set="curved" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={14} />
+                     <input
+                        type="text"
+                        placeholder="Search settings"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-8 pr-3 py-1.5 rounded-md bg-[#e3e5e8] dark:bg-[#121212] border border-transparent text-[12px] placeholder:text-slate-500 text-slate-800 dark:text-slate-200 outline-none focus:bg-slate-100 dark:focus:bg-[#000000] transition-colors"
+                        className="w-full pl-9 pr-8 py-2 rounded-[11px] bg-[#F2F3F6] dark:bg-white/[0.06] border border-transparent focus:border-slate-300 dark:focus:border-white/15 focus:bg-white dark:focus:bg-[#1C1C21] text-[12.5px] placeholder:text-slate-400 text-slate-800 dark:text-slate-100 outline-none transition-all"
                      />
                      {searchQuery && (
-                        <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 hover:text-slate-655 dark:hover:text-slate-200">
+                        <button
+                           type="button"
+                           onClick={() => setSearchQuery('')}
+                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                        >
                            Clear
                         </button>
                      )}
                   </div>
 
-                  {/* Sections Iterations */}
-                  <div className="space-y-4">
+                  {/* Grouped Sections (ACCOUNT / TRADING / APP) */}
+                  <div className="space-y-5">
                      {filteredSections.map((section, idx) => (
                         <div key={idx}>
-                           <h3 className="text-[12px] font-bold text-slate-550 dark:text-[#949ba4] uppercase tracking-wider mb-2 px-2">
+                           <h3 className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-[0.08em] mb-1.5 px-2.5">
                               {section.title}
                            </h3>
-                           <div className="space-y-0.5">
+                           <div className="space-y-1">
                               {section.items.map((item: any) => {
                                  const isActive = activeTab === item.id;
+                                 const isLogout = item.id === 'logout';
                                  return (
                                     <div key={item.id} className="flex flex-col">
                                        <button
-                                          onClick={async () => { 
-                                             if (item.id === 'logout') {
+                                          type="button"
+                                          onClick={async () => {
+                                             if (isLogout) {
                                                 setShowLogoutConfirm(true);
                                              } else {
-                                                setActiveTab(item.id); 
+                                                setActiveTab(item.id);
                                                 setMobileShowDetails(true);
-                                                if(item.children) setActiveSubTab(item.children[0].id); 
+                                                if (item.children) setActiveSubTab(item.children[0].id);
                                              }
                                           }}
-                                          className={`w-full flex items-center gap-3 px-3 py-1.5 rounded-md text-[15px] font-medium transition-all duration-150 text-left ${
-                                             item.id === 'logout'
-                                             ? 'text-rose-500 hover:bg-rose-500/10 dark:hover:bg-rose-500/10'
-                                             : isActive 
-                                             ? 'bg-[#e3e5e8] dark:bg-[#3F4147]/60 text-slate-800 dark:text-white shadow-sm font-semibold' 
-                                             : 'text-slate-600 dark:text-[#B5BAC1] hover:bg-[#e3e5e8]/60 dark:hover:bg-[#3F4147]/40 hover:text-slate-800 dark:hover:text-[#DBDEE1]'
+                                          className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[12px] text-[13.5px] transition-all duration-150 text-left cursor-pointer ${
+                                             isLogout
+                                                ? 'text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10'
+                                                : isActive
+                                                ? 'bg-white dark:bg-[#1E1E24] text-slate-900 dark:text-white font-semibold shadow-[0_2px_10px_rgba(15,23,42,0.07),0_0_0_1px_rgba(15,23,42,0.06)] dark:shadow-none dark:border dark:border-white/10'
+                                                : 'text-slate-600 dark:text-neutral-400 hover:bg-slate-100/75 dark:hover:bg-white/[0.04] hover:text-slate-900 dark:hover:text-white font-medium'
                                           }`}
                                        >
-                                          {item.icon === Sparkles || item.icon === Sliders ? (
-                                             <item.icon size={20} className={item.id === 'logout' ? 'text-rose-500' : isActive ? 'text-indigo-650 dark:text-white' : ''} strokeWidth={isActive ? 2.5 : 1.5} />
-                                          ) : (
-                                             <item.icon 
-                                                stroke={isActive ? "bold" : "regular"} 
-                                                set="curved" 
-                                                size={20} 
-                                                className={item.id === 'logout' ? 'text-rose-500' : isActive ? 'text-indigo-650 dark:text-white' : ''} 
-                                             />
-                                          )}
-                                          <span className={isActive ? "font-bold" : "font-medium"}>{item.label}</span>
+                                          <span
+                                             className={`w-7 h-7 rounded-[8px] flex items-center justify-center shrink-0 transition-colors ${
+                                                isLogout
+                                                   ? 'text-rose-500'
+                                                   : isActive
+                                                   ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs'
+                                                   : 'text-slate-500 dark:text-neutral-400'
+                                             }`}
+                                          >
+                                             {item.icon === Sparkles || item.icon === Sliders ? (
+                                                <item.icon size={15} strokeWidth={2.1} />
+                                             ) : (
+                                                <item.icon
+                                                   stroke="bold"
+                                                   set="curved"
+                                                   size={16}
+                                                   primaryColor="currentColor"
+                                                />
+                                             )}
+                                          </span>
+                                          <span className="truncate">{item.label}</span>
                                        </button>
+
                                        {item.children && isActive && (
-                                          <div className="mt-1.5 ml-4 pl-3.5 border-l border-slate-300 dark:border-white/5 flex flex-col gap-1.5 relative py-1">
+                                          <div className="mt-1.5 ml-5 pl-3.5 border-l border-slate-200 dark:border-white/10 flex flex-col gap-1 relative py-0.5">
                                              {item.children.map((child: any) => (
                                                 <button
                                                    key={child.id}
+                                                   type="button"
                                                    onClick={() => {
                                                       setActiveSubTab(child.id);
                                                       setMobileShowDetails(true);
                                                       const el = document.getElementById(child.id);
                                                       const container = document.getElementById('settings-scroll-container');
                                                       if (el && container) {
-                                                         container.scrollTo({ top: el.offsetTop - 100, behavior: 'smooth' });
+                                                         container.scrollTo({ top: el.offsetTop - 90, behavior: 'smooth' });
                                                       }
                                                    }}
-                                                   className={`relative text-left text-[14px] font-medium transition-colors py-1 ${
-                                                      activeSubTab === child.id 
-                                                      ? 'text-slate-800 dark:text-white' 
-                                                      : 'text-slate-500 dark:text-[#B5BAC1] hover:text-slate-700 dark:hover:text-[#DBDEE1]'
+                                                   className={`relative text-left text-[12.5px] font-medium transition-colors py-1 cursor-pointer ${
+                                                      activeSubTab === child.id
+                                                         ? 'text-slate-900 dark:text-white font-semibold'
+                                                         : 'text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-200'
                                                    }`}
                                                 >
                                                    {activeSubTab === child.id && (
-                                                      <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-[2px] h-3.5 bg-slate-800 dark:bg-white rounded-r-full" />
+                                                      <div className="absolute left-[-15px] top-1/2 -translate-y-1/2 w-[2px] h-3.5 bg-slate-900 dark:bg-white rounded-r-full" />
                                                    )}
                                                    {child.label}
                                                 </button>
@@ -1194,70 +1781,72 @@ export default function Settings() {
                                  );
                               })}
                            </div>
-                           {idx < filteredSections.length - 1 && section.title !== "Support" && (
-                              <div className="h-[1px] bg-slate-300/40 dark:bg-white/5 my-3.5 mx-1.5" />
-                           )}
                         </div>
                      ))}
                   </div>
 
-                  <div className="mt-auto pt-4 pb-4 px-4 select-none border-t border-slate-150 dark:border-zinc-800/40">
-                     <div className="flex items-center justify-between mb-3.5">
-                        <span className="text-[10px] font-mono tracking-wider text-slate-400 dark:text-zinc-400 uppercase">v2.0.0 Stable</span>
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-zinc-400 font-medium">
-                           <span className="flex h-1.5 w-1.5 relative">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                           </span>
+                  {/* Subtle Footer Links */}
+                  <div className="mt-auto pt-4 px-2 select-none border-t border-slate-100 dark:border-white/[0.06]">
+                     <div className="flex items-center justify-between mb-2.5">
+                        <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">v2.0.0</span>
+                        <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
+                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                            Connected
                         </span>
                      </div>
-                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] font-medium text-slate-400 dark:text-zinc-400">
-                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Privacy Policy</a>
-                        <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Risk Disclosure</a>
-                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Terms of Service</a>
-                        <a href="/cookie-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Cookie Policy</a>
-                        <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">Refund Policy</a>
-                        <a href="/aml-kyc-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-800 dark:hover:text-zinc-300 hover:underline transition-colors">AML & KYC</a>
+                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] font-medium text-slate-400">
+                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Privacy Policy</a>
+                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Terms</a>
+                        <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Risk Disclosure</a>
+                        <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Refund Policy</a>
                      </div>
                   </div>
                </div>
-            </div>
+             </div>
 
             {/* RIGHT CONTENT PANEL inside Modal */}
-            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-white dark:bg-[#121212] h-full min-h-0 overflow-hidden relative flex flex-col`}>
+            <div className={`${mobileShowDetails ? 'flex' : 'hidden md:flex'} flex-1 min-w-0 bg-[#F4F5F7] dark:bg-[#121215] md:bg-white md:dark:bg-[#141417] h-full min-h-0 overflow-hidden relative flex flex-col`}>
                
-               {/* Fixed Header outside the scrollable container at the top */}
-               <div className="bg-white/95 dark:bg-[#1E1E1E]/95 backdrop-blur-sm px-4 sm:px-6 md:px-8 py-3 border-b border-slate-150 dark:border-white/5 flex items-center justify-between shrink-0">
+               {/* Mobile-only Sticky Back Header (Desktop uses Hero close + clean section title) */}
+               <div className="flex md:hidden bg-white dark:bg-[#1A1A1E] px-4 py-3 border-b border-slate-200/60 dark:border-white/5 items-center justify-between shrink-0 sticky top-0 z-20">
                   <div className="flex items-center gap-2 min-w-0">
-                     {/* Mobile Back Button to return to Settings Sidebar */}
                      <button
                         type="button"
                         onClick={() => setMobileShowDetails(false)}
-                        className="flex md:hidden items-center gap-1 text-[13px] font-bold text-blue-600 dark:text-blue-400 py-1 px-2 -ml-2 rounded-lg hover:bg-blue-50 dark:hover:bg-white/5 transition-colors shrink-0"
+                        className="flex items-center gap-1 text-[14px] font-medium text-slate-800 dark:text-neutral-200 py-1 px-1 -ml-1 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors shrink-0"
                      >
                         <ChevronLeft size={18} />
                         <span>Settings</span>
                      </button>
-                     <h1 className="text-[13px] font-extrabold text-slate-900 dark:text-white uppercase tracking-wider truncate">
-                        {headerTitle}
-                     </h1>
                   </div>
                   
                   <button
+                      type="button"
                       onClick={handleCloseSettings}
-                      className="group flex items-center justify-center w-8 h-8 rounded-full border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-450 hover:text-rose-500 dark:hover:text-rose-400 transition-all hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FCA5A5] dark:hover:shadow-none active:scale-95 shrink-0"
+                      className="w-7 h-7 rounded-full bg-slate-100 dark:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-neutral-400 dark:hover:text-white active:scale-90 transition-transform cursor-pointer shrink-0"
                       title="Close Settings"
                    >
-                      <X size={15} className="transition-transform group-hover:rotate-90 duration-200" />
+                      <X size={15} />
                    </button>
                </div>
 
                {/* Scrollable Content Container */}
-               <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto scrollbar-hide scroll-smooth overscroll-contain">
+               <div id="settings-scroll-container" className="w-full flex-1 min-h-0 overflow-y-auto amazing-scrollbar scroll-smooth overscroll-contain">
 
                   {/* Scrollable Content wrapper with padding */}
-                  <div className="w-full mx-auto pt-4 sm:pt-10 px-3 sm:px-10 pb-28 sm:pb-12 space-y-6">
+                  <div className="w-full mx-auto pt-2 md:pt-1 px-3 sm:px-6 md:px-8 pb-6 md:pb-12 space-y-5">
+                     {/* Desktop Clean Section Heading & Subtitle */}
+                     <div className="hidden md:block mb-5 max-w-[820px]">
+                        <h1 className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                           {headerTitle}
+                        </h1>
+                        {TAB_SUBTITLES[activeTab] && (
+                           <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-1">
+                              {TAB_SUBTITLES[activeTab]}
+                           </p>
+                        )}
+                     </div>
+
                      <AnimatePresence mode="wait">
 
                      {/* TAB 0: ACCOUNT SETTINGS */}
@@ -1288,19 +1877,171 @@ export default function Settings() {
                            animate={{ opacity: 1, y: 0 }}
                            exit={{ opacity: 0, y: -10 }}
                            transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[1100px] mx-auto"
+                           className="space-y-5 w-full max-w-[820px]"
                         >
+                           {/* Desktop Profile Overview (Showcase Card + Details Card) when NOT in edit mode */}
+                           {!isDesktopEditingProfile && (
+                              <div className="hidden md:block space-y-5">
+                                 {/* Card 1: Profile Showcase Card (Banner + Fade + Avatar + Name + Edit Profile) */}
+                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
+                                    <div className="relative h-[185px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                                       <img
+                                          src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
+                                          alt="Profile cover"
+                                          className="w-full h-full object-cover object-center"
+                                          onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                                       />
+                                       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/60" />
+                                    </div>
 
+                                    <div className="px-6 pb-6">
+                                       <div className="relative z-10 -mt-12 mb-3">
+                                          <div className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#1B1B20] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                                             <img
+                                                src={profile.avatarUrl || defaultAvatar}
+                                                alt={displayName}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
+                                             />
+                                          </div>
+                                       </div>
 
-                           <ProfileTab 
-                              profile={profile} 
-                              setProfile={setProfile} 
-                              privacySettings={privacySettings} 
-                              setPrivacySettings={setPrivacySettings} 
-                              avatarUploadRef={avatarUploadRef} 
-                              bannerUploadRef={bannerUploadRef} 
-                              isInitialLoading={isInitialLoading}
-                           />
+                                       <h2 className="text-[18px] font-bold text-slate-900 dark:text-white tracking-tight leading-tight">
+                                          {displayName}
+                                       </h2>
+                                       <p className="text-[13px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          @{profile.username || "trader"}
+                                       </p>
+
+                                       <div className="mt-4">
+                                          <TactileBoxButton
+                                             onClick={() => {
+                                                triggerHaptic("selection");
+                                                setIsDesktopEditingProfile(true);
+                                             }}
+                                             className="h-9 px-4"
+                                          >
+                                             <Pencil size={13.5} strokeWidth={2.2} className="text-slate-800 dark:text-white" />
+                                             <span>Edit profile</span>
+                                          </TactileBoxButton>
+                                       </div>
+                                    </div>
+                                 </div>
+
+                                 {/* Card 2: Account & Profile Summary Card */}
+                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-4">
+                                    <div>
+                                       <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          Profile Details
+                                       </h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          Public identity, contact email, and workspace plan linked to your account.
+                                       </p>
+                                    </div>
+
+                                    <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div>
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Email</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                                {profile.email || "Not set"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setActiveTab("account")}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                                          >
+                                             Manage
+                                          </button>
+                                       </div>
+
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div className="min-w-0">
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Public Link</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                                                tradifive.in/{profile.username || "trader"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setIsDesktopEditingProfile(true)}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                                          >
+                                             Edit
+                                          </button>
+                                       </div>
+
+                                       <div className="py-3 flex items-center justify-between gap-4">
+                                          <div className="min-w-0">
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Bio</p>
+                                             <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
+                                                {profile.bio?.trim() || "No bio added yet."}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setIsDesktopEditingProfile(true)}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                                          >
+                                             Edit
+                                          </button>
+                                       </div>
+
+                                       <div className="pt-3 flex items-center justify-between gap-4">
+                                          <div>
+                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Workspace Plan</p>
+                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 capitalize">
+                                                {activePlan} Plan · {profile.isPrivate ? "Private profile" : "Public profile"}
+                                             </p>
+                                          </div>
+                                          <button
+                                             type="button"
+                                             onClick={() => setActiveTab("subscription")}
+                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                                          >
+                                             View plan
+                                          </button>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           )}
+
+                           {/* Mobile ALWAYS renders ProfileTab; Desktop renders full ProfileTab editor when Edit profile is clicked */}
+                           <div id="settings-profile-editor" className={isDesktopEditingProfile ? "block" : "md:hidden"}>
+                              {isDesktopEditingProfile && (
+                                 <div className="hidden md:flex items-center justify-between mb-4">
+                                    <button
+                                       type="button"
+                                       onClick={() => setIsDesktopEditingProfile(false)}
+                                       className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 hover:text-slate-900 dark:text-neutral-400 dark:hover:text-white transition-colors cursor-pointer"
+                                    >
+                                       <ChevronLeft size={15} />
+                                       <span>Back to profile card</span>
+                                    </button>
+                                 </div>
+                              )}
+                              <ProfileTab 
+                                 profile={profile} 
+                                 setProfile={setProfile} 
+                                 privacySettings={privacySettings} 
+                                 setPrivacySettings={setPrivacySettings} 
+                                 avatarUploadRef={avatarUploadRef} 
+                                 bannerUploadRef={bannerUploadRef} 
+                                 isInitialLoading={isInitialLoading}
+                                 onSave={async () => {
+                                    await handleUpdateProfile();
+                                    setIsDesktopEditingProfile(false);
+                                 }}
+                                 onCancel={() => {
+                                    setIsDesktopEditingProfile(false);
+                                    setMobileShowDetails(false);
+                                 }}
+                                 loading={loading}
+                                 setActiveTab={setActiveTab}
+                              />
+                           </div>
 
                            {/* Hidden inputs triggers */}
                            <input type="file" ref={avatarUploadRef} accept="image/*" className="hidden" onChange={async (e) => {
@@ -1325,17 +2066,6 @@ export default function Settings() {
                                  }
                               }
                            }} />
-
-                           <div className="flex justify-end items-center pt-6 pb-4 border-t border-slate-200/60 dark:border-slate-800">
-                              <button 
-                                 type="button"
-                                 onClick={() => handleUpdateProfile()}
-                                 disabled={loading}
-                                 className="px-6 py-2.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-[13px] font-bold shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                 {loading ? 'Saving...' : 'Save Profile Changes'}
-                              </button>
-                           </div>
 
                         </motion.div>
                      )}
@@ -1582,48 +2312,190 @@ export default function Settings() {
                               </div>
                            </div>
 
-                           {/* Chart Candlestick Color Theme */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 text-emerald-500">
-                                    <TrendingUp size={18} />
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Chart Candlestick Theme</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Choose color dynamics for bull/bear candlestick bars on the live terminal.
-                                    </p>
+                           {/* Trading & P&L Colors Palette */}
+                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                 <div className="flex gap-4">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
+                                       <TrendingUp size={18} />
+                                    </div>
+                                    <div className="space-y-1">
+                                       <div className="flex items-center gap-2">
+                                          <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                                             Trading &amp; P&amp;L Colors
+                                          </h3>
+                                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                             Dashboard &amp; Journal
+                                          </span>
+                                       </div>
+                                       <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
+                                          Choose how profit, loss, equity curves, win rate rings, and trade logs are colored. Classic Green &amp; Red is the primary recommended preset.
+                                       </p>
+                                    </div>
                                  </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                 <button
-                                    type="button"
-                                    onClick={() => {
-                                       localStorage.setItem('tradifive_chart_theme', 'classic');
-                                       toast.success('Classic Green / Red chart theme applied');
-                                    }}
-                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-all"
-                                 >
-                                    Classic Green/Red
-                                 </button>
-                                 <button
-                                    type="button"
-                                    onClick={() => {
-                                       localStorage.setItem('tradifive_chart_theme', 'cyber');
-                                       toast.success('Cyber Cyan / Neon Pink chart theme applied');
-                                    }}
-                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold border border-cyan-500/30 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/20 transition-all"
-                                 >
-                                    Cyber Cyan/Pink
-                                 </button>
+
+                              {/* 3 Selectable Theme Cards */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                 {(Object.keys(PNL_THEMES) as TradingThemeId[]).map((id) => {
+                                    const t = PNL_THEMES[id];
+                                    const isSelected = pnlTheme === id;
+                                    return (
+                                       <button
+                                          key={id}
+                                          type="button"
+                                          onClick={() => {
+                                             changePnlTheme(id);
+                                             localStorage.setItem('tradifive_chart_theme', id === 'monochrome' ? 'classic' : id);
+                                             toast.success(`Applied ${t.label} palette across Dashboard & Journal`);
+                                          }}
+                                          className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                             isSelected
+                                                ? "border-emerald-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(16,185,129,0.12)] ring-2 ring-emerald-500/25"
+                                                : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
+                                          }`}
+                                       >
+                                          <div>
+                                             <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                   {t.label}
+                                                </span>
+                                                {t.badge ? (
+                                                   <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                                      {t.badge}
+                                                   </span>
+                                                ) : isSelected ? (
+                                                   <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                                                      <Check size={10} strokeWidth={3} />
+                                                   </span>
+                                                ) : null}
+                                             </div>
+                                             <p className="text-[11px] text-slate-500 dark:text-neutral-400 line-clamp-2 leading-relaxed mb-3">
+                                                {t.subLabel}
+                                             </p>
+                                          </div>
+
+                                          {/* Live Swatch Preview */}
+                                          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-bold tabular-nums">
+                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.profitBadge}`}>
+                                                {t.previewProfit}
+                                             </span>
+                                             <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.lossBadge}`}>
+                                                {t.previewLoss}
+                                             </span>
+                                          </div>
+                                       </button>
+                                    );
+                                 })}
                               </div>
                            </div>
 
-                        </motion.div>
+                        
+                            {/* Mouse Pointer & Cursor Selection */}
+                            <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
+                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                  <div className="flex gap-4">
+                                     <div className="w-10 h-10 rounded-full bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
+                                        <MousePointer size={18} />
+                                     </div>
+                                     <div className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                           <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
+                                              Mouse Pointer &amp; Cursor
+                                           </h3>
+                                           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                              Tactile Feedback
+                                           </span>
+                                        </div>
+                                        <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
+                                           Choose your desktop mouse pointer style. Includes tactile spring physics and luxury expanding click circles.
+                                        </p>
+                                     </div>
+                                  </div>
+                               </div>
+
+                               {/* 3 Selectable Cursor Cards */}
+                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                                  {[
+                                     {
+                                        id: '3d' as const,
+                                        title: '3D Glossy Arrow',
+                                        badge: 'Recommended',
+                                        desc: 'Sleek beveled black arrow with specular reflection, softer shadow & click circles.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <div className="absolute w-8 h-8 rounded-full border border-slate-900/30 dark:border-white/50 bg-slate-900/[0.04] dark:bg-white/[0.08] animate-ping" />
+                                              <img src="/custom-cursor.png" alt="3D Arrow" className="w-6 h-6 object-contain drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.20)] relative z-10" />
+                                           </div>
+                                        ),
+                                     },
+                                     {
+                                        id: 'dot' as const,
+                                        title: 'Precision Dot',
+                                        badge: 'Modern',
+                                        desc: 'Minimalist circle dot with active dynamic hover expansion and click ripple.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-blue-500/20" />
+                                           </div>
+                                        ),
+                                     },
+                                     {
+                                        id: 'system' as const,
+                                        title: 'System Default',
+                                        badge: 'Classic',
+                                        desc: 'Standard native operating system cursor with normal OS mouse behavior.',
+                                        preview: (
+                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                              <MousePointer size={20} className="text-slate-700 dark:text-neutral-300" />
+                                           </div>
+                                        ),
+                                     },
+                                  ].map((opt) => {
+                                     const isSelected = cursorStyle === opt.id;
+                                     return (
+                                        <button
+                                           key={opt.id}
+                                           type="button"
+                                           onClick={() => handleCursorStyleChange(opt.id)}
+                                           className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                              isSelected
+                                                 ? "border-blue-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-2 ring-blue-500/25"
+                                                 : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
+                                           }`}
+                                        >
+                                           <div>
+                                              <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                 <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                    {opt.title}
+                                                 </span>
+                                                 {isSelected ? (
+                                                    <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
+                                                       <Check size={10} strokeWidth={3} />
+                                                    </span>
+                                                 ) : (
+                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-neutral-400">
+                                                       {opt.badge}
+                                                    </span>
+                                                 )}
+                                              </div>
+                                              <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed mb-3">
+                                                 {opt.desc}
+                                              </p>
+                                           </div>
+
+                                           {opt.preview}
+                                        </button>
+                                     );
+                                  })}
+                               </div>
+                            </div>
+
+</motion.div>
                      )}
 
 
-                     {/* TAB 6: NOTIFICATIONS */}
+                     {/* TAB 6: NOTIFICATIONS (Clean, Modern, Tactile) */}
                      {activeTab === 'notifications' && (
                         <motion.div
                            key="notifications"
@@ -1631,73 +2503,189 @@ export default function Settings() {
                            animate={{ opacity: 1, y: 0 }}
                            exit={{ opacity: 0, y: -10 }}
                            transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                           className="space-y-6 w-full max-w-[800px] mx-auto"
                         >
-                           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-[#3f4147] pb-4 mb-6">
-                              <h2 className="text-[20px] font-bold text-slate-900 dark:text-white">
-                                 Notifications
-                              </h2>
-                              {/* Global Control Hub */}
-                              <div className="flex items-center gap-3 text-[12px] font-bold">
-                                 <button 
-                                    onClick={handleGlobalOff} 
-                                    className="group flex items-center justify-center gap-2 h-8 px-4 rounded-full border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-500 dark:text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition-all hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#FCA5A5] dark:hover:shadow-none active:scale-95 shrink-0"
+                           {/* Header & Quick Action Pills */}
+                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
+                              <div>
+                                 <h2 className="text-[22px] font-bold tracking-tight text-slate-900 dark:text-white">
+                                    Notifications
+                                 </h2>
+                                 <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">
+                                    Configure trade execution alerts, risk guard limits, AI Coach digests, and messaging.
+                                 </p>
+                              </div>
+
+                              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                                 <button
+                                    type="button"
+                                    onClick={handleGlobalOff}
+                                    className={`h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                       globalOff
+                                          ? 'bg-rose-500 text-white shadow-xs'
+                                          : 'tactile-white-pill text-slate-700 dark:text-slate-200'
+                                    }`}
                                  >
-                                    <Power size={14} className="transition-transform group-hover:scale-110 duration-200" /> Switch off all
+                                    <Power size={13} strokeWidth={2.4} />
+                                    <span>{globalOff ? 'Muted (DND)' : 'Pause All'}</span>
                                  </button>
-                                 <button 
-                                    onClick={handleEmailOnly} 
-                                    className="group flex items-center justify-center gap-2 h-8 px-4 rounded-full border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none text-slate-500 dark:text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 transition-all hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#A5B4FC] dark:hover:shadow-none active:scale-95 shrink-0"
+                                 <button
+                                    type="button"
+                                    onClick={handleEmailOnly}
+                                    className={`h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                       globalEmailOnly
+                                          ? 'bg-indigo-600 text-white shadow-xs'
+                                          : 'tactile-white-pill text-slate-700 dark:text-slate-200'
+                                    }`}
                                  >
-                                    <Mail size={14} className="transition-transform group-hover:scale-110 duration-200" /> Email only
+                                    <Mail size={13} strokeWidth={2.4} />
+                                    <span>Email Only</span>
+                                 </button>
+                                 <button
+                                    type="button"
+                                    onClick={handleResetNotificationDefaults}
+                                    className="tactile-white-pill w-[34px] h-[34px] rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer select-none active:scale-95"
+                                    title="Reset to defaults"
+                                 >
+                                    <RefreshCw size={13} strokeWidth={2.4} />
                                  </button>
                               </div>
                            </div>
-                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Configure push alerts, app notifications, security reminders, and emails.</p>
 
-                           {/* Sections iteration */}
-                           {[
-                              { key: 'messages', title: 'Message Preferences', desc: 'Alerts for direct messages, groups, and @username mentions.', icon: MessageSquare },
-                              { key: 'text', title: 'SMS Security Alerts', desc: 'Secure phone log alerts and promotional bulletins.', icon: Smartphone },
-                              { key: 'alerts', title: 'Trading Execution Alerts', desc: 'Price ticks, target alerts, and risk guard parameters.', icon: AlertTriangle },
-                              { key: 'ai_coach', title: 'AI Coach Notifications', desc: 'Insights, performance reports, and coaching suggestions.', icon: Brain },
-                              { key: 'channels', title: 'Channels & Communities', desc: 'Announcements, replies, and channel activities.', icon: Hash },
-                              { key: 'inboxes', title: 'Inboxes & Networking', desc: 'Friend requests, invites, and community news.', icon: Inbox }
-                           ].map((section) => (
-                              <div key={section.key} className="space-y-6 p-6 rounded-xl bg-slate-50 dark:bg-[#1a1b1e]">
-                                 <div className="flex gap-4 items-start">
-                                    <div className="w-10 h-10 bg-[#1e1f22] rounded-full flex items-center justify-center shrink-0 text-[#DBDEE1]">
-                                       <section.icon size={18} />
+                           {/* 3 Master Delivery Channels */}
+                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                              {/* Push alerts */}
+                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                       <Smartphone size={17} />
                                     </div>
                                     <div>
-                                       <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">{section.title}</h3>
-                                       <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">{section.desc}</p>
+                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Push Alerts</h4>
+                                       <p className="text-[11px] text-slate-400">{globalOff ? 'Paused' : 'Active on device'}</p>
+                                    </div>
+                                 </div>
+                                 <SettingsToggle checked={!globalOff} onChange={handleGlobalOff} />
+                              </div>
+
+                              {/* Sound Chimes */}
+                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                                       <Volume2 size={17} />
+                                    </div>
+                                    <div>
+                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Audio Chimes</h4>
+                                       <p className="text-[11px] text-slate-400">{soundAlertsEnabled ? 'Fills & warnings' : 'Muted'}</p>
+                                    </div>
+                                 </div>
+                                 <SettingsToggle checked={soundAlertsEnabled} onChange={handleToggleSound} />
+                              </div>
+
+                              {/* Email Digests */}
+                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <Mail size={17} />
+                                    </div>
+                                    <div>
+                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Email Statements</h4>
+                                       <p className="text-[11px] text-slate-400">Monday audits</p>
+                                    </div>
+                                 </div>
+                                 <SettingsToggle checked={!globalOff || globalEmailOnly} onChange={handleEmailOnly} />
+                              </div>
+                           </div>
+
+                           {/* Notification Category Sections */}
+                           {[
+                              {
+                                 key: 'alerts',
+                                 title: 'Trading & Execution Alerts',
+                                 desc: 'Real-time fills, stop loss hits, and critical drawdown alarms.',
+                                 icon: AlertTriangle,
+                                 color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
+                              },
+                              {
+                                 key: 'ai_coach',
+                                 title: 'AI Coach & Daily Routine',
+                                 desc: 'Psychology detection, Monday audit statements, and morning directives.',
+                                 icon: Brain,
+                                 color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10'
+                              },
+                              {
+                                 key: 'messages',
+                                 title: 'Community & Discussions',
+                                 desc: 'Direct messages from mentors, @mentions, and channel announcements.',
+                                 icon: MessageSquare,
+                                 color: 'text-blue-600 dark:text-blue-400 bg-blue-500/10'
+                              },
+                              {
+                                 key: 'text',
+                                 title: 'Security & Payouts',
+                                 desc: '2FA security alerts, new login logins, and weekly profit settlements.',
+                                 icon: ShieldCheck,
+                                 color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
+                              }
+                           ].map((section) => (
+                              <div
+                                 key={section.key}
+                                 className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 shadow-xs space-y-4"
+                              >
+                                 {/* Section Header */}
+                                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${section.color}`}>
+                                       <section.icon size={17} />
+                                    </div>
+                                    <div>
+                                       <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                                          {section.title}
+                                       </h3>
+                                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                          {section.desc}
+                                       </p>
                                     </div>
                                  </div>
 
-                                 <div className="space-y-1">
-                                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-[#80848e] uppercase tracking-wider mb-2">
-                                       <span>Event Type</span>
-                                       <div className="flex text-center w-48 justify-end">
-                                          <span className="w-16">Push</span>
-                                          <span className="w-16">App</span>
-                                          <span className="w-16">Email</span>
-                                       </div>
-                                    </div>
+                                 {/* Notification Items */}
+                                 <div className="divide-y divide-slate-100 dark:divide-white/5">
+                                    {((notifications as any)[section.key] || []).map((notif: any) => (
+                                       <div
+                                          key={notif.id}
+                                          className="py-3.5 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                                       >
+                                          <div className="pr-2">
+                                             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                                                {notif.label}
+                                             </h4>
+                                             {notif.desc && (
+                                                <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                                                   {notif.desc}
+                                                </p>
+                                             )}
+                                          </div>
 
-                                    {(notifications as any)[section.key].map((notif: any) => (
-                                       <div key={notif.id} className="flex items-center justify-between py-2 group">
-                                          <span className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1] pr-4">{notif.label}</span>
-                                          <div className="flex justify-end w-48 shrink-0">
-                                             <div className="w-16 flex justify-center">
-                                                <AnimatedCheckbox checked={notif.push} onChange={() => handleToggle(section.key, notif.id, 'push')} />
-                                             </div>
-                                             <div className="w-16 flex justify-center">
-                                                <AnimatedCheckbox checked={notif.app} onChange={() => handleToggle(section.key, notif.id, 'app')} />
-                                             </div>
-                                             <div className="w-16 flex justify-center">
-                                                <AnimatedCheckbox checked={notif.email} onChange={() => handleToggle(section.key, notif.id, 'email')} />
-                                             </div>
+                                          {/* Tactile Channel Pills (Push / App / Email) */}
+                                          <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                                             {(['push', 'app', 'email'] as const).map((channel) => {
+                                                const isActive = !!notif[channel];
+                                                const label = channel === 'push' ? 'Push' : channel === 'app' ? 'In-App' : 'Email';
+                                                return (
+                                                   <button
+                                                      key={channel}
+                                                      type="button"
+                                                      onClick={() => handleToggle(section.key, notif.id, channel)}
+                                                      className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                                                         isActive
+                                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
+                                                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-300'
+                                                      }`}
+                                                      title={`Toggle ${label} alert`}
+                                                   >
+                                                      {label}
+                                                   </button>
+                                                );
+                                             })}
                                           </div>
                                        </div>
                                     ))}
@@ -2108,157 +3096,361 @@ export default function Settings() {
 
 
                      {/* TAB 10: SUBSCRIPTION MANAGEMENT */}
-                     {activeTab === 'subscription' && (
-                        <motion.div
-                           key="subscription"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
-                        >
-                           <div className="flex items-center justify-between mb-8 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              <div>
-                                 <h2 className="text-[20px] font-bold text-slate-900 dark:text-white">Subscription & Billing</h2>
-                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mt-1">Manage your plan, payment methods, and billing history.</p>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                 <button 
-                                    className="px-5 py-2.5 border border-rose-200/80 dark:border-rose-950/30 bg-rose-50/50 hover:bg-rose-100/60 dark:bg-rose-950/20 dark:hover:bg-rose-950/35 text-[#E23939] dark:text-rose-400 text-[12px] font-bold rounded-full transition-all shadow-sm"
-                                 >
-                                    Cancel Plan
-                                 </button>
-                                 <button 
-                                    onClick={() => navigate('/upgrade')}
-                                    className="px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white text-[12px] font-bold rounded-full border-none transition-all shadow-md shadow-indigo-600/10 active:scale-[0.98]"
-                                 >
-                                    Upgrade
-                                 </button>
-                              </div>
-                           </div>
+                     {activeTab === 'subscription' && (() => {
+      const normalizePlan = (p: string | null | undefined): 'starter' | 'pro' | 'elite' => {
+         if (!p) return 'starter';
+         const lower = p.toLowerCase();
+         if (lower === 'pro' || lower === 'intermediate') return 'pro';
+         if (lower === 'elite' || lower === 'advanced' || lower === 'institutional') return 'elite';
+         return 'starter';
+      };
+      const currentTier = normalizePlan(activePlan);
 
-                           <div className="flex flex-col gap-6">
-                              {/* Current Plan Overview */}
-                              <div className="p-6 rounded-[20px] bg-white dark:bg-[#151515] border border-slate-200/80 dark:border-white/5 relative overflow-hidden shadow-sm">
-                                 
-                                 <div className="flex items-start justify-between relative z-10 mb-8">
-                                    <div className="flex items-center gap-4">
-                                       <div className="w-12 h-12 rounded-xl bg-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                                          <Crown size={24} className="text-white" />
-                                       </div>
-                                       <div>
-                                          <h3 className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-0.5">
-                                             {activePlan.charAt(0).toUpperCase() + activePlan.slice(1)} 
-                                             <span className="px-2 py-0.5 rounded text-emerald-500 text-[10px] font-bold uppercase tracking-wide border border-emerald-500/30 ml-1">Active</span>
-                                          </h3>
-                                          <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">
-                                             {activePlan === 'starter' ? 'Free plan active.' : 'Billed monthly. Auto-renews soon.'}
-                                          </p>
-                                       </div>
-                                    </div>
-                                    <div className="text-right">
-                                       <div className="text-[24px] font-black text-slate-900 dark:text-white">
-                                          {activePlan === 'starter' ? '₹0' : activePlan === 'pro' ? '₹1,499' : activePlan === 'elite' ? '₹2,999' : '₹0'}
-                                       </div>
-                                       <div className="text-[12px] text-slate-500 font-medium">per month</div>
-                                    </div>
-                                 </div>
+      const nextBillingDate = (() => {
+         if (billingHistory && billingHistory.length > 0 && billingHistory[0]?.period_end) {
+            try {
+               return new Date(billingHistory[0].period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (_) {}
+         }
+         const d = new Date();
+         d.setDate(d.getDate() + 30);
+         return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      })();
 
-                                 <div className="grid grid-cols-2 gap-4 relative z-10">
-                                    <div className="p-4 rounded-[16px] border border-slate-200 dark:border-[#2b2d31] bg-transparent">
-                                       <div className="text-[12px] font-bold text-slate-500 dark:text-[#949ba4] uppercase tracking-wider mb-1">API Requests</div>
-                                       <div className="flex items-center gap-2">
-                                          <span className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Unlimited</span>
-                                          <span className="text-[12px] text-emerald-500 font-medium">Included</span>
-                                       </div>
-                                    </div>
-                                    <div className="p-4 rounded-[16px] border border-slate-200 dark:border-[#2b2d31] bg-transparent">
-                                       <div className="text-[12px] font-bold text-slate-500 dark:text-[#949ba4] uppercase tracking-wider mb-1">Brokers Linked</div>
-                                       <div className="flex items-center gap-2">
-                                          <span className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">
-                                             {connectedBroker ? '1' : '0'}
-                                          </span>
-                                          <span className="text-[12px] text-slate-500 dark:text-[#B5BAC1] font-medium">
-                                             / {selectedPlan === 'starter' ? '1' : selectedPlan === 'pro' ? '6' : 'Unlimited'} Active
-                                          </span>
-                                       </div>
-                                    </div>
-                                 </div>
-                              </div>
+      const memberSinceDate = (() => {
+         if (profile?.createdAt) {
+            try {
+               return new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch (_) {}
+         }
+         return new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      })();
 
-                              {/* Payment Method */}
-                              <div className="p-6 rounded-[20px] bg-white dark:bg-[#151515] border border-slate-200/80 dark:border-white/5 flex flex-col relative overflow-hidden shadow-sm">
-                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2 relative z-10">
-                                    <CreditCard size={16} className="text-indigo-500" /> Payment Method
-                                 </h3>
-                                 
-                                 <div className="flex-1 relative z-10">
-                                    <div className="p-8 bg-transparent rounded-[16px] border border-slate-200 border-dashed dark:border-[#2b2d31] flex flex-col items-center justify-center text-center">
-                                       <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-3">
-                                          <CreditCard size={20} className="text-slate-400" />
-                                       </div>
-                                       <span className="text-[14px] font-bold text-slate-800 dark:text-[#DBDEE1] block">No payment method</span>
-                                       <span className="text-[12px] text-slate-500 dark:text-[#B5BAC1] block mt-1 max-w-[200px]">You haven't linked a card or UPI id yet.</span>
-                                    </div>
-                                 </div>
-                                 
-                                 <button 
-                                    onClick={() => { toast.info("Razorpay payment gateway integration is pending."); }}
-                                    className="w-full py-3 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-[12px] font-bold rounded-full border-none transition-all text-center flex items-center justify-center gap-2 relative z-10 shadow-sm"
-                                 >
-                                    <Plus size={14} /> Add Payment Method
-                                 </button>
-                              </div>
-                           </div>
+      return (
+         <motion.div
+            key="subscription"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4 w-full max-w-[760px] mx-auto pb-16"
+         >
+            {/* Page Title */}
+            <div className="mb-6">
+               <h2 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">Subscription</h2>
+               <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Manage your current plan</p>
+            </div>
 
-                           {/* Billing History */}
-                           <div className="py-2 mt-8">
-                              <div className="flex items-center justify-between mb-6">
-                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <Receipt size={16} className="text-slate-400" /> Billing History
-                                 </h3>
-                                 <button className="px-4 py-2 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 text-[11.5px] font-bold rounded-full border-none transition-all flex items-center gap-1.5 shadow-sm">
-                                    <Download size={14} /> Download All
-                                 </button>
-                              </div>
-                              
-                              <div className="divide-y divide-slate-100 dark:divide-white/5">
-                                 {loadingBilling ? (
-                                    <div className="py-8 text-center text-slate-500 font-medium">Loading billing history...</div>
-                                 ) : billingHistory.length === 0 ? (
-                                    <div className="py-8 text-center text-slate-500 font-medium">No billing history available yet.</div>
-                                 ) : billingHistory.map((item, idx) => (
-                                    <div key={idx} className="flex items-center justify-between py-6 group">
-                                       <div className="flex items-center gap-4">
-                                          <div className="w-10 h-10 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center shrink-0 border border-zinc-200/50 dark:border-white/5">
-                                             <FileText size={16} className="text-slate-400" />
-                                          </div>
-                                          <div>
-                                             <span className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1] block">
-                                                {new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                             </span>
-                                             <span className="text-[13px] text-slate-500 dark:text-[#B5BAC1] block mt-0.5">
-                                                {(item.plan?.charAt(0).toUpperCase() + item.plan?.slice(1)) || 'Plan'} • {item.stripe_invoice_id || item.id?.slice(0, 8).toUpperCase()}
-                                             </span>
-                                          </div>
-                                       </div>
-                                       <div className="flex items-center gap-6">
-                                          <span className="text-[14px] font-bold text-slate-900 dark:text-white">₹{parseFloat(item.amount || '0').toLocaleString('en-IN')}</span>
-                                          <div className="flex items-center gap-1 text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded text-[10px] font-bold tracking-wide">
-                                             <Check size={12} /> {item.status?.toUpperCase() || 'PAID'}
-                                          </div>
-                                          <button className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center justify-center text-zinc-700 dark:text-zinc-200 transition-all border-none hidden sm:flex shadow-sm">
-                                             <Download size={14} />
-                                          </button>
-                                       </div>
-                                    </div>
-                                 ))}
-                              </div>
-                           </div>
-                        </motion.div>
+            {/* Card 1: Active Subscription Overview */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3.5">
+               <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">
+                     {currentTier === 'starter' ? 'Free Plan' : currentTier === 'pro' ? 'Pro Plan' : 'Elite Plan'}
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
+                     {currentTier === 'starter' ? 'Free tier active' : `${currentTier.toUpperCase()} active`}
+                  </span>
+               </div>
+
+               <div className="space-y-2.5 pt-1">
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Plan status</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'Active (Free tier)' : 'Active (Paid monthly)'}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Current rate</span>
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums flex items-center gap-1">
+                        {currentTier === 'starter' ? (
+                           <>
+                              <RunningNumber value={0} prefix="₹" /> <span>/ forever</span>
+                           </>
+                        ) : currentTier === 'pro' ? (
+                           <>
+                              <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
+                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
+                           </>
+                        ) : (
+                           <>
+                              <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
+                           </>
+                        )}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Next payment</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'No charges scheduled' : `${nextBillingDate} · ${currentTier === 'pro' ? (billingInterval === 'monthly' ? '₹1,399' : '₹1,119') : (billingInterval === 'monthly' ? '₹2,799' : '₹2,239')}`}
+                     </span>
+                  </div>
+               </div>
+
+               <div className="pt-2 border-t border-slate-100 dark:border-white/5">
+                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-2">
+                     Have a code? Add it before your next billing cycle and it counts on your next payment.
+                  </p>
+                  <div className="flex items-center gap-2">
+                     <input
+                        type="text"
+                        placeholder="Discount code"
+                        value={discountCodeInput}
+                        onChange={(e) => setDiscountCodeInput(e.target.value)}
+                        className="flex-1 h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                     />
+                     <TactileBoxButton
+                        onClick={() => {
+                           if (!discountCodeInput.trim()) return toast.error("Please enter a discount code");
+                           setAppliedDiscount(discountCodeInput.trim().toUpperCase());
+                           toast.success(`Discount code "${discountCodeInput.trim().toUpperCase()}" applied!`);
+                           setDiscountCodeInput('');
+                        }}
+                        className="h-9 px-5 text-xs font-bold"
+                     >
+                        Add
+                     </TactileBoxButton>
+                  </div>
+                  {appliedDiscount && (
+                     <div className="mt-2 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                        <Check size={12} /> Code {appliedDiscount} applied
+                     </div>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 2: Billing Summary */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3">
+               <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-900 dark:text-white">Billing</span>
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
+                     {currentTier === 'starter' ? 'Free tier' : 'Active'}
+                  </span>
+               </div>
+
+               <div className="space-y-2 pt-1 text-xs">
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Plan</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'Free · ₹0 a month' : currentTier === 'pro' ? 'Pro · ₹1,399 a month' : 'Elite · ₹2,799 a month'}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Member since</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">{memberSinceDate}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Next renewal</span>
+                     <span className="font-semibold text-slate-900 dark:text-white">
+                        {currentTier === 'starter' ? 'None (Free plan)' : `${nextBillingDate} · ₹${currentTier === 'pro' ? (billingInterval === 'monthly' ? '1,399' : '1,119') : (billingInterval === 'monthly' ? '2,799' : '2,239')}`}
+                     </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
+                     <span className="text-slate-500 dark:text-slate-400">Payment method</span>
+                     <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <CreditCard size={13} className="text-slate-500" />
+                        {currentTier === 'starter' ? 'None required' : 'Razorpay Secure Checkout'}
+                     </span>
+                  </div>
+               </div>
+
+               <div className="pt-2 border-t border-slate-100 dark:border-white/5 text-[11.5px] text-slate-500 flex items-center gap-1.5">
+                  <ArrowUpRight size={13} className="text-slate-400" /> Change plan or manage subscription below
+               </div>
+            </div>
+
+            {/* Card 3: Payments / Invoices */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+               <div className="text-xs font-bold text-slate-900 dark:text-white mb-3">Payments</div>
+               {billingHistory && billingHistory.length > 0 ? (
+                  <div className="space-y-2">
+                     {billingHistory.map((inv: any) => (
+                        <div key={inv.id || Math.random()} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-white/5 last:border-b-0">
+                           <span className="text-slate-500">
+                              {inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+                           </span>
+                           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                              ₹{Number(inv.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              <span
+                                 className="text-slate-400 hover:text-slate-700 dark:hover:text-white font-normal cursor-pointer hover:underline text-xs"
+                                 onClick={() => toast.info(`Invoice receipt #${String(inv.id || '').slice(0, 8)} generated`)}
+                              >
+                                 Invoice
+                              </span>
+                           </span>
+                        </div>
+                     ))}
+                  </div>
+               ) : (
+                  <div className="py-3 text-center">
+                     <p className="text-xs text-slate-500 dark:text-slate-400">No payment invoices yet</p>
+                     <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                        {currentTier === 'starter'
+                           ? 'You are currently on the Free tier. Upgrade below to activate pro features.'
+                           : 'Receipts and tax invoices will automatically appear here.'}
+                     </p>
+                  </div>
+               )}
+            </div>
+
+            {/* Card 4: Billing Cycle Switcher */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex items-center justify-between">
+               <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Billing cycle</div>
+                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Switch to annual for a lower monthly rate</p>
+               </div>
+               <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-full inline-flex items-center gap-1 border border-slate-200/80 dark:border-white/10">
+                  <button
+                     onClick={() => setBillingInterval('monthly')}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        billingInterval === 'monthly'
+                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                     }`}
+                  >
+                     Monthly
+                  </button>
+                  <button
+                     onClick={() => setBillingInterval('annually')}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                        billingInterval === 'annually'
+                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                           : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                     }`}
+                  >
+                     Annual
+                  </button>
+               </div>
+            </div>
+
+            {/* Card 5: Free Plan */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-white">Free Plan</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1 broker connection, basic trading journal & core risk guard</p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <RunningNumber value={0} prefix="₹" className="text-sm font-bold text-slate-900 dark:text-white" />
+                  {currentTier === 'starter' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsDowngrade('starter')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 6: Pro Plan — ₹1,399/mo */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                     Pro Plan
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     Up to 6 broker connections, loss cooldown & 50 AI coach credits/day
+                  </p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <div className="text-right">
+                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums flex items-baseline justify-end gap-0.5">
+                        <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
+                        <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     </span>
+                     {billingInterval === 'annually' && (
+                        <div className="text-[10px] text-slate-400">Billed annually</div>
                      )}
+                  </div>
+                  {currentTier === 'pro' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : currentTier === 'elite' ? (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsDowngrade('pro')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsUpgrade('pro')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
 
-                     {/* TAB 11: CHANNEL SETTINGS */}
+            {/* Card 7: Elite Plan — ₹2,799/mo + TOP badge */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                     Elite Plan
+                     <span className="bg-[#7c3aed] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                        TOP
+                     </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     Unlimited broker connections, automated trading & 100 AI credits/day
+                  </p>
+               </div>
+               <div className="flex items-center gap-4 self-end sm:self-auto">
+                  <div className="text-right">
+                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums flex items-baseline justify-end gap-0.5">
+                        <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                        <span className="text-xs text-slate-400 font-normal">/mo</span>
+                     </span>
+                     {billingInterval === 'annually' && (
+                        <div className="text-[10px] text-slate-400">Billed annually</div>
+                     )}
+                  </div>
+                  {currentTier === 'elite' ? (
+                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                        Current
+                     </span>
+                  ) : (
+                     <TactileBoxButton
+                        onClick={() => handleSettingsUpgrade('elite')}
+                        className="h-8 px-4 text-xs font-semibold rounded-xl"
+                     >
+                        Switch
+                     </TactileBoxButton>
+                  )}
+               </div>
+            </div>
+
+            {/* Card 8: Refund & Cancellation */}
+            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">Refund</div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                     This sends a message to us, it does not refund automatically. Your plan stays active until the refund is issued.
+                  </p>
+               </div>
+               <TactileBoxButton
+                  onClick={() => {
+                     toast.success("Refund request submitted", {
+                        description: "Our billing support team will review your account within 24 hours."
+                     });
+                  }}
+                  className="h-9 px-4 text-xs font-semibold rounded-xl flex items-center gap-1.5 self-end sm:self-auto shrink-0"
+               >
+                  <HelpCircle size={14} className="text-slate-400" />
+                  Request
+               </TactileBoxButton>
+            </div>
+         </motion.div>
+      );
+   })()}
+
+   {/* TAB 11: CHANNEL SETTINGS */}
                      {activeTab === 'channel' && (
                         <motion.div
                            key="channel"
@@ -2391,6 +3583,8 @@ export default function Settings() {
                   </div>
 
                </div>
+            </div>
+
             </div>
 
          </div>
@@ -2534,10 +3728,7 @@ export default function Settings() {
                  onClick={async () => {
                    setShowLogoutConfirm(false);
                    setIsLoggingOut(true);
-                   await supabase.auth.signOut();
-                   toast.success("Logged out successfully");
-                   setIsLoggingOut(false);
-                   navigate('/login');
+                   await performAppLogout('/login?logout=true');
                  }}
                  className="h-[38px] px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25 flex items-center justify-center min-w-[105px]"
                >
@@ -2551,7 +3742,50 @@ export default function Settings() {
            </DialogContent>
          </Dialog>
 
-      </motion.div>
+               {/* Plan Downgrade Confirmation Dialog */}
+         <Dialog open={!!downgradeModalPlan} onOpenChange={(open) => !open && setDowngradeModalPlan(null)}>
+           <DialogContent className="sm:max-w-[440px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-3xl p-7 text-slate-900 dark:text-white">
+             <DialogHeader>
+               <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2">
+                 <AlertCircle size={24} />
+               </div>
+               <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
+                 Downgrade to {downgradeModalPlan === 'starter' ? 'Free Plan (₹0)' : 'Pro Plan (₹1,399/mo)'}?
+               </DialogTitle>
+               <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
+                 {downgradeModalPlan === 'starter'
+                   ? 'By switching to the Free plan, your broker connections will be limited to 1, daily AI credits will revert to 20/day, and automated execution features will be paused.'
+                   : 'By downgrading to Pro (₹1,399/mo), broker connections will be set to 6 and AI credits will be 100/day.'}
+               </DialogDescription>
+             </DialogHeader>
+             <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2.5 sm:justify-end">
+               <TactileBoxButton 
+                 onClick={() => setDowngradeModalPlan(null)}
+                 disabled={isChangingPlan}
+                 className="h-10 px-5 rounded-xl font-semibold text-xs"
+               >
+                 Keep Current Plan
+               </TactileBoxButton>
+               <button 
+                 type="button" 
+                 disabled={isChangingPlan}
+                 onClick={() => downgradeModalPlan && applyPlanChange(downgradeModalPlan)}
+                 className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2"
+               >
+                 {isChangingPlan ? (
+                   <>
+                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                     Updating...
+                   </>
+                 ) : (
+                   'Confirm Downgrade'
+                 )}
+               </button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+
+</motion.div>
       </DashboardLayout>
    );
 }

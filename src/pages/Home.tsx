@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useHomeData, FeedPost } from "@/hooks/useHomeData";
 import { useMarket } from "@/contexts/MarketContext";
+import { usePlan } from "@/hooks/usePlan";
 import CreatePostModal from "@/components/CreatePostModal";
 import FeedCard from "@/components/FeedCard";
 import HomeProfileCard from "@/components/HomeProfileCard";
@@ -435,6 +436,7 @@ export default function Home() {
 
     // Supabase Live Data Fetching
     const { feeds, watchlist, calendar, followers, suggestions, profileViews = [], winningStreaks, topDisciplined, loading, refetch, removePost } = useHomeData(user?.id ?? "");
+    const { canAccess, isStarter, dailyPostLimit, watchlistLimit } = usePlan();
 
     // User social follow state
     const [followedUsers, setFollowedUsers] = useState<Record<string, boolean>>({});
@@ -605,6 +607,13 @@ export default function Home() {
         if (!rawInput.trim()) return;
         if (!user?.id) {
             toast.error("Please sign in to customize your watchlist.");
+            return;
+        }
+        if (isStarter && watchlist.length >= watchlistLimit) {
+            toast.error(`Watchlist limit reached (${watchlistLimit}/${watchlistLimit})`, {
+                description: "Standard plan includes up to 3 watchlist pairs. Upgrade to Pro for unlimited pairs.",
+                action: { label: "Upgrade", onClick: () => navigate('/upgrade') },
+            });
             return;
         }
 
@@ -866,6 +875,23 @@ export default function Home() {
         }
         setIsQuickPosting(true);
         try {
+            if (isStarter && Number.isFinite(dailyPostLimit)) {
+                const startOfDay = new Date();
+                startOfDay.setHours(0, 0, 0, 0);
+                const { count } = await supabase
+                    .from("social_posts")
+                    .select("id", { count: "exact", head: true })
+                    .eq("user_id", user.id)
+                    .gte("created_at", startOfDay.toISOString());
+                if ((count ?? 0) >= dailyPostLimit) {
+                    toast.error("Daily Post Limit Reached (1/day)", {
+                        description: "Standard allows 1 Home Feed post per day. Upgrade to Pro for unlimited posts.",
+                        action: { label: "Upgrade", onClick: () => navigate("/upgrade") },
+                    });
+                    setIsQuickPosting(false);
+                    return;
+                }
+            }
             const autoTags = Array.from(
                 new Set(Array.from(trimmed.matchAll(/#([A-Za-z0-9_]+)/g)).map((m) => m[1]))
             );
@@ -2479,11 +2505,30 @@ export default function Home() {
                                             {/* Tab 1: Layout Toggles */}
                                             {customizeActiveTab === 'layout' && (
                                                 <div className="space-y-3">
+                                                    {!canAccess('home_customize') && (
+                                                        <div className="p-3 rounded-xl bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/20 flex items-center justify-between gap-3">
+                                                            <div className="min-w-0">
+                                                                <p className="text-[12px] font-semibold text-slate-900 dark:text-white">Pro Feature · Customize Home Layout</p>
+                                                                <p className="text-[11px] text-slate-500 dark:text-zinc-400">Upgrade to Pro to show or hide sidebar panels.</p>
+                                                            </div>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => { setShowCustomizeModal(false); navigate('/upgrade'); }}
+                                                                className="px-3 py-1.5 rounded-full tactile-white-pill text-[11px] font-semibold shrink-0 cursor-pointer"
+                                                            >
+                                                                Upgrade
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                     <div className="flex items-center justify-between">
                                                         <span className="text-[12px] font-medium text-slate-500 dark:text-zinc-400">Sidebar widgets</span>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
+                                                                if (!canAccess('home_customize')) {
+                                                                    toast.error("Pro Feature: Upgrade to Pro to customize your Home layout.");
+                                                                    return;
+                                                                }
                                                                 const anyVisible = showProfileCard || showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined;
                                                                 if (anyVisible) {
                                                                     setShowProfileCard(false);
@@ -2505,13 +2550,13 @@ export default function Home() {
                                                                     handleToggle(setShowDisciplined, true);
                                                                 }
                                                             }}
-                                                            className="h-7 px-3 rounded-full tactile-white-pill text-[11.5px] font-semibold cursor-pointer"
+                                                            className={`h-7 px-3 rounded-full tactile-white-pill text-[11.5px] font-semibold cursor-pointer ${!canAccess('home_customize') ? 'opacity-60' : ''}`}
                                                         >
                                                             {(showProfileCard || showWatchlist || showCalendar || showFollowers || showRequests || showSuggestions || showStreaks || showDisciplined) ? 'Hide all' : 'Show all'}
                                                         </button>
                                                     </div>
 
-                                                    <div className="rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06]">
+                                                    <div className={`rounded-xl bg-[#f4f5f7] dark:bg-[#1a1b20] px-4 py-1.5 divide-y divide-slate-200/70 dark:divide-white/[0.06] ${!canAccess('home_customize') ? 'opacity-60 pointer-events-none' : ''}`}>
                                                         <div className="py-2.5"><ToggleRow label="Profile Card" checked={showProfileCard} onChange={(v) => handleToggle(setShowProfileCard, v)} /></div>
                                                         <div className="py-2.5"><ToggleRow label="My Watchlist" checked={showWatchlist} onChange={(v) => handleToggle(setShowWatchlist, v)} /></div>
                                                         <div className="py-2.5"><ToggleRow label="News" checked={showCalendar} onChange={(v) => handleToggle(setShowCalendar, v)} /></div>

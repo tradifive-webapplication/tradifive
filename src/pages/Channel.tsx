@@ -127,7 +127,7 @@ export default function Channel() {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const { canAccess, isStarter } = usePlan();
+  const { canAccess, isStarter, isElite, channelLimit, plan } = usePlan();
 
   const { channelId } = useParams<{ channelId: string }>();
   const [activeChannelId, setActiveChannelId] = useState(channelId || "");
@@ -291,6 +291,32 @@ export default function Channel() {
         toast.error('You must be logged in to create a channel');
         setIsCreating(false);
         return;
+      }
+
+      if (newChannelType === 'private' && !canAccess('private_channels')) {
+        toast.error('Upgrade to Pro to create Private Channels');
+        setIsCreating(false);
+        return;
+      }
+      if (newChannelType === 'vip' && !canAccess('vip_channels')) {
+        toast.error('Upgrade to Elite to create paid VIP Channels');
+        setIsCreating(false);
+        return;
+      }
+      if (Number.isFinite(channelLimit)) {
+        const { count: ownedCount } = await supabase
+          .from('channels')
+          .select('id', { count: 'exact', head: true })
+          .eq('created_by', currentUser.id);
+        if ((ownedCount ?? 0) >= channelLimit) {
+          toast.error(
+            plan === 'starter'
+              ? 'Standard allows 1 Public Channel. Upgrade to Pro to create up to 3 channels.'
+              : 'Pro allows up to 3 channels. Upgrade to Elite for unlimited VIP channels.'
+          );
+          setIsCreating(false);
+          return;
+        }
       }
 
       let uploadedAvatarUrl: string | null = null;
@@ -2142,17 +2168,23 @@ function ChannelSkeleton() {
 
                     <button
                       type="button"
-                      onClick={() => setNewChannelType("private")}
+                      onClick={() => {
+                        if (isStarter) {
+                          toast.error("Pro Feature: Upgrade to Pro to create Private Channels");
+                          return;
+                        }
+                        setNewChannelType("private");
+                      }}
                       className={`p-3 rounded-2xl border text-left flex flex-col gap-1 transition-all cursor-pointer ${
                         newChannelType === "private"
                           ? "border-slate-900 bg-slate-900/5 dark:border-white dark:bg-white/10 ring-1 ring-slate-900 dark:ring-white"
                           : "border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] hover:bg-slate-100/70 dark:hover:bg-white/[0.05]"
-                      }`}
+                      } ${isStarter ? "opacity-70" : ""}`}
                     >
                       <div className="flex items-center gap-1.5">
                         <Lock size={14} className="text-slate-800 dark:text-white" />
                         <span className="text-[12.5px] font-extrabold text-slate-900 dark:text-white">
-                          Private
+                          Private {isStarter ? "(Pro)" : ""}
                         </span>
                       </div>
                       <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-tight">
@@ -2227,10 +2259,14 @@ function ChannelSkeleton() {
                           type="text"
                           value={newVipPrice}
                           onChange={(e) => {
+                            if (!isElite && e.target.value.trim()) {
+                              toast.error("Elite Feature: Upgrade to Elite to monetize VIP Channels");
+                              return;
+                            }
                             setNewVipPrice(e.target.value);
                             if (e.target.value.trim()) setNewChannelType("vip");
                           }}
-                          placeholder="e.g. ₹999/month (Leave blank if free)"
+                          placeholder={isElite ? "e.g. ₹999/month (Leave blank if free)" : "Upgrade to Elite for paid VIP pricing"}
                           className="w-full h-8.5 bg-slate-50 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 rounded-lg px-2.5 text-[12px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none"
                         />
                       </div>
@@ -2393,10 +2429,16 @@ function ChannelSkeleton() {
                   </button>
                   <button 
                     type="button"
-                    onClick={() => setManageType("vip")}
-                    className={`flex-1 py-2.5 px-3 rounded-xl border text-[13px] font-bold transition-all ${manageType === "vip" ? "border-amber-500/50 bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 ring-2 ring-amber-500/20" : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:text-slate-400 dark:hover:bg-[#252528]"}`}
+                    onClick={() => {
+                      if (!isElite) {
+                        toast.error("Elite Feature: Upgrade to Elite to enable paid VIP channels.");
+                        return;
+                      }
+                      setManageType("vip");
+                    }}
+                    className={`flex-1 py-2.5 px-3 rounded-xl border text-[13px] font-bold transition-all ${manageType === "vip" ? "border-amber-500/50 bg-amber-50 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 ring-2 ring-amber-500/20" : "border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:text-slate-400 dark:hover:bg-[#252528]"} ${!isElite ? "opacity-70" : ""}`}
                   >
-                      VIP Access
+                      VIP Access {!isElite ? "(Elite)" : ""}
                   </button>
               </div>
             </div>
