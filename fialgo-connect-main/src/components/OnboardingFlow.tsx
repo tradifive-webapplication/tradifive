@@ -403,7 +403,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                     What should we call you?
                   </h1>
 
-                  <div className="mb-2">
+                  <div className="mb-2 relative flex items-center border-b border-zinc-800 focus-within:border-white transition-colors">
                     <AnimatedInput
                       type="text"
                       autoFocus
@@ -411,7 +411,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ user, onComplete
                       onChange={(e) => setName(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && isContinueEnabled() && handleNext()}
                       placeholder="Your name"
-                      className="w-full bg-transparent border-b border-zinc-800 focus:border-white text-[22px] sm:text-3xl text-white placeholder-zinc-600 py-2.5 sm:py-3 outline-none transition-colors"
+                      className="w-full bg-transparent text-[22px] sm:text-3xl text-white placeholder-zinc-600 py-2.5 sm:py-3 outline-none transition-colors"
                     />
                   </div>
                   <p className="text-[12.5px] sm:text-sm text-zinc-500 leading-relaxed mb-7 sm:mb-8">

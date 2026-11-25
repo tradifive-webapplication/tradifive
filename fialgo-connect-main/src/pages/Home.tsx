@@ -14,7 +14,7 @@ import FeedCard from "@/components/FeedCard";
 import HomeProfileCard from "@/components/HomeProfileCard";
 import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
-import { MagicTextReveal } from "@/components/ui/magic-text-reveal";
+import { MorphingText } from "@/components/ui/morphing-text";
 
 const HOME_EXPO_OUT: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
@@ -2561,14 +2561,14 @@ export default function Home() {
                                                                         <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
                                                                             <Lock size={14} strokeWidth={2.4} />
                                                                         </div>
-                                                                        <div className="min-w-0 flex flex-col justify-center">
-                                                                            <MagicTextReveal
-                                                                                text="Customize Layout"
-                                                                                fontSize={13}
-                                                                                fontWeight={700}
-                                                                                className="leading-tight"
+                                                                        <div className="min-w-0 flex flex-col justify-center w-[130px] sm:w-[155px]">
+                                                                            <MorphingText
+                                                                                texts={["Customize Layout", "Pro & Elite"]}
+                                                                                align="left"
+                                                                                maxBlur={4}
+                                                                                className="h-[18px] text-[13px] font-bold text-slate-900 dark:text-white"
                                                                             />
-                                                                            <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400">
+                                                                            <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 mt-0.5">
                                                                                 Pro &amp; Elite
                                                                             </p>
                                                                         </div>

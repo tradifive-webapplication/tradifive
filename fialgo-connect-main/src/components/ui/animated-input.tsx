@@ -7,7 +7,7 @@ import React, {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export interface AnimatedInputProps
@@ -24,6 +24,34 @@ export interface AnimatedInputProps
 interface CharItem {
   id: string;
   char: string;
+}
+
+// Strip text-color classes from the native hidden input so tailwind-merge NEVER overrides transparency
+function stripTextColor(className?: string): string {
+  if (!className) return "";
+  return className
+    .split(/\s+/)
+    .filter((cls) => {
+      // Check if it's a text-color class (e.g., text-white, text-black, text-slate-900, text-zinc-400)
+      if (cls.startsWith("text-") || cls.startsWith("dark:text-")) {
+        const raw = cls.replace(/^dark:/, "");
+        const rest = raw.slice(5);
+        // Preserve font sizes, alignments, wrapping
+        if (
+          [
+            "xs", "sm", "base", "lg", "xl", "2xl", "3xl", "4xl", "5xl", "6xl", "7xl",
+            "left", "center", "right", "justify", "start", "end",
+            "ellipsis", "clip", "wrap", "nowrap", "balance", "pretty"
+          ].includes(rest) ||
+          (rest.startsWith("[") && (rest.includes("px") || rest.includes("rem") || rest.includes("em")))
+        ) {
+          return true;
+        }
+        return false; // strip text color class from native hidden input
+      }
+      return true;
+    })
+    .join(" ");
 }
 
 export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
@@ -49,6 +77,7 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
       blinkSpeed = 530,
       disabled,
       autoFocus,
+      style,
       ...props
     },
     forwardedRef
@@ -68,10 +97,9 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
     const [isTyping, setIsTyping] = useState(false);
     const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Keep track of character IDs so existing characters don't re-mount animation
+    // Keep stable character IDs for animations
     const charItemsRef = useRef<CharItem[]>([]);
 
-    // Sync character array with current string value
     const isPassword = type === "password";
     const chars: CharItem[] = [];
     for (let i = 0; i < rawValue.length; i++) {
@@ -164,10 +192,8 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
       };
     }, []);
 
-    // Split chars before and after caret
+    // Cursor position calculation
     const safeCursorIndex = Math.min(Math.max(0, cursorIndex), chars.length);
-    const charsBefore = chars.slice(0, safeCursorIndex);
-    const charsAfter = chars.slice(safeCursorIndex);
 
     // Color resolution for cursor
     const resolvedCursorBg =
@@ -175,9 +201,35 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
         ? "bg-blue-600 dark:bg-blue-500 shadow-[0_0_8px_rgba(37,99,235,0.45)]"
         : cursorColor;
 
+    // Caret element renderer
+    const renderCaret = () => (
+      <motion.span
+        key="animated-caret"
+        className={cn("inline-block shrink-0", resolvedCursorBg)}
+        style={{
+          width: `${caretWidth}px`,
+          borderRadius: `${cursorRadius}px`,
+          height: cursorStyle === "underline" ? "2px" : "1.25em",
+          alignSelf: cursorStyle === "underline" ? "flex-end" : "center",
+          marginLeft: "-0.5px",
+          marginRight: "-0.5px",
+        }}
+        animate={isTyping ? { opacity: 1 } : { opacity: [1, 0, 1] }}
+        transition={
+          isTyping
+            ? { duration: 0.05 }
+            : {
+                duration: (blinkSpeed * 2) / 1000,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }
+        }
+      />
+    );
+
     return (
       <div className={cn("relative inline-flex w-full items-center", containerClassName)}>
-        {/* Real hidden-text input that captures native interactions */}
+        {/* Real native input: 100% transparent text on all devices (mobile WebKit, Android, Desktop) */}
         <input
           ref={inputRef}
           type={type}
@@ -193,16 +245,21 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
           placeholder={placeholder}
           disabled={disabled}
           autoFocus={autoFocus}
+          style={{
+            ...style,
+            color: "transparent",
+            WebkitTextFillColor: "transparent",
+            caretColor: "transparent",
+          }}
           className={cn(
-            "w-full bg-transparent text-transparent placeholder:text-muted-foreground/60 focus:outline-none disabled:cursor-not-allowed",
-            // Make native caret completely transparent so custom animated caret renders in its place
-            "caret-transparent selection:bg-blue-500/20 selection:text-transparent",
-            className
+            "w-full bg-transparent focus:outline-none disabled:cursor-not-allowed selection:bg-blue-500/20 selection:text-transparent",
+            "!text-transparent !caret-transparent",
+            stripTextColor(className)
           )}
           {...props}
         />
 
-        {/* Visual Overlay: Character-by-character spring animation and animated blue line caret */}
+        {/* Visual Overlay: Renders characters with spring physics and the custom caret */}
         <div
           ref={overlayRef}
           aria-hidden="true"
@@ -211,90 +268,39 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
             className
           )}
           style={{
-            // Reset borders, background, box-shadow so overlay matches exactly without double borders
             background: "transparent",
             borderColor: "transparent",
             boxShadow: "none",
           }}
         >
           {rawValue.length > 0 ? (
-            <div className="inline-flex items-center whitespace-pre leading-none text-slate-900 dark:text-white">
-              {/* Characters before cursor with spring animation */}
-              <AnimatePresence mode="popLayout" initial={false}>
-                {charsBefore.map((item) => (
+            <div className="inline-flex items-center whitespace-pre leading-normal">
+              {chars.map((item, index) => (
+                <React.Fragment key={item.id}>
+                  {index === safeCursorIndex && isFocused && renderCaret()}
                   <motion.span
-                    key={item.id}
                     initial={
                       textAnimation === "spring"
-                        ? { opacity: 0, scale: 0.5, y: -4 }
+                        ? { opacity: 0, scale: 0.6, y: -2 }
                         : { opacity: 0 }
                     }
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.6 }}
                     transition={{
                       type: "spring",
-                      stiffness: 480,
-                      damping: 24,
-                      mass: 0.45,
+                      stiffness: 520,
+                      damping: 26,
+                      mass: 0.35,
                     }}
                     className="inline-block whitespace-pre"
                   >
                     {item.char}
                   </motion.span>
-                ))}
-              </AnimatePresence>
-
-              {/* Custom Blue Line Caret */}
-              {isFocused && (
-                <motion.span
-                  className={cn("inline-block shrink-0", resolvedCursorBg)}
-                  style={{
-                    width: `${caretWidth}px`,
-                    borderRadius: `${cursorRadius}px`,
-                    height: cursorStyle === "underline" ? "2px" : "1.25em",
-                    alignSelf: cursorStyle === "underline" ? "flex-end" : "center",
-                    marginLeft: charsBefore.length === 0 ? "0px" : "-0.5px",
-                    marginRight: "-0.5px",
-                  }}
-                  animate={isTyping ? { opacity: 1 } : { opacity: [1, 0, 1] }}
-                  transition={
-                    isTyping
-                      ? { duration: 0.05 }
-                      : {
-                          duration: (blinkSpeed * 2) / 1000,
-                          repeat: Infinity,
-                          ease: "easeInOut",
-                        }
-                  }
-                />
-              )}
-
-              {/* Characters after cursor */}
-              {charsAfter.map((item) => (
-                <span key={item.id} className="inline-block whitespace-pre">
-                  {item.char}
-                </span>
+                </React.Fragment>
               ))}
+              {safeCursorIndex >= chars.length && isFocused && renderCaret()}
             </div>
           ) : (
-            // When input is empty, show blinking caret if focused
-            isFocused && (
-              <motion.span
-                className={cn("inline-block shrink-0", resolvedCursorBg)}
-                style={{
-                  width: `${caretWidth}px`,
-                  borderRadius: `${cursorRadius}px`,
-                  height: cursorStyle === "underline" ? "2px" : "1.25em",
-                  alignSelf: cursorStyle === "underline" ? "flex-end" : "center",
-                }}
-                animate={{ opacity: [1, 0, 1] }}
-                transition={{
-                  duration: (blinkSpeed * 2) / 1000,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            )
+            isFocused && renderCaret()
           )}
         </div>
       </div>
