@@ -1285,7 +1285,7 @@ export default function UserProfilePublic() {
                 const visibleCards = [
                   { title: "Trades", shortTitle: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
                   { title: "Win Rate", shortTitle: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
-                  { title: "ROI (All Time)", shortTitle: "ROI", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
+                  { title: "Net ROI", shortTitle: "ROI", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
                   { title: "Avg RR", shortTitle: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={12} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
                   { title: "Streak", shortTitle: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={12} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
                 ].filter(card => !card.isHidden);
@@ -1414,54 +1414,99 @@ export default function UserProfilePublic() {
               {!isLocked && (privacySettings.show_streak !== false || privacySettings.show_calendar !== false) && (
                 <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2' : ''} gap-3.5 w-full`}>
 
-                  {/* Trading Streak Card */}
-                  {privacySettings.show_streak !== false && (
-                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
-                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
-                        <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                          <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
-                            <Flame size={12} className="fill-orange-500/15" />
+                  {/* Trading Streak Card — Structured & Balanced */}
+                  {privacySettings.show_streak !== false && (() => {
+                    const dots = streakDots.length > 0 ? streakDots : Array.from({ length: 15 }, () => ({ date: '', status: 'gray' as const }));
+                    const winDaysCount = dots.filter(d => d.status === 'green').length;
+                    const lossDaysCount = dots.filter(d => d.status === 'red').length;
+                    const activeDaysCount = winDaysCount + lossDaysCount;
+                    const idleDaysCount = dots.length - activeDaysCount;
+                    const bestVal = Math.max(bestStreak, profile?.best_streak || 0);
+                    const startDateLabel = dots.length > 0 && dots[0].date
+                      ? (() => {
+                          const d = new Date(dots[0].date);
+                          return isNaN(d.getTime()) ? '15 Days Ago' : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                        })()
+                      : '15 Days Ago';
+
+                    return (
+                      <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-3 h-full">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+                          <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
+                              <Flame size={12} className="fill-orange-500/15" />
+                            </span>
+                            <span>Trading Streak</span>
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10.5px] font-bold tabular-nums leading-none">
+                            {safeStreak}
                           </span>
-                          <span>Trading Streak</span>
-                        </h3>
-                        <span className="text-[12.5px] font-extrabold text-orange-500 leading-none">{safeStreak}</span>
-                      </div>
+                        </div>
 
-                      <div className="flex justify-between items-center text-[11px] font-semibold text-slate-500 dark:text-neutral-400">
-                        <span>Current Streak</span>
-                        <span>Best: <strong className="text-slate-900 dark:text-white font-extrabold">{Math.max(bestStreak, profile?.best_streak || 0)} Day{Math.max(bestStreak, profile?.best_streak || 0) !== 1 ? 's' : ''}</strong></span>
-                      </div>
+                        {/* 2-Column Streak Stat Tiles */}
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                              Current
+                            </span>
+                            <span className="text-[15px] sm:text-[16px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums mt-0.5 block">
+                              {safeStreak}
+                            </span>
+                          </div>
+                          <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                              Best Record
+                            </span>
+                            <span className="text-[15px] sm:text-[16px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums mt-0.5 block">
+                              {bestVal} Day{bestVal !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        </div>
 
-                      {/* Day Dot Indicators */}
-                      <div className="flex items-center justify-between gap-1 py-0.5">
-                        {(streakDots.length > 0 ? streakDots : Array.from({ length: 15 }, () => ({ date: '', status: 'gray' as const }))).map((dot, idx) => (
-                          <span
-                            key={idx}
-                            title={dot.date ? `${dot.date} — ${dot.status === 'green' ? 'Profitable' : dot.status === 'red' ? 'Loss' : 'No Trade'}` : 'No Trade'}
-                            className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full block transition-transform hover:scale-125 ${
-                              dot.status === 'green'
-                                ? 'bg-[#10b981] shadow-[0_0_5px_rgba(16,185,129,0.4)]'
-                                : dot.status === 'red'
-                                  ? 'bg-[#ef4444] shadow-[0_0_5px_rgba(239,68,68,0.35)]'
-                                  : 'bg-slate-200 dark:bg-white/10'
-                            }`}
-                          />
-                        ))}
-                      </div>
+                        {/* 15-Day Activity Pill Bars */}
+                        <div className="p-3 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] space-y-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold">
+                            <span className="text-slate-500 dark:text-neutral-400 uppercase tracking-wider">15-Day Pulse</span>
+                            <span className="text-slate-700 dark:text-neutral-300 tabular-nums">{activeDaysCount} / 15 Active</span>
+                          </div>
 
-                      <div className="flex justify-between text-[9px] text-slate-400 dark:text-neutral-500 font-bold uppercase tracking-wider leading-none">
-                        <span>
-                          {streakDots.length > 0 && streakDots[0].date
-                            ? (() => {
-                                const d = new Date(streakDots[0].date);
-                                return isNaN(d.getTime()) ? '15 Days Ago' : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-                              })()
-                            : '15 Days Ago'}
-                        </span>
-                        <span>Today</span>
+                          <div className="flex items-center gap-1 h-7">
+                            {dots.map((dot, idx) => (
+                              <span
+                                key={idx}
+                                title={dot.date ? `${dot.date} — ${dot.status === 'green' ? 'Profitable' : dot.status === 'red' ? 'Loss' : 'No Trade'}` : 'No Trade'}
+                                className={`flex-1 h-full rounded-[4px] block transition-all hover:scale-y-110 ${
+                                  dot.status === 'green'
+                                    ? 'bg-[#10b981] shadow-[0_1px_4px_rgba(16,185,129,0.3)]'
+                                    : dot.status === 'red'
+                                      ? 'bg-[#ef4444] shadow-[0_1px_4px_rgba(239,68,68,0.28)]'
+                                      : 'bg-slate-200/80 dark:bg-white/[0.08]'
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          <div className="flex justify-between text-[9px] text-slate-400 dark:text-neutral-500 font-bold uppercase tracking-wider leading-none">
+                            <span>{startDateLabel}</span>
+                            <span>Today</span>
+                          </div>
+                        </div>
+
+                        {/* Bottom Summary Legend matching Calendar Footer */}
+                        <div className="flex items-center justify-between text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-white/5 tabular-nums">
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-[2px] bg-[#10b981]" /> {winDaysCount} Win
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-[2px] bg-[#ef4444]" /> {lossDaysCount} Loss
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> {idleDaysCount} Idle
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Performance Calendar Card */}
                   {privacySettings.show_calendar !== false && (

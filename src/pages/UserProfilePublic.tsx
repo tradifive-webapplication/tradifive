@@ -4,11 +4,17 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   CheckCircle2, MapPin, Calendar, MoreHorizontal,
-  Search, Heart, MessageCircle, Bookmark, Share2,
+  Search, Heart, MessageCircle, MessageSquare, Bookmark, Share2,
   TrendingUp, Globe, Flame, ShieldCheck, Trophy,
   Star, BarChart2, FileText, Shield, Info, Target, Scale,
-  Crown, ArrowRight, ChevronDown, Radio, Play, UserPlus, UserCheck, Mail, Lock, Clock, Camera
+  Crown, ArrowRight, ChevronDown, ChevronLeft, Radio, Play, UserPlus, UserCheck, Mail, Lock, Clock, Camera
 } from 'lucide-react';
+import {
+  Edit as IconlyEdit,
+  Graph as IconlyGraph,
+  ShieldDone as IconlyShieldDone,
+  Activity as IconlyActivity,
+} from "react-iconly";
 import { supabase } from "@/lib/supabase";
 import FeedCard from "@/components/FeedCard";
 import { toast } from "sonner";
@@ -16,6 +22,7 @@ import { calculateTradingMetrics } from "@/utils/tradeMetrics";
 import { FollowListModal } from "@/components/FollowListModal";
 import { CommentModal } from "@/components/CommentModal";
 import ShareProfileModal from "@/components/ShareProfileModal";
+import { ProfileSocialIcons } from "@/components/ProfileSocialIcons";
 
 // Placeholder display names to filter out from suggestions
 const PLACEHOLDER_NAMES = ["new trader", "guest trader", "demo trader", "trader", "guest"];
@@ -111,7 +118,7 @@ export default function UserProfilePublic() {
   const [profile, setProfile] = useState<any>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("Posts");
+  const [activeTab, setActiveTab] = useState<string>("All");
   const [suggestedTraders, setSuggestedTraders] = useState<any[]>([]);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
@@ -129,18 +136,27 @@ export default function UserProfilePublic() {
   const [displayRoi, setRoiVal] = useState<string>("0.00%");
   const [displayAvgRR, setAvgRRVal] = useState<string>("0");
   const [displayStreak, setStreakVal] = useState<string>("0 Days");
-
-
+  const [bestStreak, setBestStreak] = useState<number>(0);
+  const [streakDots, setStreakDots] = useState<{ date: string; status: 'green' | 'red' | 'gray' }[]>([]);
+  const [calendarDayMap, setCalendarDayMap] = useState<Record<string, 'green' | 'red'>>({});
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date());
+  const [perfRange, setPerfRange] = useState<"All" | "1M" | "7D" | "1D">("All");
+  const [accountBalance, setAccountBalance] = useState<number>(10000);
 
   const [advMetrics, setAdvMetrics] = useState<any>(calculateTradingMetrics([]));
 
   // Privacy Settings state
-  const [privacySettings, setPrivacySettings] = useState({
+  const [privacySettings, setPrivacySettings] = useState<Record<string, any>>({
     show_location: true,
     show_winrate: true,
     show_roi: true,
+    show_avg_rr: true,
     show_streak: true,
     show_trades: true,
+    show_performance: true,
+    show_ai_analysis: true,
+    show_followers: true,
+    show_calendar: true,
     is_private: false,
     account_type: 'personal' as 'personal' | 'creator' | 'business'
   });
@@ -157,8 +173,35 @@ export default function UserProfilePublic() {
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [likesOffsets, setLikesOffsets] = useState<Record<string, number>>({});
   const [hasRequested, setHasRequested] = useState<boolean>(false);
+
   // Helper to check if string is a UUID
   const isUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+
+  // Recompute Trading Performance in real time whenever trades, balance, or timeframe changes
+  useEffect(() => {
+    if (!publicTrades || publicTrades.length === 0) return;
+    const now = Date.now();
+    const cutoff =
+      perfRange === "1D"
+        ? now - 24 * 60 * 60 * 1000
+        : perfRange === "7D"
+        ? now - 7 * 24 * 60 * 60 * 1000
+        : perfRange === "1M"
+        ? now - 30 * 24 * 60 * 60 * 1000
+        : 0;
+    const scoped =
+      cutoff > 0
+        ? publicTrades.filter((t) => {
+            const ts = new Date(t.closed_at || t.created_at || 0).getTime();
+            return !isNaN(ts) && ts >= cutoff;
+          })
+        : publicTrades;
+    const isIndian = profile?.preferred_market === "indian";
+    const curr = isIndian ? "₹" : "$";
+    const computed = calculateTradingMetrics(scoped, accountBalance || 10000, curr);
+    setAdvMetrics(computed);
+    if (computed?.avgRR) setAvgRRVal(computed.avgRR);
+  }, [publicTrades, accountBalance, perfRange, profile?.preferred_market]);
 
   useEffect(() => {
     fetchProfileAndData();
@@ -167,20 +210,27 @@ export default function UserProfilePublic() {
   const fetchProfileAndData = async () => {
     setLoading(true);
     try {
-      const lowerUsername = username?.toLowerCase() || "";
+      const rawParam = (username || '').trim();
+      const cleanUsername = rawParam.replace(/^@+/, '');
+      const lowerUsername = cleanUsername.toLowerCase();
 
       let loadedPrivacy: any = {
         show_location: true,
         show_winrate: true,
         show_roi: true,
+        show_avg_rr: true,
         show_streak: true,
         show_trades: true,
+        show_performance: true,
+        show_ai_analysis: true,
+        show_followers: true,
+        show_calendar: true,
         is_private: false,
         account_type: 'personal'
       };
 
       // Try loading privacy settings from localStorage
-      const storedPrivacyStr = localStorage.getItem(`tradifive_privacy_user_${lowerUsername}`);
+      const storedPrivacyStr = localStorage.getItem(`tradifive_privacy_user_${lowerUsername}`) || localStorage.getItem(`tradifive_privacy_user_${rawParam.toLowerCase()}`);
       if (storedPrivacyStr) {
         try {
           loadedPrivacy = { ...loadedPrivacy, ...JSON.parse(storedPrivacyStr) };
@@ -189,17 +239,39 @@ export default function UserProfilePublic() {
 
       let profileId = "";
 
-      // ALWAYS query Supabase first for real profile data
-      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lowerUsername);
+      const isParamUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawParam) || /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanUsername);
 
-      let query = supabase.from('profiles').select('*');
-      if (isUUID) {
-        query = query.eq('id', lowerUsername);
-      } else {
-        query = query.ilike('username', lowerUsername);
+      let profileData: any = null;
+
+      if (isParamUUID) {
+        const targetId = rawParam.includes('-') ? rawParam : cleanUsername;
+        const { data } = await supabase.from('profiles').select('*').eq('id', targetId).maybeSingle();
+        if (data) profileData = data;
       }
 
-      const { data: profileData } = await query.maybeSingle();
+      if (!profileData && cleanUsername) {
+        // 1. Case-insensitive lookup by username without @
+        const { data: byUser } = await supabase.from('profiles').select('*').ilike('username', cleanUsername).maybeSingle();
+        if (byUser) {
+          profileData = byUser;
+        } else {
+          // 2. Lookup by username with @ prefix
+          const { data: byAtUser } = await supabase.from('profiles').select('*').ilike('username', `@${cleanUsername}`).maybeSingle();
+          if (byAtUser) {
+            profileData = byAtUser;
+          } else {
+            // 3. Fallback lookup by display_name
+            const { data: byName } = await supabase.from('profiles').select('*').ilike('display_name', cleanUsername).maybeSingle();
+            if (byName) {
+              profileData = byName;
+            } else if (!isParamUUID && rawParam) {
+              // 4. Fallback lookup by raw id
+              const { data: byId } = await supabase.from('profiles').select('*').eq('id', rawParam).maybeSingle();
+              if (byId) profileData = byId;
+            }
+          }
+        }
+      }
 
       if (profileData) {
         // Real profile found in database
@@ -284,8 +356,8 @@ export default function UserProfilePublic() {
         // User not found in database — show generic placeholder profile
         const placeholderProfile = {
           id: 'not-found',
-          display_name: isUUID ? "Unknown Trader" : (username ? username.charAt(0).toUpperCase() + username.slice(1) : "Unknown Trader"),
-          username: isUUID ? "unknown" : (username || "unknown"),
+          display_name: isUUID(cleanUsername) ? "Unknown Trader" : (cleanUsername ? cleanUsername.charAt(0).toUpperCase() + cleanUsername.slice(1) : "Unknown Trader"),
+          username: isUUID(cleanUsername) ? "unknown" : (cleanUsername || "unknown"),
           bio: "This trader hasn't set up their profile yet.",
           avatar_url: "/default-avatar.svg",
           banner_url: "/default-cover.png",
@@ -353,6 +425,30 @@ export default function UserProfilePublic() {
             } else {
               setHasRequested(false);
             }
+
+            // Record profile visit for Big-Tech "Suggestions for You" (profile visitor tracking)
+            try {
+              const vKey = `tradifive_profile_views_${profileId}`;
+              const prev = JSON.parse(localStorage.getItem(vKey) || '[]');
+              const filtered = Array.isArray(prev) ? prev.filter((p: any) => p && p.viewer_id !== currentUser.id) : [];
+              filtered.unshift({
+                viewer_id: currentUser.id,
+                viewed_at: new Date().toISOString()
+              });
+              localStorage.setItem(vKey, JSON.stringify(filtered.slice(0, 30)));
+            } catch (_) {}
+
+            // Send profile view notification to target user
+            supabase.from('notifications').insert({
+              user_id: profileId,
+              type: 'profile_view',
+              title: 'Profile Visitor',
+              message: 'viewed your profile',
+              metadata: {
+                viewer_id: currentUser.id,
+                viewed_at: new Date().toISOString()
+              }
+            }).then(() => {}).catch(() => {});
           }
 
           // Fetch Liked Posts
@@ -382,10 +478,49 @@ export default function UserProfilePublic() {
           }
         }
 
-        const { data: tradesData } = await supabase
-          .from('trades')
-          .select('*')
-          .eq('user_id', profileId);
+        const [tradesRes, mt5Res, indianRes, brokerRes, riskRes] = await Promise.all([
+          supabase.from('trades').select('*').eq('user_id', profileId).order('closed_at', { ascending: false }),
+          supabase.from('mt5_accounts').select('balance').eq('user_id', profileId).maybeSingle(),
+          supabase.from('indian_broker_accounts').select('balance').eq('user_id', profileId).maybeSingle(),
+          supabase.from('broker_connections').select('balance').eq('user_id', profileId).eq('connection_status', 'active').maybeSingle(),
+          supabase.from('user_risk_configs').select('target_capital').eq('user_id', profileId).maybeSingle(),
+        ]);
+
+        const isIndian = profileData?.preferred_market === 'indian';
+        const currencySymbol = isIndian ? '₹' : '$';
+
+        let detectedBalance = 0;
+        if (isIndian) {
+          detectedBalance = Number(indianRes.data?.balance) || Number((brokerRes.data as any)?.balance) || 0;
+        } else {
+          detectedBalance = Number(mt5Res.data?.balance) || 0;
+        }
+
+        if (detectedBalance < 50) {
+          if (Number(riskRes.data?.target_capital) >= 50) {
+            detectedBalance = Number(riskRes.data?.target_capital);
+          } else if (Number(mt5Res.data?.balance) >= 50) {
+            detectedBalance = Number(mt5Res.data?.balance);
+          } else if (Number(indianRes.data?.balance) >= 50) {
+            detectedBalance = Number(indianRes.data?.balance);
+          } else {
+            detectedBalance = isIndian ? 100000 : 10000;
+          }
+        }
+
+        const safeBalance = Math.max(100, detectedBalance);
+        setAccountBalance(safeBalance);
+
+        // Deduplicate trades
+        const rawTradesData = tradesRes.data || [];
+        const uniqueMap = new Map();
+        rawTradesData.forEach((t: any) => {
+          const key = t.ticket || t.id;
+          if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, t);
+          }
+        });
+        const tradesData = Array.from(uniqueMap.values());
 
         if (tradesData && tradesData.length > 0) {
           const total = tradesData.length;
@@ -407,25 +542,93 @@ export default function UserProfilePublic() {
           }
           setStreakVal(`${currentStreak} Day${currentStreak !== 1 ? 's' : ''}`);
 
-          // Fetch balance for ROI
-          const { data: mt5Data } = await supabase
-            .from('mt5_accounts')
-            .select('balance')
-            .eq('user_id', profileId)
-            .maybeSingle();
+          let best = 0;
+          let runLen = 0;
+          const chronoTrades = [...tradesData].sort((a: any, b: any) => new Date(a.closed_at || a.created_at).getTime() - new Date(b.closed_at || b.created_at).getTime());
+          for (const t of chronoTrades) {
+            if (Number(t.profit) > 0) { runLen++; if (runLen > best) best = runLen; } else { runLen = 0; }
+          }
+          setBestStreak(best);
 
-          const balance = mt5Data?.balance || 10000;
-          const roiPercent = balance > 0 ? (pnlSum / balance) * 100 : 0;
+          const today = new Date();
+          const dailyPnl: Record<string, number> = {};
+          for (const t of tradesData) {
+            const d = new Date(t.closed_at || t.created_at);
+            if (!isNaN(d.getTime())) {
+              const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+              dailyPnl[key] = (dailyPnl[key] || 0) + Number(t.profit || 0);
+            }
+          }
+          const dots: { date: string; status: 'green' | 'red' | 'gray' }[] = [];
+          for (let i = 14; i >= 0; i--) {
+            const d = new Date(today);
+            d.setDate(d.getDate() - i);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            if (dailyPnl[key] !== undefined) {
+              dots.push({ date: key, status: dailyPnl[key] > 0 ? 'green' : 'red' });
+            } else {
+              dots.push({ date: key, status: 'gray' });
+            }
+          }
+          setStreakDots(dots);
+
+          const calMap: Record<string, 'green' | 'red'> = {};
+          for (const [key, pnl] of Object.entries(dailyPnl)) {
+            calMap[key] = pnl > 0 ? 'green' : 'red';
+          }
+          setCalendarDayMap(calMap);
+
+          const roiPercent = safeBalance > 0 ? (pnlSum / safeBalance) * 100 : 0;
           setRoiVal((pnlSum >= 0 ? "+" : "") + roiPercent.toFixed(2) + "%");
           setPublicTrades(tradesData);
-          setAdvMetrics(calculateTradingMetrics(tradesData, balance));
+          const computed = calculateTradingMetrics(tradesData, safeBalance, currencySymbol);
+          setAdvMetrics(computed);
+          if (computed?.avgRR) setAvgRRVal(computed.avgRR);
+        } else if (profileData && (profileData.total_trades > 0 || profileData.win_rate !== null || profileData.roi_all_time !== null)) {
+          // If trades table is protected by RLS, display the user's authentic verified stats from profiles table
+          const total = profileData.total_trades || 0;
+          const wr = profileData.win_rate !== null ? `${profileData.win_rate}%` : "0%";
+          const roiNum = profileData.roi_all_time || 0;
+          const roiSign = roiNum >= 0 ? "+" : "";
+          const roiStr = `${roiSign}${roiNum.toFixed(2)}%`;
+          const avgRR = profileData.avg_rr ? `${profileData.avg_rr.toFixed(2)}R` : "1.00R";
+          const streak = profileData.streak_days ? `${profileData.streak_days} Day${profileData.streak_days !== 1 ? 's' : ''}` : "0 Days";
+
+          setTotalTradesCount(total);
+          setWinRateVal(wr);
+          setRoiVal(roiStr);
+          setAvgRRVal(avgRR);
+          setStreakVal(streak);
+          setBestStreak(profileData.streak_days || 0);
+
+          setAdvMetrics({
+            profitFactor: "——",
+            expectancy: "+1.00R",
+            maxDrawdown: "0.00%",
+            consistencyScore: profileData.win_rate || 50,
+            consistencyDisplay: profileData.win_rate ? `${profileData.win_rate}%` : "—",
+            emotionalDiscipline: 85,
+            revengeRisk: "Low",
+            confidenceScore: profileData.win_rate || 50,
+            bestSession: "London (3AM - 11AM)",
+            suggestedImprovement: "Keep up the good work!",
+            totalPnl: 0,
+            formattedPnl: roiStr,
+            totalPnlPercent: roiStr,
+            avgRR,
+            chartPath: "M0,32 Q25,26 50,20 T75,14 T100,8",
+            totalTrades: total,
+          });
         } else {
           setTotalTradesCount(0);
           setWinRateVal("0%");
           setStreakVal("0 Days");
+          setBestStreak(0);
+          setStreakDots([]);
+          setCalendarDayMap({});
           setRoiVal("0.00%");
           setPublicTrades([]);
-          setAdvMetrics(calculateTradingMetrics([]));
+          setAdvMetrics(calculateTradingMetrics([], safeBalance, currencySymbol));
         }
       } else {
         setTotalTradesCount(0);
@@ -444,7 +647,10 @@ export default function UserProfilePublic() {
           .eq('id', currentUserId)
           .maybeSingle();
 
-        const isSelf = currentProfile?.username?.toLowerCase() === username.toLowerCase();
+        const isSelf = Boolean(
+          (currentUserId && profileId && currentUserId === profileId) ||
+          (currentProfile?.username && cleanUsername && currentProfile.username.toLowerCase() === cleanUsername.toLowerCase())
+        );
         if (isSelf) {
           const selfGam = localStorage.getItem("tradifive_gamification_state");
           if (selfGam) {
@@ -457,7 +663,7 @@ export default function UserProfilePublic() {
           }
         } else {
           // Fallback level for other public profiles
-          const seed = username.length;
+          const seed = (cleanUsername || username || '').length;
           const userLevel = 10 + (seed % 15);
           setLevelVal(userLevel);
           setXpVal(Math.floor(500 * Math.pow(userLevel, 1.1) * 0.4));
@@ -534,6 +740,23 @@ export default function UserProfilePublic() {
             .insert([{ requester_id: currentUser.id, target_id: targetUserId }]);
           if (error) throw error;
           toast.success("Follow request sent");
+
+          // Notify target user
+          const myName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'A trader';
+          supabase.from('notifications').insert([{
+            user_id: targetUserId,
+            type: 'FOLLOW_REQUEST',
+            title: 'Follow Request',
+            message: `${myName} requested to follow you.`,
+            priority: 'normal',
+            is_read: false,
+            metadata: {
+              sender_id: currentUser.id,
+              sender_name: myName,
+              sender_username: currentUser.user_metadata?.username || currentUser.email?.split('@')[0],
+              sender_avatar: currentUser.user_metadata?.avatar_url || null
+            }
+          }]).then(() => {});
         } else {
           // Direct follow
           setFollowedUsers(prev => ({ ...prev, [targetUserId]: true }));
@@ -545,6 +768,27 @@ export default function UserProfilePublic() {
             .insert([{ follower_id: currentUser.id, following_id: targetUserId }]);
           if (error) throw error;
           toast.success(`Followed ${targetName}`);
+
+          // Trigger instant real-time notification
+          const myName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.username || currentUser.email?.split('@')[0] || 'A trader';
+          const myUsername = currentUser.user_metadata?.username || currentUser.email?.split('@')[0];
+          const myAvatar = currentUser.user_metadata?.avatar_url || null;
+
+          supabase.from('notifications').insert([{
+            user_id: targetUserId,
+            type: 'FOLLOW',
+            title: 'New Follower',
+            message: `${myName} started following you!`,
+            priority: 'normal',
+            is_read: false,
+            metadata: {
+              sender_id: currentUser.id,
+              sender_username: myUsername,
+              sender_name: myName,
+              sender_avatar: myAvatar,
+              action: 'follow_back'
+            }
+          }]).then(() => {});
         }
       }
     } catch (err: any) {
@@ -712,9 +956,7 @@ export default function UserProfilePublic() {
       const updatedLocal = localPosts.filter((p: any) => String(p.id) !== postIdStr);
       localStorage.setItem('fialgo_local_posts', JSON.stringify(updatedLocal));
 
-      const cachedFeeds = JSON.parse(localStorage.getItem('home_cache_feeds') || '[]');
-      const updatedCache = cachedFeeds.filter((p: any) => String(p.id) !== postIdStr);
-      localStorage.setItem('home_cache_feeds', JSON.stringify(updatedCache));
+      localStorage.removeItem('home_cache_feeds');
 
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -752,16 +994,16 @@ export default function UserProfilePublic() {
 
   const userFeedsRender = useMemo(() => {
     const filteredPosts = posts.filter((p: any) => {
-      const isTagged = (profile && profile.username && p.content)
-        ? p.content.toLowerCase().includes('@' + profile.username.toLowerCase())
-        : false;
-
-      if (activeTab === "Posts") {
-        return p.media_type !== 'video';
-      } else if (activeTab === "Mentions") {
-        return isTagged;
-      } else if (activeTab === "Videos") {
-        return p.media_type === 'video';
+      if (activeTab === "All") {
+        return true;
+      } else if (activeTab === "Posts") {
+        return p.media_type !== 'video' && !p.is_reply;
+      } else if (activeTab === "Replies") {
+        return p.is_reply || p.parent_id;
+      } else if (activeTab === "Trades") {
+        return p.is_trade || p.type === 'trade' || p.trade_details;
+      } else if (activeTab === "Strategies") {
+        return p.is_strategy || p.type === 'strategy';
       }
       return true;
     });
@@ -842,50 +1084,82 @@ export default function UserProfilePublic() {
   } : advMetrics;
 
   return (
-    <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }, { label: `@${username || "user"}`, path: `/user/${username || "user"}` }]} headerActions={headerActions} noScroll={true} noPadding={true}>
-      <div className="w-full h-full flex flex-col min-h-0 px-4 lg:px-10 pt-6 pb-6 overflow-y-auto amazing-scrollbar select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F8FAFC] dark:bg-[#1E1E1E]">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 min-h-0 relative max-w-7xl mx-auto w-full">
+    <DashboardLayout breadcrumbs={[{ label: "Home", path: "/home" }, { label: `@${username || "user"}`, path: `/user/${username || "user"}` }]} headerActions={headerActions} noPadding={true}>
+      <div className="w-full min-h-screen flex flex-col px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-28 md:pb-10 select-none font-sans text-slate-800 dark:text-slate-100 bg-[#F7F8FA] dark:bg-[#141416]">
+        <div className="max-w-4xl lg:max-w-[1440px] mx-auto w-full space-y-5">
 
-          {/* --- LEFT & MIDDLE MAIN CONTENT (col-span-9) --- */}
-          <div className="md:col-span-8 lg:col-span-9 space-y-6">
+          {/* --- UNIFIED 2-COLUMN BENTO: Left scrolls (Profile Header + Tabs/Posts), Right stays pinned/sticky (Stats + Performance + Streak + Calendar) --- */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-            {/* Header Card (Consistent Tactile Neumorphic / Claymorphic Outer container with dual-border & soft shadow specs) */}
-            <div className="bg-white dark:bg-[#1E1E1E] rounded-[32px] overflow-hidden border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none relative">
-              {/* Cover Banner (with smooth bottom fade into card background) */}
-              <div className="h-48 sm:h-56 w-full relative bg-white dark:bg-[#1E1E1E] overflow-hidden">
+            {/* ITEM 1: Profile Header Card (Left column row 1 on desktop; #1 on mobile) */}
+            <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-1 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden relative flex flex-col">
+              {/* Cover Banner */}
+              <div className="h-44 sm:h-56 w-full relative bg-slate-200 dark:bg-[#1A1A1E] overflow-hidden">
+                {/* Top-Left Back Button Overlay */}
+                <button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  className="absolute top-3.5 left-3.5 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer"
+                  title="Go Back"
+                  aria-label="Go Back"
+                >
+                  <ChevronLeft size={20} strokeWidth={2.4} />
+                </button>
+
+                {/* Top-Right Social Link Circles + 3-Dot More Button Overlay */}
+                <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-2">
+                  <ProfileSocialIcons profile={profile} />
+                  <button
+                    type="button"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-black/55 hover:bg-black/75 backdrop-blur-md text-white flex items-center justify-center shadow-md active:scale-95 transition-all cursor-pointer"
+                    title="More options"
+                    aria-label="More options"
+                  >
+                    <MoreHorizontal size={20} strokeWidth={2.4} />
+                  </button>
+                </div>
+
                 {loading ? (
                   <div className="w-full h-full animate-pulse bg-slate-350 dark:bg-[#1E1E1E]" />
                 ) : (
                   <div className="w-full h-full relative">
                     {(!profile?.banner_url || profile.banner_url === "/default-cover.png") ? (
-                      <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center text-slate-600 dark:text-slate-700 relative">
-                        <Camera size={32} className="opacity-20" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
-                      </div>
+                      <div className="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900 relative" />
                     ) : (
-                      <>
-                        <img
-                          src={profile.banner_url}
-                          alt="Cover"
-                          className="w-full h-full object-cover [mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_30%,transparent_100%)]"
-                          onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#1E1E1E] dark:via-[#1E1E1E]/50 dark:to-transparent pointer-events-none" />
-                      </>
+                      <img
+                        src={profile.banner_url}
+                        alt="Cover"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
+                      />
                     )}
+                    {/* Ultra-Smooth Multi-Stop Eased Bottom Fade into Card Background */}
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-16 sm:h-20 pointer-events-none z-10 dark:hidden"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.85) 18%, rgba(255,255,255,0.56) 38%, rgba(255,255,255,0.28) 58%, rgba(255,255,255,0.10) 76%, rgba(255,255,255,0.02) 90%, rgba(255,255,255,0) 100%)",
+                      }}
+                    />
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-16 sm:h-20 pointer-events-none z-10 hidden dark:block"
+                      style={{
+                        background:
+                          "linear-gradient(to top, rgba(26,26,30,1) 0%, rgba(26,26,30,0.85) 18%, rgba(26,26,30,0.56) 38%, rgba(26,26,30,0.28) 58%, rgba(26,26,30,0.10) 76%, rgba(26,26,30,0.02) 90%, rgba(26,26,30,0) 100%)",
+                      }}
+                    />
                   </div>
                 )}
               </div>
 
               {/* Profile Details Area */}
-              <div className="px-8 pb-5 relative pt-4">
-
-                {/* Horizontal Layout containing Avatar & Stats top-level row */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-
-                  {/* Left: Avatar container overlapping covers */}
-                  <div className="relative -mt-16 sm:-mt-20 shrink-0">
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-4 border-white dark:border-white/5 overflow-hidden bg-white dark:bg-[#1E1E1E] relative">
+              <div className="px-4 sm:px-8 pb-5 sm:pb-6 relative pt-2.5 sm:pt-3">
+                {/* Top Row: Avatar on left overlapping banner, Action buttons on right */}
+                <div className="flex items-end justify-between gap-2 sm:gap-4">
+                  {/* Left: Avatar container overlapping cover */}
+                  <div className="relative -mt-11 sm:-mt-16 shrink-0 z-20">
+                    <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full border-[3.5px] sm:border-4 border-white dark:border-[#1A1A1E] overflow-hidden bg-white dark:bg-[#1E1E1E] relative shadow-lg">
                       {loading ? (
                         <div className="w-full h-full animate-pulse bg-slate-200 dark:bg-slate-700" />
                       ) : (
@@ -899,665 +1173,563 @@ export default function UserProfilePublic() {
                     </div>
                   </div>
 
-                  {/* Right: Stats display horizontally positioned next to the avatar (Using Inter font weights) */}
-                  <div className="flex flex-1 justify-around sm:justify-end gap-6 sm:gap-14 w-full sm:w-auto py-2 sm:py-0 text-center sm:text-right">
-                    <div className="min-w-[65px] text-center">
-                      <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{ownPostsCount}</p>
-                      <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-wider mt-2 leading-none">posts</p>
-                    </div>
-                    <div className="border-r border-slate-200 dark:border-white/5 h-8 self-center hidden sm:block" />
-                    <div
-                      onClick={() => handleFollowStatClick('followers')}
-                      className="min-w-[75px] text-center cursor-pointer hover:opacity-70 transition-opacity"
-                    >
-                      <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{Math.max(0, followerCount)}</p>
-                      <p className="text-[10px] font-bold text-slate-455 dark:text-slate-400 uppercase tracking-wider mt-2 leading-none">followers</p>
-                    </div>
-                    <div className="border-r border-slate-200 dark:border-white/5 h-8 self-center hidden sm:block" />
-                    <div
-                      onClick={() => handleFollowStatClick('following')}
-                      className="min-w-[75px] text-center cursor-pointer hover:opacity-70 transition-opacity"
-                    >
-                      <p className="text-xl sm:text-[23px] font-extrabold text-slate-900 dark:text-white leading-none tracking-tight font-sans">{Math.max(0, followingCount)}</p>
-                      <p className="text-[10px] font-bold text-slate-450 dark:text-slate-400 uppercase tracking-wider mt-2 leading-none">following</p>
-                    </div>
+                  {/* Right: Action Buttons */}
+                  <div className="flex items-center gap-1.5 sm:gap-2.5 pb-0.5 sm:pb-1 flex-nowrap justify-end shrink-0">
+                    {currentUserId && profile?.id && currentUserId === profile.id ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate('/settings?tab=profiles')}
+                        className="flex items-center justify-center gap-1.5 px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap tactile-white-pill cursor-pointer select-none"
+                      >
+                        <IconlyEdit set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2} /> Edit profile
+                      </button>
+                    ) : (
+                      <>
+                        {/* Follow button */}
+                        <button
+                          type="button"
+                          onClick={() => profile?.id && toggleFollowUser(profile.id, profile.display_name)}
+                          className={`flex items-center justify-center gap-1 sm:gap-1.5 px-4 sm:px-6 py-1.5 sm:py-2 rounded-full text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none ${
+                            followedUsers[profile?.id]
+                              ? "tactile-white-pill"
+                              : "tactile-black-pill"
+                          }`}
+                        >
+                          {followedUsers[profile?.id] ? <><UserCheck size={13} strokeWidth={2.4} className="text-emerald-500" /> Following</> : (hasRequested ? <><Clock size={13} strokeWidth={2.4} /> Requested</> : "Follow")}
+                        </button>
 
+                        {/* Message button */}
+                        <button
+                          type="button"
+                          onClick={handleStartConversation}
+                          className="flex items-center justify-center gap-1 sm:gap-1.5 px-3.5 sm:px-5 py-1.5 sm:py-2 rounded-full tactile-white-pill text-[12.5px] sm:text-[13.5px] font-bold whitespace-nowrap cursor-pointer select-none"
+                        >
+                          <MessageSquare size={13} strokeWidth={2.4} /> Message
+                        </button>
+
+                        {/* Channel button (conditional) */}
+                        {userChannel && (
+                          <Link to={`/channel/${userChannel.id}`} className="hidden sm:flex items-center justify-center gap-1.5 px-4 py-2 rounded-full tactile-white-pill text-[13px] font-bold whitespace-nowrap select-none">
+                            <Radio size={14} /> Channel
+                          </Link>
+                        )}
+                      </>
+                    )}
                   </div>
-
                 </div>
 
-                {/* Info and buttons layout below the avatar level */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6 items-end">
-
-                  {/* Left columns: Profile identity labels & pills */}
-                  <div className="md:col-span-8 text-center sm:text-left">
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-center justify-center sm:justify-start gap-2 leading-tight">
+                {/* Profile Identity & Info */}
+                <div className="mt-3 text-left">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
                       {loading ? (
                         <div className="h-8 w-48 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-lg" />
                       ) : (
-                        <>
-                          {profile?.display_name || profile?.full_name || (!isUUID(username || '') ? username : "Anonymous Trader")}
-                          {profile?.account_type === 'creator' && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30 ml-2">
-                              <Crown size={12} className="text-purple-600 dark:text-purple-400" />
-                              <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Creator</span>
-                            </div>
-                          )}
-                        </>
+                        profile?.display_name || profile?.full_name || (!isUUID(username || '') ? username : "Anonymous Trader")
                       )}
                     </h1>
-                    <div className="text-[13px] font-semibold text-slate-455 dark:text-slate-400 mt-1">
-                      {loading ? (
-                        <div className="h-4 w-32 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-lg inline-block" />
-                      ) : (
-                        `@${profile?.username || (!isUUID(username || '') ? username : "trader")}`
-                      )}
-                    </div>
-                    <div className="flex items-center justify-center sm:justify-start gap-4 mt-2.5 mb-1.5 select-none">
-                      <span className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 text-blue-655 dark:text-blue-400 text-[10.5px] font-black px-2.5 py-1 rounded-lg border border-blue-500/25 flex items-center gap-1 shadow-sm shrink-0">
-                        <Crown size={12} className="text-blue-500" /> Lvl {levelVal}
-                      </span>
-                      <div className="flex items-center gap-2 flex-1 max-w-[180px] min-w-[120px]">
-                        <div className="flex-1 h-1.5 bg-slate-200 dark:bg-[#1E1E1E] rounded-full overflow-hidden relative">
-                          <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: `${Math.min(100, (xpVal / xpRequiredVal) * 100)}%` }} />
-                        </div>
-                        <span className="text-[9.5px] text-slate-455 dark:text-slate-400 font-bold shrink-0">{xpVal}/{xpRequiredVal} XP</span>
-                      </div>
-                    </div>
-                    <div className="text-[14px] text-slate-700 dark:text-[#CCC] font-semibold leading-relaxed mt-3.5 max-w-xl whitespace-pre-wrap">
-                      {profile?.bio || "This user hasn't added a bio yet."}
-                    </div>
-
-
-
-                    {/* Geographic and join info */}
-                    <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-5 gap-y-2 text-slate-500 dark:text-[#999] text-xs font-bold mt-5 pt-4 border-t border-slate-200/50 dark:border-white/5">
-                      {privacySettings.show_location && (
-                        <>
-                          <span className="flex items-center gap-1.5">
-                            {profile?.country_emoji || "🌍"} <span>{profile?.country || "Not set"}</span>
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <MapPin size={13.5} className="text-slate-400" /> <span>{profile?.location || "Not set"}</span>
-                          </span>
-                        </>
-                      )}
-                      <span className="flex items-center gap-1.5">
-                        <Calendar size={13.5} className="text-slate-400" /> <span>Joined Jan 2024</span>
-                      </span>
-                    </div>
+                    <span className="bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-100 text-[10.5px] font-extrabold px-2.5 py-0.5 rounded-lg border border-slate-200/80 dark:border-white/10 flex items-center gap-1 shrink-0">
+                      <Crown size={11} className="text-amber-500 fill-amber-500/20" /> Lvl {levelVal}
+                    </span>
                   </div>
 
-                  {/* Right columns: Compact Action Buttons */}
-                  <div className="md:col-span-4 flex items-center justify-center sm:justify-end gap-2.5 w-full pb-2.5">
-                    {/* Follow button */}
-                    <button
-                      onClick={() => profile?.id && toggleFollowUser(profile.id, profile.display_name)}
-                      className={`flex items-center justify-center gap-1.5 px-5 py-2 rounded-full text-[12px] font-bold whitespace-nowrap transition-all duration-150 active:scale-[0.985] ${
-                        followedUsers[profile?.id]
-                          ? "bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]"
-                          : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_6px_rgba(37,99,235,0.3)] border-none"
-                      }`}
-                    >
-                      {followedUsers[profile?.id] ? <><UserCheck size={13} /> Following</> : (hasRequested ? <><Clock size={13} /> Requested</> : <><UserPlus size={13} /> Follow</>)}
-                    </button>
-
-                    {/* Message button */}
-                    <button
-                      onClick={handleStartConversation}
-                      className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 text-[12px] font-bold whitespace-nowrap transition-all duration-150 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_3px_rgba(0,0,0,0.05)] active:scale-[0.985]"
-                    >
-                      <Mail size={13} /> Message
-                    </button>
-
-                    {/* Channel button (conditional) */}
-                    {userChannel && (
-                      <Link to={`/channel/${userChannel.id}`} className="flex items-center justify-center gap-1.5 px-5 py-2 rounded-full bg-gradient-to-b from-indigo-50 to-white dark:from-indigo-900/20 dark:to-[#1A1A1C] text-indigo-600 dark:text-indigo-400 text-[12px] font-bold whitespace-nowrap transition-all border-2 border-indigo-100 dark:border-indigo-800/50 shadow-[0_4px_7px_-5px_rgba(79,70,229,0.15),_0_0_0_2px_#E0E7FF] dark:shadow-none active:scale-95">
-                        <Radio size={13} /> Channel
-                      </Link>
-                    )}
-
-                    {/* Share button */}
-                    <button
-                      onClick={() => setIsShareModalOpen(true)}
-                      className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 text-[12px] font-bold whitespace-nowrap transition-all duration-150 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_3px_rgba(0,0,0,0.05)] active:scale-[0.985]"
-                      title="Share Profile"
-                    >
-                      <Share2 size={13} /> Share
-                    </button>
-
-                    {/* More button */}
-                    <button className="p-2 rounded-full bg-white dark:bg-[#1E1E1E] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.6),0_1px_3px_rgba(0,0,0,0.05)] active:scale-[0.985] transition-all duration-150">
-                      <MoreHorizontal size={15} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {/* --- QUICK STATS GRID CARDS (5 Cards) --- */}
-              {/* Redesigned to have 100% Tactile claymorphic styling matching mockup box shadow specs */}
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-                {[
-                  { title: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <BarChart2 size={16} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
-                  { title: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <CheckCircle2 size={16} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
-                  { title: "ROI (All Time)", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <TrendingUp size={16} className="text-emerald-500 animate-pulse" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
-                  { title: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_winrate || isLocked), icon: <Target size={16} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
-                  { title: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={16} className="text-orange-500 animate-pulse" />, color: "bg-orange-500/10 text-orange-600" }
-                ].map((card, idx) => (
-                  <div key={idx} className="py-3.5 px-5 rounded-2xl bg-white dark:bg-[#1E1E1E] border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.1),_0_0_0_2px_#E7E7E7] dark:shadow-none hover:-translate-y-0.5 transition-all duration-350 flex flex-col gap-2.5 group relative overflow-hidden">
-                    <div className={`transition-all duration-300 ${card.isHidden ? 'blur-[4px] opacity-40 pointer-events-none select-none' : ''}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] font-bold text-slate-455 dark:text-slate-400 uppercase tracking-wider">{card.title}</span>
-                        <div className={`p-2 rounded-xl ${card.color} transition-transform group-hover:scale-105 duration-300`}>
-                          {card.icon}
-                        </div>
-                      </div>
-                      <p className={`text-xl sm:text-[22px] font-extrabold leading-none font-sans tracking-tight ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
-                        {card.value}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* --- TWO COLUMN MIDDLE SECTION: PERFORMANCE vs AI ANALYSIS --- */}
-              {/* Both styled as tactile rounded-3xl containers */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Card A: Trading Performance */}
-                <div className="bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] p-6 rounded-3xl border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-                  <div className={`flex flex-col gap-6 transition-all duration-300 ${(!privacySettings.show_roi || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
-
-                      {/* Select dropdown style tactile clone */}
-                      <span className="text-[11px] font-bold text-[#393939] dark:text-[#E2E8F0] bg-white dark:bg-[#1E1E1E] px-3.5 py-1.5 rounded-full border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.1),_0_0_0_2px_#E7E7E7] dark:shadow-none cursor-pointer flex items-center gap-1.5 select-none active:scale-95 transition-all">
-                        All Time <ArrowRight size={10} className="rotate-90 text-slate-500" />
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-12 gap-5 items-center">
-
-                      {/* Left part: Total PnL Label & glowing Line Chart */}
-                      <div className="col-span-6 flex flex-col">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
-                        <span className={`text-2xl font-extrabold tracking-tight leading-none mt-2.5 font-sans ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'text-rose-500' : 'text-emerald-500'}`}>
-                          {safeAdvMetrics.totalPnlPercent}
-                        </span>
-
-                        <div className="h-24 w-full mt-5 relative">
-                          <svg className={`w-full h-full filter ${safeAdvMetrics.totalPnlPercent.startsWith('-') ? 'drop-shadow-[0_4px_8px_rgba(244,63,94,0.2)]' : 'drop-shadow-[0_4px_8px_rgba(59,130,246,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
-                            <defs>
-                              <linearGradient id="pnlGrad" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0.4" />
-                                <stop offset="100%" stopColor={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} stopOpacity="0" />
-                              </linearGradient>
-                            </defs>
-                            <path
-                              d={safeAdvMetrics.chartPath}
-                              fill="none"
-                              stroke={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"}
-                              strokeWidth="2.5"
-                              strokeLinecap="round"
-                            />
-                            <path
-                              d={`${safeAdvMetrics.chartPath} L100,40 L0,40 Z`}
-                              fill="url(#pnlGrad)"
-                            />
-                            <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="3.5" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} className="animate-ping" />
-                            <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="2" fill={safeAdvMetrics.totalPnlPercent.startsWith('-') ? "#f43f5e" : "#3b82f6"} />
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* Right part: stats list styled with Inter weights */}
-                      <div className="col-span-6 space-y-3.5 pl-6 border-l border-slate-200 dark:border-white/5">
-                        {[
-                          { label: "Profit Factor", value: safeAdvMetrics.profitFactor, color: "text-blue-500", icon: <BarChart2 size={13} className="text-blue-500" /> },
-                          { label: "Expectancy", value: safeAdvMetrics.expectancy, color: safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500", icon: <TrendingUp size={13} className={safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500"} /> },
-                          { label: "Max Drawdown", value: safeAdvMetrics.maxDrawdown, color: "text-rose-500", highlighted: true, icon: <Scale size={13} className="text-rose-500" /> },
-                          { label: "Consistency Score", value: `${safeAdvMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={13} className="text-blue-500" />, showInfo: true }
-                        ].map((stat, i) => (
-                          <div key={i} className="flex justify-between items-center text-xs">
-                            <span className="font-bold text-slate-450 dark:text-[#999] flex items-center gap-2">
-                              {/* Inner icon consistency boxes */}
-                              <div className="p-1 rounded-lg bg-white dark:bg-[#1E1E1E] border border-white dark:border-white/5 shadow-sm">
-                                {stat.icon}
-                              </div>
-                              <span className="flex items-center gap-1 font-semibold">
-                                {stat.label}
-                                {stat.showInfo && <Info size={11} className="text-slate-400 hover:text-slate-650 cursor-pointer" />}
-                              </span>
-                            </span>
-                            <span className={`font-bold tracking-tight font-sans ${stat.highlighted ? 'text-rose-500' : 'text-slate-850 dark:text-[#EEE]'}`}>{stat.value}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card B: Tradifive AI Analysis (Tactile rounded-3xl container) */}
-                <div className="bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] p-6 rounded-3xl border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-                  <div className={`flex flex-col gap-5 transition-all duration-300 ${isLocked ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Tradifive AI Analysis</h3>
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Updated 2h ago</span>
-                    </div>
-
-                    <div className="space-y-4">
-                      {/* Emotional Discipline bar */}
-                      <div>
-                        <div className="flex justify-between text-xs font-semibold mb-2">
-                          <span className="text-slate-555 dark:text-[#999]">Emotional Discipline</span>
-                          <span className="font-bold text-emerald-500">{safeAdvMetrics.emotionalDiscipline}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 dark:bg-[#1E1E1E] rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850">
-                          <div className="h-full bg-[#10b981] rounded-full transition-all duration-1000" style={{ width: `${safeAdvMetrics.emotionalDiscipline}%` }} />
-                        </div>
-                      </div>
-
-                      {/* Revenge Trading Risk */}
-                      <div className="flex justify-between items-center text-xs py-2.5 border-y border-slate-200/60 dark:border-white/5">
-                        <span className="font-semibold text-slate-555 dark:text-[#999]">Revenge Trading Risk</span>
-                        <span className={`font-bold flex items-center gap-1.5 ${safeAdvMetrics.revengeRisk === 'High' ? 'text-rose-500' : safeAdvMetrics.revengeRisk === 'Medium' ? 'text-yellow-500' : 'text-[#10b981]'}`}>
-                          <span className={`w-2.5 h-2.5 rounded-full shadow-sm ${safeAdvMetrics.revengeRisk === 'High' ? 'bg-rose-500' : safeAdvMetrics.revengeRisk === 'Medium' ? 'bg-yellow-500' : 'bg-[#10b981]'}`} /> {safeAdvMetrics.revengeRisk}
-                        </span>
-                      </div>
-
-                      {/* Confidence Score bar */}
-                      <div>
-                        <div className="flex justify-between text-xs font-semibold mb-2">
-                          <span className="text-slate-555 dark:text-[#999]">Confidence Score</span>
-                          <span className="font-bold text-blue-500">{safeAdvMetrics.confidenceScore}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 dark:bg-[#1E1E1E] rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850">
-                          <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${safeAdvMetrics.confidenceScore}%` }} />
-                        </div>
-                      </div>
-
-                      {/* Two detailed info cells */}
-                      <div className="grid grid-cols-2 gap-4 text-xs pt-2.5 border-t border-slate-200/60 dark:border-white/5">
-                        <div>
-                          <span className="text-slate-400 dark:text-slate-400 font-bold uppercase tracking-wider text-[9px] block">Best Trading Session</span>
-                          <span className="font-bold text-slate-900 dark:text-white mt-1 block font-sans">{safeAdvMetrics.bestSession}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 dark:text-slate-400 font-bold uppercase tracking-wider text-[9px] block">Suggested Improvement</span>
-                          <span className="font-bold text-slate-900 dark:text-white mt-1 block font-sans">{safeAdvMetrics.suggestedImprovement}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Pill Tabs Bar Selector */}
-              {/* Styled with skeuomorphic outline frame */}
-              <div className="flex items-center gap-6 border-b-2 border-slate-200/50 dark:border-white/5 px-2 relative z-10">
-                {isLocked ? (
-                  <div className="py-3 text-slate-500 dark:text-[#999] text-xs font-bold w-full text-center">
-                    <ShieldCheck size={20} className="inline-block mr-2 text-slate-400" />
-                    Posts and Trades are private
-                  </div>
-                ) : (
-                  (() => {
-                    const tabs = ["Posts", "Trades", "Videos", "Mentions", ...(profile?.achievements && (profile.achievements as any).length > 0 ? ["Achievements"] : [])];
-
-                    return tabs;
-                  })().map((tab) => (
-                    <div
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-3.5 pt-1 text-[11px] font-bold uppercase tracking-wider cursor-pointer transition-all relative select-none ${activeTab === tab
-                          ? "text-blue-600 dark:text-blue-500"
-                          : "text-slate-500 hover:text-slate-700 dark:text-[#999] dark:hover:text-slate-300"
-                        }`}
-                    >
-                      {tab}
-                      {activeTab === tab && (
-                        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-blue-600 dark:bg-blue-500 rounded-t-full shadow-[0_-2px_8px_rgba(37,99,235,0.4)]" />
-                      )}
-                    </div>
-                  ))
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-
-                {/* Feed Posts List */}
-                <div className="md:col-span-12 max-w-4xl mx-auto w-full space-y-6">
-                  <div className="pt-2 min-h-[300px] flex flex-col space-y-3">
-                    {isLocked ? (
-                      <div className="flex flex-col items-center justify-center py-20 text-center opacity-80">
-                        <ShieldCheck size={48} className="text-slate-300 dark:text-slate-400 mb-4" />
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-[#EEE]">Account is Private</h3>
-                        <p className="text-xs text-slate-500 mt-1 max-w-sm">Follow this user to view their complete timeline and trading history.</p>
-                      </div>
-                    ) : activeTab === "Achievements" ? (
-                      <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none space-y-6">
-                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
-                          <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-                            <Trophy size={16} className="text-blue-500" />
-                            <span>Trader Badges & Level Progress</span>
-                          </h3>
-                          <span className="bg-gradient-to-r from-blue-500/15 to-indigo-500/15 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold px-3 py-1.5 rounded-full border border-blue-500/20 shadow-sm uppercase tracking-wider">
-                            Rank: Vanguard
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Active Level Widget */}
-                          <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1E1E]/40 border border-slate-150 dark:border-white/5 shadow-sm flex flex-col justify-between h-[120px]">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Progression Level</span>
-                                <span className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1 block">Level {levelVal}</span>
-                              </div>
-                              <Crown size={22} className="text-amber-500 fill-amber-500/20" />
-                            </div>
-                            <div className="space-y-1.5">
-                              <div className="flex justify-between text-[10px] font-bold text-slate-455">
-                                <span>XP: {xpVal} / {xpRequiredVal}</span>
-                                <span>{Math.round((xpVal / xpRequiredVal) * 100)}%</span>
-                              </div>
-                              <div className="w-full h-2 bg-slate-100 dark:bg-[#1E1E1E] rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850">
-                                <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" style={{ width: `${(xpVal / xpRequiredVal) * 100}%` }} />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Discipline Level Modifier */}
-                          <div className="p-5 rounded-2xl bg-white dark:bg-[#1E1E1E]/40 border border-slate-150 dark:border-white/5 shadow-sm flex flex-col justify-between h-[120px]">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">Discipline Score</span>
-                                <span className="text-2xl font-extrabold text-emerald-500 mt-1 block">{profile?.discipline_score || '0'}%</span>
-                              </div>
-                              <ShieldCheck size={22} className="text-emerald-500" />
-                            </div>
-                            <div className="text-[10.5px] text-slate-500 dark:text-[#999] font-semibold leading-relaxed">
-                              User rank status is stable. Maintain &gt;75% score to preserve premium badge benefits.
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4 pt-2">
-                          <h4 className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider">Achievements Ledger ({(profile?.achievements || []).length} Unlocked)</h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {profile?.achievements && profile.achievements.length > 0 ? (
-                              profile.achievements.map((badge: any, idx: number) => (
-                                <div
-                                  key={idx}
-                                  className={`p-4 rounded-2xl border transition-all duration-300 flex items-start gap-3.5 bg-white dark:bg-[#1E1E1E]/30 border-slate-150 dark:border-white/5 hover:border-[#444]`}
-                                >
-                                  <div className="p-2.5 rounded-xl shrink-0 bg-blue-500/10 text-blue-500">
-                                    <Trophy size={18} />
-                                  </div>
-                                  <div className="space-y-1 min-w-0">
-                                    <div className="flex justify-between items-center gap-2">
-                                      <h5 className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">{badge.name}</h5>
-                                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-500">
-                                        COMPLETED
-                                      </span>
-                                    </div>
-                                    <p className="text-[10.5px] text-slate-500 dark:text-[#999] leading-snug font-medium">{badge.description || "Achievement Unlocked"}</p>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <div className="col-span-1 sm:col-span-2 py-10 text-center text-slate-400 dark:text-slate-400 text-xs font-semibold border-2 border-dashed border-slate-200 dark:border-white/5 rounded-2xl">
-                                No achievements unlocked yet in the ledger.
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ) : activeTab === "Trades" ? (
-                      !privacySettings.show_trades ? (
-                        <div className="p-12 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none flex flex-col items-center justify-center gap-4 text-center">
-                          <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#1E1E1E] border-2 border-white dark:border-white/5 shadow-md flex items-center justify-center text-slate-400 dark:text-slate-400 animate-pulse">
-                            <Shield size={28} />
-                          </div>
-                          <div className="space-y-1">
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Ledger is Private</h4>
-                            <p className="text-xs text-slate-500 dark:text-[#999] max-w-sm font-medium">This trader has disabled public visibility for their verified execution ledger.</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none">
-                          <div className="flex items-center justify-between mb-6">
-                            <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Synchronized Execution Ledger</h3>
-                            <span className="text-[11px] font-bold text-[#393939] dark:text-[#E2E8F0] bg-white dark:bg-[#1E1E1E] px-3.5 py-1.5 rounded-full border-2 border-white dark:border-white/5 shadow-sm select-none">
-                              Verified Execution
-                            </span>
-                          </div>
-
-                          <div className="overflow-x-auto amazing-scrollbar">
-                            <table className="w-full text-left border-collapse">
-                              <thead>
-                                <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                                  <th className="pb-3 pl-2">Ticket</th>
-                                  <th className="pb-3">Symbol</th>
-                                  <th className="pb-3">Type</th>
-                                  <th className="pb-3 text-right">Size</th>
-                                  <th className="pb-3 text-right">Profit</th>
-                                  <th className="pb-3 text-right pr-2">Date</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/40 text-xs font-bold">
-                                {publicTrades.map((trade) => {
-                                  const isWin = Number(trade.profit) > 0;
-                                  return (
-                                    <tr key={trade.id} className="hover:bg-slate-50/50 dark:hover:bg-[#1C2335]/30 transition-colors">
-                                      <td className="py-3.5 pl-2 font-mono text-slate-500">#{trade.ticket}</td>
-                                      <td className="py-3.5 flex items-center gap-1.5">
-                                        <span>{trade.symbol.includes("XAU") ? "🇺🇸" : (trade.symbol.includes("BTC") ? "🪙" : "🇪🇺")}</span>
-                                        <span className="text-slate-900 dark:text-white">{trade.symbol}</span>
-                                      </td>
-                                      <td className="py-3.5">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${trade.trade_type === 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                                          {trade.trade_type === 0 ? 'BUY' : 'SELL'}
-                                        </span>
-                                      </td>
-                                      <td className="py-3.5 text-right font-mono text-slate-655 dark:text-[#CCC]">{Number(trade.lot_size).toFixed(2)}</td>
-                                      <td className={`py-3.5 text-right font-mono ${isWin ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                        {isWin ? '+' : ''}${Number(trade.profit).toFixed(2)}
-                                      </td>
-                                      <td className="py-3.5 text-right font-mono text-slate-400 pr-2">
-                                        {new Date(trade.closed_at || trade.created_at).toLocaleDateString()}
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      )
-                    ) : activeTab === "Saved" ? (
-                      savedFeedsRender
-                    ) : posts.length === 0 ? (
-                      <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none text-center py-12 flex flex-col items-center justify-center">
-                        <p className="text-slate-500 dark:text-[#999] text-sm font-bold">No Posts Available</p>
-                      </div>
-                    ) : (
-                      userFeedsRender
+                  {/* Handle & Joined Date */}
+                  <div className="text-[13.5px] font-medium text-slate-500 dark:text-neutral-400 mt-1 flex items-center gap-2 flex-wrap">
+                    <span>@{profile?.username || (!isUUID(username || '') ? username : "trader")}</span>
+                    <span>·</span>
+                    <span>Joined {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Nov 2026'}</span>
+                    {profile?.location && (
+                      <>
+                        <span>·</span>
+                        <span>{profile.location}</span>
+                      </>
                     )}
                   </div>
-                </div>
-              </div>
 
-            </div>
-          </div>
-
-          {/* --- COLUMN 3: RIGHT SIDEBAR (col-span-3) --- */}
-          {/* All outer sidebar panels aligned to rounded-3xl outer cards with clean borders */}
-          <div className="md:col-span-4 lg:col-span-3 space-y-6">
-
-            {/* A. Suggested Traders Widget */}
-            <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck size={16} className="text-emerald-500 shrink-0" />
-                  <span>Suggested Traders</span>
-                </h3>
-                <span className="text-[11px] font-bold text-blue-500 hover:underline cursor-pointer">View all</span>
-              </div>
-
-              <div className="flex flex-col gap-5">
-                {suggestedTraders.length === 0 ? (
-                  <p className="text-[11px] font-semibold text-slate-400 text-center py-2">No suggested traders available</p>
-                ) : (
-                  suggestedTraders.map((person) => {
-                    const isFollowing = followedUsers[person.id] || false;
-                    const displayName = person.display_name || person.username || "Trader";
-                    const displayAvatar = person.avatar_url || "/default-avatar.svg";
-                    const displayHandle = person.username ? `@${person.username}` : "@trader";
-
-                    return (
-                      <div key={person.id} className="flex items-center justify-between gap-3 group">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <Link to={`/user/${person.username || person.id || ""}`} className="shrink-0 hover:opacity-85 transition-opacity duration-300">
-                            <img src={displayAvatar} alt={displayName} className="w-10 h-10 rounded-full border border-slate-200/50 dark:border-white/5 object-cover bg-slate-100" onError={(e) => { (e.target as HTMLImageElement).src = "/default-avatar.svg"; }} />
-                          </Link>
-                          <div className="min-w-0">
-                            <Link to={`/user/${person.username || person.id || ""}`}>
-                              <h4 className="font-bold text-slate-900 dark:text-white text-[13px] leading-tight hover:text-blue-600 cursor-pointer truncate transition-colors">{displayName}</h4>
-                            </Link>
-                            <p className="text-slate-450 dark:text-slate-400 text-[11px] leading-none mt-1 truncate font-medium">{displayHandle}</p>
-                          </div>
-                        </div>
-
-                        {/* Follow Button */}
-                        <button
-                          onClick={() => toggleFollowUser(person.id, displayName)}
-                          className={`shrink-0 flex items-center justify-center px-4 py-1.5 rounded-full text-[11px] font-bold tracking-wider transition-all duration-150 active:scale-[0.985] ${
-                            isFollowing
-                              ? "bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-500 dark:text-slate-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]"
-                              : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.25),0_2px_5px_rgba(37,99,235,0.3)] border-none"
-                          }`}
-                        >
-                          {isFollowing ? 'Following' : 'Follow'}
-                        </button>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* B. Trading Streak Widget */}
-            <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-              <div className={`flex flex-col gap-4.5 transition-all duration-300 ${(!privacySettings.show_streak || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5/60 mb-1">
-                  <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <Flame size={16} className="text-orange-500 fill-orange-500/10" />
-                    <span>Trading Streak</span>
-                  </h3>
-                  <span className="text-[14px] font-bold text-orange-500 leading-none">{safeStreak}</span>
-                </div>
-
-                <div className="flex justify-between text-xs font-semibold text-slate-450">
-                  <span>Current Streak</span>
-                  <span>Best: <strong className="text-slate-900 dark:text-white font-extrabold">{profile?.best_streak || 0} Days</strong></span>
-                </div>
-
-                {/* Day Dot indicators row matching image exactly (15 dots) */}
-                <div className="flex items-center justify-between gap-1.5 py-1">
-                  {Array(15).fill({ status: 'gray' }).map((dot, idx) => (
-                    <span
-                      key={idx}
-                      className={`w-2.5 h-2.5 rounded-full block border border-white/5 shadow-sm ${dot.status === 'green' ? 'bg-[#10b981]' : (dot.status === 'red' ? 'bg-[#ef4444]' : 'bg-slate-200 dark:bg-[#1E1E1E]')
-                        }`}
-                    />
-                  ))}
-                </div>
-
-                <div className="flex justify-between text-[9px] text-slate-450 font-bold uppercase tracking-widest leading-none">
-                  <span>12 May</span>
-                  <span>Today</span>
-                </div>
-              </div>
-            </div>
-
-            {/* C. Performance Calendar Widget */}
-            <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-              <div className={`flex flex-col gap-4.5 transition-all duration-300 ${(!privacySettings.show_trades || isLocked) ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5/60 mb-1">
-                  <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <Calendar size={15} className="text-blue-500" />
-                    <span>Calendar</span>
-                  </h3>
-                  {/* Tactical Dropdown trigger clone */}
-                  <span className="flex items-center justify-between gap-2 px-4 py-2 rounded-full bg-white dark:bg-[#1E1E1E] text-[#393939] dark:text-[#E2E8F0] text-[11px] font-extrabold uppercase tracking-wider transition-all border-2 border-white dark:border-white/5 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),_0_0_0_2px_#E7E7E7] dark:shadow-none cursor-pointer hover:text-slate-700 select-none active:scale-95 min-w-[105px]">
-                    <span>May 2026</span> <ChevronDown size={11} className="text-[#393939] dark:text-[#E2E8F0] shrink-0" />
-                  </span>
-                </div>
-
-                {/* Heatmap Grid Calendar (5 rows of 7 days) */}
-                <div className="space-y-2">
-                  <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <span key={d}>{d.substring(0, 1)}</span>)}
+                  {/* Following & Followers counts */}
+                  <div className="flex items-center gap-4 text-[13.5px] text-slate-500 dark:text-neutral-400 mt-2 select-none">
+                    <span onClick={() => handleFollowStatClick('following')} className="cursor-pointer hover:underline">
+                      <strong className="text-slate-900 dark:text-white font-extrabold">{Math.max(0, followingCount)}</strong> following
+                    </span>
+                    <span onClick={() => handleFollowStatClick('followers')} className="cursor-pointer hover:underline">
+                      <strong className="text-slate-900 dark:text-white font-extrabold">{Math.max(0, followerCount)}</strong> followers
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-7 gap-1.5">
-                    {/* Heatmap block layout matching the reference mockup layout */}
-                    {Array(35).fill(null).map((_, idx) => (
-                      <span key={idx} className="h-6 rounded-lg bg-slate-100 dark:bg-[#1E1E1E] border border-slate-200/40 dark:border-white/5" />
-                    ))}
-                  </div>
-                </div>
+                  {/* Bio */}
+                  {profile?.bio && (
+                    <p className="text-[14px] text-slate-800 dark:text-slate-200 font-medium leading-relaxed mt-3 max-w-2xl whitespace-pre-wrap">
+                      {profile.bio}
+                    </p>
+                  )}
 
-                {/* Legend details row */}
-                <div className="flex items-center justify-between text-[9px] text-slate-450 dark:text-slate-400 font-extrabold uppercase tracking-wider pt-2.5 border-t border-slate-200/60 dark:border-slate-850">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded bg-[#10b981]" /> Profitable
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded bg-[#ef4444]" /> Loss
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded bg-slate-200 dark:bg-[#1E1E1E]" /> No Trade
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* D. Achievements Widget with gorgeous premium inline SVG medals */}
-            {/* Outer box styled with skeuomorphic outline frame */}
-            {profile?.achievements && profile.achievements.length > 0 && (
-            <div className="p-6 rounded-3xl border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#FAFBFD] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.06),_0_0_0_2px_#E7E7E7] dark:shadow-none relative overflow-hidden group">
-              <div className={`flex flex-col gap-4.5 transition-all duration-300 ${isLocked ? 'blur-[5px] opacity-40 pointer-events-none select-none' : ''}`}>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5/60 mb-1">
-                  <h3 className="text-[13px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <Star size={15} className="text-blue-500" />
-                    <span>Achievements</span>
-                  </h3>
-                  <span className="text-[11px] font-bold text-blue-500 hover:underline cursor-pointer">View all</span>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2.5 text-center text-[9px] font-bold text-slate-500 dark:text-[#999] select-none">
-                  {profile?.achievements && profile.achievements.length > 0 ? (
-                    profile.achievements.slice(0, 3).map((ach: any, idx: number) => (
-                      <div key={idx} className="p-3 rounded-2xl bg-white dark:bg-[#1E1E1E] border-2 border-slate-100 dark:border-white/5 hover:border-slate-300 dark:hover:border-slate-600 transition-colors cursor-pointer shadow-sm">
-                        <Star size={22} className="text-emerald-500 mx-auto mb-1.5 drop-shadow-sm" />
-                        <span className="truncate block mt-1">{ach.name}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="col-span-3 py-6 text-center text-slate-400 dark:text-slate-400 text-xs font-semibold border-2 border-dashed border-slate-200 dark:border-white/5 rounded-xl">
-                      No achievements unlocked yet
+                  {/* Trading Style Badges (e.g. "☆ My own" as in user screenshot) */}
+                  {profile?.trading_style && (
+                    <div className="flex flex-wrap items-center gap-2 mt-3.5">
+                      {profile.trading_style.split(',').map((tag: string, idx: number) => (
+                        <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-white/10">
+                          {idx % 2 === 0 ? <Star size={11} className="text-slate-500 dark:text-slate-400" /> : <Shield size={11} className="text-slate-500 dark:text-slate-400" />} {tag.trim()}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
               </div>
             </div>
-            )}
+
+            {/* ITEM 2: Pinned Right Analytics Column (Right column on desktop; sticky) */}
+            <div className="lg:col-span-5 xl:col-span-6 lg:col-start-8 xl:col-start-7 lg:row-start-1 lg:row-span-2 lg:sticky lg:top-4 flex flex-col gap-4 min-w-0">
+
+              {/* --- QUICK STATS: COMPACT 1-LINE ROW --- */}
+              {(() => {
+                const visibleCards = [
+                  { title: "Trades", shortTitle: "Trades", value: safeTradesCount.toLocaleString(), isHidden: (!privacySettings.show_trades || isLocked), icon: <IconlyGraph set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-blue-500" />, color: "bg-blue-500/10 text-blue-600" },
+                  { title: "Win Rate", shortTitle: "Win Rate", value: safeWinRate, isHidden: (!privacySettings.show_winrate || isLocked), icon: <IconlyShieldDone set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600" },
+                  { title: "Net ROI", shortTitle: "ROI", value: safeRoi, isHidden: (!privacySettings.show_roi || isLocked), icon: <IconlyActivity set="curved" primaryColor="currentColor" size={12} stroke="bold" strokeWidth={2} className="text-emerald-500" />, color: "bg-emerald-500/10 text-emerald-600", highlighted: true },
+                  { title: "Avg RR", shortTitle: "Avg RR", value: safeAvgRR, isHidden: (!privacySettings.show_avg_rr || isLocked), icon: <Target size={12} className="text-purple-500" />, color: "bg-purple-500/10 text-purple-600" },
+                  { title: "Streak", shortTitle: "Streak", value: safeStreak, isHidden: (!privacySettings.show_streak || isLocked), icon: <Flame size={12} className="text-orange-500" />, color: "bg-orange-500/10 text-orange-600" }
+                ].filter(card => !card.isHidden);
+
+                if (visibleCards.length === 0) return null;
+
+                return (
+                  <div
+                    className="grid gap-1.5 sm:gap-3 w-full"
+                    style={{ gridTemplateColumns: `repeat(${visibleCards.length}, minmax(0, 1fr))` }}
+                  >
+                    {visibleCards.map((card, idx) => (
+                      <div
+                        key={idx}
+                        className="py-2 px-1.5 sm:py-3 sm:px-3.5 rounded-[14px] sm:rounded-[18px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none hover:-translate-y-0.5 transition-all flex flex-col justify-between min-w-0"
+                      >
+                        <div className="flex flex-col-reverse min-[440px]:flex-row min-[440px]:items-center justify-between gap-1 mb-1 sm:mb-1.5">
+                          <span className="text-[8px] sm:text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">
+                            <span className="sm:hidden">{card.shortTitle}</span>
+                            <span className="hidden sm:inline">{card.title}</span>
+                          </span>
+                          <div className={`w-5 h-5 sm:w-auto sm:h-auto p-1 sm:p-1.5 rounded-md sm:rounded-lg ${card.color} shrink-0 flex items-center justify-center`}>
+                            {card.icon}
+                          </div>
+                        </div>
+                        <p className={`text-[12.5px] sm:text-[17px] md:text-[19px] font-extrabold leading-tight font-sans tracking-tight truncate ${card.highlighted ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>
+                          {card.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
+              {/* --- TRADING PERFORMANCE CARD --- */}
+              {!isLocked && privacySettings.show_performance !== false && (
+                <div className="bg-white dark:bg-[#1A1A1E] p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Performance</h3>
+
+                    <div className="inline-flex items-center p-0.5 rounded-full bg-[#F4F5F7] dark:bg-[#2A2A2A] border border-slate-200/60 dark:border-white/10">
+                      {(["All", "1M", "7D", "1D"] as const).map((range) => (
+                        <button
+                          key={range}
+                          type="button"
+                          onClick={() => setPerfRange(range)}
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold transition-all cursor-pointer select-none ${
+                            perfRange === range
+                              ? "bg-white dark:bg-[#1A1A1E] text-slate-900 dark:text-white shadow-xs"
+                              : "text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                          }`}
+                        >
+                          {range === "All" ? "All Time" : range}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-3 items-center">
+
+                    {/* Left part: Total PnL Label & compact Line Chart */}
+                    <div className="col-span-5 flex flex-col">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider leading-none">Total PnL</span>
+                      <div className="flex items-baseline gap-1 mt-1.5 flex-wrap">
+                        <span className={`text-base sm:text-lg font-extrabold tracking-tight leading-none font-sans tabular-nums ${safeAdvMetrics.totalPnl >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                          {safeAdvMetrics.formattedPnl || safeAdvMetrics.totalPnlPercent}
+                        </span>
+                        <span className={`text-[10px] font-bold tabular-nums ${safeAdvMetrics.totalPnl >= 0 ? 'text-emerald-500/80' : 'text-rose-500/80'}`}>
+                          ({safeAdvMetrics.totalPnlPercent})
+                        </span>
+                      </div>
+
+                      <div className="h-12 sm:h-14 w-full mt-2 relative">
+                        <svg className={`w-full h-full filter ${safeAdvMetrics.totalPnl >= 0 ? 'drop-shadow-[0_3px_6px_rgba(59,130,246,0.2)]' : 'drop-shadow-[0_3px_6px_rgba(244,63,94,0.2)]'}`} viewBox="0 0 100 40" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="pnlGradPub" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor={safeAdvMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} stopOpacity="0.4" />
+                              <stop offset="100%" stopColor={safeAdvMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} stopOpacity="0" />
+                            </linearGradient>
+                          </defs>
+                          <path
+                            d={safeAdvMetrics.chartPath}
+                            fill="none"
+                            stroke={safeAdvMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"}
+                            strokeWidth="2.5"
+                            strokeLinecap="round"
+                          />
+                          <path
+                            d={`${safeAdvMetrics.chartPath} L100,40 L0,40 Z`}
+                            fill="url(#pnlGradPub)"
+                          />
+                          <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="3" fill={safeAdvMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} className="animate-ping" />
+                          <circle cx="100" cy={safeAdvMetrics.chartPath.split(',').pop() || 3} r="2" fill={safeAdvMetrics.totalPnl >= 0 ? "#3b82f6" : "#f43f5e"} />
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* Right part: compact stats list */}
+                    <div className="col-span-7 space-y-1.5 pl-3 sm:pl-4 border-l border-slate-200/80 dark:border-white/5">
+                      {[
+                        { label: "Profit Factor", value: safeAdvMetrics.profitFactor, color: "text-blue-500", icon: <BarChart2 size={11} className="text-blue-500" /> },
+                        { label: "Expectancy", value: safeAdvMetrics.expectancy, color: safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500", icon: <TrendingUp size={11} className={safeAdvMetrics.expectancy.startsWith('-') ? "text-rose-500" : "text-emerald-500"} /> },
+                        { label: "Max Drawdown", value: safeAdvMetrics.maxDrawdown, color: "text-rose-500", highlighted: true, icon: <Scale size={11} className="text-rose-500" /> },
+                        { label: "Consistency", value: safeAdvMetrics.consistencyDisplay || `${safeAdvMetrics.consistencyScore}%`, color: "text-blue-500", icon: <CheckCircle2 size={11} className="text-blue-500" />, showInfo: true }
+                      ].map((stat, i) => (
+                        <div key={i} className="flex justify-between items-center text-[10.5px] sm:text-[11.5px] gap-1">
+                          <span className="font-bold text-slate-500 dark:text-[#999] flex items-center gap-1.5 min-w-0">
+                            <div className="p-1 rounded-md bg-slate-100 dark:bg-white/5 shrink-0">
+                              {stat.icon}
+                            </div>
+                            <span className="flex items-center gap-1 font-semibold truncate">
+                              {stat.label}
+                              {stat.showInfo && <Info size={10} className="text-slate-400 hover:text-slate-600 cursor-pointer shrink-0" />}
+                            </span>
+                          </span>
+                          <span className={`font-bold tracking-tight font-sans tabular-nums shrink-0 ${stat.highlighted ? 'text-rose-500' : 'text-slate-900 dark:text-[#EEE]'}`}>{stat.value}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* --- TRADING STREAK & CALENDAR ROW --- */}
+              {!isLocked && (privacySettings.show_streak !== false || privacySettings.show_calendar !== false) && (
+                <div className={`grid grid-cols-1 ${(privacySettings.show_streak !== false && privacySettings.show_calendar !== false) ? 'sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2' : ''} gap-3.5 w-full`}>
+
+                  {/* Trading Streak Card — Structured & Balanced */}
+                  {privacySettings.show_streak !== false && (() => {
+                    const dots = streakDots.length > 0 ? streakDots : Array.from({ length: 15 }, () => ({ date: '', status: 'gray' as const }));
+                    const winDaysCount = dots.filter(d => d.status === 'green').length;
+                    const lossDaysCount = dots.filter(d => d.status === 'red').length;
+                    const activeDaysCount = winDaysCount + lossDaysCount;
+                    const idleDaysCount = dots.length - activeDaysCount;
+                    const bestVal = Math.max(bestStreak, profile?.best_streak || 0);
+                    const startDateLabel = dots.length > 0 && dots[0].date
+                      ? (() => {
+                          const d = new Date(dots[0].date);
+                          return isNaN(d.getTime()) ? '15 Days Ago' : d.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+                        })()
+                      : '15 Days Ago';
+
+                    return (
+                      <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-3 h-full">
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+                          <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <span className="p-1 rounded-md bg-orange-500/10 text-orange-500">
+                              <Flame size={12} className="fill-orange-500/15" />
+                            </span>
+                            <span>Trading Streak</span>
+                          </h3>
+                          <span className="px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10.5px] font-bold tabular-nums leading-none">
+                            {safeStreak}
+                          </span>
+                        </div>
+
+                        {/* 2-Column Streak Stat Tiles */}
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                              Current
+                            </span>
+                            <span className="text-[15px] sm:text-[16px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums mt-0.5 block">
+                              {safeStreak}
+                            </span>
+                          </div>
+                          <div className="p-2.5 sm:p-3 rounded-xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06]">
+                            <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-500 uppercase tracking-wider block">
+                              Best Record
+                            </span>
+                            <span className="text-[15px] sm:text-[16px] font-extrabold text-slate-900 dark:text-white tracking-tight tabular-nums mt-0.5 block">
+                              {bestVal} Day{bestVal !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* 15-Day Activity Pill Bars */}
+                        <div className="p-3 rounded-xl bg-slate-50/70 dark:bg-white/[0.02] border border-slate-200/50 dark:border-white/[0.05] space-y-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold">
+                            <span className="text-slate-500 dark:text-neutral-400 uppercase tracking-wider">15-Day Pulse</span>
+                            <span className="text-slate-700 dark:text-neutral-300 tabular-nums">{activeDaysCount} / 15 Active</span>
+                          </div>
+
+                          <div className="flex items-center gap-1 h-7">
+                            {dots.map((dot, idx) => (
+                              <span
+                                key={idx}
+                                title={dot.date ? `${dot.date} — ${dot.status === 'green' ? 'Profitable' : dot.status === 'red' ? 'Loss' : 'No Trade'}` : 'No Trade'}
+                                className={`flex-1 h-full rounded-[4px] block transition-all hover:scale-y-110 ${
+                                  dot.status === 'green'
+                                    ? 'bg-[#10b981] shadow-[0_1px_4px_rgba(16,185,129,0.3)]'
+                                    : dot.status === 'red'
+                                      ? 'bg-[#ef4444] shadow-[0_1px_4px_rgba(239,68,68,0.28)]'
+                                      : 'bg-slate-200/80 dark:bg-white/[0.08]'
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          <div className="flex justify-between text-[9px] text-slate-400 dark:text-neutral-500 font-bold uppercase tracking-wider leading-none">
+                            <span>{startDateLabel}</span>
+                            <span>Today</span>
+                          </div>
+                        </div>
+
+                        {/* Bottom Summary Legend matching Calendar Footer */}
+                        <div className="flex items-center justify-between text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-white/5 tabular-nums">
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-[2px] bg-[#10b981]" /> {winDaysCount} Win
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-[2px] bg-[#ef4444]" /> {lossDaysCount} Loss
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> {idleDaysCount} Idle
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Performance Calendar Card */}
+                  {privacySettings.show_calendar !== false && (
+                    <div className="p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] bg-white dark:bg-[#1A1A1E] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_12px_rgba(15,23,42,0.045)] dark:shadow-none flex flex-col justify-between gap-2.5">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-white/5">
+                        <h3 className="text-[11px] sm:text-[12px] font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                          <span className="p-1 rounded-md bg-blue-500/10 text-blue-500">
+                            <Calendar size={12} />
+                          </span>
+                          <span>Calendar</span>
+                        </h3>
+
+                        {/* Interactive Month Navigation */}
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setCalendarMonth(prev => { const d = new Date(prev); d.setMonth(d.getMonth() - 1); return d; })}
+                            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                            aria-label="Previous month"
+                          >
+                            <ChevronDown size={12} className="rotate-90" />
+                          </button>
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#F4F5F7] dark:bg-[#2A2A2A] text-slate-700 dark:text-slate-200 text-[10px] font-extrabold uppercase tracking-wider border border-slate-200/60 dark:border-white/10 select-none min-w-[78px] text-center">
+                            {calendarMonth.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setCalendarMonth(prev => { const d = new Date(prev); d.setMonth(d.getMonth() + 1); return d; })}
+                            className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 transition-colors text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                            aria-label="Next month"
+                          >
+                            <ChevronDown size={12} className="-rotate-90" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Dynamic Heatmap Grid */}
+                      <div className="space-y-1">
+                        <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                          {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(d => <span key={d}>{d.substring(0, 1)}</span>)}
+                        </div>
+
+                        <div className="grid grid-cols-7 gap-1">
+                          {(() => {
+                            const year = calendarMonth.getFullYear();
+                            const month = calendarMonth.getMonth();
+                            const firstDay = new Date(year, month, 1);
+                            const lastDay = new Date(year, month + 1, 0);
+                            const startOffset = (firstDay.getDay() + 6) % 7;
+                            const cells: React.ReactNode[] = [];
+
+                            for (let i = 0; i < startOffset; i++) {
+                              cells.push(<span key={`empty-${i}`} className="h-[20px] sm:h-[22px]" />);
+                            }
+
+                            const todayDate = new Date();
+                            const todayStr = `${todayDate.getFullYear()}-${String(todayDate.getMonth() + 1).padStart(2, '0')}-${String(todayDate.getDate()).padStart(2, '0')}`;
+
+                            for (let day = 1; day <= lastDay.getDate(); day++) {
+                              const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                              const status = calendarDayMap[key];
+                              const isToday = key === todayStr;
+
+                              let cellClass = "h-[20px] sm:h-[22px] w-full rounded-[5px] flex items-center justify-center text-[9px] font-bold transition-all ";
+                              if (status === 'green') {
+                                cellClass += "bg-[#10b981]/20 text-emerald-700 dark:bg-[#10b981]/30 dark:text-emerald-300 border border-[#10b981]/30";
+                              } else if (status === 'red') {
+                                cellClass += "bg-[#ef4444]/15 text-rose-700 dark:bg-[#ef4444]/25 dark:text-rose-300 border border-[#ef4444]/25";
+                              } else {
+                                cellClass += "bg-slate-100/90 dark:bg-white/[0.04] text-slate-400 dark:text-neutral-500 border border-slate-200/40 dark:border-white/5";
+                              }
+                              if (isToday) {
+                                cellClass += " ring-1.5 ring-slate-900 dark:ring-white ring-offset-1 dark:ring-offset-[#1E1E1E]";
+                              }
+
+                              cells.push(
+                                <span
+                                  key={key}
+                                  className={cellClass}
+                                  title={`${key}${status === 'green' ? ' — Profitable' : status === 'red' ? ' — Loss' : ' — No Trade'}`}
+                                >
+                                  {day}
+                                </span>
+                              );
+                            }
+
+                            return cells;
+                          })()}
+                        </div>
+                      </div>
+
+                      {/* Legend */}
+                      <div className="flex items-center justify-between text-[9px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider pt-2 border-t border-slate-100 dark:border-white/5">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-[2px] bg-[#10b981]" /> Profitable
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-[2px] bg-[#ef4444]" /> Loss
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-[2px] bg-slate-200 dark:bg-white/10" /> No Trade
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              )}
+
+            </div>
+
+            {/* ITEM 3: Unified Sculpted Card for Tabs Bar + Posts / Trades / Strategies Feed (Left column row 2) */}
+            <div className="lg:col-span-7 xl:col-span-6 lg:col-start-1 lg:row-start-2 min-w-0 bg-white dark:bg-[#1A1A1E] rounded-[24px] border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.045)] dark:shadow-none overflow-hidden">
+
+              {/* --- SYSTEMIC TABS BAR --- */}
+              <div className="flex items-center w-full border-b border-slate-200/85 dark:border-white/[0.08] px-2 pt-1 relative z-10 overflow-x-auto no-scrollbar bg-white dark:bg-[#1A1A1E]">
+                {isLocked ? (
+                  <div className="py-3.5 text-slate-500 dark:text-[#999] text-sm font-bold w-full text-center">
+                    <ShieldCheck size={20} className="inline-block mr-2 text-slate-400" />
+                    Posts and Trades are private
+                  </div>
+                ) : (
+                  ["All", "Posts", "Replies", "Trades", "Strategies"].map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setActiveTab(tab)}
+                      className={`flex-1 min-w-[74px] flex items-center justify-center pb-3 pt-2.5 text-[14px] sm:text-[15px] tracking-tight cursor-pointer transition-colors relative select-none shrink-0 ${
+                        activeTab === tab
+                          ? "font-bold text-slate-900 dark:text-white"
+                          : "font-semibold text-slate-400 hover:text-slate-700 dark:text-neutral-500 dark:hover:text-white"
+                      }`}
+                    >
+                      {tab}
+                      {activeTab === tab && (
+                        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 sm:w-14 h-[3px] bg-[#2563EB] rounded-full" />
+                      )}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              {/* --- SEAMLESS FEED LIST --- */}
+              <div className="w-full">
+                {isLocked ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center opacity-80">
+                    <ShieldCheck size={48} className="text-slate-300 dark:text-slate-400 mb-4" />
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-[#EEE]">Account is Private</h3>
+                    <p className="text-xs text-slate-500 mt-1 max-w-sm">Follow this user to view their complete timeline and trading history.</p>
+                  </div>
+                ) : activeTab === "Trades" ? (
+                  !privacySettings.show_trades ? (
+                    <div className="p-12 flex flex-col items-center justify-center gap-4 text-center">
+                      <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-[#1E1E1E] border-2 border-white dark:border-white/5 shadow-md flex items-center justify-center text-slate-400 dark:text-slate-400 animate-pulse">
+                        <Shield size={28} />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trading Ledger is Private</h4>
+                        <p className="text-xs text-slate-500 dark:text-[#999] max-w-sm font-medium">This trader has disabled public visibility for their verified execution ledger.</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-5 sm:p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Synchronized Execution Ledger</h3>
+                        <span className="text-[11px] font-bold text-[#393939] dark:text-[#E2E8F0] bg-slate-100 dark:bg-white/[0.06] px-3.5 py-1.5 rounded-full select-none">
+                          Verified Execution
+                        </span>
+                      </div>
+
+                      <div className="overflow-x-auto amazing-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              <th className="pb-3 pl-2">Ticket</th>
+                              <th className="pb-3">Symbol</th>
+                              <th className="pb-3">Type</th>
+                              <th className="pb-3 text-right">Size</th>
+                              <th className="pb-3 text-right">Profit</th>
+                              <th className="pb-3 text-right pr-2">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/40 text-xs font-bold">
+                            {publicTrades.map((trade) => {
+                              const isWin = Number(trade.profit) > 0;
+                              return (
+                                <tr key={trade.id} className="hover:bg-slate-50/50 dark:hover:bg-[#1C2335]/30 transition-colors">
+                                  <td className="py-3.5 pl-2 font-mono text-slate-500">#{trade.ticket}</td>
+                                  <td className="py-3.5 flex items-center gap-1.5">
+                                    <span>{trade.symbol.includes("XAU") ? "🇺🇸" : (trade.symbol.includes("BTC") ? "🪙" : "🇪🇺")}</span>
+                                    <span className="text-slate-900 dark:text-white">{trade.symbol}</span>
+                                  </td>
+                                  <td className="py-3.5">
+                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${trade.trade_type === 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-rose-500/10 text-rose-500'}`}>
+                                      {trade.trade_type === 0 ? 'BUY' : 'SELL'}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 text-right font-mono text-slate-655 dark:text-[#CCC]">{Number(trade.lot_size).toFixed(2)}</td>
+                                  <td className={`py-3.5 text-right font-mono ${isWin ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                    {isWin ? '+' : ''}${Number(trade.profit).toFixed(2)}
+                                  </td>
+                                  <td className="py-3.5 text-right font-mono text-slate-400 pr-2">
+                                    {new Date(trade.closed_at || trade.created_at).toLocaleDateString()}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )
+                ) : activeTab === "Saved" ? (
+                  savedFeedsRender
+                ) : posts.length === 0 ? (
+                  <div className="p-8 text-center py-16 flex flex-col items-center justify-center">
+                    <p className="text-slate-400 dark:text-neutral-500 text-sm font-semibold">No Posts Available</p>
+                  </div>
+                ) : (
+                  userFeedsRender
+                )}
+              </div>
+            </div>
 
           </div>
         </div>
