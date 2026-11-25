@@ -62,6 +62,7 @@ import { FollowButton } from "@/components/ui/FollowButton";
 import FeedCard from "@/components/FeedCard";
 import JournalTradesTable from "@/components/journal/JournalTradesTable";
 import { JournalSettingsProvider } from "@/contexts/JournalSettingsContext";
+import { ProfileTradesLedger } from "@/components/profile/ProfileTradesLedger";
 import { getGamificationState } from "@/utils/gamification";
 import { calculateTradingMetrics } from "@/utils/tradeMetrics";
 import { useMarket } from "@/contexts/MarketContext";
@@ -1684,14 +1685,11 @@ export default function Profile() {
                 {/* Feed Posts List (Zero grey gaps between posts, clean hairline dividers like Home) */}
                 <div className="w-full">
                   {activeTab === "Trades" ? (
-                    <div className="p-5 sm:p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Synchronized Execution Ledger</h3>
-                      </div>
-                      <JournalSettingsProvider>
-                        <JournalTradesTable />
-                      </JournalSettingsProvider>
-                    </div>
+                    <ProfileTradesLedger
+                      trades={rawTrades}
+                      isOwnProfile={true}
+                      currencySymbol={currencySymbol}
+                    />
                   ) : activeTab === "Achievements" ? (
                     <div className="p-5 sm:p-6 space-y-6">
                       <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">

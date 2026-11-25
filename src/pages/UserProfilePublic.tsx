@@ -45,6 +45,7 @@ import { FollowListModal } from "@/components/FollowListModal";
 import { CommentModal } from "@/components/CommentModal";
 import ShareProfileModal from "@/components/ShareProfileModal";
 import { ProfileSocialIcons } from "@/components/ProfileSocialIcons";
+import { ProfileTradesLedger } from "@/components/profile/ProfileTradesLedger";
 
 // Placeholder display names to filter out from suggestions
 const PLACEHOLDER_NAMES = ["new trader", "guest trader", "demo trader", "trader", "guest"];
@@ -1702,55 +1703,11 @@ export default function UserProfilePublic() {
                       </div>
                     </div>
                   ) : (
-                    <div className="p-5 sm:p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Synchronized Execution Ledger</h3>
-                        <span className="text-[11px] font-bold text-[#393939] dark:text-[#E2E8F0] bg-slate-100 dark:bg-white/[0.06] px-3.5 py-1.5 rounded-full select-none">
-                          Verified Execution
-                        </span>
-                      </div>
-
-                      <div className="overflow-x-auto amazing-scrollbar">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="border-b border-slate-100 dark:border-white/5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                              <th className="pb-3 pl-2">Ticket</th>
-                              <th className="pb-3">Symbol</th>
-                              <th className="pb-3">Type</th>
-                              <th className="pb-3 text-right">Size</th>
-                              <th className="pb-3 text-right">Profit</th>
-                              <th className="pb-3 text-right pr-2">Date</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/40 text-xs font-bold">
-                            {publicTrades.map((trade) => {
-                              const isWin = Number(trade.profit) > 0;
-                              return (
-                                <tr key={trade.id} className="hover:bg-slate-50/50 dark:hover:bg-[#1C2335]/30 transition-colors">
-                                  <td className="py-3.5 pl-2 font-mono text-slate-500">#{trade.ticket}</td>
-                                  <td className="py-3.5 flex items-center gap-1.5">
-                                    <span>{trade.symbol.includes("XAU") ? "🇺🇸" : (trade.symbol.includes("BTC") ? "🪙" : "🇪🇺")}</span>
-                                    <span className="text-slate-900 dark:text-white">{trade.symbol}</span>
-                                  </td>
-                                  <td className="py-3.5">
-                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${trade.trade_type === 0 ? 'bg-blue-500/10 text-blue-500' : 'bg-rose-500/10 text-rose-500'}`}>
-                                      {trade.trade_type === 0 ? 'BUY' : 'SELL'}
-                                    </span>
-                                  </td>
-                                  <td className="py-3.5 text-right font-mono text-slate-655 dark:text-[#CCC]">{Number(trade.lot_size).toFixed(2)}</td>
-                                  <td className={`py-3.5 text-right font-mono ${isWin ? 'text-emerald-500' : 'text-rose-500'}`}>
-                                    {isWin ? '+' : ''}${Number(trade.profit).toFixed(2)}
-                                  </td>
-                                  <td className="py-3.5 text-right font-mono text-slate-400 pr-2">
-                                    {new Date(trade.closed_at || trade.created_at).toLocaleDateString()}
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
+                    <ProfileTradesLedger
+                      trades={publicTrades}
+                      isOwnProfile={false}
+                      currencySymbol={profile?.preferred_market === "indian" ? "₹" : "$"}
+                    />
                   )
                 ) : activeTab === "Saved" ? (
                   savedFeedsRender
