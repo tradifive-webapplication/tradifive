@@ -892,6 +892,16 @@ Our AI servers are currently busy or experiencing an error. Please try again lat
 
   // Master send message logic
   const handleSendMessage = async (text: string = input) => {
+    if (isStarter) {
+      toast.info("Pro & Elite Feature · AI Coach", {
+        description: "Upgrade to Pro or Elite to unlock TradiFive AI Coach.",
+        action: {
+          label: "Upgrade",
+          onClick: () => navigate("/upgrade"),
+        },
+      });
+      return;
+    }
     if (!text.trim() || isThinking) return;
 
     if (creditsLeft !== undefined && creditsLeft <= 0) {
@@ -1203,122 +1213,172 @@ ${JSON.stringify(contextData)}`;
           }}
         />
         <div className={`${SURFACE_CARD} p-3.5 sm:p-4 space-y-2.5 text-left w-full`}>
-          {/* Top Credits & Upgrade Row */}
-          {creditsLeft === 0 ? (
-            <div className="flex items-center justify-between gap-2 px-1">
-              <span className="text-[12px] font-semibold text-rose-600 dark:text-rose-400">
-                Daily AI credits exhausted until 12:00 AM
-              </span>
-              <button
-                type="button"
-                onClick={() => navigate('/upgrade')}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11.5px] font-bold transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
-              >
-                Upgrade
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-wrap justify-between items-center gap-2 px-1">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/[0.08] text-[11px] font-semibold text-slate-600 dark:text-slate-300 tabular-nums">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
-                Credits: {creditsLeft} / {maxCredits}
-              </div>
-              <button
-                type="button"
-                onClick={() => navigate('/upgrade')}
-                className="text-[11px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
-              >
-                <Zap size={11} className="fill-current" />
-                <span>Need extra credits? Upgrade plan</span>
-              </button>
-            </div>
-          )}
-
-          {/* Unified Clean Input Box */}
-          <div
-            className={`bg-slate-50/90 dark:bg-[#111114] rounded-xl px-3.5 py-2.5 flex flex-row items-center gap-2.5 w-full border transition-all ${
-              isRecording
-                ? "border-rose-500/60 ring-2 ring-rose-500/15"
-                : "border-slate-200/80 dark:border-white/[0.08] focus-within:bg-white dark:focus-within:bg-[#16161A] focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/15"
-            }`}
-          >
-            {isRecording ? (
-              <div className="flex-1 flex items-center justify-between px-1 py-0.5">
-                <div className="flex items-center gap-3">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
-                  </span>
-                  <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 tabular-nums">
-                    Recording audio: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}
-                  </span>
-                  <div className="flex items-end gap-0.5 h-3.5">
-                    {[4, 8, 12, 6, 14, 8, 4, 10, 6].map((h, i) => (
-                      <motion.div
-                        key={i}
-                        animate={{ height: [h, h * 0.3, h] }}
-                        transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.05 }}
-                        className="w-0.5 bg-rose-500 rounded-full"
-                        style={{ height: h }}
-                      />
-                    ))}
+          {isStarter ? (
+            <>
+              <div className="flex items-center justify-between gap-3 px-0.5">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                    <Lock size={14} strokeWidth={2.4} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-bold leading-tight">
+                      <span className="btn-shine">TradiFive AI Coach</span>
+                    </p>
+                    <p className="text-[10.5px] font-semibold text-slate-400 dark:text-neutral-400 truncate mt-0.5">
+                      Pro &amp; Elite · Personalized trade &amp; risk coaching
+                    </p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={handleToggleRecord}
-                  className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10.5px] font-bold tracking-wide uppercase transition-all shadow-sm active:scale-95 cursor-pointer"
+                  onClick={() => navigate('/upgrade')}
+                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11.5px] font-bold transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
                 >
-                  Done
+                  Upgrade
                 </button>
               </div>
-            ) : (
-              <>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.07] transition-colors shrink-0 cursor-pointer"
-                  title="Upload Chart Screenshot"
-                >
-                  <ImageIcon size={15} strokeWidth={2} />
-                </button>
 
-                <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0" />
+              <button
+                type="button"
+                onClick={() => {
+                  toast.info("Pro & Elite Feature · AI Coach", {
+                    description: "Upgrade to Pro or Elite to message your AI Trading Coach.",
+                    action: { label: "Upgrade", onClick: () => navigate('/upgrade') },
+                  });
+                }}
+                className="w-full bg-slate-50/90 dark:bg-[#111114] hover:border-blue-400/50 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2.5 border border-slate-200/80 dark:border-white/[0.08] transition-all cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Lock size={14} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span className="btn-shine text-[13px] font-semibold truncate">
+                    Unlock with Pro &amp; Elite to ask AI Coach...
+                  </span>
+                </div>
+                <span className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-200/70 dark:bg-white/[0.06] text-blue-600 dark:text-blue-400 shrink-0">
+                  <Lock size={13} strokeWidth={2.4} />
+                </span>
+              </button>
+            </>
+          ) : (
+            <>
+              {/* Top Credits & Upgrade Row */}
+              {creditsLeft === 0 ? (
+                <div className="flex items-center justify-between gap-2 px-1">
+                  <span className="text-[12px] font-semibold text-rose-600 dark:text-rose-400">
+                    Daily AI credits exhausted until 12:00 AM
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/upgrade')}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11.5px] font-bold transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                  >
+                    Upgrade
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-wrap justify-between items-center gap-2 px-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.06] border border-slate-200/60 dark:border-white/[0.08] text-[11px] font-semibold text-slate-600 dark:text-slate-300 tabular-nums">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+                    Credits: {creditsLeft} / {maxCredits}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/upgrade')}
+                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <Zap size={11} className="fill-current" />
+                    <span>Need extra credits? Upgrade plan</span>
+                  </button>
+                </div>
+              )}
 
-                <textarea
-                  ref={textareaRef}
-                  rows={1}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
-                  placeholder={typingPlaceholder || "Ask your AI Coach about trades, risk, or psychology..."}
-                  className="flex-1 bg-transparent text-[13.5px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 border-none outline-none resize-none py-0 max-h-20 no-scrollbar focus:ring-0 focus:outline-none leading-normal self-center"
-                />
+              {/* Unified Clean Input Box */}
+              <div
+                className={`bg-slate-50/90 dark:bg-[#111114] rounded-xl px-3.5 py-2.5 flex flex-row items-center gap-2.5 w-full border transition-all ${
+                  isRecording
+                    ? "border-rose-500/60 ring-2 ring-rose-500/15"
+                    : "border-slate-200/80 dark:border-white/[0.08] focus-within:bg-white dark:focus-within:bg-[#16161A] focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/15"
+                }`}
+              >
+                {isRecording ? (
+                  <div className="flex-1 flex items-center justify-between px-1 py-0.5">
+                    <div className="flex items-center gap-3">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500"></span>
+                      </span>
+                      <span className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 tabular-nums">
+                        Recording audio: {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, "0")}
+                      </span>
+                      <div className="flex items-end gap-0.5 h-3.5">
+                        {[4, 8, 12, 6, 14, 8, 4, 10, 6].map((h, i) => (
+                          <motion.div
+                            key={i}
+                            animate={{ height: [h, h * 0.3, h] }}
+                            transition={{ repeat: Infinity, duration: 0.8, delay: i * 0.05 }}
+                            className="w-0.5 bg-rose-500 rounded-full"
+                            style={{ height: h }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleRecord}
+                      className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-[10.5px] font-bold tracking-wide uppercase transition-all shadow-sm active:scale-95 cursor-pointer"
+                    >
+                      Done
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.07] transition-colors shrink-0 cursor-pointer"
+                      title="Upload Chart Screenshot"
+                    >
+                      <ImageIcon size={15} strokeWidth={2} />
+                    </button>
 
-                <button
-                  type="button"
-                  onClick={handleToggleRecord}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.07] transition-colors shrink-0 cursor-pointer"
-                  title="Record Voice Memo"
-                >
-                  <IconlyVoice set="curved" primaryColor="currentColor" size={16} stroke="bold" strokeWidth={2} />
-                </button>
+                    <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0" />
 
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage()}
-                  disabled={!input.trim() || isThinking}
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95 shrink-0 ${
-                    input.trim() && !isThinking
-                      ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm cursor-pointer"
-                      : "text-slate-400 dark:text-neutral-500 cursor-not-allowed bg-slate-200/70 dark:bg-white/[0.06]"
-                  }`}
-                >
-                  <IconlyArrowUp set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2.2} />
-                </button>
-              </>
-            )}
-          </div>
+                    <textarea
+                      ref={textareaRef}
+                      rows={1}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
+                      placeholder={typingPlaceholder || "Ask your AI Coach about trades, risk, or psychology..."}
+                      className="flex-1 bg-transparent text-[13.5px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 border-none outline-none resize-none py-0 max-h-20 no-scrollbar focus:ring-0 focus:outline-none leading-normal self-center"
+                    />
+
+                    <button
+                      type="button"
+                      onClick={handleToggleRecord}
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-white/[0.07] transition-colors shrink-0 cursor-pointer"
+                      title="Record Voice Memo"
+                    >
+                      <IconlyVoice set="curved" primaryColor="currentColor" size={16} stroke="bold" strokeWidth={2} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSendMessage()}
+                      disabled={!input.trim() || isThinking}
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all duration-200 active:scale-95 shrink-0 ${
+                        input.trim() && !isThinking
+                          ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm cursor-pointer"
+                          : "text-slate-400 dark:text-neutral-500 cursor-not-allowed bg-slate-200/70 dark:bg-white/[0.06]"
+                      }`}
+                    >
+                      <IconlyArrowUp set="curved" primaryColor="currentColor" size={14} stroke="bold" strokeWidth={2.2} />
+                    </button>
+                  </>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
@@ -1677,6 +1737,7 @@ ${JSON.stringify(contextData)}`;
                           </p>
                         </div>
                         <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600 group-hover:text-blue-500 transition-colors shrink-0" />
+                        {isStarter && <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
                       </button>
                     );
                   })}
