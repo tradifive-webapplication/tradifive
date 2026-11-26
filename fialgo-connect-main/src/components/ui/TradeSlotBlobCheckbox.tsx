@@ -31,7 +31,7 @@ export const TradeSlotBlobCheckbox: React.FC<TradeSlotBlobCheckboxProps> = ({
       aria-label={title || (checked ? "Completed trade slot" : "Remaining trade slot")}
       style={
         compact
-          ? { width: 22, minWidth: 22, height: 22 }
+          ? { width: 18, minWidth: 18, height: 18 }
           : undefined
       }
       className={`uiverse-trade-blob-checkbox ${
@@ -62,7 +62,7 @@ export const TradeSlotsBlobStrip: React.FC<TradeSlotsBlobStripProps> = ({
 
   return (
     <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-2 py-1 px-0.5">
+      <div className="flex flex-wrap items-center gap-3 py-1.5 px-1">
         {Array.from({ length: safeTotal }).map((_, idx) => {
           const isCompleted = idx < safeDone;
           return (
