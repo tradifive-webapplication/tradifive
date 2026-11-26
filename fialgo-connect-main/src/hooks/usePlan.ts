@@ -116,24 +116,46 @@ export function usePlan() {
 
   useEffect(() => {
     let mounted = true;
+    let activeChannel: any = null;
 
     const syncFromProfile = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user?.id) return;
+        const userId = session.user.id;
         const { data } = await supabase
           .from('profiles')
           .select('subscription_status, plan_type')
-          .eq('id', session.user.id)
+          .eq('id', userId)
           .maybeSingle();
         const serverPlan = normalizePlan(data?.subscription_status || data?.plan_type);
         if (mounted) {
           setPlan(serverPlan);
           try {
             localStorage.setItem('tradifive_cached_plan', serverPlan);
-          } catch {}
+            localStorage.setItem('tradifive_selected_plan', serverPlan);
+          } catch { /* ignore storage restrictions */ }
         }
-      } catch {}
+
+        activeChannel = supabase
+          .channel(`use-plan-realtime-${userId}`)
+          .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+            (payload) => {
+              const next = payload.new as any;
+              const livePlan = normalizePlan(next?.subscription_status || next?.plan_type);
+              if (mounted) {
+                setPlan(livePlan);
+                try {
+                  localStorage.setItem('tradifive_cached_plan', livePlan);
+                  localStorage.setItem('tradifive_selected_plan', livePlan);
+                } catch { /* ignore storage restrictions */ }
+              }
+            }
+          )
+          .subscribe();
+      } catch { /* ignore auth or sync error */ }
     };
 
     syncFromProfile();
@@ -150,6 +172,7 @@ export function usePlan() {
       mounted = false;
       window.removeEventListener('tradifive_profile_update', handleUpdate);
       window.removeEventListener('storage', handleUpdate);
+      if (activeChannel) supabase.removeChannel(activeChannel);
     };
   }, []);
 

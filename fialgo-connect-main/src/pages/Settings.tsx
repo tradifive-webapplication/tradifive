@@ -282,6 +282,10 @@ export default function Settings() {
       return null;
    });
    const [showRefundModal, setShowRefundModal] = useState(false);
+   const [refundReason, setRefundReason] = useState<'accidental_charge' | 'not_using' | 'billing_issue' | 'switching_plan' | 'other'>('accidental_charge');
+   const [refundNotes, setRefundNotes] = useState('');
+   const [isSubmittingRefund, setIsSubmittingRefund] = useState(false);
+   const [activeRefundRequest, setActiveRefundRequest] = useState<{ id: string; status: string; created_at?: string; subject?: string } | null>(null);
 
    // Data & Privacy + Delete History State
    const [dataCounts, setDataCounts] = useState({
@@ -319,10 +323,10 @@ export default function Settings() {
             try {
                const { data } = await supabase
                   .from('system_settings')
-                  .select('setting_value')
-                  .eq('setting_key', 'promo_codes')
+                  .select('value')
+                  .eq('id', 'promo_codes')
                   .maybeSingle();
-               const rawVal = (data as any)?.setting_value;
+               const rawVal = (data as any)?.value;
                const parsed = typeof rawVal === 'string' ? JSON.parse(rawVal) : rawVal;
                if (parsed && parsed[normalized]) {
                   const pct = Math.min(100, Math.max(1, Number(parsed[normalized].percentOff ?? parsed[normalized].discount ?? 0)));
@@ -418,11 +422,28 @@ export default function Settings() {
                   .insert(historyPayload)
                   .select('*')
                   .maybeSingle();
-               setBillingHistory((prev) => [insertedRow || { id: `local_${Date.now()}`, ...historyPayload }, ...prev]);
+               setBillingHistory((prev) => {
+                  const nextList = [insertedRow || { id: `local_${Date.now()}`, ...historyPayload }, ...prev];
+                  try {
+                     localStorage.setItem(`tradifive_local_billing_history_${user.id}`, JSON.stringify(nextList.slice(0, 25)));
+                  } catch {
+                     // Ignore storage restrictions
+                  }
+                  return nextList;
+               });
             } catch {
-               setBillingHistory((prev) => [{ id: `local_${Date.now()}`, ...historyPayload }, ...prev]);
+               setBillingHistory((prev) => {
+                  const nextList = [{ id: `local_${Date.now()}`, ...historyPayload }, ...prev];
+                  try {
+                     localStorage.setItem(`tradifive_local_billing_history_${user.id}`, JSON.stringify(nextList.slice(0, 25)));
+                  } catch {
+                     // Ignore storage restrictions
+                  }
+                  return nextList;
+               });
             }
 
+            setProfile((prev: any) => ({ ...prev, nextBillingAt: periodEndIso }));
             window.dispatchEvent(new Event('tradifive_profile_update'));
             window.dispatchEvent(new CustomEvent('tradifive_credits_updated', { detail: { creditsRemaining: newMax, creditsMax: newMax } }));
          }
@@ -444,6 +465,91 @@ export default function Settings() {
          setIsChangingPlan(false);
          setDowngradeModalPlan(null);
          setShowCancelPlanModal(false);
+      }
+   };
+
+   const handleBillingIntervalChange = async (interval: 'monthly' | 'annually') => {
+      if (billingInterval === interval) return;
+      setBillingInterval(interval);
+      try {
+         localStorage.setItem('tradifive_billing_interval', interval);
+      } catch {
+         // Ignore storage restrictions
+      }
+      if (activePlan !== 'starter') {
+         const newNextBilling = new Date(Date.now() + (interval === 'annually' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString();
+         setProfile((prev: any) => ({ ...prev, nextBillingAt: newNextBilling }));
+         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+               await supabase.from('profiles').update({ next_billing_at: newNextBilling }).eq('id', user.id);
+               window.dispatchEvent(new Event('tradifive_profile_update'));
+            }
+         } catch {
+            // Optional sync
+         }
+         toast.success(`Billing cycle switched to ${interval === 'annually' ? 'Annual (20% off)' : 'Monthly'}`);
+      }
+   };
+
+   const handleSubmitRefundRequest = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSubmittingRefund(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) throw new Error('Please log in to submit a refund request.');
+
+         const reasonLabels: Record<string, string> = {
+            accidental_charge: 'Accidental or unintended renewal',
+            not_using: 'Not using paid features enough',
+            billing_issue: 'Billing cycle or pricing issue',
+            switching_plan: 'Switching or downgrading plan',
+            other: 'Other billing request',
+         };
+         const latestInv = billingHistory?.[0];
+         const planName = activePlan === 'elite' ? 'Elite Plan' : activePlan === 'pro' ? 'Pro Plan' : 'Standard Plan';
+         const subject = `[Refund Request] ${planName} (${billingInterval === 'annually' ? 'Annual' : 'Monthly'})`;
+         const description = [
+            `Reason: ${reasonLabels[refundReason] || refundReason}`,
+            `Active Plan: ${planName}`,
+            `Billing Cycle: ${billingInterval}`,
+            appliedCoupon ? `Coupon Code: ${appliedCoupon.code} (${appliedCoupon.percentOff}% off)` : '',
+            latestInv ? `Latest Payment: INR ${Number(latestInv.amount || 0).toFixed(2)} on ${new Date(latestInv.created_at).toLocaleDateString('en-IN')}` : 'Latest Payment: None recorded',
+            refundNotes.trim() ? `\nDetails:\n${refundNotes.trim()}` : '',
+         ].filter(Boolean).join('\n');
+
+         const { data: createdTicket, error } = await supabase
+            .from('support_tickets')
+            .insert({
+               user_id: user.id,
+               subject,
+               description,
+               status: 'open',
+               priority: 'high',
+            })
+            .select('id, status, created_at, subject')
+            .maybeSingle();
+
+         if (error) throw error;
+
+         setActiveRefundRequest(
+            createdTicket || {
+               id: `ref_${Date.now()}`,
+               status: 'open',
+               created_at: new Date().toISOString(),
+               subject,
+            }
+         );
+         setRefundNotes('');
+         setShowRefundModal(false);
+         toast.success('Refund request submitted', {
+            description: 'Your request is logged with billing support and tracked in Help Center.',
+         });
+      } catch (err: any) {
+         console.error('Refund submission error:', err);
+         toast.error(err?.message || 'Could not submit refund request.');
+      } finally {
+         setIsSubmittingRefund(false);
       }
    };
 
@@ -905,6 +1011,8 @@ export default function Settings() {
                   isPrivate: data.is_private || false,
                   hideFollowers: data.hide_followers || false,
                   hideTrades: data.hide_trades || false,
+                  createdAt: data.created_at || user.created_at,
+                  nextBillingAt: data.next_billing_at || null,
                   account_standing: data.account_standing || 'GOOD',
                   standing_message: data.standing_message || '',
                   preferred_market: data.preferred_market || 'global'
@@ -959,18 +1067,36 @@ export default function Settings() {
                 }
              }
 
-            // Fetch billing history
+            // Fetch billing history & open refund request
             try {
-               const { data: billingData, error: billingError } = await supabase
-                  .from('billing_history')
-                  .select('*')
-                  .eq('user_id', user.id)
-                  .order('created_at', { ascending: false });
-                  
-               if (billingData && !billingError) {
+               const [{ data: billingData, error: billingError }, { data: refundTicket }] = await Promise.all([
+                  supabase
+                     .from('billing_history')
+                     .select('*')
+                     .eq('user_id', user.id)
+                     .order('created_at', { ascending: false }),
+                  supabase
+                     .from('support_tickets')
+                     .select('id, status, created_at, subject')
+                     .eq('user_id', user.id)
+                     .ilike('subject', '[Refund Request]%')
+                     .order('created_at', { ascending: false })
+                     .limit(1)
+                     .maybeSingle(),
+               ]);
+
+               if (billingData && !billingError && billingData.length > 0) {
                   setBillingHistory(billingData);
                } else {
-                  setBillingHistory([]);
+                  try {
+                     const cachedHist = localStorage.getItem(`tradifive_local_billing_history_${user.id}`);
+                     setBillingHistory(cachedHist ? JSON.parse(cachedHist) : []);
+                  } catch {
+                     setBillingHistory([]);
+                  }
+               }
+               if (refundTicket) {
+                  setActiveRefundRequest(refundTicket);
                }
             } catch (err) {
                console.error("Error fetching billing history:", err);
@@ -1096,6 +1222,21 @@ export default function Settings() {
             'postgres_changes',
             { event: '*', schema: 'public', table: 'journal_entries', filter: `user_id=eq.${globalUserId}` },
             () => { refreshDataCounts(globalUserId); }
+         )
+         .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'support_tickets', filter: `user_id=eq.${globalUserId}` },
+            (payload) => {
+               const row = payload.new as any;
+               if (row?.subject && String(row.subject).startsWith('[Refund Request]')) {
+                  setActiveRefundRequest({
+                     id: row.id,
+                     status: row.status || 'open',
+                     created_at: row.created_at,
+                     subject: row.subject,
+                  });
+               }
+            }
          )
          .subscribe();
 
@@ -3942,6 +4083,13 @@ export default function Settings() {
       const eliteDisplayMonthly = getDiscountedMonthlyPrice('elite', billingInterval, appliedCoupon);
 
       const nextBillingDate = (() => {
+         if (profile?.nextBillingAt) {
+            try {
+               return new Date(profile.nextBillingAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+            } catch {
+               // Ignore date parse fallback
+            }
+         }
          if (billingHistory && billingHistory.length > 0 && billingHistory[0]?.period_end) {
             try {
                return new Date(billingHistory[0].period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -4198,10 +4346,7 @@ export default function Settings() {
                <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-full inline-flex items-center gap-1 border border-slate-200/80 dark:border-white/10">
                   <button
                      type="button"
-                     onClick={() => {
-                        setBillingInterval('monthly');
-                        try { localStorage.setItem('tradifive_billing_interval', 'monthly'); } catch { /* ignore */ }
-                     }}
+                     onClick={() => handleBillingIntervalChange('monthly')}
                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                         billingInterval === 'monthly'
                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
@@ -4212,10 +4357,7 @@ export default function Settings() {
                   </button>
                   <button
                      type="button"
-                     onClick={() => {
-                        setBillingInterval('annually');
-                        try { localStorage.setItem('tradifive_billing_interval', 'annually'); } catch { /* ignore */ }
-                     }}
+                     onClick={() => handleBillingIntervalChange('annually')}
                      className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                         billingInterval === 'annually'
                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
@@ -4366,22 +4508,39 @@ export default function Settings() {
             {/* Card 9: Refund & Billing Support */}
             <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">Refund</div>
+                  <div className="flex items-center gap-2">
+                     <span className="text-xs font-bold text-slate-900 dark:text-white">Refund</span>
+                     {activeRefundRequest && (
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                           activeRefundRequest.status === 'resolved'
+                              ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                              : 'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                        }`}>
+                           {activeRefundRequest.status === 'resolved' ? 'Resolved' : 'Pending Review'}
+                        </span>
+                     )}
+                  </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                      This sends a message to us, it does not refund automatically. Your plan stays active until the refund is issued.
                   </p>
                </div>
-               <TactileBoxButton
-                  onClick={() => {
-                     toast.success("Refund request submitted", {
-                        description: "Our billing support team will review your account within 24 hours."
-                     });
-                  }}
-                  className="h-9 px-4 text-xs font-semibold rounded-xl flex items-center gap-1.5 self-end sm:self-auto shrink-0"
-               >
-                  <HelpCircle size={14} className="text-slate-400" />
-                  Request
-               </TactileBoxButton>
+               <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                  {activeRefundRequest && activeRefundRequest.status !== 'resolved' && (
+                     <TactileBoxButton
+                        onClick={() => setActiveTab('help')}
+                        className="h-9 px-3.5 text-xs font-semibold rounded-xl flex items-center gap-1.5"
+                     >
+                        View Ticket
+                     </TactileBoxButton>
+                  )}
+                  <TactileBoxButton
+                     onClick={() => setShowRefundModal(true)}
+                     className="h-9 px-4 text-xs font-semibold rounded-xl flex items-center gap-1.5"
+                  >
+                     <HelpCircle size={14} className="text-slate-400" />
+                     {activeRefundRequest && activeRefundRequest.status !== 'resolved' ? 'New Request' : 'Request'}
+                  </TactileBoxButton>
+               </div>
             </div>
          </motion.div>
       );
@@ -4718,6 +4877,81 @@ export default function Settings() {
                  {isChangingPlan ? 'Canceling...' : 'Confirm Cancellation'}
                </button>
              </DialogFooter>
+           </DialogContent>
+         </Dialog>
+
+         {/* Refund Request Modal */}
+         <Dialog open={showRefundModal} onOpenChange={(open) => !open && setShowRefundModal(false)}>
+           <DialogContent className="sm:max-w-[460px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/10 rounded-[22px] p-6">
+             <DialogHeader>
+               <DialogTitle className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                 <HelpCircle size={17} className="text-slate-700 dark:text-neutral-300" />
+                 Request a Refund
+               </DialogTitle>
+               <DialogDescription className="text-[12px] text-slate-500 dark:text-neutral-400">
+                 Send a refund request to our billing team. Your current plan remains active until the refund is issued.
+               </DialogDescription>
+             </DialogHeader>
+             <form onSubmit={handleSubmitRefundRequest} className="space-y-4 py-1">
+               <div>
+                 <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1.5">
+                   Reason
+                 </label>
+                 <div className="space-y-2">
+                   {[
+                     { id: 'accidental_charge' as const, label: 'Accidental charge or renewal' },
+                     { id: 'not_using' as const, label: 'Not using the subscription enough' },
+                     { id: 'billing_issue' as const, label: 'Coupon or billing cycle issue' },
+                     { id: 'switching_plan' as const, label: 'Switching to a different tier' },
+                     { id: 'other' as const, label: 'Other reason' },
+                   ].map((opt) => (
+                     <button
+                       key={opt.id}
+                       type="button"
+                       onClick={() => setRefundReason(opt.id)}
+                       className={`w-full text-left px-3.5 py-2.5 rounded-xl border text-[12.5px] font-medium flex items-center justify-between transition-all cursor-pointer ${
+                         refundReason === opt.id
+                           ? 'border-slate-900 dark:border-white bg-slate-50/80 dark:bg-white/[0.06] text-slate-900 dark:text-white'
+                           : 'border-slate-200/80 dark:border-white/[0.08] text-slate-600 dark:text-neutral-300 hover:border-slate-300'
+                       }`}
+                     >
+                       <span>{opt.label}</span>
+                       {refundReason === opt.id && <Check size={14} strokeWidth={2.5} />}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+               <div>
+                 <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1.5">
+                   Additional Notes (Optional)
+                 </label>
+                 <textarea
+                   rows={3}
+                   value={refundNotes}
+                   onChange={(e) => setRefundNotes(e.target.value)}
+                   placeholder="Add transaction date, invoice ID, or extra context..."
+                   className="w-full p-3 rounded-xl text-[12.5px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white resize-none"
+                 />
+               </div>
+               <DialogFooter className="gap-2 pt-2">
+                 <button
+                   type="button"
+                   disabled={isSubmittingRefund}
+                   onClick={() => setShowRefundModal(false)}
+                   className="tactile-white-pill rounded-full px-4 py-2 text-xs font-semibold cursor-pointer"
+                 >
+                   Cancel
+                 </button>
+                 <button
+                   type="submit"
+                   disabled={isSubmittingRefund}
+                   className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+                 >
+                   {isSubmittingRefund && <Loader2 size={13} className="animate-spin" />}
+                   <span>{isSubmittingRefund ? 'Submitting...' : 'Submit Refund Request'}</span>
+                 </button>
+               </DialogFooter>
+             </form>
            </DialogContent>
          </Dialog>
 
