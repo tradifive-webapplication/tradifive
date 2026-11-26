@@ -534,7 +534,7 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
       savedCfg = {};
     }
 
-    const useDemo = !isConnected && demoMode;
+    const useDemo = false as boolean;
 
     const accountOpen = Array.isArray(accountMetrics?.open_positions)
       ? accountMetrics.open_positions

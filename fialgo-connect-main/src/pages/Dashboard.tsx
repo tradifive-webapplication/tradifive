@@ -65,7 +65,6 @@ import { ChartRadarDefault } from "@/components/journal/ChartRadarDefault";
 import { JournalSettingsProvider } from "@/contexts/JournalSettingsContext";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { getGamificationState } from "@/utils/gamification";
-import { buildJournalDemoData } from "@/utils/journalDemoData";
 
 type PnlRange = "all" | "today" | "week" | "month";
 
@@ -244,42 +243,15 @@ const Dashboard = () => {
   const { isStarter, canAccess } = usePlan();
 
   const [pnlRange, setPnlRange] = useState<PnlRange>("all");
-  const [demoMode, setDemoMode] = useState<boolean>(() => {
-    try {
-      const saved = localStorage.getItem("tf_dashboard_demo_mode");
-      return saved !== "false";
-    } catch {
-      return true;
-    }
-  });
+  const demoMode = false;
 
   useEffect(() => {
-    const syncDemo = () => {
-      try {
-        setDemoMode(localStorage.getItem("tf_dashboard_demo_mode") !== "false");
-      } catch {
-        /* ignore storage error */
-      }
-    };
-    window.addEventListener("tf_demo_mode_change", syncDemo);
-    window.addEventListener("storage", syncDemo);
-    return () => {
-      window.removeEventListener("tf_demo_mode_change", syncDemo);
-      window.removeEventListener("storage", syncDemo);
-    };
-  }, []);
-
-  const toggleDemoMode = () => {
-    const next = !demoMode;
-    setDemoMode(next);
     try {
-      localStorage.setItem("tf_dashboard_demo_mode", String(next));
+      localStorage.removeItem("tf_dashboard_demo_mode");
     } catch {
       /* ignore storage error */
     }
-    window.dispatchEvent(new CustomEvent("tf_demo_mode_change"));
-    toast.info(next ? "Demo data enabled" : "Switched to live account data");
-  };
+  }, []);
   const [hidePnl, setHidePnl] = useState<boolean>(() => {
     try {
       return localStorage.getItem("tf_dashboard_hide_pnl") === "true";
@@ -419,41 +391,26 @@ const Dashboard = () => {
     return () => window.removeEventListener("tradifive_xp_update", handleXPUpdate);
   }, []);
 
-  const demoData = useMemo(
-    () => (demoMode ? buildJournalDemoData(activeMarket) : null),
-    [demoMode, activeMarket]
-  );
+  const demoData: { allTrades: any[]; balance: number; equity: number } | null = null;
 
-  const activeTrades = useMemo(
-    () => (demoData ? demoData.allTrades : recentTrades || []),
-    [demoData, recentTrades]
-  );
+  const activeTrades = useMemo(() => recentTrades || [], [recentTrades]);
 
-  const effectiveBalance = demoData ? demoData.balance : balance;
-  const effectiveEquity = demoData ? demoData.equity : equity;
+  const effectiveBalance = balance;
+  const effectiveEquity = equity;
   const effectiveConnected = isConnected;
-  const effectiveBroker = isConnected && accountMetrics
-    ? (accountMetrics.server || accountMetrics.broker_server || accountMetrics.broker || (activeMarket === "indian" ? "Broker API" : "MT5 Server"))
-    : demoData
-    ? "Demo Account"
-    : null;
-  const effectiveDiscipline = demoData ? 92 : avgDisciplineScore;
-  const effectiveDailyXp = demoData ? 140 : dailyXpEarned;
-  const effectiveStreak = demoData ? 9 : gamification.streak;
-  const effectiveLevel = demoData ? 7 : gamification.level;
-  const effectiveRiskConfig = useMemo(
-    () =>
-      demoData
-        ? {
-            max_daily_loss_percent: 4.0,
-            max_open_trades: 5,
-            is_prop_firm_mode: false,
-            prop_firm_daily_loss: 0,
-          }
-        : riskConfig,
-    [demoData, riskConfig]
-  );
-  const effectiveTradesToday = demoData ? 3 : tradesToday;
+  const effectiveBroker =
+    isConnected && accountMetrics
+      ? accountMetrics.server ||
+        accountMetrics.broker_server ||
+        accountMetrics.broker ||
+        (activeMarket === "indian" ? "Broker API" : "MT5 Server")
+      : null;
+  const effectiveDiscipline = avgDisciplineScore;
+  const effectiveDailyXp = dailyXpEarned;
+  const effectiveStreak = gamification.streak;
+  const effectiveLevel = gamification.level;
+  const effectiveRiskConfig = riskConfig;
+  const effectiveTradesToday = tradesToday;
 
   const scopedTrades = useMemo(() => {
     if (pnlRange === "all") return activeTrades;
@@ -716,19 +673,6 @@ const Dashboard = () => {
                 )}
 
                 <motion.button
-                  whileTap={{ scale: 0.96 }}
-                  type="button"
-                  onClick={toggleDemoMode}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full tactile-white-pill text-[12px] font-semibold cursor-pointer select-none ${
-                    demoMode ? "tactile-pill-active" : "text-slate-600 dark:text-slate-300"
-                  }`}
-                  title={demoMode ? "Click to switch to your real account data" : "Preview with sample demo data"}
-                >
-                  <span className={`w-1.5 h-1.5 rounded-full ${demoMode ? "bg-amber-500" : "bg-slate-400"}`} />
-                  <span>{demoMode ? "Demo Data" : "Live Data"}</span>
-                </motion.button>
-
-                <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.35, delay: 0.08, ease: EXPO_OUT }}
@@ -808,7 +752,6 @@ const Dashboard = () => {
                     >
                       Connect broker
                     </motion.button>
-                    <DashboardWidgetsPicker />
                   </div>
                 </div>
               ) : (

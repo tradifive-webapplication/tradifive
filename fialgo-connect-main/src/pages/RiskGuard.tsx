@@ -16,7 +16,6 @@ import {
   Star,
   ShieldAlert,
   Pencil,
-  FlaskConical,
   Minus,
   Plus,
   Key,
@@ -373,9 +372,8 @@ export default function RiskGuard() {
     toast.success(`Locked symbol updated to ${clean}`);
   };
 
-  // Demo Preview & Dashboard Widget Pinning
-  const [demoDataOverride, setDemoDataOverride] = useState<boolean | null>(null);
-  const useDemoData = demoDataOverride !== null ? demoDataOverride : !isConnected;
+  // Strictly Live Broker Data (no mock/demo fallback)
+  const useDemoData = false as boolean;
   const [demoOpenLots, setDemoOpenLots] = useState<number>(() => {
     try {
       const saved = Number(localStorage.getItem("fialgo_demo_open_lots"));
@@ -1796,54 +1794,11 @@ export default function RiskGuard() {
               </div>
               <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1 tabular-nums truncate">
                 {tabCounts.total} {tabCounts.total === 1 ? "guard" : "guards"} active ·{" "}
-                {!useDemoData && balance > 0
-                  ? "MT5 synced"
-                  : useDemoData
-                  ? "Demo preview"
-                  : "MT5 not linked"}
+                {balance > 0 ? "MT5 synced" : "MT5 not linked"}
               </p>
             </div>
 
             <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
-              {/* Clean Segmented Demo / Live Switch */}
-              <div
-                className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-white/[0.07] border border-slate-200/80 dark:border-white/10 shrink-0"
-                title={
-                  useDemoData
-                    ? "Showing simulated Demo preview (click Live to read MT5 broker data)"
-                    : "Showing live MT5 broker data (click Demo to preview safely)"
-                }
-              >
-                <button
-                  type="button"
-                  onClick={() => setDemoDataOverride(true)}
-                  className={`inline-flex items-center gap-1 h-[28px] px-2.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
-                    useDemoData
-                      ? "bg-white dark:bg-[#26262B] text-amber-600 dark:text-amber-300 shadow-[0_1px_4px_rgba(15,23,42,0.08)]"
-                      : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                  }`}
-                >
-                  <FlaskConical size={11} />
-                  <span>Demo</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDemoDataOverride(false)}
-                  className={`inline-flex items-center gap-1 h-[28px] px-2.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
-                    !useDemoData
-                      ? "bg-white dark:bg-[#26262B] text-emerald-600 dark:text-emerald-400 shadow-[0_1px_4px_rgba(15,23,42,0.08)]"
-                      : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                  }`}
-                >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
-                      !useDemoData ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
-                    }`}
-                  />
-                  <span>Live</span>
-                </button>
-              </div>
-
               <motion.button
                 whileTap={{ scale: 0.96 }}
                 type="button"
