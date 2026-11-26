@@ -6,7 +6,9 @@ import {
   Layers,
   LayoutGrid,
   ShieldAlert,
+  Target,
   TrendingDown,
+  Wallet,
   X,
 } from "lucide-react";
 import { Gauge } from "@/components/ui/charts";
@@ -18,7 +20,9 @@ export type RiskWidgetId =
   | "no_avg"
   | "martingale"
   | "one_instrument"
-  | "drawdown";
+  | "drawdown"
+  | "profit_target"
+  | "equity_floor";
 
 const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
   "max_lot",
@@ -26,6 +30,8 @@ const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
   "martingale",
   "one_instrument",
   "drawdown",
+  "profit_target",
+  "equity_floor",
 ]);
 
 export const RISK_WIDGET_CATALOG: {
@@ -56,7 +62,17 @@ export const RISK_WIDGET_CATALOG: {
   {
     id: "drawdown",
     title: "Drawdown Guard",
-    subtitle: "72-notch dial: worst daily drawdown vs cap",
+    subtitle: "72-notch dial: worst drawdown vs cap",
+  },
+  {
+    id: "profit_target",
+    title: "Daily Profit Target",
+    subtitle: "72-notch dial: today's gain vs target",
+  },
+  {
+    id: "equity_floor",
+    title: "Account Equity Floor",
+    subtitle: "Safety buffer: live equity vs hard stop",
   },
 ];
 
@@ -408,8 +424,46 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
         ? ["#FBBF24", "#F59E0B", "#D97706"]
         : ["#60A5FA", "#2563EB", "#0031F2"];
 
+    const sym = isIndian ? "₹" : "$";
+    // 6. Daily Profit Target
+    const profitActive = Boolean(savedCfg?.dailyProfitTargetActive);
+    const profitGoal = Math.max(isIndian ? 500 : 10, Number(savedCfg?.dailyProfitTarget ?? (isIndian ? 5000 : 500)));
+    let demoProfit = 320;
+    try {
+      const savedP = Number(localStorage.getItem("fialgo_demo_profit_today"));
+      if (Number.isFinite(savedP) && savedP >= 0) demoProfit = savedP;
+    } catch {
+      /* ignore */
+    }
+    const todayOnlyClosed = allTrades
+      .filter((t) => t.closed_at && new Date(t.closed_at) >= startToday)
+      .reduce((s, t) => s + Number(t.profit ?? 0), 0);
+    const profitToday = useDemo
+      ? isIndian
+        ? Math.round(demoProfit * 10)
+        : Math.round(demoProfit)
+      : Number(
+          (savedCfg?.profitTargetCalc === "equity"
+            ? todayOnlyClosed + floatPnl
+            : todayOnlyClosed
+          ).toFixed(0)
+        );
+    const profitPct = Math.min(100, Math.max(0, Math.round((Math.max(0, profitToday) / profitGoal) * 100)));
+
+    // 7. Equity Hard Stop
+    const eqActive = Boolean(savedCfg?.equityHardStopActive);
+    const eqFloor = Math.max(0, Number(savedCfg?.equityHardStop ?? 1000));
+    const liveEq = useDemo
+      ? isIndian
+        ? 100000
+        : 10000
+      : Math.max(0, Math.round(Number(accountMetrics?.equity || accountMetrics?.balance || 10000)));
+    const eqBufferPct =
+      liveEq > 0 ? Math.min(100, Math.max(0, Math.round(((liveEq - eqFloor) / liveEq) * 100))) : 100;
+
     return {
       isIndian,
+      sym,
       unit,
       useDemo,
       maxLot: {
@@ -455,6 +509,21 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
         pct: ddGaugePct,
         breached: ddBreached,
         grad: ddGrad,
+      },
+      profitTarget: {
+        active: profitActive,
+        goal: profitGoal,
+        today: profitToday,
+        pct: profitPct,
+        reached: profitToday >= profitGoal,
+      },
+      equityFloor: {
+        active: eqActive,
+        floor: eqFloor,
+        equity: liveEq,
+        cushion: Math.max(0, liveEq - eqFloor),
+        breached: eqFloor > 0 && liveEq <= eqFloor,
+        bufferPct: eqBufferPct,
       },
     };
   }, [activeMarket, isConnected, demoMode, riskConfig, recentTrades, accountMetrics]);
@@ -825,6 +894,127 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
                 </span>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {pinned.includes("profit_target") && (
+        <div className={`${cardClass} p-3.5`}>
+          <WidgetHeader
+            id="profit_target"
+            icon={Target}
+            title="Daily Profit Goal"
+            badge={
+              widgetData.profitTarget.reached
+                ? "Hit!"
+                : widgetData.profitTarget.active
+                ? "Active"
+                : "Off"
+            }
+            badgeTone={
+              widgetData.profitTarget.reached || widgetData.profitTarget.active
+                ? "emerald"
+                : "neutral"
+            }
+          />
+          <div className="flex items-center gap-2.5">
+            <div className="w-[126px] shrink-0 flex justify-center">
+              <Gauge
+                compact
+                ariaLabel="Dashboard Profit Target Gauge"
+                value={widgetData.profitTarget.pct}
+                centerValue={widgetData.profitTarget.pct}
+                defaultLabel={`${widgetData.sym}${Math.max(0, widgetData.profitTarget.today).toLocaleString()} / ${widgetData.sym}${widgetData.profitTarget.goal.toLocaleString()}`}
+                suffix="%"
+                needle="line"
+                ruler
+                totalNotches={72}
+                spacing={40}
+                notchLengthPercent={34}
+                notchCornerRadius={2}
+                startAngle={148}
+                endAngle={392}
+                enterTransition={{ type: "spring", visualDuration: 1.4, bounce: 0 }}
+                enterStaggerScale={2}
+                inactiveFillOpacity={0.4}
+                useGradient
+                gradientColors={
+                  widgetData.profitTarget.reached
+                    ? ["#34D399", "#10B981", "#059669"]
+                    : ["#60A5FA", "#2563EB", "#0031F2"]
+                }
+              />
+            </div>
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Goal</span>
+                <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                  {widgetData.sym}{widgetData.profitTarget.goal.toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Today</span>
+                <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                  +{widgetData.sym}{Math.max(0, widgetData.profitTarget.today).toLocaleString()}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Remaining</span>
+                <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                  {widgetData.profitTarget.reached
+                    ? "Target Hit"
+                    : `${widgetData.sym}${Math.max(0, widgetData.profitTarget.goal - widgetData.profitTarget.today).toLocaleString()}`}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pinned.includes("equity_floor") && (
+        <div className={`${cardClass} p-3.5`}>
+          <WidgetHeader
+            id="equity_floor"
+            icon={Wallet}
+            title="Equity Floor"
+            badge={
+              widgetData.equityFloor.breached
+                ? "Breached"
+                : widgetData.equityFloor.active
+                ? "Guarded"
+                : "Off"
+            }
+            badgeTone={
+              widgetData.equityFloor.breached
+                ? "rose"
+                : widgetData.equityFloor.active
+                ? "emerald"
+                : "neutral"
+            }
+          />
+          <div className="space-y-1.5">
+            <Gauge
+              orientation="linear"
+              ariaLabel="Dashboard Equity Floor Buffer"
+              value={widgetData.equityFloor.bufferPct}
+              centerValue={widgetData.equityFloor.cushion}
+              defaultLabel={`Floor ${widgetData.sym}${widgetData.equityFloor.floor.toLocaleString()} · Equity ${widgetData.sym}${widgetData.equityFloor.equity.toLocaleString()}`}
+              prefix={`+${widgetData.sym}`}
+              suffix=" safe"
+              labelPlacement="top"
+              labelAlign="start"
+              totalNotches={36}
+              linearHeight={12}
+              spacing={2}
+              notchCornerRadius={3}
+              inactiveFillOpacity={0.35}
+              useGradient
+              gradientColors={
+                widgetData.equityFloor.breached
+                  ? ["#FB7185", "#E11D48", "#BE123C"]
+                  : ["#34D399", "#10B981", "#059669"]
+              }
+            />
           </div>
         </div>
       )}

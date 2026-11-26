@@ -537,13 +537,32 @@ export default function RiskGuard() {
   const [stopLossRequired, setStopLossRequired] = useState(false);
   const [stopLossAction, setStopLossAction] = useState("block");
   const [stopLossMethod, setStopLossMethod] = useState("pips");
-  const [minRiskReward, setMinRiskReward] = useState(2.4);
+  const [minRiskReward, setMinRiskReward] = useState(2.0);
   const [minRiskRewardActive, setMinRiskRewardActive] = useState(false);
   const [weekendLock, setWeekendLock] = useState(false);
+  const [weekendAction, setWeekendAction] = useState<"both" | "close" | "block">("both");
   const [equityHardStop, setEquityHardStop] = useState(1000);
   const [equityHardStopActive, setEquityHardStopActive] = useState(false);
   const [dailyProfitTarget, setDailyProfitTarget] = useState(500);
+  const [profitTargetCalc, setProfitTargetCalc] = useState<"closed" | "equity">("closed");
   const [dailyProfitTargetActive, setDailyProfitTargetActive] = useState(false);
+  const [demoProfitToday, setDemoProfitToday] = useState<number>(() => {
+    try {
+      const saved = Number(localStorage.getItem("fialgo_demo_profit_today"));
+      return Number.isFinite(saved) && saved >= 0 ? saved : 320;
+    } catch {
+      return 320;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("fialgo_demo_profit_today", String(demoProfitToday));
+      window.dispatchEvent(new Event("fialgo_config_changed"));
+    } catch {
+      /* ignore */
+    }
+  }, [demoProfitToday]);
 
   const [consecutiveWins, setConsecutiveWins] = useState(3);
   const [stopAfterWin, setStopAfterWin] = useState(false);
@@ -663,17 +682,25 @@ export default function RiskGuard() {
       if (config.allowedTicker) setAllowedTicker(config.allowedTicker);
       if (config.stopLossRequired !== undefined)
         setStopLossRequired(config.stopLossRequired);
+      if (config.stopLossAction) setStopLossAction(config.stopLossAction);
+      if (config.stopLossMethod) setStopLossMethod(config.stopLossMethod);
+      if (config.defaultStopLoss !== undefined)
+        setDefaultStopLoss(config.defaultStopLoss);
       if (config.minRiskReward !== undefined)
         setMinRiskReward(config.minRiskReward);
       if (config.minRiskRewardActive !== undefined)
         setMinRiskRewardActive(config.minRiskRewardActive);
       if (config.weekendLock !== undefined) setWeekendLock(config.weekendLock);
+      if (config.weekendCloseTime) setWeekendCloseTime(config.weekendCloseTime);
+      if (config.weekendAction) setWeekendAction(config.weekendAction);
       if (config.equityHardStop !== undefined)
         setEquityHardStop(config.equityHardStop);
       if (config.equityHardStopActive !== undefined)
         setEquityHardStopActive(config.equityHardStopActive);
       if (config.dailyProfitTarget !== undefined)
         setDailyProfitTarget(config.dailyProfitTarget);
+      if (config.profitTargetCalc === "closed" || config.profitTargetCalc === "equity")
+        setProfitTargetCalc(config.profitTargetCalc);
       if (config.dailyProfitTargetActive !== undefined)
         setDailyProfitTargetActive(config.dailyProfitTargetActive);
       if (config.consecutiveWins !== undefined)
@@ -736,12 +763,18 @@ export default function RiskGuard() {
     oneInstrumentMode,
     allowedTicker,
     stopLossRequired,
+    stopLossAction,
+    stopLossMethod,
+    defaultStopLoss,
     minRiskReward,
     minRiskRewardActive,
     weekendLock,
+    weekendCloseTime,
+    weekendAction,
     equityHardStop,
     equityHardStopActive,
     dailyProfitTarget,
+    profitTargetCalc,
     dailyProfitTargetActive,
     consecutiveWins,
     stopAfterWin,
@@ -776,6 +809,20 @@ export default function RiskGuard() {
             weekly_dd_pct: weeklyDrawdown,
             monthly_dd_pct: monthlyDrawdown,
             drawdown_basis: drawdownBasis,
+            daily_profit_target_active: dailyProfitTargetActive,
+            daily_profit_target: dailyProfitTarget,
+            profit_target_calc: profitTargetCalc,
+            stop_loss_required: stopLossRequired,
+            stop_loss_action: stopLossAction,
+            stop_loss_method: stopLossMethod,
+            default_stop_loss: defaultStopLoss,
+            min_risk_reward_active: minRiskRewardActive,
+            min_risk_reward: minRiskReward,
+            weekend_lock: weekendLock,
+            weekend_close_time: weekendCloseTime,
+            weekend_action: weekendAction,
+            equity_hard_stop_active: equityHardStopActive,
+            equity_hard_stop: equityHardStop,
             updated_at: new Date().toISOString(),
           },
           updated_at: new Date().toISOString(),
@@ -868,12 +915,18 @@ export default function RiskGuard() {
     oneInstrumentMode,
     allowedTicker,
     stopLossRequired,
+    stopLossAction,
+    stopLossMethod,
+    defaultStopLoss,
     minRiskReward,
     minRiskRewardActive,
     weekendLock,
+    weekendCloseTime,
+    weekendAction,
     equityHardStop,
     equityHardStopActive,
     dailyProfitTarget,
+    profitTargetCalc,
     dailyProfitTargetActive,
     consecutiveWins,
     stopAfterWin,
@@ -1307,6 +1360,96 @@ export default function RiskGuard() {
     const ddActiveView = ddPeriods[ddPeriod];
     const activeDdCount = [ddDaily, ddWeekly, ddMonthly].filter((p) => !p.isOff).length;
 
+    // Tab 2 Card #2 (Daily Profit Target)
+    const safeProfitTarget = Math.max(isIndian ? 500 : 10, Number(dailyProfitTarget) || (isIndian ? 5000 : 500));
+    const liveTodayClosedProfit = allTrades
+      .filter((t) => t.closed_at && new Date(t.closed_at) >= startOfToday)
+      .reduce((s, t) => s + Number(t.profit ?? 0), 0);
+    const liveProfitVal =
+      profitTargetCalc === "equity"
+        ? liveTodayClosedProfit + liveFloatPnl
+        : liveTodayClosedProfit;
+    const profitToday = useDemoData
+      ? isIndian
+        ? Math.round(demoProfitToday * 10)
+        : Number(demoProfitToday.toFixed(0))
+      : Number(liveProfitVal.toFixed(isIndian ? 0 : 2));
+    const profitGaugePct = Math.min(
+      100,
+      Math.max(0, Math.round((Math.max(0, profitToday) / safeProfitTarget) * 100))
+    );
+    const profitReached = profitToday >= safeProfitTarget;
+    const profitRemaining = Math.max(0, Number((safeProfitTarget - profitToday).toFixed(0)));
+    const profitGrad = profitReached
+      ? ["#34D399", "#10B981", "#059669"]
+      : profitGaugePct >= 75
+      ? ["#60A5FA", "#10B981", "#059669"]
+      : ["#60A5FA", "#2563EB", "#0031F2"];
+
+    // Tab 2 Card #3 (Stop Loss Required)
+    const slOpenTotal = useDemoData ? 3 : livePositions.length;
+    const slMissingCount = useDemoData
+      ? 0
+      : livePositions.filter((p: any) => !p.sl || Number(p.sl) <= 0).length;
+    const slWithCount = Math.max(0, slOpenTotal - slMissingCount);
+    const slCoveragePct =
+      slOpenTotal > 0 ? Math.round((slWithCount / slOpenTotal) * 100) : 100;
+
+    // Tab 2 Card #4 (Min Risk/Reward)
+    const safeMinRR = Math.max(1.0, Number(minRiskReward) || 1.5);
+    const liveRRList = allTrades
+      .map((t) => {
+        const op = Number(t.open_price || 0);
+        const sl = Number(t.sl || 0);
+        const tp = Number(t.tp || 0);
+        const risk = Math.abs(op - sl);
+        const rew = Math.abs(tp - op);
+        return risk > 0 && rew > 0 ? rew / risk : null;
+      })
+      .filter((v): v is number => v !== null);
+    const avgRR = useDemoData
+      ? Number(Math.max(safeMinRR + 0.4, 2.2).toFixed(1))
+      : liveRRList.length > 0
+      ? Number(
+          (liveRRList.reduce((a, b) => a + b, 0) / liveRRList.length).toFixed(1)
+        )
+      : Number(safeMinRR.toFixed(1));
+    const rrRiskSharePct = Math.round((1 / (1 + safeMinRR)) * 100);
+
+    // Tab 2 Card #5 (Weekend Lock / Time Kill)
+    const dowSun0 = now.getDay(); // 0=Sun..5=Fri, 6=Sat
+    const [wkH, wkM] = (weekendCloseTime || "20:00").split(":").map(Number);
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    const wkMins = (Number.isFinite(wkH) ? wkH : 20) * 60 + (Number.isFinite(wkM) ? wkM : 0);
+    const isWeekendWindow = isIndian
+      ? nowMins >= wkMins
+      : dowSun0 === 6 || dowSun0 === 0 || (dowSun0 === 5 && nowMins >= wkMins);
+    const weekProgressPct = isIndian
+      ? Math.min(100, Math.max(5, Math.round((nowMins / Math.max(1, wkMins)) * 100)))
+      : dowSun0 === 0 || dowSun0 === 6
+      ? 100
+      : Math.min(
+          100,
+          Math.max(
+            8,
+            Math.round((((dowSun0 - 1) * 1440 + nowMins) / (4 * 1440 + wkMins)) * 100)
+          )
+        );
+
+    // Tab 2 Card #6 (Account Protection / Equity Hard Stop)
+    const liveEquityVal = useDemoData
+      ? isIndian
+        ? 100000
+        : 10000
+      : Math.max(0, Number((equity || balance || startingCapital || 10000).toFixed(0)));
+    const safeFloor = Math.max(0, Number(equityHardStop) || 0);
+    const eqCushionAmt = Math.max(0, Math.round(liveEquityVal - safeFloor));
+    const eqBreached = safeFloor > 0 && liveEquityVal <= safeFloor;
+    const eqBufferPct =
+      liveEquityVal > 0
+        ? Math.min(100, Math.max(0, Math.round(((liveEquityVal - safeFloor) / liveEquityVal) * 100)))
+        : 100;
+
     return {
       unit,
       safeCap,
@@ -1343,6 +1486,36 @@ export default function RiskGuard() {
         active: ddActiveView,
         activeCount: activeDdCount,
       },
+      profitTarget: {
+        target: safeProfitTarget,
+        today: profitToday,
+        pct: profitGaugePct,
+        reached: profitReached,
+        remaining: profitRemaining,
+        grad: profitGrad,
+      },
+      stopLoss: {
+        total: slOpenTotal,
+        missing: slMissingCount,
+        withSl: slWithCount,
+        coveragePct: slCoveragePct,
+      },
+      rr: {
+        min: safeMinRR,
+        avg: avgRR,
+        riskSharePct: rrRiskSharePct,
+      },
+      weekend: {
+        isWindow: isWeekendWindow,
+        progressPct: weekProgressPct,
+      },
+      equityFloor: {
+        current: liveEquityVal,
+        floor: safeFloor,
+        cushion: eqCushionAmt,
+        breached: eqBreached,
+        bufferPct: eqBufferPct,
+      },
     };
   }, [
     activeMarket,
@@ -1352,6 +1525,7 @@ export default function RiskGuard() {
     useDemoData,
     demoOpenLots,
     demoDdByPeriod,
+    demoProfitToday,
     martingaleMultiplier,
     allowedTicker,
     customTickers,
@@ -1360,6 +1534,11 @@ export default function RiskGuard() {
     weeklyDrawdown,
     monthlyDrawdown,
     drawdownBasis,
+    dailyProfitTarget,
+    profitTargetCalc,
+    minRiskReward,
+    weekendCloseTime,
+    equityHardStop,
     balance,
     equity,
     startingCapital,
@@ -2674,56 +2853,183 @@ export default function RiskGuard() {
                             ? "Profit Target"
                             : "Daily Profit Target"
                         }
-                        description={
-                          activeMarket === "indian"
-                            ? "Kill when profit ≥ target"
-                            : "Lock terminal after profit"
-                        }
-                        value={`${sym}${dailyProfitTarget}`}
+                        description="Lock profits automatically once your daily goal is hit"
+                        value={`${sym}${lotTelemetry.profitTarget.target.toLocaleString()}`}
                         active={dailyProfitTargetActive}
                         onToggle={setDailyProfitTargetActive}
                         intent="trading"
+                        hasDashboardWidget={pinnedWidgets.includes("profit_target")}
                       >
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>
-                              {activeMarket === "indian"
-                                ? "Target (₹)"
-                                : "Target Amount"}
-                            </label>
-                            <div className="relative flex items-center">
-                              <span className="absolute left-2.5 text-[11.5px] font-semibold text-slate-400">
-                                {sym}
-                              </span>
-                              <input
-                                type="number"
-                                value={dailyProfitTarget}
-                                onChange={(e) =>
-                                  setDailyProfitTarget(Number(e.target.value))
-                                }
-                                className={`w-full pl-6 pr-10 h-[32px] ${INPUT_BASE}`}
+                        <div className="space-y-2.5">
+                          <div className="flex items-center gap-3">
+                            {/* 72-Notch Profit Goal Dial Gauge */}
+                            <div className="w-[134px] shrink-0 flex flex-col items-center">
+                              <Gauge
+                                compact
+                                ariaLabel="Daily Profit Target Gauge"
+                                value={lotTelemetry.profitTarget.pct}
+                                centerValue={lotTelemetry.profitTarget.pct}
+                                defaultLabel={`${sym}${Math.max(0, Math.round(lotTelemetry.profitTarget.today)).toLocaleString()} / ${sym}${lotTelemetry.profitTarget.target.toLocaleString()}`}
+                                suffix="%"
+                                needle="line"
+                                ruler
+                                totalNotches={72}
+                                spacing={40}
+                                notchLengthPercent={34}
+                                notchCornerRadius={2}
+                                startAngle={148}
+                                endAngle={392}
+                                enterTransition={{
+                                  type: "spring",
+                                  visualDuration: 1.4,
+                                  bounce: 0,
+                                }}
+                                enterStaggerScale={2}
+                                inactiveFillOpacity={0.4}
+                                useGradient
+                                gradientColors={lotTelemetry.profitTarget.grad}
                               />
-                              <span className="absolute right-2.5 text-[9.5px] font-semibold text-slate-400">
-                                {iso}
-                              </span>
+                            </div>
+
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                  Daily Goal
+                                </span>
+                                <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                                  {sym}{lotTelemetry.profitTarget.target.toLocaleString()}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium inline-flex items-center gap-1">
+                                  <span>Profit Today</span>
+                                  <span
+                                    className={`px-1 py-[1px] rounded text-[8.5px] font-bold uppercase tracking-wide ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  {useDemoData && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDemoProfitToday((v) => Math.max(0, v - 50))
+                                      }
+                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Decrease demo profit"
+                                    >
+                                      <Minus size={9} />
+                                    </button>
+                                  )}
+                                  <span
+                                    className={`font-bold tabular-nums ${
+                                      lotTelemetry.profitTarget.today >= 0
+                                        ? "text-emerald-600 dark:text-emerald-400"
+                                        : "text-rose-600 dark:text-rose-400"
+                                    }`}
+                                  >
+                                    {lotTelemetry.profitTarget.today >= 0 ? "+" : "-"}
+                                    {sym}
+                                    {Math.abs(Math.round(lotTelemetry.profitTarget.today)).toLocaleString()}
+                                  </span>
+                                  {useDemoData && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setDemoProfitToday((v) => v + 50)}
+                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Increase demo profit"
+                                    >
+                                      <Plus size={9} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                  {lotTelemetry.profitTarget.reached ? "Status" : "Left to Goal"}
+                                </span>
+                                <span
+                                  className={`font-bold tabular-nums ${
+                                    lotTelemetry.profitTarget.reached
+                                      ? "text-emerald-600 dark:text-emerald-400"
+                                      : "text-blue-600 dark:text-blue-400"
+                                  }`}
+                                >
+                                  {lotTelemetry.profitTarget.reached
+                                    ? "Target Hit · Lock"
+                                    : `${sym}${lotTelemetry.profitTarget.remaining.toLocaleString()} left`}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Calculation</label>
-                            <Select defaultValue="closed">
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="closed">
-                                  Closed P&amp;L
-                                </SelectItem>
-                                <SelectItem value="equity">
-                                  Equity Profit
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>
+                                {activeMarket === "indian"
+                                  ? "Target (₹)"
+                                  : "Target Amount"}
+                              </label>
+                              <div className="relative flex items-center">
+                                <span className="absolute left-2.5 text-[11.5px] font-semibold text-slate-400">
+                                  {sym}
+                                </span>
+                                <input
+                                  type="number"
+                                  min={activeMarket === "indian" ? "500" : "10"}
+                                  step={activeMarket === "indian" ? "500" : "25"}
+                                  value={dailyProfitTarget}
+                                  onChange={(e) =>
+                                    setDailyProfitTarget(Number(e.target.value))
+                                  }
+                                  className={`w-full pl-6 pr-10 h-[30px] ${INPUT_BASE}`}
+                                />
+                                <span className="absolute right-2.5 text-[9.5px] font-semibold text-slate-400">
+                                  {iso}
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Count Profit From</label>
+                              <Select
+                                value={profitTargetCalc}
+                                onValueChange={(v) =>
+                                  setProfitTargetCalc(v as "closed" | "equity")
+                                }
+                              >
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="closed">
+                                    Closed Trades Only
+                                  </SelectItem>
+                                  <SelectItem value="equity">
+                                    Closed + Open Profit
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
+
+                          <input
+                            type="range"
+                            min={activeMarket === "indian" ? "500" : "50"}
+                            max={activeMarket === "indian" ? "50000" : "5000"}
+                            step={activeMarket === "indian" ? "500" : "50"}
+                            value={dailyProfitTarget}
+                            onChange={(e) =>
+                              setDailyProfitTarget(Number(e.target.value))
+                            }
+                            className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                          />
                         </div>
                       </RiskGuardCard>
 
@@ -2731,70 +3037,113 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={StopCircle}
                           title="Stop Loss Required"
-                          description="Require SL on every execution"
+                          description="Never let an open trade run without a Stop-Loss"
+                          value={`${lotTelemetry.stopLoss.coveragePct}% SL`}
                           active={stopLossRequired}
                           onToggle={setStopLossRequired}
                           intent="trading"
                         >
-                          <div
-                            className={
-                              stopLossAction === "auto"
-                                ? "grid grid-cols-[1.2fr_1fr_0.7fr] gap-2"
-                                : ""
-                            }
-                          >
-                            <div>
-                              <label className={FIELD_LABEL}>Action</label>
-                              <Select
-                                value={stopLossAction}
-                                onValueChange={setStopLossAction}
-                              >
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="block">
-                                    Block trades without SL
-                                  </SelectItem>
-                                  <SelectItem value="auto">
-                                    Auto add SL
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            {stopLossAction === "auto" && (
-                              <>
-                                <div>
-                                  <label className={FIELD_LABEL}>Method</label>
-                                  <Select
-                                    value={stopLossMethod}
-                                    onValueChange={setStopLossMethod}
+                          <div className="space-y-2.5">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between text-[10.5px]">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                  <span>Open SL Check</span>
+                                  <span
+                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
                                   >
-                                    <SelectTrigger className={SELECT_TRIGGER}>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="pips">Pips</SelectItem>
-                                      <SelectItem value="percent">
-                                        Percent (%)
-                                      </SelectItem>
-                                      <SelectItem value="atr">ATR</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div>
-                                  <label className={FIELD_LABEL}>Value</label>
-                                  <input
-                                    type="number"
-                                    value={defaultStopLoss}
-                                    onChange={(e) =>
-                                      setDefaultStopLoss(Number(e.target.value))
-                                    }
-                                    className={`w-full px-2.5 h-[32px] ${INPUT_BASE}`}
-                                  />
-                                </div>
-                              </>
-                            )}
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                  {lotTelemetry.stopLoss.withSl} protected ·{" "}
+                                  {lotTelemetry.stopLoss.missing} missing SL
+                                </span>
+                              </div>
+                              <Gauge
+                                orientation="linear"
+                                ariaLabel="Stop Loss Coverage Linear Gauge"
+                                value={lotTelemetry.stopLoss.coveragePct}
+                                totalNotches={42}
+                                linearHeight={12}
+                                spacing={2}
+                                notchCornerRadius={3}
+                                inactiveFillOpacity={0.35}
+                                useGradient
+                                gradientColors={
+                                  lotTelemetry.stopLoss.missing > 0
+                                    ? ["#FB7185", "#E11D48", "#BE123C"]
+                                    : ["#34D399", "#10B981", "#059669"]
+                                }
+                              />
+                            </div>
+
+                            <div
+                              className={
+                                stopLossAction === "auto"
+                                  ? "grid grid-cols-[1.2fr_1fr_0.75fr] gap-2"
+                                  : ""
+                              }
+                            >
+                              <div>
+                                <label className={FIELD_LABEL}>
+                                  When SL Is Missing
+                                </label>
+                                <Select
+                                  value={stopLossAction}
+                                  onValueChange={setStopLossAction}
+                                >
+                                  <SelectTrigger className={SELECT_TRIGGER}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="block">
+                                      Auto-Close Trade (Strict Block)
+                                    </SelectItem>
+                                    <SelectItem value="auto">
+                                      Auto-Attach Default SL
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              {stopLossAction === "auto" && (
+                                <>
+                                  <div>
+                                    <label className={FIELD_LABEL}>Distance</label>
+                                    <Select
+                                      value={stopLossMethod}
+                                      onValueChange={setStopLossMethod}
+                                    >
+                                      <SelectTrigger className={SELECT_TRIGGER}>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="pips">Pips</SelectItem>
+                                        <SelectItem value="percent">
+                                          Percent (%)
+                                        </SelectItem>
+                                        <SelectItem value="atr">ATR</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <label className={FIELD_LABEL}>Value</label>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      value={defaultStopLoss}
+                                      onChange={(e) =>
+                                        setDefaultStopLoss(Number(e.target.value))
+                                      }
+                                      className={`w-full px-2.5 h-[30px] ${INPUT_BASE}`}
+                                    />
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           </div>
                         </RiskGuardCard>
                       )}
@@ -2803,42 +3152,88 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={TrendingUp}
                           title="Min Risk/Reward"
-                          description="Minimum reward-to-risk ratio"
-                          value={`1:${minRiskReward}`}
+                          description="Only allow trades where potential gain beats risk"
+                          value={`1:${lotTelemetry.rr.min.toFixed(1)}`}
                           active={minRiskRewardActive}
                           onToggle={setMinRiskRewardActive}
                           intent="trading"
                         >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`flex items-center w-[96px] shrink-0 h-[32px] overflow-hidden ${INPUT_BASE}`}
-                            >
-                              <span className="pl-2.5 pr-1 text-slate-400">
-                                1:
-                              </span>
+                          <div className="space-y-2.5">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between text-[10.5px]">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                  <span>Risk vs Reward Split</span>
+                                  <span
+                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                  Your Avg 1:{lotTelemetry.rr.avg} · Min 1:{lotTelemetry.rr.min.toFixed(1)}
+                                </span>
+                              </div>
+
+                              {/* Risk vs Reward Visual Ratio Bar */}
+                              <div className="w-full h-2.5 rounded-full bg-slate-100 dark:bg-white/[0.07] overflow-hidden flex gap-[2px]">
+                                <div
+                                  style={{ width: `${lotTelemetry.rr.riskSharePct}%` }}
+                                  className="h-full rounded-l-full bg-rose-400/90 transition-all duration-300"
+                                  title="Risk (1x SL)"
+                                />
+                                <div
+                                  style={{ width: `${100 - lotTelemetry.rr.riskSharePct}%` }}
+                                  className="h-full rounded-r-full bg-emerald-500 transition-all duration-300"
+                                  title={`Target Reward (${lotTelemetry.rr.min.toFixed(1)}x TP)`}
+                                />
+                              </div>
+
+                              <div className="flex items-center justify-between text-[10px] font-semibold">
+                                <span className="text-rose-600 dark:text-rose-400">
+                                  Risk: 1.0× ($100)
+                                </span>
+                                <span className="text-emerald-600 dark:text-emerald-400">
+                                  Min Reward: {lotTelemetry.rr.min.toFixed(1)}× ($
+                                  {Math.round(lotTelemetry.rr.min * 100)})
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`flex items-center w-[96px] shrink-0 h-[30px] overflow-hidden ${INPUT_BASE}`}
+                              >
+                                <span className="pl-2.5 pr-1 text-slate-400">
+                                  1:
+                                </span>
+                                <input
+                                  type="number"
+                                  min="1.0"
+                                  max="5.0"
+                                  step={0.1}
+                                  value={minRiskReward}
+                                  onChange={(e) =>
+                                    setMinRiskReward(Number(e.target.value))
+                                  }
+                                  className="w-full bg-transparent outline-none pr-2"
+                                />
+                              </div>
                               <input
-                                type="number"
+                                type="range"
                                 min="1.0"
                                 max="5.0"
-                                step={0.1}
+                                step="0.1"
                                 value={minRiskReward}
                                 onChange={(e) =>
                                   setMinRiskReward(Number(e.target.value))
                                 }
-                                className="w-full bg-transparent outline-none pr-2"
+                                className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
                               />
                             </div>
-                            <input
-                              type="range"
-                              min="1.0"
-                              max="5.0"
-                              step="0.1"
-                              value={minRiskReward}
-                              onChange={(e) =>
-                                setMinRiskReward(Number(e.target.value))
-                              }
-                              className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                            />
                           </div>
                         </RiskGuardCard>
                       )}
@@ -2852,47 +3247,94 @@ export default function RiskGuard() {
                         }
                         description={
                           activeMarket === "indian"
-                            ? "Auto kill at specific IST time"
-                            : "Auto flatten before Friday close"
+                            ? "Auto square-off at daily IST cutoff time"
+                            : "Auto flatten before Friday close to avoid weekend gaps"
                         }
                         value={weekendCloseTime}
                         active={weekendLock}
                         onToggle={setWeekendLock}
                         intent="warning"
                       >
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>
-                              {activeMarket === "indian"
-                                ? "Kill Time (IST)"
-                                : "Close Time"}
-                            </label>
-                            <TimePickerPopover
-                              value={weekendCloseTime}
-                              onChange={setWeekendCloseTime}
-                              subtitle={
-                                activeMarket === "indian" ? "IST" : "Broker"
+                        <div className="space-y-2.5">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    lotTelemetry.weekend.isWindow
+                                      ? "bg-amber-500"
+                                      : "bg-emerald-500"
+                                  }`}
+                                />
+                                <span>
+                                  {lotTelemetry.weekend.isWindow
+                                    ? "Cutoff Window Active"
+                                    : activeMarket === "indian"
+                                    ? `Daily Cutoff @ ${weekendCloseTime} IST`
+                                    : `Friday @ ${weekendCloseTime} Broker`}
+                                </span>
+                              </span>
+                              <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                {lotTelemetry.weekend.progressPct}% to cutoff
+                              </span>
+                            </div>
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="Weekend Lock Countdown Gauge"
+                              value={lotTelemetry.weekend.progressPct}
+                              totalNotches={42}
+                              linearHeight={10}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.35}
+                              useGradient
+                              gradientColors={
+                                lotTelemetry.weekend.isWindow
+                                  ? ["#FB7185", "#E11D48", "#BE123C"]
+                                  : ["#FBBF24", "#F59E0B", "#D97706"]
                               }
                             />
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Action</label>
-                            <Select defaultValue="both">
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="both">
-                                  Close &amp; block
-                                </SelectItem>
-                                <SelectItem value="close">
-                                  Close positions
-                                </SelectItem>
-                                <SelectItem value="block">
-                                  Block new trades
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>
+                                {activeMarket === "indian"
+                                  ? "Kill Time (IST)"
+                                  : "Friday Close Time"}
+                              </label>
+                              <TimePickerPopover
+                                value={weekendCloseTime}
+                                onChange={setWeekendCloseTime}
+                                subtitle={
+                                  activeMarket === "indian" ? "IST" : "Broker"
+                                }
+                              />
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Action</label>
+                              <Select
+                                value={weekendAction}
+                                onValueChange={(v) =>
+                                  setWeekendAction(v as "both" | "close" | "block")
+                                }
+                              >
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="both">
+                                    Close &amp; Block New
+                                  </SelectItem>
+                                  <SelectItem value="close">
+                                    Close Open Only
+                                  </SelectItem>
+                                  <SelectItem value="block">
+                                    Block New Entries
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </div>
                         {activeMarket === "indian" && (
@@ -2993,27 +3435,105 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={Wallet}
                         title="Account Protection"
-                        description="Minimum equity floor level"
-                        value={`${sym}${equityHardStop}`}
+                        description="Hard stop: lock account if equity drops to this floor"
+                        value={`${sym}${lotTelemetry.equityFloor.floor.toLocaleString()}`}
                         active={equityHardStopActive}
                         onToggle={setEquityHardStopActive}
                         intent="emergency"
+                        hasDashboardWidget={pinnedWidgets.includes("equity_floor")}
                       >
-                        <div className="relative flex items-center">
-                          <span className="absolute left-2.5 text-[11.5px] font-semibold text-slate-400">
-                            {sym}
-                          </span>
-                          <input
-                            type="number"
-                            value={equityHardStop}
-                            onChange={(e) =>
-                              setEquityHardStop(Number(e.target.value))
-                            }
-                            className={`w-full pl-6 pr-10 h-[32px] ${INPUT_BASE}`}
-                          />
-                          <span className="absolute right-2.5 text-[9.5px] font-semibold text-slate-400">
-                            {iso}
-                          </span>
+                        <div className="space-y-2.5">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                <span>
+                                  Equity: {sym}{lotTelemetry.equityFloor.current.toLocaleString()}
+                                </span>
+                                <span
+                                  className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                    useDemoData
+                                      ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                  }`}
+                                >
+                                  {useDemoData ? "Demo" : "Live"}
+                                </span>
+                              </span>
+                              <span
+                                className={`font-semibold tabular-nums ${
+                                  lotTelemetry.equityFloor.breached
+                                    ? "text-rose-600 dark:text-rose-400"
+                                    : "text-emerald-600 dark:text-emerald-400"
+                                }`}
+                              >
+                                {lotTelemetry.equityFloor.breached
+                                  ? "Floor Breached!"
+                                  : `+${sym}${lotTelemetry.equityFloor.cushion.toLocaleString()} cushion`}
+                              </span>
+                            </div>
+
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="Account Equity Floor Safety Buffer"
+                              value={lotTelemetry.equityFloor.bufferPct}
+                              totalNotches={42}
+                              linearHeight={12}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.35}
+                              useGradient
+                              gradientColors={
+                                lotTelemetry.equityFloor.breached
+                                  ? ["#FB7185", "#E11D48", "#BE123C"]
+                                  : ["#34D399", "#10B981", "#059669"]
+                              }
+                            />
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <div className="relative flex items-center flex-1 min-w-0">
+                              <span className="absolute left-2.5 text-[11.5px] font-semibold text-slate-400">
+                                {sym}
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                step={activeMarket === "indian" ? "1000" : "100"}
+                                value={equityHardStop}
+                                onChange={(e) =>
+                                  setEquityHardStop(Math.max(0, Number(e.target.value)))
+                                }
+                                className={`w-full pl-6 pr-10 h-[30px] ${INPUT_BASE}`}
+                              />
+                              <span className="absolute right-2.5 text-[9.5px] font-semibold text-slate-400">
+                                {iso}
+                              </span>
+                            </div>
+
+                            {/* Quick Floor Presets (% of current equity) */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              {[50, 75, 90].map((pctOfEq) => {
+                                const presetAmt = Math.round(
+                                  (lotTelemetry.equityFloor.current * pctOfEq) / 100
+                                );
+                                return (
+                                  <button
+                                    key={pctOfEq}
+                                    type="button"
+                                    onClick={() => setEquityHardStop(presetAmt)}
+                                    className={`px-2 py-1 rounded-lg text-[10px] font-semibold border transition-colors cursor-pointer ${
+                                      Math.abs(equityHardStop - presetAmt) < 10
+                                        ? "bg-blue-50 text-[#2563EB] border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30"
+                                        : "bg-slate-50 text-slate-600 border-slate-200/70 hover:bg-slate-100 dark:bg-white/[0.04] dark:text-neutral-300 dark:border-white/10"
+                                    }`}
+                                    title={`Set floor to ${pctOfEq}% of current equity`}
+                                  >
+                                    {pctOfEq}%
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
                         </div>
                       </RiskGuardCard>
                     </motion.div>

@@ -100,6 +100,19 @@ serve(async (req) => {
     const monthlyDdPctLimit = ddGuardOn ? Number(rules.monthly_dd_pct || 0) : 0;
     const hasAnyDdLimit = dailyDdPctLimit > 0 || weeklyDdPctLimit > 0 || monthlyDdPctLimit > 0;
     const drawdownBasis = rules.drawdown_basis === 'equity' ? 'equity' : 'balance';
+    const profitTargetActive = Boolean(rules.daily_profit_target_active);
+    const dailyProfitTarget = Number(rules.daily_profit_target || 0);
+    const profitTargetCalc = rules.profit_target_calc === 'equity' ? 'equity' : 'closed';
+    const stopLossRequired = Boolean(rules.stop_loss_required);
+    const stopLossAction = rules.stop_loss_action === 'auto' ? 'auto' : 'block';
+    const stopLossMethod = String(rules.stop_loss_method || 'pips');
+    const defaultStopLossVal = Number(rules.default_stop_loss || 15);
+    const minRrActive = Boolean(rules.min_risk_reward_active);
+    const minRrRatio = Number(rules.min_risk_reward || 1.5);
+    const weekendLockEnabled = Boolean(rules.weekend_lock);
+    const weekendCloseTime = String(rules.weekend_close_time || '20:00');
+    const equityFloorActive = Boolean(rules.equity_hard_stop_active);
+    const equityFloor = Number(rules.equity_hard_stop || 0);
 
     // Extract trade volume & symbol from MetaApi/Custom webhook payload
     let tradeVolume = payload.volume || payload.lot_size || payload.position?.volume || null;
@@ -128,11 +141,16 @@ serve(async (req) => {
       violationReason = 'OFF_INSTRUMENT_BLOCKED';
     }
 
-    // Need RPC inspection if volume is missing or if we need open positions / last closed trade / drawdown check
+    // Need RPC inspection if volume is missing or if we need open positions / last closed trade / Tab 2 risk checks
     const needsRpcCheck =
       !violationReason &&
       ((activeMaxLot > 0 && tradeVolume === null) ||
         hasAnyDdLimit ||
+        profitTargetActive ||
+        stopLossRequired ||
+        minRrActive ||
+        weekendLockEnabled ||
+        (equityFloorActive && equityFloor > 0) ||
         noAvgEnabled ||
         martingaleEnabled ||
         (oneInstrumentEnabled && Boolean(allowedTicker) && !tradeSymbol));
@@ -248,6 +266,71 @@ serve(async (req) => {
                 }
               }
             }
+
+            // Check Account Equity Hard Stop & Daily Profit Target
+            if (!violationReason && ((equityFloorActive && equityFloor > 0) || (profitTargetActive && dailyProfitTarget > 0))) {
+              const acctInfo = await connection.getAccountInformation().catch(() => null);
+              if (acctInfo) {
+                if (equityFloorActive && equityFloor > 0 && Number(acctInfo.equity || 0) <= equityFloor) {
+                  violationReason = 'EQUITY_FLOOR_BREACHED';
+                } else if (profitTargetActive && dailyProfitTarget > 0) {
+                  const nowDt = new Date();
+                  const startToday = new Date(Date.UTC(nowDt.getUTCFullYear(), nowDt.getUTCMonth(), nowDt.getUTCDate()));
+                  const { data: todayClosedRows } = await supabaseAdmin
+                    .from('trades')
+                    .select('profit')
+                    .eq('user_id', userId)
+                    .gte('closed_at', startToday.toISOString());
+                  const closedSum = (todayClosedRows || []).reduce((s: number, t: any) => s + Number(t.profit || 0), 0);
+                  const floatPnl = Number(acctInfo.equity || 0) - Number(acctInfo.balance || 0);
+                  const evalProfit = profitTargetCalc === 'equity' ? closedSum + floatPnl : closedSum;
+                  if (evalProfit >= dailyProfitTarget) {
+                    violationReason = 'DAILY_PROFIT_TARGET_REACHED';
+                  }
+                }
+                if (violationReason) {
+                  await supabaseAdmin
+                    .from('profiles')
+                    .update({ is_locked_for_today: true })
+                    .eq('id', userId);
+                }
+              }
+            }
+
+            // Check Stop Loss Required & Auto-Attach
+            if (!violationReason && stopLossRequired && (!position.stopLoss || Number(position.stopLoss) <= 0)) {
+              if (stopLossAction === 'auto' && position.openPrice > 0) {
+                const isBuy = String(position.type || '').includes('BUY');
+                const offset = stopLossMethod === 'percent'
+                  ? (position.openPrice * defaultStopLossVal) / 100
+                  : defaultStopLossVal * (position.openPrice > 50 ? 0.1 : 0.0001);
+                const computedSl = Number((isBuy ? position.openPrice - offset : position.openPrice + offset).toFixed(5));
+                await connection.modifyPosition(String(ticketId), computedSl, position.takeProfit).catch(() => null);
+              } else {
+                violationReason = 'STOP_LOSS_REQUIRED';
+              }
+            }
+
+            // Check Min Risk/Reward Ratio
+            if (!violationReason && minRrActive && minRrRatio > 0 && position.stopLoss > 0 && position.takeProfit > 0) {
+              const riskDist = Math.abs(Number(position.openPrice) - Number(position.stopLoss));
+              const rewardDist = Math.abs(Number(position.takeProfit) - Number(position.openPrice));
+              if (riskDist > 0 && rewardDist / riskDist < minRrRatio) {
+                violationReason = 'MIN_RR_NOT_MET';
+              }
+            }
+
+            // Check Weekend Lock Window (UTC day/time fallback)
+            if (!violationReason && weekendLockEnabled) {
+              const nowDt = new Date();
+              const utcDay = nowDt.getUTCDay();
+              const [wh, wm] = weekendCloseTime.split(':').map(Number);
+              const cutoffMins = (Number.isFinite(wh) ? wh : 20) * 60 + (Number.isFinite(wm) ? wm : 0);
+              const utcMins = nowDt.getUTCHours() * 60 + nowDt.getUTCMinutes();
+              if (utcDay === 6 || utcDay === 0 || (utcDay === 5 && utcMins >= cutoffMins)) {
+                violationReason = 'WEEKEND_LOCK_ACTIVE';
+              }
+            }
           }
         }
 
@@ -289,6 +372,11 @@ serve(async (req) => {
           if (violationReason === 'DAILY_DRAWDOWN_EXCEEDED') friendlyReason = `Daily drawdown limit (${dailyDdPctLimit}%) exceeded`;
           if (violationReason === 'WEEKLY_DRAWDOWN_EXCEEDED') friendlyReason = `Weekly drawdown limit (${weeklyDdPctLimit}%) exceeded`;
           if (violationReason === 'MONTHLY_DRAWDOWN_EXCEEDED') friendlyReason = `Monthly drawdown limit (${monthlyDdPctLimit}%) exceeded`;
+          if (violationReason === 'DAILY_PROFIT_TARGET_REACHED') friendlyReason = `Daily profit target (${dailyProfitTarget}) reached`;
+          if (violationReason === 'EQUITY_FLOOR_BREACHED') friendlyReason = `Account equity floor (${equityFloor}) breached`;
+          if (violationReason === 'STOP_LOSS_REQUIRED') friendlyReason = `Stop-Loss missing on ${tradeSymbol}`;
+          if (violationReason === 'MIN_RR_NOT_MET') friendlyReason = `Trade R:R below minimum 1:${minRrRatio}`;
+          if (violationReason === 'WEEKEND_LOCK_ACTIVE') friendlyReason = `Weekend Lock active after ${weekendCloseTime}`;
 
           return new Response(
             JSON.stringify({ 
