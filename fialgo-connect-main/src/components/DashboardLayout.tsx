@@ -68,6 +68,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
     location.pathname.startsWith('/home') ||
     location.pathname.startsWith('/discover') ||
     location.pathname.startsWith('/marketplace') ||
+    location.pathname.startsWith('/inbox') ||
     location.pathname.startsWith('/channel') ||
     location.pathname.startsWith('/store') ||
     location.pathname.startsWith('/learning') ||
@@ -369,7 +370,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
         try {
           localStorage.setItem("tradifive_ai_credits_remaining", String(remaining));
           localStorage.setItem("tradifive_ai_credits_max", String(max));
-        } catch (_) {}
+        } catch {
+          /* ignore storage error */
+        }
       }
     } catch (e) {
       console.warn("Could not fetch AI credits:", e);
@@ -403,7 +406,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
           if (parsed.xp) setTotalXP(parsed.xp);
           if (parsed.streakDays) setStreakDays(parsed.streakDays);
         }
-      } catch (_) {}
+      } catch {
+        /* ignore storage error */
+      }
     };
 
     window.addEventListener("tradifive_credits_updated", handleCreditsUpdated);
@@ -543,7 +548,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
   const categoryName = getCategoryName(location.pathname);
 
-  const { } = useTrading();
+  useTrading();
   const { activeMarket } = useMarket();
 
   let gradientClass = "from-[#e9ecef] via-[#f1f3f5] to-[#f4f6f8]"; // default gray
@@ -598,9 +603,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
                 </span>
               </div>
 
-              {/* MOBILE WEB VIEW (< md): Keep TradiFive logo on primary pages & back+title on sub-pages */}
+              {/* MOBILE WEB VIEW (< md): Keep TradiFive logo on primary & community pages, back+title on sub-pages */}
               <div className="flex md:hidden items-center gap-2">
-                {location.pathname === '/home' ||
+                {isCommunityRoute ||
                 location.pathname === '/dashboard' ||
                 location.pathname === '/journal' ||
                 location.pathname === '/risk-guard' ||

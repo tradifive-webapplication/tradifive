@@ -87,7 +87,9 @@ export default function Login() {
       toast.success("Email verified successfully! Please enter your password to sign in.", { duration: 8000 });
       try {
         window.history.replaceState({}, document.title, window.location.pathname);
-      } catch (e) {}
+      } catch {
+        // Ignore history state restrictions
+      }
     }
   }, [location.search, location.hash]);
   const navigate = useNavigate();
@@ -126,7 +128,9 @@ export default function Login() {
       supabase.auth.signOut({ scope: 'local' }).catch(() => {});
       try {
         sessionStorage.removeItem('fialgo_logged_out');
-      } catch (_) {}
+      } catch {
+        // Ignore storage access errors
+      }
     }
 
     // Only auto-finalize if an explicit OAuth callback code or access_token is present in URL hash/params
@@ -644,9 +648,23 @@ export default function Login() {
           transition={{ duration: 0.15 }}
           className="w-full max-w-[420px]"
         >
-
-
-
+          <div className="lg:hidden flex items-center gap-2 mb-6">
+            <img
+              src="/tf-logo.png"
+              alt="TradiFive"
+              className="h-7 w-7 object-contain shrink-0"
+            />
+            <img
+              src="/Tradifive_logo1.png"
+              alt="TradiFive"
+              className="h-[22px] w-auto object-contain dark:hidden"
+            />
+            <img
+              src="/Dark mode logo with white.png"
+              alt="TradiFive"
+              className="h-[22px] w-auto object-contain hidden dark:block"
+            />
+          </div>
 
           <div className="mb-6 lg:mb-10 text-left">
             <h2 className="text-3xl lg:text-4xl font-black tracking-tighter text-slate-900 dark:text-white mb-1.5 lg:mb-2">
@@ -720,7 +738,7 @@ export default function Login() {
                         <div className="space-y-1 lg:space-y-1.5">
                           <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">First Name</label>
                           <div className="relative group">
-                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
                               <IconlyUser set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                             </div>
                             <AnimatedInput
@@ -736,7 +754,7 @@ export default function Login() {
                         <div className="space-y-1 lg:space-y-1.5">
                           <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Last Name</label>
                           <div className="relative group">
-                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
                               <IconlyUser set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                             </div>
                             <AnimatedInput
@@ -756,7 +774,7 @@ export default function Login() {
                   <div className="space-y-1 lg:space-y-1.5">
                     <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Email Address</label>
                     <div className="relative group">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
                         <IconlyMessage set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                       </div>
                       <AnimatedInput
@@ -785,7 +803,7 @@ export default function Login() {
                       )}
                     </div>
                     <div className="relative group">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
                         <IconlyLock set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                       </div>
                       <AnimatedInput
@@ -817,7 +835,7 @@ export default function Login() {
                       >
                         <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Confirm Password</label>
                         <div className="relative group">
-                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
                             <IconlyLock set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                           </div>
                           <AnimatedInput
@@ -890,7 +908,7 @@ export default function Login() {
                     <div className="space-y-1 lg:space-y-1.5">
                       <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Email Address</label>
                       <div className="relative group">
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
                           <IconlyMessage set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                         </div>
                         <AnimatedInput

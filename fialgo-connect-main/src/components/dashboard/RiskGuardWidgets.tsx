@@ -270,13 +270,13 @@ export const DashboardWidgetsPicker: React.FC<DashboardWidgetsPickerProps> = ({
           }
         >
           {locked ? (
-            <Lock size={12.5} className="text-amber-500 shrink-0" />
+            <Lock size={12.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
           ) : (
             <LayoutGrid size={13.5} className="text-blue-600 dark:text-blue-400 shrink-0" />
           )}
-          <span>Widgets</span>
+          <span className={locked ? "btn-shine font-semibold" : "font-semibold"}>Widgets</span>
           {locked ? (
-            <span className="px-1.5 py-[0.5px] rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 uppercase tracking-wide">
+            <span className="px-1.5 py-[0.5px] rounded-full text-[9px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 uppercase tracking-wide">
               Pro
             </span>
           ) : (
@@ -294,43 +294,70 @@ export const DashboardWidgetsPicker: React.FC<DashboardWidgetsPickerProps> = ({
         className="w-[310px] p-3 rounded-2xl border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#17171A] shadow-xl z-50"
       >
         {locked ? (
-          <div className="space-y-3">
-            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/25">
-              <span className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
-                <Lock size={14} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-[12px] font-bold text-slate-900 dark:text-white leading-snug">
-                  Widgets Locked on Standard
-                </p>
-                <p className="text-[10.5px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
-                  Add live Risk Guard widgets and drag/place them anywhere on your Dashboard with Pro or Elite.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-1 opacity-60 pointer-events-none select-none">
-              {RISK_WIDGET_CATALOG.slice(0, 4).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06]"
-                >
-                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300 truncate">
-                    {item.title}
-                  </span>
-                  <Lock size={11} className="text-slate-400 shrink-0" />
+          <div className="space-y-2.5">
+            {/* Unified Pro & Elite Lock Banner (matches TradiFive Score / Economic Calendar) */}
+            <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3 py-2.5 rounded-2xl shadow-sm flex items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Lock size={14} strokeWidth={2.4} />
                 </div>
-              ))}
+                <div className="min-w-0 flex flex-col justify-center">
+                  <span className="btn-shine text-[13px] font-bold leading-tight">
+                    Dashboard Widgets
+                  </span>
+                  <p className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 mt-0.5">
+                    Pro &amp; Elite
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/upgrade"
+                onClick={() => setOpen(false)}
+                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm transition-colors"
+              >
+                Upgrade
+              </Link>
             </div>
 
-            <Link
-              to="/upgrade"
-              onClick={() => setOpen(false)}
-              className="w-full h-9 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
-            >
-              <Lock size={12} />
-              <span>Unlock with Pro &amp; Elite</span>
-            </Link>
+            {/* Full Scrollable Widget Catalog so Standard users see everything they're missing */}
+            <div className="space-y-2.5 max-h-[290px] overflow-y-auto overscroll-contain amazing-scrollbar pr-1">
+              {(["Trading Control", "Risk Management", "Behaviour & Discipline"] as const).map(
+                (groupName) => (
+                  <div key={groupName} className="space-y-1">
+                    <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-0.5 pt-0.5">
+                      {groupName}
+                    </p>
+                    {RISK_WIDGET_CATALOG.filter((item) => item.group === groupName).map(
+                      (item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center justify-between gap-2.5 px-2.5 py-2 rounded-xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/[0.06]"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-[11.5px] font-semibold text-slate-800 dark:text-white truncate">
+                              {item.title}
+                            </p>
+                            <p className="text-[10px] text-slate-500 dark:text-neutral-400 truncate mt-0.5">
+                              {item.subtitle}
+                            </p>
+                          </div>
+                          <span
+                            className="w-6 h-6 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0"
+                            title="Available on Pro & Elite"
+                          >
+                            <Lock size={11.5} strokeWidth={2.4} />
+                          </span>
+                        </div>
+                      )
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+
+            <p className="text-[9.5px] text-center text-slate-400 dark:text-neutral-500 font-medium pt-1 border-t border-slate-100 dark:border-white/[0.06]">
+              Scroll to preview all {RISK_WIDGET_CATALOG.length} live widgets · Drag &amp; place anywhere
+            </p>
           </div>
         ) : (
           <>

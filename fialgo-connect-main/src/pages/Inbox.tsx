@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { useInboxData } from "@/hooks/useInboxData";
 import { usePlan } from "@/hooks/usePlan";
 import { motion, AnimatePresence } from "framer-motion";
-import DashboardLayout from "@/components/DashboardLayout";
+import { CommunityPageWrapper } from "@/components/CommunityShell";
 import { 
   Search, CheckCircle2, MoreVertical, Search as SearchIcon, VolumeX, Volume2, X, ChevronLeft,
   Share2, CornerUpRight, Pin, Gift, Phone, User, Users, Bookmark, Settings as SettingsIcon, 
@@ -160,7 +160,9 @@ export default function InboxPage() {
           minute: '2-digit',
           hour12: true
         }).format(new Date()));
-      } catch (e) {}
+      } catch {
+        /* ignore locale error */
+      }
     }, 30000);
     return () => clearInterval(timer);
   }, []);
@@ -250,7 +252,9 @@ export default function InboxPage() {
           .eq("target_id", user.id)
           .order("created_at", { ascending: false });
         if (active && data) setPendingRequests(data);
-      } catch {}
+      } catch {
+        /* ignore fetch error */
+      }
     };
     loadRequests();
     return () => { active = false; };
@@ -268,7 +272,9 @@ export default function InboxPage() {
         toast.info("Request declined");
       }
       await supabase.from("social_follow_requests").delete().eq("id", req.id);
-    } catch {}
+    } catch {
+      /* ignore request action error */
+    }
   };
 
   const [partnerTradingStats, setPartnerTradingStats] = useState<{
@@ -538,9 +544,9 @@ function InboxSkeleton() {
 
   if (!authChecked || inboxLoading) {
     return (
-      <DashboardLayout breadcrumbs={[{ label: "Inbox", path: "/inbox" }]} noPadding={true} noScroll={true}>
+      <CommunityPageWrapper breadcrumbs={[{ label: "Inbox", path: "/inbox" }]} noPadding={true} noScroll={true}>
         <InboxSkeleton />
-      </DashboardLayout>
+      </CommunityPageWrapper>
     );
   }
 
@@ -589,7 +595,7 @@ function InboxSkeleton() {
   };
 
   return (
-    <DashboardLayout
+    <CommunityPageWrapper
       breadcrumbs={[{ label: "Inbox", path: "/inbox" }]}
       noPadding={true}
       noScroll={true}
@@ -1018,7 +1024,9 @@ function InboxSkeleton() {
                                msgType = parsed.type;
                                if(parsed.url) mediaUrl = parsed.url;
                            }
-                        } catch(e) {}
+                        } catch {
+                          /* ignore non-json message content */
+                        }
                         
                         const isMe = String(msg.sender_id || '').toLowerCase() === String(user?.id || '').toLowerCase();
                         return {
@@ -1483,6 +1491,6 @@ function InboxSkeleton() {
           />
         </div>
       )}
-    </DashboardLayout>
+    </CommunityPageWrapper>
   );
 }

@@ -177,9 +177,9 @@ export default function CommunityHeaderBar({
         </button>
       </div>
 
-      {/* Row 1: 5-Icon Curved Iconly Navigation Bar */}
+      {/* Row 1: 4-Icon Curved Iconly Navigation Bar */}
       <div className="w-full border-b border-slate-200/80 dark:border-white/10 px-3">
-        <div className="grid grid-cols-5 items-center w-full">
+        <div className="grid grid-cols-4 items-center w-full">
         {navItems.map((item) => {
           const isCurrent = item.id === activeTab && !showNotifications;
           return (

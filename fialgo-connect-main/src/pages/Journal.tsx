@@ -413,11 +413,17 @@ function JournalContent() {
                 }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   hideBalance ? "tactile-pill-active" : ""
-                } ${isStarter ? "opacity-60" : ""}`}
+                }`}
                 title="Hide all P&L values across the journal"
               >
-                {hideBalance ? <Eye size={13} /> : <EyeOff size={13} />}
-                <span>{hideBalance ? "P&L hidden" : "Hide P&L"}</span>
+                {isStarter ? (
+                  <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                ) : hideBalance ? (
+                  <Eye size={13} />
+                ) : (
+                  <EyeOff size={13} />
+                )}
+                <span className={isStarter ? "btn-shine" : ""}>{hideBalance ? "P&L hidden" : "Hide P&L"}</span>
               </button>
 
               {/* Hide Balance Only */}
@@ -434,11 +440,15 @@ function JournalContent() {
                 }}
                 className={`tactile-white-pill hidden sm:inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   hideOnlyBalance ? "tactile-pill-active" : ""
-                } ${isStarter ? "opacity-60" : ""}`}
+                }`}
                 title="Hide account balance only while keeping P&L visible"
               >
-                <ShieldCheck size={13} />
-                <span>{hideOnlyBalance ? "Balance hidden" : "Hide balance"}</span>
+                {isStarter ? (
+                  <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                ) : (
+                  <ShieldCheck size={13} />
+                )}
+                <span className={isStarter ? "btn-shine" : ""}>{hideOnlyBalance ? "Balance hidden" : "Hide balance"}</span>
               </button>
 
               {/* Show % Mode */}
@@ -455,11 +465,15 @@ function JournalContent() {
                 }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   percentageOnly ? "tactile-pill-active" : ""
-                } ${isStarter ? "opacity-60" : ""}`}
+                }`}
                 title="Display trade P&L in % return instead of currency"
               >
-                <Percent size={12} strokeWidth={2.4} />
-                <span>Percent</span>
+                {isStarter ? (
+                  <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                ) : (
+                  <Percent size={12} strokeWidth={2.4} />
+                )}
+                <span className={isStarter ? "btn-shine" : ""}>Percent</span>
               </button>
 
               {/* Edit / Reorder Layout */}
@@ -480,7 +494,7 @@ function JournalContent() {
                 }}
                 className={`tactile-white-pill inline-flex items-center gap-1.5 h-[34px] px-3 rounded-full text-[11.5px] font-bold cursor-pointer shadow-sm transition-all active:scale-95 ${
                   isEditMode ? "tactile-pill-active" : ""
-                } ${isStarter ? "opacity-80" : ""}`}
+                }`}
                 title={
                   isStarter
                     ? "Pro Feature: Upgrade to customize layout"
@@ -489,7 +503,7 @@ function JournalContent() {
                     : "Drag & reorder journal cards"
                 }
               >
-                {isStarter && <Lock size={12} className="text-blue-500 shrink-0" />}
+                {isStarter && <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
                 {isEditMode ? (
                   <>
                     <Check size={13} strokeWidth={2.8} />
@@ -498,7 +512,7 @@ function JournalContent() {
                 ) : (
                   <>
                     <LayoutGrid size={13} />
-                    <span className="hidden md:inline">Layout</span>
+                    <span className={`hidden md:inline ${isStarter ? "btn-shine" : ""}`}>Layout</span>
                   </>
                 )}
               </button>

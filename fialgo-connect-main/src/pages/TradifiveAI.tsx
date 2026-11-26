@@ -48,12 +48,14 @@ import {
   ArrowUp,
   X,
   Crown,
+  Lock,
   TrendingUp,
   Target,
   CheckCircle2
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { supabase } from "@/lib/supabase";
+import { usePlan } from "@/hooks/usePlan";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -89,6 +91,8 @@ const SURFACE_CARD =
 export default function TradifiveAI() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isStarter, brokerAccountLimit } = usePlan();
+  const isBrokerLocked = isStarter || brokerAccountLimit <= 0;
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -1564,10 +1568,11 @@ ${JSON.stringify(contextData)}`;
                 ) : (
                   <button
                     type="button"
-                    onClick={() => navigate('/settings?tab=trading')}
-                    className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-white/[0.04] text-[12px] font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-all cursor-pointer text-center active:scale-[0.98]"
+                    onClick={() => navigate(isBrokerLocked ? '/upgrade' : '/settings?tab=trading')}
+                    className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-white/[0.04] text-[12px] font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 active:scale-[0.98]"
                   >
-                    Connect Broker
+                    {isBrokerLocked && <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
+                    <span className={isBrokerLocked ? "btn-shine" : ""}>Connect Broker</span>
                   </button>
                 )}
               </div>

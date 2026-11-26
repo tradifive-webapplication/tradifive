@@ -240,7 +240,8 @@ const Dashboard = () => {
 
   const { activeMarket } = useMarket();
   const currSym = activeMarket === "indian" ? "₹" : "$";
-  const { isStarter, canAccess } = usePlan();
+  const { isStarter, canAccess, brokerAccountLimit } = usePlan();
+  const isBrokerLocked = isStarter || brokerAccountLimit <= 0;
 
   const [pnlRange, setPnlRange] = useState<PnlRange>("all");
   const demoMode = false;
@@ -664,9 +665,11 @@ const Dashboard = () => {
                         whileTap={{ scale: 0.96 }}
                         type="button"
                         onClick={() => setIsConnectBrokerDrawerOpen(true)}
-                        className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer whitespace-nowrap hover:border-blue-400 dark:hover:border-blue-500/40"
+                        title={isBrokerLocked ? "Pro & Elite: Upgrade to connect live MT5 broker" : "Connect your MT5 broker"}
+                        className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap hover:border-blue-400 dark:hover:border-blue-500/40"
                       >
-                        Connect broker
+                        {isBrokerLocked && <Lock size={11.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
+                        <span className={isBrokerLocked ? "btn-shine" : ""}>Connect broker</span>
                       </motion.button>
                     </div>
                   </div>
@@ -748,9 +751,11 @@ const Dashboard = () => {
                       whileTap={{ scale: 0.96 }}
                       type="button"
                       onClick={() => setIsConnectBrokerDrawerOpen(true)}
-                      className="tactile-white-pill rounded-full px-3.5 py-1.5 text-[12px] font-semibold cursor-pointer"
+                      title={isBrokerLocked ? "Pro & Elite: Upgrade to connect live MT5 broker" : "Connect your MT5 broker"}
+                      className="tactile-white-pill rounded-full px-3.5 py-1.5 text-[12px] font-semibold inline-flex items-center gap-1.5 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500/40"
                     >
-                      Connect broker
+                      {isBrokerLocked && <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
+                      <span className={isBrokerLocked ? "btn-shine" : ""}>Connect broker</span>
                     </motion.button>
                   </div>
                 </div>
@@ -816,9 +821,11 @@ const Dashboard = () => {
                       whileTap={{ scale: 0.96 }}
                       type="button"
                       onClick={() => setIsConnectBrokerDrawerOpen(true)}
-                      className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold cursor-pointer hover:border-blue-400"
+                      title={isBrokerLocked ? "Pro & Elite: Upgrade to connect live MT5 broker" : "Connect your MT5 broker"}
+                      className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer hover:border-blue-400"
                     >
-                      Connect broker
+                      {isBrokerLocked && <Lock size={11.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
+                      <span className={isBrokerLocked ? "btn-shine" : ""}>Connect broker</span>
                     </motion.button>
                   </div>
                 </div>
@@ -922,9 +929,9 @@ const Dashboard = () => {
                             : "Blur amounts"
                         }
                       >
-                        {isStarter && <Lock size={11} className="text-blue-500 shrink-0" />}
-                        {hidePnl ? <Eye size={12.5} /> : <EyeOff size={12.5} />}
-                        <span>{hidePnl ? "Show" : "Hide"}</span>
+                        {isStarter && <Lock size={11} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
+                        {!isStarter && (hidePnl ? <Eye size={12.5} /> : <EyeOff size={12.5} />)}
+                        <span className={isStarter ? "btn-shine" : ""}>{hidePnl ? "Show" : "Hide"}</span>
                       </motion.button>
                     </div>
                   </div>

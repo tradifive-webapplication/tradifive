@@ -14,6 +14,7 @@ import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
 import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
 import { supabase } from '@/lib/supabase';
+import { usePlan } from '@/hooks/usePlan';
 import { performAppLogout } from '@/utils/logout';
 import { useMarket } from '@/contexts/MarketContext';
 import { toast } from 'sonner';
@@ -182,6 +183,8 @@ export default function Settings() {
    const navigate = useNavigate();
    const [searchParams] = useSearchParams();
    const { activeMarket } = useMarket();
+   const { isStarter, brokerAccountLimit } = usePlan();
+   const isBrokerLocked = isStarter || brokerAccountLimit <= 0;
 
    const normalizeTab = (rawTab: string | null) => {
       if (!rawTab) return 'profile';
@@ -412,7 +415,9 @@ export default function Settings() {
             const parsed = JSON.parse(saved);
             return { ...DEFAULT_NOTIFICATIONS, ...parsed };
          }
-      } catch {}
+      } catch {
+         // Ignore malformed saved notifications
+      }
       return DEFAULT_NOTIFICATIONS;
    });
 
@@ -433,7 +438,9 @@ export default function Settings() {
      try {
        localStorage.setItem('tradifive_cursor_style', style);
        window.dispatchEvent(new CustomEvent('tradifive_cursor_change', { detail: style }));
-     } catch (_) {}
+     } catch {
+       // Ignore storage restrictions
+     }
      const names: Record<string, string> = {
        "3d": "3D Glossy Arrow",
        "dot": "Minimal Precision Dot",
@@ -573,7 +580,9 @@ export default function Settings() {
                                    try {
                                       const errText = await (error as any).context.text();
                                       if (errText) errorMessage = errText;
-                                   } catch (__) {}
+                                   } catch {
+                                      // Ignore non-text error context
+                                   }
                                 }
                              }
                              throw new Error(errorMessage);
@@ -668,7 +677,9 @@ export default function Settings() {
                try {
                   const s = localStorage.getItem(`tradifive_social_links_${user.id}`);
                   if (s) savedLocalSocial = JSON.parse(s);
-               } catch (_) {}
+               } catch {
+       // Ignore storage restrictions
+     }
                setProfile({
                   firstName: data.first_name || '',
                   lastName: data.last_name || '',
@@ -800,7 +811,9 @@ export default function Settings() {
          };
          try {
             localStorage.setItem('tradifive_user_notifications', JSON.stringify(next));
-         } catch {}
+         } catch {
+         // Ignore malformed saved notifications
+      }
          return next;
       });
       triggerHaptic('selection');
@@ -814,7 +827,9 @@ export default function Settings() {
       try {
          localStorage.setItem('tradifive_notif_global_off', String(newState));
          if (newState) localStorage.setItem('tradifive_notif_email_only', 'false');
-      } catch {}
+      } catch {
+         // Ignore malformed saved notifications
+      }
       
       const newNotifs = { ...notifications };
       Object.keys(newNotifs).forEach(key => {
@@ -825,7 +840,9 @@ export default function Settings() {
       setNotifications(newNotifs);
       try {
          localStorage.setItem('tradifive_user_notifications', JSON.stringify(newNotifs));
-      } catch {}
+      } catch {
+         // Ignore malformed saved notifications
+      }
       toast(newState ? 'All alerts paused (DND active)' : 'Notifications restored');
    };
 
@@ -836,7 +853,9 @@ export default function Settings() {
       try {
          localStorage.setItem('tradifive_notif_email_only', String(newState));
          if (newState) localStorage.setItem('tradifive_notif_global_off', 'false');
-      } catch {}
+      } catch {
+         // Ignore malformed saved notifications
+      }
       
       const newNotifs = { ...notifications };
       Object.keys(newNotifs).forEach(key => {
@@ -847,7 +866,9 @@ export default function Settings() {
       setNotifications(newNotifs);
       try {
          localStorage.setItem('tradifive_user_notifications', JSON.stringify(newNotifs));
-      } catch {}
+      } catch {
+         // Ignore malformed saved notifications
+      }
       toast(newState ? 'Email-only mode enabled' : 'Multi-channel notifications active');
    };
 
@@ -861,7 +882,9 @@ export default function Settings() {
          localStorage.setItem('tradifive_notif_global_off', 'false');
          localStorage.setItem('tradifive_notif_email_only', 'false');
          localStorage.setItem('tradifive_notif_sound', 'true');
-      } catch {}
+      } catch {
+         // Ignore malformed saved notifications
+      }
       toast.success('Notification settings reset to defaults');
    };
 
@@ -870,7 +893,9 @@ export default function Settings() {
       setSoundAlertsEnabled(next);
       try {
          localStorage.setItem('tradifive_notif_sound', String(next));
-      } catch {}
+      } catch {
+         // Ignore malformed saved notifications
+      }
       toast(next ? 'Sound chimes enabled' : 'Sound chimes muted');
    };
 
@@ -1018,6 +1043,16 @@ export default function Settings() {
       const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(selectedBrokerToConnect);
       
       if (isGlobal) {
+         if (isBrokerLocked) {
+            toast.info('Pro & Elite Feature · Live MT5 Sync', {
+               description: 'Upgrade to Pro or Elite to connect a live MetaTrader 5 broker account.',
+               action: {
+                  label: 'Upgrade',
+                  onClick: () => navigate('/upgrade'),
+               },
+            });
+            return;
+         }
          setConnectedBroker(selectedBrokerToConnect);
          setIsConnectingBroker(false);
          toast.success(`Successfully connected to ${selectedBrokerToConnect.toUpperCase()}!`);
@@ -1041,7 +1076,7 @@ export default function Settings() {
             });
             
             if (error || !data || !data.consentAppId) {
-                let errorMessage = error?.message || 'Failed to generate consent app ID';
+                const errorMessage = error?.message || 'Failed to generate consent app ID';
                 throw new Error(errorMessage);
              }
             
@@ -2823,12 +2858,31 @@ export default function Settings() {
                                                 </div>
                                                 
                                                 <div className="flex flex-wrap gap-5 md:gap-6">
-                                                   {['zerodha', 'dhan', 'upstox', 'mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].filter(broker => { const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker); return activeMarket === 'indian' ? !isGlobal : isGlobal; }).map(broker => (
+                                                   {['zerodha', 'dhan', 'upstox', 'mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].filter(broker => { const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker); return activeMarket === 'indian' ? !isGlobal : isGlobal; }).map(broker => {
+                                                      const isGlobalBroker = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker);
+                                                      const brokerItemLocked = isGlobalBroker && isBrokerLocked;
+                                                      return (
                                                       <button
                                                          key={broker}
-                                                         onClick={() => setSelectedBrokerToConnect(broker)}
+                                                         type="button"
+                                                         onClick={() => {
+                                                            if (brokerItemLocked) {
+                                                               toast.info('Pro & Elite Feature · Live MT5 Sync', {
+                                                                  description: 'Upgrade to Pro or Elite to connect live MetaTrader accounts.',
+                                                                  action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
+                                                               });
+                                                               return;
+                                                            }
+                                                            setSelectedBrokerToConnect(broker);
+                                                         }}
                                                          className={`group w-[150px] md:w-[160px] relative flex flex-col items-center justify-center p-6 bg-gradient-to-b from-white to-slate-50/80 dark:from-[#1A1A24] dark:to-[#121215] border border-slate-200/80 dark:border-white/10 hover:border-${broker === 'zerodha' ? 'blue' : broker === 'dhan' ? 'yellow' : broker === 'upstox' ? 'purple' : 'indigo'}-500/50 rounded-[32px] transition-all duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] hover:-translate-y-1 active:translate-y-0 active:scale-95 overflow-hidden`}
                                                       >
+                                                         {brokerItemLocked && (
+                                                            <span className="absolute top-3.5 right-3.5 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 border border-blue-200/70 dark:border-blue-500/25 text-[10px] font-bold">
+                                                               <Lock size={10} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" />
+                                                               <span className="btn-shine">Pro</span>
+                                                            </span>
+                                                         )}
                                                          {/* Background Glow on Hover tailored to broker */}
                                                          <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${broker === 'zerodha' ? 'bg-blue-500/5' : broker === 'dhan' ? 'bg-yellow-500/5' : broker === 'upstox' ? 'bg-purple-500/5' : 'bg-indigo-500/5'}`} />
                                                          <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${broker === 'zerodha' ? 'bg-blue-400/20' : broker === 'dhan' ? 'bg-yellow-400/20' : broker === 'upstox' ? 'bg-purple-400/20' : 'bg-indigo-400/20'}`} />
@@ -2846,7 +2900,8 @@ export default function Settings() {
                                                             {broker === 'mt5' ? 'MetaTrader 5' : broker === 'mt4' ? 'MetaTrader 4' : broker === 'icmarkets' ? 'IC Markets' : broker}
                                                          </span>
                                                       </button>
-                                                   ))}
+                                                      );
+                                                   })}
                                                 </div>
 
                                                 {activeMarket !== 'indian' && (
@@ -3116,7 +3171,9 @@ export default function Settings() {
          if (billingHistory && billingHistory.length > 0 && billingHistory[0]?.period_end) {
             try {
                return new Date(billingHistory[0].period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-            } catch (_) {}
+            } catch {
+       // Ignore storage restrictions
+     }
          }
          const d = new Date();
          d.setDate(d.getDate() + 30);
@@ -3127,7 +3184,9 @@ export default function Settings() {
          if (profile?.createdAt) {
             try {
                return new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-            } catch (_) {}
+            } catch {
+       // Ignore storage restrictions
+     }
          }
          return new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
       })();

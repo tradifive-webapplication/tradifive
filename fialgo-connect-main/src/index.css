@@ -1652,17 +1652,17 @@ svg.recharts-surface:focus-visible {
   }
 }
 
-/* From Uiverse.io by neerajbaniwal - Text Shine Animation */
+/* From Uiverse.io by neerajbaniwal - Smooth Full-Sweep Text Shine Animation */
 .btn-shine {
   display: inline-block;
   color: #fff;
-  background: linear-gradient(to right, #9f9f9f 0, #fff 10%, #868686 20%);
-  background-position: 0;
+  background-image: linear-gradient(110deg, #94a3b8 38%, #ffffff 50%, #94a3b8 62%);
+  background-size: 260% 100%;
+  background-position: 100% 0;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: shine 3s infinite linear;
-  animation-fill-mode: forwards;
+  animation: shine 2.8s infinite linear;
   -webkit-text-size-adjust: none;
   font-weight: 700;
   text-decoration: none;
@@ -1671,57 +1671,19 @@ svg.recharts-surface:focus-visible {
 
 :root:not(.dark) .btn-shine {
   color: #0f172a;
-  background: linear-gradient(to right, #64748b 0, #0f172a 10%, #94a3b8 20%);
+  background-image: linear-gradient(110deg, #64748b 38%, #0f172a 50%, #64748b 62%);
+  background-size: 260% 100%;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-@-moz-keyframes shine {
-  0% {
-    background-position: 0;
-  }
-  60% {
-    background-position: 180px;
-  }
-  100% {
-    background-position: 180px;
-  }
-}
-
-@-webkit-keyframes shine {
-  0% {
-    background-position: 0;
-  }
-  60% {
-    background-position: 180px;
-  }
-  100% {
-    background-position: 180px;
-  }
-}
-
-@-o-keyframes shine {
-  0% {
-    background-position: 0;
-  }
-  60% {
-    background-position: 180px;
-  }
-  100% {
-    background-position: 180px;
-  }
-}
-
 @keyframes shine {
   0% {
-    background-position: 0;
-  }
-  60% {
-    background-position: 180px;
+    background-position: 100% 0;
   }
   100% {
-    background-position: 180px;
+    background-position: -100% 0;
   }
 }
 

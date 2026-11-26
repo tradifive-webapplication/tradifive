@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
+import { usePlan } from "@/hooks/usePlan";
 import mt5Logo from "@/assets/mt5-logo.jpg";
 
 interface ConnectBrokerTopDrawerProps {
@@ -31,6 +33,9 @@ export default function ConnectBrokerTopDrawer({
   currentEquity = 0,
   onConnected,
 }: ConnectBrokerTopDrawerProps) {
+  const { isStarter, brokerAccountLimit } = usePlan();
+  const isBrokerLocked = isStarter || brokerAccountLimit <= 0;
+
   const [brokerServer, setBrokerServer] = useState("Exness-MT5Real14");
   const [accountNumber, setAccountNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -50,6 +55,12 @@ export default function ConnectBrokerTopDrawer({
 
   const handleConnectMT5 = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isBrokerLocked) {
+      toast.info("Pro & Elite Feature · Live MT5 Sync", {
+        description: "Upgrade to Pro or Elite to connect a live MetaTrader 5 broker account.",
+      });
+      return;
+    }
     const cleanAccount = accountNumber.trim();
     const cleanPassword = password.trim();
     const cleanServer = brokerServer.trim();
@@ -116,7 +127,9 @@ export default function ConnectBrokerTopDrawer({
               const errBody = await (error as any).context.json();
               if (errBody?.error) edgeErr = errBody.error;
             }
-          } catch (_) {}
+          } catch {
+            // Ignore malformed error body
+          }
 
           if (edgeErr.includes("Failed to send a request") || edgeErr.includes("404")) {
             edgeErr = "Unable to connect to MT5 bridge. Please check your MT5 login, server name, and password.";
@@ -174,7 +187,9 @@ export default function ConnectBrokerTopDrawer({
         }).catch(() => {});
         try {
           await supabase.functions.invoke("sync-metaapi-trades");
-        } catch (_) {}
+        } catch {
+          // Non-fatal background sync error
+        }
       } catch (syncErr) {
         console.warn("Background sync initial invocation:", syncErr);
       }
@@ -270,8 +285,38 @@ export default function ConnectBrokerTopDrawer({
               className="overflow-y-auto max-h-[calc(92vh-115px)] px-6 py-4 select-text"
             >
               <form onSubmit={handleConnectMT5} className="space-y-4">
+                {isBrokerLocked && (
+                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 p-3.5 shadow-2xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 border border-blue-100 dark:border-blue-500/20 flex items-center justify-center shrink-0">
+                        <Lock size={15} strokeWidth={2.3} className="text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[13.5px] font-bold tracking-tight leading-tight">
+                          <span className="btn-shine">Live MT5 Auto-Sync</span>
+                        </p>
+                        <p className="text-[11px] font-semibold text-slate-500 dark:text-neutral-400 mt-0.5 truncate">
+                          Pro &amp; Elite · Auto-sync live MT5 trades &amp; balance
+                        </p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/upgrade"
+                      onClick={onClose}
+                      className="px-4 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold shrink-0 shadow-sm transition-colors"
+                    >
+                      Upgrade
+                    </Link>
+                  </div>
+                )}
+
                 {/* Clean, Simple Inputs: Server, Username, Password */}
-                <div className="space-y-3.5">
+                <div
+                  aria-disabled={isBrokerLocked}
+                  className={`space-y-3.5 transition-all ${
+                    isBrokerLocked ? "opacity-45 blur-[2px] pointer-events-none select-none" : ""
+                  }`}
+                >
                   <div>
                     <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
                       Broker Server Name
@@ -280,8 +325,10 @@ export default function ConnectBrokerTopDrawer({
                       type="text"
                       value={brokerServer}
                       onChange={(e) => setBrokerServer(e.target.value)}
+                      disabled={isBrokerLocked}
+                      tabIndex={isBrokerLocked ? -1 : undefined}
                       placeholder="e.g. Exness-MT5Real14, FTMO-Server"
-                      className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all font-medium"
+                      className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all font-medium disabled:cursor-not-allowed"
                       required
                     />
                     <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-1 font-medium">
@@ -298,8 +345,10 @@ export default function ConnectBrokerTopDrawer({
                         type="text"
                         value={accountNumber}
                         onChange={(e) => setAccountNumber(e.target.value)}
+                        disabled={isBrokerLocked}
+                        tabIndex={isBrokerLocked ? -1 : undefined}
                         placeholder="e.g. 89124412"
-                        className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 font-mono transition-all font-semibold"
+                        className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 font-mono transition-all font-semibold disabled:cursor-not-allowed"
                         required
                       />
                     </div>
@@ -313,13 +362,17 @@ export default function ConnectBrokerTopDrawer({
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
+                          disabled={isBrokerLocked}
+                          tabIndex={isBrokerLocked ? -1 : undefined}
                           placeholder="••••••••••••"
-                          className="w-full h-[40px] px-3.5 pr-10 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all"
+                          className="w-full h-[40px] px-3.5 pr-10 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all disabled:cursor-not-allowed"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
+                          disabled={isBrokerLocked}
+                          tabIndex={isBrokerLocked ? -1 : undefined}
                           className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
                           title={showPassword ? "Hide password" : "Show password"}
                         >
@@ -330,7 +383,7 @@ export default function ConnectBrokerTopDrawer({
                   </div>
                 </div>
 
-                {/* Bottom Action Buttons: Cancel (white pill) & Connect (black pill) */}
+                {/* Bottom Action Buttons: Cancel (white pill) & Connect / Unlock */}
                 <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-white/[0.06]">
                   <motion.button
                     whileTap={{ scale: 0.95 }}
@@ -340,24 +393,35 @@ export default function ConnectBrokerTopDrawer({
                   >
                     Cancel
                   </motion.button>
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="tactile-black-pill rounded-full px-6 py-2 font-bold text-[12.5px] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none shadow-sm"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <RefreshCw size={13} className="animate-spin" />
-                        <span>Verifying with MT5...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Zap size={13} />
-                        <span>Connect MT5 Account</span>
-                      </>
-                    )}
-                  </motion.button>
+                  {isBrokerLocked ? (
+                    <Link
+                      to="/upgrade"
+                      onClick={onClose}
+                      className="tactile-white-pill rounded-full px-5 py-2 font-bold text-[12.5px] transition-all inline-flex items-center gap-1.5 cursor-pointer select-none shadow-sm hover:border-blue-400/60"
+                    >
+                      <Lock size={12.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span className="btn-shine">Unlock with Pro &amp; Elite</span>
+                    </Link>
+                  ) : (
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="tactile-black-pill rounded-full px-6 py-2 font-bold text-[12.5px] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 select-none shadow-sm"
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <RefreshCw size={13} className="animate-spin" />
+                          <span>Verifying with MT5...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Zap size={13} />
+                          <span>Connect MT5 Account</span>
+                        </>
+                      )}
+                    </motion.button>
+                  )}
                 </div>
               </form>
             </div>
