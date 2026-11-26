@@ -136,11 +136,11 @@ export default function ReportTab() {
                     onClick={() => setReportCategory(cat.id)}
                     className={`flex flex-col items-center justify-center p-3.5 rounded-2xl border transition-all gap-2 cursor-pointer ${
                       isSelected
-                        ? 'border-[#2563EB] bg-blue-50/40 dark:bg-blue-500/10 text-slate-900 dark:text-white ring-1 ring-[#2563EB]/25'
+                        ? 'border-slate-900 dark:border-white bg-slate-50/80 dark:bg-white/[0.06] text-slate-900 dark:text-white shadow-[0_1px_6px_rgba(15,23,42,0.06)]'
                         : 'border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02] text-slate-500 dark:text-neutral-400 hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-800 dark:hover:text-white'
                     }`}
                   >
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${isSelected ? 'bg-[#2563EB] text-white' : 'bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400'}`}>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${isSelected ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300'}`}>
                       <Icon size={17} />
                     </div>
                     <span className="text-[12px] font-semibold">
@@ -165,7 +165,7 @@ export default function ReportTab() {
                 placeholder="Brief title of the problem"
                 value={reportSubject}
                 onChange={e => setReportSubject(e.target.value)}
-                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
+                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
               />
             </div>
 
@@ -181,7 +181,7 @@ export default function ReportTab() {
                 placeholder="Explain the steps to reproduce the bug or provide details regarding your feedback..."
                 value={reportDescription}
                 onChange={e => setReportDescription(e.target.value)}
-                className="w-full p-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors resize-none leading-relaxed"
+                className="w-full p-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors resize-none leading-relaxed"
               />
             </div>
 
@@ -195,10 +195,10 @@ export default function ReportTab() {
               </div>
 
               <div
-                className="w-full border border-dashed border-slate-300 dark:border-white/15 bg-slate-50/70 dark:bg-white/[0.02] hover:border-[#2563EB] hover:bg-blue-50/30 dark:hover:bg-blue-500/5 transition-colors rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer"
+                className="w-full border border-dashed border-slate-300 dark:border-white/15 bg-slate-50/70 dark:bg-white/[0.02] hover:border-slate-400 dark:hover:border-white/30 hover:bg-slate-100/60 dark:hover:bg-white/[0.04] transition-colors rounded-2xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer"
                 onClick={() => fileInputRef.current?.click()}
               >
-                <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center">
                   <UploadCloud size={18} />
                 </div>
                 <div className="text-center">
@@ -220,7 +220,7 @@ export default function ReportTab() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
                   {attachments.map((file, idx) => (
                     <div key={idx} className="bg-slate-50 dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] rounded-xl p-3 flex items-center gap-2.5 relative group">
-                      <div className="w-9 h-9 rounded-lg bg-blue-50 dark:bg-blue-500/15 flex items-center justify-center text-[#2563EB] dark:text-blue-400 shrink-0">
+                      <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-white/[0.07] flex items-center justify-center text-slate-600 dark:text-neutral-300 shrink-0">
                         {file.type.startsWith('video') ? <FileVideo size={18} /> : <FileImage size={18} />}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -246,7 +246,7 @@ export default function ReportTab() {
           <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex justify-end">
             <button
               type="submit"
-              className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white font-semibold text-[12.5px] shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+              className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-semibold text-[12.5px] shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
             >
               <Send size={14} />
               <span>Submit Ticket</span>

@@ -145,17 +145,17 @@ export default function CreatorTab({
               onClick={() => handleSwitchAccountType("personal")}
               className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all ${
                 !isCreatorMode 
-                  ? "border-blue-500 bg-blue-500/[0.02] dark:bg-blue-500/[0.02]" 
+                  ? "border-slate-900 dark:border-white bg-slate-50/70 dark:bg-white/[0.04]" 
                   : "border-slate-200 dark:border-[#333333] bg-slate-50/50 dark:bg-[#1c1c1e] hover:border-slate-300 dark:hover:border-white/5"
               }`}
             >
               {!isCreatorMode && (
-                <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                  <Check size={12} className="text-white" />
+                <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center">
+                  <Check size={12} className="text-white dark:text-slate-900" />
                 </div>
               )}
               <div className="flex items-center gap-3.5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${!isCreatorMode ? "bg-blue-500/10 text-blue-500" : "bg-slate-200 dark:bg-zinc-800 text-slate-500"}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${!isCreatorMode ? "bg-slate-200/80 dark:bg-white/10 text-slate-900 dark:text-white" : "bg-slate-200 dark:bg-zinc-800 text-slate-500"}`}>
                   <User size={20} />
                 </div>
                 <div>
@@ -170,23 +170,23 @@ export default function CreatorTab({
               onClick={() => handleSwitchAccountType("creator")}
               className={`relative p-5 rounded-xl border-2 cursor-pointer transition-all ${
                 isCreatorMode 
-                  ? "border-purple-500 bg-purple-500/[0.02] dark:bg-purple-500/[0.02]" 
+                  ? "border-slate-900 dark:border-white bg-slate-50/70 dark:bg-white/[0.04]" 
                   : "border-slate-200 dark:border-[#333333] bg-slate-50/50 dark:bg-[#1c1c1e] hover:border-slate-300 dark:hover:border-white/5"
               }`}
             >
               {isCreatorMode && (
-                <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
-                  <Check size={12} className="text-white" />
+                <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center">
+                  <Check size={12} className="text-white dark:text-slate-900" />
                 </div>
               )}
               <div className="flex items-center gap-3.5">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isCreatorMode ? "bg-purple-500/10 text-purple-500" : "bg-slate-200 dark:bg-zinc-800 text-slate-500"}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isCreatorMode ? "bg-slate-200/80 dark:bg-white/10 text-slate-900 dark:text-white" : "bg-slate-200 dark:bg-zinc-800 text-slate-500"}`}>
                   <Crown size={20} />
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white">Creator Account</h3>
-                    <span className="text-[8px] font-black bg-purple-500 text-white px-1.5 py-0.5 rounded tracking-wide">PRO</span>
+                    <span className="text-[8px] font-black bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-1.5 py-0.5 rounded tracking-wide">PRO</span>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5">Sell subscriptions, broadcast signals, and manage channels.</p>
                 </div>
@@ -195,21 +195,18 @@ export default function CreatorTab({
           </div>
         ) : (
           // ── Non-elite: locked upgrade prompt ───────────────────────────
-          <div className="relative overflow-hidden rounded-2xl border-2 border-dashed border-purple-500/30 bg-gradient-to-br from-purple-500/[0.04] to-blue-500/[0.03] p-6">
-            {/* Decorative glow */}
-            <div className="absolute -top-8 -right-8 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
+          <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-white/[0.02] p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
               {/* Icon */}
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500/20 to-blue-500/10 border border-purple-500/20 flex items-center justify-center shrink-0">
-                <Crown size={26} className="text-purple-500" />
+              <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/10 flex items-center justify-center shrink-0">
+                <Crown size={26} className="text-slate-700 dark:text-neutral-200" />
               </div>
 
               {/* Copy */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h3 className="text-[15px] font-extrabold text-slate-900 dark:text-white">Creator Mode is an Elite Feature</h3>
-                  <span className="text-[9px] font-black bg-gradient-to-r from-purple-500 to-blue-500 text-white px-2 py-0.5 rounded tracking-widest">ELITE</span>
+                  <span className="text-[9px] font-black bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-2 py-0.5 rounded tracking-widest">ELITE</span>
                 </div>
                 <p className="text-[13px] text-slate-500 dark:text-zinc-400 leading-relaxed">
                   Upgrade to the <strong className="text-slate-700 dark:text-slate-200">Elite Plan</strong> to unlock Creator Mode — monetise your signals, run mentorship programs, build private communities, and access the Creator Dashboard.
@@ -312,7 +309,7 @@ export default function CreatorTab({
               </div>
               <button 
                 onClick={handleApply}
-                className="px-5 py-2 rounded-lg bg-indigo-500 hover:bg-indigo-600 transition-colors text-white text-xs font-bold shadow-md shadow-indigo-500/10"
+                className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 transition-colors text-white dark:text-slate-900 text-xs font-bold shadow-xs"
               >
                 Submit Application
               </button>
@@ -369,7 +366,7 @@ export default function CreatorTab({
                         type="number" 
                         value={price} 
                         onChange={e => setPrice(e.target.value)} 
-                        className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl pl-8 pr-12 py-2.5 text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:border-[#3b82f6]"
+                        className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl pl-8 pr-12 py-2.5 text-[13px] font-bold text-slate-800 dark:text-white outline-none focus:border-slate-900 dark:focus:border-white"
                       />
                       <span className="absolute right-4 top-3.5 text-[10px] font-bold text-slate-500 uppercase">/ month</span>
                     </div>
@@ -420,7 +417,7 @@ export default function CreatorTab({
                   value={discordWebhook}
                   placeholder="https://discord.com/api/webhooks/..." 
                   onChange={e => setDiscordWebhook(e.target.value)} 
-                  className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-[13px] font-medium text-slate-800 dark:text-white outline-none focus:border-[#3b82f6] transition-colors focus:ring-1 focus:ring-blue-500/50"
+                  className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-[13px] font-medium text-slate-800 dark:text-white outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
                 />
               </div>
             </div>
@@ -438,7 +435,7 @@ export default function CreatorTab({
                 <div className="p-4 bg-slate-50 dark:bg-[#1C1C1E] border border-slate-200/50 dark:border-[#2b2b2b] rounded-xl">
                   <div className="flex items-center justify-between text-slate-500">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Available Balance</span>
-                    <Wallet size={14} className="text-purple-500" />
+                    <Wallet size={14} className="text-slate-600 dark:text-neutral-300" />
                   </div>
                   <p className="text-2xl font-black text-slate-900 dark:text-white mt-1.5">${earnings.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
@@ -446,7 +443,7 @@ export default function CreatorTab({
                 <div className="p-4 bg-slate-50 dark:bg-[#1C1C1E] border border-slate-200/50 dark:border-[#2b2b2b] rounded-xl">
                   <div className="flex items-center justify-between text-slate-500">
                     <span className="text-[10px] font-bold uppercase tracking-wider">Active Subs</span>
-                    <Users size={14} className="text-blue-500" />
+                    <Users size={14} className="text-slate-600 dark:text-neutral-300" />
                   </div>
                   <p className="text-2xl font-black text-slate-900 dark:text-white mt-1.5">42</p>
                 </div>
@@ -463,7 +460,7 @@ export default function CreatorTab({
               {/* Stripe connected state card */}
               <div className="p-4 bg-[#0A0A0C] border border-[#232328] rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 select-none">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-[#5433FF]/10 text-[#5433FF] dark:text-[#a594ff] flex items-center justify-center font-bold text-sm">
+                  <div className="w-9 h-9 rounded-lg bg-white/10 text-white flex items-center justify-center font-bold text-sm">
                     S
                   </div>
                   <div>
@@ -488,7 +485,7 @@ export default function CreatorTab({
                 <button 
                   onClick={handleSaveSettings}
                   disabled={isUpdating}
-                  className="px-5 py-2.5 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold shadow-md shadow-indigo-500/10 active:scale-95 transition-all flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center gap-2"
                 >
                   {isUpdating ? "Saving..." : "Save Config"}
                 </button>

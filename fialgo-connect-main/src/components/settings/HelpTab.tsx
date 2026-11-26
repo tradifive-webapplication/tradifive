@@ -437,9 +437,9 @@ export default function HelpTab() {
                 <input
                   type="text"
                   placeholder="Please enter your question or keyword..."
-                  className="flex-1 bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 rounded-l-md px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
+                  className="flex-1 bg-white dark:bg-[#1E1E1E] border border-slate-200 dark:border-white/5 rounded-l-md px-4 py-3 text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
                 />
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 rounded-r-md flex items-center justify-center transition-colors">
+                <button className="bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 px-6 rounded-r-md flex items-center justify-center transition-colors">
                   <Search size={18} />
                 </button>
               </div>
@@ -458,7 +458,7 @@ export default function HelpTab() {
                 <div className="p-6 flex flex-col flex-1">
                   <h3 className="font-bold text-slate-900 dark:text-white mb-2">Need assistance?</h3>
                   <p className="text-xs text-slate-600 dark:text-slate-400 mb-6 flex-1">Complete the form and we will get back to you shortly.</p>
-                  <button onClick={openTicketForm} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded flex items-center justify-center gap-2 transition-colors">
+                  <button onClick={openTicketForm} className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors">
                     <Plus size={16} /> Open a ticket
                   </button>
                 </div>
@@ -466,8 +466,8 @@ export default function HelpTab() {
 
               {/* Card 2: Live Chat */}
               <div className="overflow-hidden flex flex-col rounded-[22px] border-2 border-white dark:border-white/5 bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-lg transition-all duration-300">
-                <div className="h-40 relative overflow-hidden flex items-center justify-center border-b-2 border-white dark:border-white/5 bg-gradient-to-b from-blue-50/50 to-white dark:bg-none dark:bg-[#1E1E1E]">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-xl shadow-blue-500/25">
+                <div className="h-40 relative overflow-hidden flex items-center justify-center border-b-2 border-white dark:border-white/5 bg-gradient-to-b from-slate-100/70 to-white dark:bg-none dark:bg-[#1E1E1E]">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 shadow-lg">
                     <MessageSquare size={32} />
                   </div>
                 </div>
@@ -483,7 +483,7 @@ export default function HelpTab() {
                   </p>
                   <button
                     onClick={startLiveChat}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+                    className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-medium py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
                   >
                     <MessageSquare size={16} /> Start Live Chat
                   </button>
@@ -551,11 +551,11 @@ export default function HelpTab() {
                         onClick={() => openTicket(ticket)}
                         className="grid grid-cols-12 gap-4 px-6 py-4 text-sm items-center hover:bg-slate-50 dark:hover:bg-[#1A1A1A] cursor-pointer transition-colors"
                       >
-                        <div className="col-span-5 font-medium text-blue-600 dark:text-blue-400 truncate pr-4">{ticket.subject}</div>
+                        <div className="col-span-5 font-medium text-slate-900 dark:text-white truncate pr-4">{ticket.subject}</div>
                         <div className="col-span-3 text-slate-600 dark:text-slate-400 font-mono text-xs">#{ticket.id.split('-')[0].toUpperCase()}</div>
                         <div className="col-span-2">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${ticket.status === 'resolved' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
-                            ticket.status === 'open' ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
+                            ticket.status === 'open' ? 'bg-slate-200/80 text-slate-800 dark:bg-white/10 dark:text-neutral-200' :
                               'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
                             }`}>
                             {ticket.status}
@@ -578,9 +578,9 @@ export default function HelpTab() {
           <div className="max-w-[800px]">
             <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Open a ticket</h1>
 
-            <div className="bg-[#f0f7ff] dark:bg-blue-900/10 border border-[#d6e4ff] dark:border-blue-800/30 rounded-md p-4 flex gap-3 mb-8">
-              <Info className="text-blue-500 flex-shrink-0 mt-0.5" size={18} />
-              <p className="text-sm text-slate-600 dark:text-blue-200/80">Submitting more than one ticket for the same issue may delay our response.</p>
+            <div className="bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/10 rounded-xl p-4 flex gap-3 mb-8">
+              <Info className="text-slate-600 dark:text-neutral-300 flex-shrink-0 mt-0.5" size={18} />
+              <p className="text-sm text-slate-600 dark:text-neutral-300">Submitting more than one ticket for the same issue may delay our response.</p>
             </div>
 
             <p className="text-sm font-medium text-slate-900 dark:text-white mb-6">Have you contacted us about this matter previously?</p>
@@ -682,10 +682,10 @@ export default function HelpTab() {
                   <div
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.title)}
-                    className={`p-7 cursor-pointer transition-all flex flex-col min-h-[170px] rounded-[22px] border-2 ${isSelected ? 'border-blue-500 ring-2 ring-blue-500/20 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none' : 'border-white dark:border-white/5 hover:border-blue-500/50 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none'} bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E]`}
+                    className={`p-7 cursor-pointer transition-all flex flex-col min-h-[170px] rounded-[22px] border-2 ${isSelected ? 'border-slate-900 dark:border-white shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12)] dark:shadow-none' : 'border-white dark:border-white/5 hover:border-slate-300 dark:hover:border-white/20 shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E2E8F0] dark:shadow-none'} bg-gradient-to-b from-[#F8F9FC] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E]`}
                   >
-                    <Icon className={`mb-5 ${isSelected ? 'text-blue-500' : 'text-slate-600 dark:text-slate-400'}`} size={26} strokeWidth={1.5} />
-                    <h3 className={`font-bold text-[15px] mb-2.5 ${isSelected ? 'text-blue-600 dark:text-blue-400' : 'text-slate-900 dark:text-white'}`}>{cat.title}</h3>
+                    <Icon className={`mb-5 ${isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`} size={26} strokeWidth={1.5} />
+                    <h3 className={`font-bold text-[15px] mb-2.5 text-slate-900 dark:text-white`}>{cat.title}</h3>
                     <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400 flex-1">{cat.desc}</p>
                   </div>
                 );
@@ -705,7 +705,7 @@ export default function HelpTab() {
               <button
                 onClick={() => setViewMode('ticket_step2')}
                 disabled={!selectedCategory}
-                className="px-6 py-2.5 rounded text-sm font-medium bg-[#8aa7ef] text-white hover:bg-[#7292e0] transition-colors disabled:opacity-50"
+                className="px-6 py-2.5 rounded text-sm font-medium bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50"
               >
                 Continue
               </button>
@@ -726,7 +726,7 @@ export default function HelpTab() {
                   value={newTicketSubject}
                   onChange={e => setNewTicketSubject(e.target.value)}
                   placeholder="Brief summary..."
-                  className="w-full bg-white dark:bg-[#161618] border border-slate-200 dark:border-white/5 rounded-md px-4 py-3 text-sm focus:border-blue-500 outline-none shadow-sm"
+                  className="w-full bg-white dark:bg-[#161618] border border-slate-200 dark:border-white/5 rounded-md px-4 py-3 text-sm focus:border-slate-900 dark:focus:border-white outline-none shadow-sm"
                 />
               </div>
               <div>
@@ -736,7 +736,7 @@ export default function HelpTab() {
                   onChange={e => setNewTicketDesc(e.target.value)}
                   placeholder="Detailed explanation..."
                   rows={8}
-                  className="w-full bg-white dark:bg-[#161618] border border-slate-200 dark:border-white/5 rounded-md px-4 py-3 text-sm focus:border-blue-500 outline-none resize-none shadow-sm"
+                  className="w-full bg-white dark:bg-[#161618] border border-slate-200 dark:border-white/5 rounded-md px-4 py-3 text-sm focus:border-slate-900 dark:focus:border-white outline-none resize-none shadow-sm"
                 />
               </div>
 
@@ -750,7 +750,7 @@ export default function HelpTab() {
                 <button
                   onClick={createTicketForm}
                   disabled={isCreating || !newTicketSubject || !newTicketDesc}
-                  className="px-8 py-2.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="px-8 py-2.5 rounded text-sm font-medium bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50"
                 >
                   {isCreating ? "Submitting..." : "Submit"}
                 </button>
@@ -774,7 +774,7 @@ export default function HelpTab() {
             <div className="px-6 py-5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between sticky top-0 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-md z-10">
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/20">
+                  <div className="w-11 h-11 rounded-xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 font-bold text-lg shadow-sm">
                     {selectedTicket.id.charAt(0).toUpperCase()}
                   </div>
                   <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-[#0A0A0A] rounded-full shadow-sm"></div>
@@ -786,7 +786,7 @@ export default function HelpTab() {
                       ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
                       : selectedTicket.status === 'in-progress'
                         ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'
-                        : 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400'
+                        : 'bg-slate-200/80 text-slate-800 dark:bg-white/10 dark:text-neutral-200'
                       }`}>
                       {selectedTicket.status}
                     </span>
@@ -828,7 +828,7 @@ export default function HelpTab() {
                           setShowResolvedOverlay(false);
                           setShowTicketPanel(false);
                         }}
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl uppercase tracking-widest text-[11px] shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition-all active:scale-[0.98]"
+                        className="w-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-black py-4 rounded-xl uppercase tracking-widest text-[11px] transition-all active:scale-[0.98]"
                       >
                         Finish & Close
                       </button>
@@ -839,7 +839,7 @@ export default function HelpTab() {
 
               {/* Subject Banner */}
               <div className="bg-white dark:bg-[#111] border border-slate-200/60 dark:border-white/5 rounded-2xl p-5 shadow-sm">
-                <p className="text-[10px] text-blue-600 dark:text-blue-400 font-black uppercase tracking-[0.2em] mb-3">Primary Inquiry</p>
+                <p className="text-[10px] text-slate-500 dark:text-neutral-400 font-black uppercase tracking-[0.2em] mb-3">Primary Inquiry</p>
                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-2 leading-snug">{selectedTicket.subject}</h3>
                 <p className="text-[13px] text-slate-600 dark:text-neutral-400 leading-relaxed font-medium">{selectedTicket.description?.split('\n\n').pop() || "No detailed description provided."}</p>
               </div>
@@ -868,13 +868,13 @@ export default function HelpTab() {
                       )}
                       <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} group transition-all`}>
                         <div className={`relative px-4 py-3 rounded-2xl max-w-[82%] shadow-sm ${isUser
-                          ? 'bg-[#2563eb] text-white rounded-tr-none shadow-blue-500/10'
+                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-tr-none'
                           : 'bg-white dark:bg-[#1E1E1E] text-slate-800 dark:text-neutral-200 rounded-tl-none border border-slate-100 dark:border-white/5'
                           }`}>
                           {/* Bubble Tails */}
                           {isUser ? (
                             <div className="absolute top-0 -right-2 w-3 h-3 overflow-hidden">
-                              <div className="bg-[#2563eb] w-4 h-4 rotate-45 -translate-x-3 -translate-y-2"></div>
+                              <div className="bg-slate-900 dark:bg-white w-4 h-4 rotate-45 -translate-x-3 -translate-y-2"></div>
                             </div>
                           ) : (
                             <div className="absolute top-0 -left-2 w-3 h-3 overflow-hidden">
@@ -974,56 +974,56 @@ export default function HelpTab() {
               <div className="p-5 bg-white dark:bg-[#0c0c0c] border-t border-slate-100 dark:border-white/5">
                 {/* Media Attachment Toolbar */}
                 <div className="flex items-center gap-3 mb-2 px-1">
-                  <button
-                    type="button"
-                    onClick={() => triggerFilePicker('image')}
-                    className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium"
-                  >
-                    <ImageIcon size={15} className="text-blue-500" />
-                    <span>Photo</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => triggerFilePicker('video')}
-                    className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors font-medium"
-                  >
-                    <Video size={15} className="text-purple-500" />
-                    <span>Video</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => triggerFilePicker('document')}
-                    className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors font-medium"
-                  >
-                    <FileText size={15} className="text-emerald-500" />
-                    <span>Document</span>
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => triggerFilePicker('image')}
+                      className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium"
+                    >
+                      <ImageIcon size={15} className="text-slate-600 dark:text-neutral-300" />
+                      <span>Photo</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => triggerFilePicker('video')}
+                      className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium"
+                    >
+                      <Video size={15} className="text-slate-600 dark:text-neutral-300" />
+                      <span>Video</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => triggerFilePicker('document')}
+                      className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium"
+                    >
+                      <FileText size={15} className="text-slate-600 dark:text-neutral-300" />
+                      <span>Document</span>
+                    </button>
+                  </div>
 
-                <div className="flex items-center gap-3 bg-slate-50 dark:bg-[#161618] border border-slate-200/50 dark:border-white/5 rounded-2xl px-4 py-2 shadow-inner transition-all focus-within:border-blue-500/50 focus-within:ring-4 focus-within:ring-blue-500/5">
-                  <button
-                    type="button"
-                    onClick={() => triggerFilePicker('all')}
-                    title="Attach Any File"
-                    className="p-2 text-slate-400 hover:text-blue-600 transition-colors"
-                  >
-                    <Paperclip size={20} strokeWidth={2.5} />
-                  </button>
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={e => setNewMessage(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && sendMessage()}
-                    placeholder="Type your message..."
-                    className="flex-1 bg-transparent py-3 text-[14px] text-slate-900 dark:text-white outline-none placeholder:text-slate-500 font-medium"
-                  />
-                  <button
-                    onClick={sendMessage}
-                    disabled={!newMessage.trim() && stagedAttachments.length === 0}
-                    className="w-10 h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:grayscale text-white rounded-xl flex items-center justify-center transition-all shadow-lg shadow-blue-500/20 active:scale-90"
-                  >
-                    <Send size={18} strokeWidth={2.5} />
-                  </button>
+                  <div className="flex items-center gap-3 bg-slate-50 dark:bg-[#161618] border border-slate-200/50 dark:border-white/5 rounded-2xl px-4 py-2 shadow-inner transition-all focus-within:border-slate-900/40 dark:focus-within:border-white/40">
+                    <button
+                      type="button"
+                      onClick={() => triggerFilePicker('all')}
+                      title="Attach Any File"
+                      className="p-2 text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                    >
+                      <Paperclip size={20} strokeWidth={2.5} />
+                    </button>
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                      onKeyDown={e => e.key === "Enter" && sendMessage()}
+                      placeholder="Type your message..."
+                      className="flex-1 bg-transparent py-3 text-[14px] text-slate-900 dark:text-white outline-none placeholder:text-slate-500 font-medium"
+                    />
+                    <button
+                      onClick={sendMessage}
+                      disabled={!newMessage.trim() && stagedAttachments.length === 0}
+                      className="w-10 h-10 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-50 disabled:grayscale text-white dark:text-slate-900 rounded-xl flex items-center justify-center transition-all shadow-sm active:scale-90"
+                    >
+                      <Send size={18} strokeWidth={2.5} />
+                    </button>
                 </div>
               </div>
             )}
@@ -1055,7 +1055,7 @@ export default function HelpTab() {
                   download={lightboxMedia.name}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-xs font-bold flex items-center gap-1.5 transition-colors"
                 >
                   <Download size={13} /> Download
                 </a>

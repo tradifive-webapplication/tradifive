@@ -33,10 +33,10 @@ import {
    ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
    CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
    AlertTriangle, Palette, Mail, Link2, Info, Crown, CreditCard, MessageSquare, LogOut,
-   ChevronLeft, Sliders, Copy, Pencil, HelpCircle, MousePointer } from 'lucide-react';
+   ChevronLeft, Sliders, Copy, Pencil, HelpCircle, MousePointer, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { triggerHaptic } from '@/utils/haptics';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Category, Notification, Star, Swap, TicketStar, Wallet, Chat, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
+import { User, Category, Notification, Star, Swap, TicketStar, Wallet, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
 import { useTradingTheme } from '@/hooks/useTradingTheme';
 import { TradingThemeId } from '@/utils/tradingTheme';
@@ -46,13 +46,14 @@ const TAB_TITLES: Record<string, string> = {
    general: "General Details",
    profile: "Profile",
    security: "Account & Security",
-   privacy: "Privacy & Community",
+   privacy: "Data & Privacy",
+   'data-privacy': "Data & Privacy",
+   'delete-history': "Delete history",
    appearance: "Theme & Display",
    notifications: "Notifications",
    ai: "AI Coach",
    trading: "Accounts & Brokers",
    subscription: "Subscription",
-   channel: "Channel Settings",
    creator: "Creator Account",
    help: "Help Center",
    report: "Report a Problem",
@@ -61,15 +62,16 @@ const TAB_TITLES: Record<string, string> = {
 
 const TAB_SUBTITLES: Record<string, string> = {
    profile: "Your card, bio, avatar, banner and privacy preferences",
-   account: "Manage email, password, sessions, standing and data export",
+   account: "Manage email, password, sessions, standing and guardian controls",
    security: "Protect your account with password and session controls",
-   privacy: "Control profile visibility and community privacy",
+   privacy: "Export your data, storage info",
+   'data-privacy': "Export your data, storage info",
+   'delete-history': "Wipe your trades, Daily and Weekly entries",
    notifications: "Choose which trade alerts and activity pings you receive",
    trading: "Connect MetaTrader 5 and Indian broker accounts",
-   ai: "Customize your TradiFive AI Coach persona and guardrails",
+   ai: "Track your daily AI Coach quota and credit allowance",
    subscription: "Manage your active plan, perks and billing history",
    appearance: "Switch light or dark theme and display preferences",
-   channel: "Configure your community channel and messaging settings",
    creator: "Manage creator monetization, payouts and subscriber perks",
    help: "Guides, FAQs and direct TradiFive support",
    report: "Share bugs or issues directly with our engineering team",
@@ -79,7 +81,7 @@ const PushableButton = ({ children, onClick, type = 'primary', className = '', .
    const baseClasses = "relative rounded-xl font-bold transition-all duration-200 active:top-[2px] active:shadow-none overflow-hidden";
    
    const types = {
-      primary: "bg-indigo-650 text-white shadow-[0_4px_0_rgb(67,56,202)] hover:bg-indigo-700 active:shadow-[0_0px_0_rgb(67,56,202)]",
+      primary: "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm hover:bg-slate-800 dark:hover:bg-neutral-200",
       secondary: "bg-white dark:bg-[#121212] text-slate-700 dark:text-slate-200 shadow-[0_4px_0_rgb(203,213,225)] dark:shadow-none hover:bg-slate-50 dark:hover:bg-[#222225] border border-slate-200 dark:border-transparent",
       danger: "bg-red-500 text-white shadow-[0_4px_0_rgb(185,28,28)] hover:bg-red-400 active:shadow-[0_0px_0_rgb(185,28,28)]"
    };
@@ -100,10 +102,10 @@ const ConsistencyToggleButton = ({ label, checked, onChange, icon: Icon, type = 
    <button
       type={type}
       onClick={onChange}
-      className={`inline-flex items-center gap-1.5 h-[44px] px-5 rounded-[16px] border-2 text-[12px] font-bold tracking-tight transition-all duration-300 ${
+      className={`inline-flex items-center gap-1.5 h-[44px] px-5 rounded-[16px] border text-[12px] font-bold tracking-tight transition-all duration-200 ${
          checked
-         ? "border-white dark:border-transparent bg-gradient-to-b from-[#E0E7FF] to-[#EEF2FF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#818CF840] dark:shadow-none text-indigo-700 dark:text-indigo-400"
-         : "border-white dark:border-transparent bg-gradient-to-b from-[#F4F4F4] to-[#FFFFFF] dark:bg-none dark:bg-[#1E1E1E] shadow-[0_4px_7px_-5px_rgba(0,0,0,0.12),0_0_0_2px_#E7E7E7] dark:shadow-none text-slate-500 dark:text-slate-400 hover:shadow-[0_8px_15px_-5px_rgba(0,0,0,0.15),0_0_0_2px_#D0D0D5] dark:hover:shadow-none"
+         ? "border-slate-900 dark:border-white bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
+         : "border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E1E] text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-white/20"
       }`}
    >
       {Icon && <Icon size={14} />}
@@ -115,9 +117,9 @@ const AnimatedCheckbox = ({ checked, onChange }: { checked: boolean, onChange: (
    <button 
       type="button" 
       onClick={() => onChange(!checked)} 
-      className={`group relative flex items-center justify-center w-[18px] h-[18px] rounded-[5px] transition-all duration-200 overflow-hidden outline-none ring-0 border ${checked ? 'border-[#5865F2] bg-[#5865F2]' : 'border-slate-300 dark:border-[#313338] bg-white dark:bg-[#1e1f22]'}`}
+      className={`group relative flex items-center justify-center w-[18px] h-[18px] rounded-[5px] transition-all duration-200 overflow-hidden outline-none ring-0 border ${checked ? 'border-slate-900 dark:border-white bg-slate-900 dark:bg-white text-white dark:text-slate-900' : 'border-slate-300 dark:border-[#313338] bg-white dark:bg-[#1e1f22]'}`}
    >
-      {checked && <Check size={11} strokeWidth={4} className="relative z-10 text-white" />}
+      {checked && <Check size={11} strokeWidth={4} className="relative z-10" />}
    </button>
 );
 
@@ -126,9 +128,9 @@ const SettingsToggle = ({ checked, onChange, disabled = false }: { checked: bool
       type="button"
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className={`relative w-9 h-[20px] rounded-full transition-colors duration-200 outline-none focus:outline-none ${disabled ? 'opacity-40 cursor-not-allowed' : ''} ${checked ? 'bg-[#3b82f6]' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+      className={`relative w-9 h-[20px] rounded-full transition-colors duration-200 outline-none focus:outline-none ${disabled ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'} ${checked ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-white/20'}`}
    >
-      <div className={`absolute top-1/2 -translate-y-1/2 left-[3px] w-[14px] h-[14px] rounded-full bg-white shadow-sm transition-transform duration-200 ${checked ? 'translate-x-[16px]' : 'translate-x-0'}`} />
+      <div className={`absolute top-1/2 -translate-y-1/2 left-[3px] w-[14px] h-[14px] rounded-full shadow-sm transition-transform duration-200 ${checked ? 'translate-x-[16px] bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'}`} />
    </button>
 );
 
@@ -187,6 +189,9 @@ export default function Settings() {
       if (!rawTab) return 'profile';
       if (rawTab === 'plan') return 'subscription';
       if (rawTab === 'profiles') return 'profile';
+      if (rawTab === 'privacy' || rawTab === 'data' || rawTab === 'data-privacy') return 'data-privacy';
+      if (rawTab === 'delete-history' || rawTab === 'history') return 'delete-history';
+      if (rawTab === 'channel') return 'profile';
       if (rawTab === 'File Setup' || rawTab === 'risk' || rawTab === 'preferences' || rawTab === 'trading-preferences') return 'trading';
       return rawTab;
    };
@@ -232,41 +237,213 @@ export default function Settings() {
    });
    const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
    
-   // Billing State
+   // Billing & Coupon State
+   type AppliedCoupon = { code: string; percentOff: number; label: string };
+   const COUPON_CATALOG: Record<string, AppliedCoupon> = {
+      TRADI10: { code: 'TRADI10', percentOff: 10, label: '10% off your plan' },
+      TRADI20: { code: 'TRADI20', percentOff: 20, label: '20% off your plan' },
+      WELCOME20: { code: 'WELCOME20', percentOff: 20, label: '20% welcome discount' },
+      ELITE30: { code: 'ELITE30', percentOff: 30, label: '30% off membership' },
+      FOUNDER50: { code: 'FOUNDER50', percentOff: 50, label: '50% founder discount' },
+      TRADI100: { code: 'TRADI100', percentOff: 100, label: '100% complimentary pass' },
+      VIPFREE: { code: 'VIPFREE', percentOff: 100, label: '100% VIP complimentary pass' },
+   };
+
+   const BASE_PLAN_PRICES = {
+      starter: { monthly: 0, annually: 0 },
+      pro: { monthly: 1399, annually: 1119 },
+      elite: { monthly: 2799, annually: 2239 },
+   } as const;
+
    const [billingHistory, setBillingHistory] = useState<any[]>([]);
    const [loadingBilling, setLoadingBilling] = useState(true);
    const [downgradeModalPlan, setDowngradeModalPlan] = useState<'starter' | 'pro' | null>(null);
+   const [showCancelPlanModal, setShowCancelPlanModal] = useState(false);
    const [isChangingPlan, setIsChangingPlan] = useState(false);
-   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annually'>('monthly');
+   const [billingInterval, setBillingInterval] = useState<'monthly' | 'annually'>(() => {
+      try {
+         return localStorage.getItem('tradifive_billing_interval') === 'annually' ? 'annually' : 'monthly';
+      } catch {
+         return 'monthly';
+      }
+   });
    const [discountCodeInput, setDiscountCodeInput] = useState('');
-   const [appliedDiscount, setAppliedDiscount] = useState<string | null>(null);
+   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+   const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(() => {
+      try {
+         const raw = localStorage.getItem('tradifive_applied_coupon');
+         if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed?.code && typeof parsed?.percentOff === 'number') return parsed;
+         }
+      } catch {
+         // Ignore malformed saved coupon
+      }
+      return null;
+   });
    const [showRefundModal, setShowRefundModal] = useState(false);
 
-   const applyPlanChange = async (newPlan: 'starter' | 'pro' | 'elite') => {
+   // Data & Privacy + Delete History State
+   const [dataCounts, setDataCounts] = useState({
+      totalTrades: 0,
+      liveTrades: 0,
+      paperTrades: 0,
+      dailyEntries: 0,
+      weeklyReviews: 0,
+   });
+   const [isExportingBackup, setIsExportingBackup] = useState(false);
+   const [showCsvExportModal, setShowCsvExportModal] = useState(false);
+   const [csvExportScope, setCsvExportScope] = useState<'all' | 'live' | 'paper'>('all');
+   const [isExportingCsvData, setIsExportingCsvData] = useState(false);
+   const [isWipingHistory, setIsWipingHistory] = useState(false);
+   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
+   const [deleteAccountConfirm, setDeleteAccountConfirm] = useState('');
+   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+   const getDiscountedMonthlyPrice = (tier: 'starter' | 'pro' | 'elite', interval: 'monthly' | 'annually', coupon: AppliedCoupon | null) => {
+      const base = BASE_PLAN_PRICES[tier][interval];
+      if (!base || !coupon) return base;
+      return Math.max(0, Math.round(base * (1 - coupon.percentOff / 100)));
+   };
+
+   const handleApplyCouponCode = async (rawCode?: string) => {
+      const normalized = (rawCode ?? discountCodeInput).trim().toUpperCase();
+      if (!normalized) {
+         toast.error('Please enter a coupon code');
+         return;
+      }
+      setIsValidatingCoupon(true);
+      try {
+         let resolved: AppliedCoupon | null = COUPON_CATALOG[normalized] || null;
+         if (!resolved) {
+            try {
+               const { data } = await supabase
+                  .from('system_settings')
+                  .select('setting_value')
+                  .eq('setting_key', 'promo_codes')
+                  .maybeSingle();
+               const rawVal = (data as any)?.setting_value;
+               const parsed = typeof rawVal === 'string' ? JSON.parse(rawVal) : rawVal;
+               if (parsed && parsed[normalized]) {
+                  const pct = Math.min(100, Math.max(1, Number(parsed[normalized].percentOff ?? parsed[normalized].discount ?? 0)));
+                  if (pct > 0) {
+                     resolved = {
+                        code: normalized,
+                        percentOff: pct,
+                        label: parsed[normalized].label || `${pct}% off your plan`,
+                     };
+                  }
+               }
+            } catch {
+               // Optional DB coupon lookup fallback
+            }
+         }
+         if (!resolved) {
+            toast.error(`Coupon "${normalized}" is not valid or has expired.`, {
+               description: 'Try TRADI10, WELCOME20, ELITE30, or FOUNDER50.',
+            });
+            return;
+         }
+         setAppliedCoupon(resolved);
+         try {
+            localStorage.setItem('tradifive_applied_coupon', JSON.stringify(resolved));
+         } catch {
+            // Ignore storage restrictions
+         }
+         setDiscountCodeInput('');
+         toast.success(`Coupon ${resolved.code} applied!`, {
+            description: `${resolved.percentOff}% discount is now active on Pro & Elite pricing.`,
+         });
+      } finally {
+         setIsValidatingCoupon(false);
+      }
+   };
+
+   const handleRemoveCouponCode = () => {
+      setAppliedCoupon(null);
+      try {
+         localStorage.removeItem('tradifive_applied_coupon');
+      } catch {
+         // Ignore storage restrictions
+      }
+      toast.info('Coupon code removed');
+   };
+
+   const applyPlanChange = async (newPlan: 'starter' | 'pro' | 'elite', opts?: { reason?: 'cancel' | 'switch' }) => {
       setIsChangingPlan(true);
       try {
          const { data: { user } } = await supabase.auth.getUser();
+         const monthlyPrice = getDiscountedMonthlyPrice(newPlan, billingInterval, appliedCoupon);
+         const chargedAmount = newPlan === 'starter' ? 0 : (billingInterval === 'annually' ? monthlyPrice * 12 : monthlyPrice);
+         const nowIso = new Date().toISOString();
+         const periodEndIso = newPlan === 'starter'
+            ? null
+            : new Date(Date.now() + (billingInterval === 'annually' ? 365 : 30) * 24 * 60 * 60 * 1000).toISOString();
+
          if (user) {
-            await supabase.from('profiles').update({
+            const { error: profileError } = await supabase.from('profiles').update({
                subscription_status: newPlan,
                plan_type: newPlan,
+               is_pro: newPlan !== 'starter',
+               next_billing_at: periodEndIso,
             }).eq('id', user.id);
+            if (profileError) throw profileError;
+
             localStorage.setItem('tradifive_selected_plan', newPlan);
             localStorage.setItem('tradifive_cached_plan', newPlan);
+            localStorage.setItem('tradifive_billing_interval', billingInterval);
             const limits = { starter: 5, pro: 50, elite: 150, institutional: 1000 };
             const newMax = limits[newPlan] || 5;
             localStorage.setItem(`tradifive_ai_credits_${user.id}`, String(newMax));
+            localStorage.setItem('tradifive_ai_credits_remaining', String(newMax));
+            localStorage.setItem('tradifive_ai_credits_max', String(newMax));
+
+            const statusLabel = opts?.reason === 'cancel' ? 'canceled' : newPlan === 'starter' ? 'downgraded' : 'paid';
+            const paymentRef = `TF_${billingInterval.toUpperCase()}_${newPlan.toUpperCase()}${appliedCoupon ? `_${appliedCoupon.code}` : ''}`;
+            const historyPayload = {
+               user_id: user.id,
+               plan: newPlan,
+               amount: chargedAmount,
+               currency: 'INR',
+               status: statusLabel,
+               period_start: nowIso,
+               period_end: periodEndIso,
+               stripe_payment_id: paymentRef,
+               created_at: nowIso,
+            };
+
+            try {
+               const { data: insertedRow } = await supabase
+                  .from('billing_history')
+                  .insert(historyPayload)
+                  .select('*')
+                  .maybeSingle();
+               setBillingHistory((prev) => [insertedRow || { id: `local_${Date.now()}`, ...historyPayload }, ...prev]);
+            } catch {
+               setBillingHistory((prev) => [{ id: `local_${Date.now()}`, ...historyPayload }, ...prev]);
+            }
+
             window.dispatchEvent(new Event('tradifive_profile_update'));
+            window.dispatchEvent(new CustomEvent('tradifive_credits_updated', { detail: { creditsRemaining: newMax, creditsMax: newMax } }));
          }
          setActivePlan(newPlan);
          setSelectedPlan(newPlan);
-         toast.success(`Plan updated to ${newPlan === 'starter' ? 'Standard' : newPlan.charAt(0).toUpperCase() + newPlan.slice(1)}!`);
+         if (opts?.reason === 'cancel') {
+            toast.success('Subscription canceled. You are now on the Free Plan.');
+         } else {
+            toast.success(`Switched to ${newPlan === 'starter' ? 'Free Plan' : newPlan === 'pro' ? 'Pro Plan' : 'Elite Plan'}!`, {
+               description: appliedCoupon && newPlan !== 'starter'
+                  ? `${appliedCoupon.code} (${appliedCoupon.percentOff}% off) applied in real time.`
+                  : 'All features and limits updated immediately.',
+            });
+         }
       } catch (err: any) {
          console.error('Error applying plan change:', err);
-         toast.error('Failed to change plan. Please try again.');
+         toast.error(err?.message || 'Failed to change plan. Please try again.');
       } finally {
          setIsChangingPlan(false);
          setDowngradeModalPlan(null);
+         setShowCancelPlanModal(false);
       }
    };
 
@@ -275,30 +452,33 @@ export default function Settings() {
          setDowngradeModalPlan('starter');
          return;
       }
+      const monthlyPrice = getDiscountedMonthlyPrice(plan, billingInterval, appliedCoupon);
+      const totalAmount = billingInterval === 'annually' ? monthlyPrice * 12 : monthlyPrice;
       const BYPASS_RAZORPAY_FOR_TESTING = true;
-      if (BYPASS_RAZORPAY_FOR_TESTING) {
-         await applyPlanChange(plan);
+      if (BYPASS_RAZORPAY_FOR_TESTING || totalAmount <= 0) {
+         await applyPlanChange(plan, { reason: 'switch' });
          return;
       }
-      const price = plan === 'pro' ? 1399 : 2799;
       try {
          const { data: { user } } = await supabase.auth.getUser();
          await initiateRazorpayCheckout({
-            amount: price * 100,
+            amount: totalAmount * 100,
             currency: 'INR',
             name: 'TradiFive',
-            description: `${plan.toUpperCase()} Membership Upgrade`,
+            description: `${plan.toUpperCase()} (${billingInterval === 'annually' ? 'Annual' : 'Monthly'})${appliedCoupon ? ` · ${appliedCoupon.code}` : ''}`,
             receipt: `sett_upg_${plan}_${Date.now()}`,
             notes: {
                plan,
+               billingInterval,
+               couponCode: appliedCoupon?.code || '',
                userId: user?.id || 'guest',
             },
             prefill: {
                email: user?.email || undefined,
-               name: userProfile?.display_name || user?.user_metadata?.full_name || undefined,
+               name: profile?.display_name || user?.user_metadata?.full_name || undefined,
             },
             onSuccess: async () => {
-               await applyPlanChange(plan);
+               await applyPlanChange(plan, { reason: 'switch' });
             },
          });
       } catch (err: any) {
@@ -446,7 +626,7 @@ export default function Settings() {
 
     // Appearance State
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
-   const [accentColor, setAccentColor] = useState('blue');
+   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('tradifive_accent_color') || 'slate');
    const [layoutDensity, setLayoutDensity] = useState('comfortable');
    const [terminalLogging, setTerminalLogging] = useState(false);
    const [fullScreenLayout, setFullScreenLayout] = useState(() => localStorage.getItem('fialgo_full_screen') === 'true');
@@ -474,26 +654,18 @@ export default function Settings() {
 
    // New Tab States
    const [language, setLanguage] = useState('en');
-   const [aiTone, setAiTone] = useState(() => localStorage.getItem('tradifive_ai_persona') || 'Analytical Quant');
-   const [aiVoice, setAiVoice] = useState('female');
-   const [aiFrequency, setAiFrequency] = useState(() => localStorage.getItem('tradifive_ai_frequency') || 'Every Trade');
-   const [aiAutoReview, setAiAutoReview] = useState(() => localStorage.getItem('tradifive_ai_auto_review') !== 'false');
    const [connectedBroker, setConnectedBroker] = useState<string>('');
    const [brokerApiKey, setBrokerApiKey] = useState('');
    const [brokerClientId, setBrokerClientId] = useState('');
    const [isSyncing, setIsSyncing] = useState(false);
    
-   const [bgFadeStyle, setBgFadeStyle] = useState(() => localStorage.getItem('fialgo_bg_fade_style') || 'purple');
+   const [bgFadeStyle, setBgFadeStyle] = useState(() => localStorage.getItem('fialgo_bg_fade_style') || 'gray');
    const [lastSyncedTime, setLastSyncedTime] = useState('Just now');
    
    // Creator Settings
    const [creatorHandle, setCreatorHandle] = useState('');
    const [creatorCategory, setCreatorCategory] = useState('Day Trading');
    const [creatorBio, setCreatorBio] = useState('');
-   
-   // Channel Settings
-   const [feedVisibility, setFeedVisibility] = useState('public');
-   const [channelRules, setChannelRules] = useState('No self-promotion, maintain civil discussions.');
 
    // Help FAQ Open state
    const [openFaqId, setOpenFaqId] = useState<number | null>(null);
@@ -837,6 +1009,321 @@ export default function Settings() {
       };
       fetchUserData().finally(() => setIsInitialLoading(false));
    }, []);
+
+   const refreshDataCounts = async (uid?: string) => {
+      try {
+         const activeUid = uid || globalUserId || (await supabase.auth.getUser()).data.user?.id;
+         if (!activeUid) return;
+
+         const [tradesRes, journalRes] = await Promise.all([
+            supabase.from('trades').select('id, source').eq('user_id', activeUid),
+            supabase.from('journal_entries').select('id, tags').eq('user_id', activeUid),
+         ]);
+
+         const tradeRows = tradesRes.data || [];
+         const liveCount = tradeRows.filter((t: any) => String(t.source || '').toLowerCase() !== 'paper' && String(t.source || '').toLowerCase() !== 'demo').length;
+         const paperCount = Math.max(0, tradeRows.length - liveCount);
+
+         const dbJournals = journalRes.data || [];
+         const weeklyFromDb = dbJournals.filter((j: any) => Array.isArray(j.tags) && j.tags.some((tag: string) => String(tag).toLowerCase().includes('weekly'))).length;
+         const dailyFromDb = Math.max(0, dbJournals.length - weeklyFromDb);
+
+         let localDaily = 0;
+         try {
+            const prefix = `fialgo_journal_log_${activeUid}_`;
+            for (let i = 0; i < localStorage.length; i++) {
+               const k = localStorage.key(i);
+               if (k && k.startsWith(prefix)) localDaily += 1;
+            }
+         } catch {
+            // Ignore localStorage restrictions
+         }
+
+         setDataCounts({
+            totalTrades: tradeRows.length,
+            liveTrades: liveCount,
+            paperTrades: paperCount,
+            dailyEntries: Math.max(dailyFromDb, localDaily),
+            weeklyReviews: weeklyFromDb,
+         });
+      } catch (err) {
+         console.error('Error refreshing data counts:', err);
+      }
+   };
+
+   useEffect(() => {
+      if (!globalUserId) return;
+      refreshDataCounts(globalUserId);
+
+      const channel = supabase
+         .channel(`settings-realtime-${globalUserId}`)
+         .on(
+            'postgres_changes',
+            { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${globalUserId}` },
+            (payload) => {
+               const next = payload.new as any;
+               if (next?.subscription_status) {
+                  setActivePlan(next.subscription_status);
+                  setSelectedPlan(next.subscription_status);
+                  try {
+                     localStorage.setItem('tradifive_cached_plan', next.subscription_status);
+                     localStorage.setItem('tradifive_selected_plan', next.subscription_status);
+                  } catch {
+                     // Ignore storage restrictions
+                  }
+                  window.dispatchEvent(new Event('tradifive_profile_update'));
+               }
+            }
+         )
+         .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'billing_history', filter: `user_id=eq.${globalUserId}` },
+            async () => {
+               const { data } = await supabase
+                  .from('billing_history')
+                  .select('*')
+                  .eq('user_id', globalUserId)
+                  .order('created_at', { ascending: false });
+               if (data) setBillingHistory(data);
+            }
+         )
+         .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'trades', filter: `user_id=eq.${globalUserId}` },
+            () => { refreshDataCounts(globalUserId); }
+         )
+         .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'journal_entries', filter: `user_id=eq.${globalUserId}` },
+            () => { refreshDataCounts(globalUserId); }
+         )
+         .subscribe();
+
+      const handleExternalUpdate = () => refreshDataCounts(globalUserId);
+      window.addEventListener('tradifive:trades-updated', handleExternalUpdate);
+
+      return () => {
+         window.removeEventListener('tradifive:trades-updated', handleExternalUpdate);
+         supabase.removeChannel(channel);
+      };
+   }, [globalUserId]);
+
+   const handleDownloadBackupJson = async () => {
+      setIsExportingBackup(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) throw new Error('Please log in to export your backup.');
+
+         const [profileRes, tradesRes, journalsRes, riskRes] = await Promise.all([
+            supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+            supabase.from('trades').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+            supabase.from('journal_entries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+            supabase.from('user_risk_configs').select('*').eq('user_id', user.id).maybeSingle(),
+         ]);
+
+         const localDailyLogs: Record<string, any> = {};
+         try {
+            const prefix = `fialgo_journal_log_${user.id}_`;
+            for (let i = 0; i < localStorage.length; i++) {
+               const k = localStorage.key(i);
+               if (k && k.startsWith(prefix)) {
+                  localDailyLogs[k.replace(prefix, '')] = JSON.parse(localStorage.getItem(k) || '{}');
+               }
+            }
+         } catch {
+            // Ignore localStorage restrictions
+         }
+
+         const exportPayload = {
+            export_version: '2.0.0',
+            export_date: new Date().toISOString(),
+            user: { id: user.id, email: user.email, created_at: user.created_at },
+            profile: profileRes.data || {},
+            risk_config: riskRes.data || {},
+            trades: tradesRes.data || [],
+            journal_entries: journalsRes.data || [],
+            daily_logs: localDailyLogs,
+         };
+
+         const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
+         const url = URL.createObjectURL(blob);
+         const link = document.createElement('a');
+         link.href = url;
+         link.download = `tradifive_backup_${new Date().toISOString().slice(0, 10)}.json`;
+         document.body.appendChild(link);
+         link.click();
+         document.body.removeChild(link);
+         URL.revokeObjectURL(url);
+         toast.success('JSON backup downloaded!');
+      } catch (err: any) {
+         toast.error(err?.message || 'Failed to generate backup');
+      } finally {
+         setIsExportingBackup(false);
+      }
+   };
+
+   const handleExportTradesCsv = async (scope: 'all' | 'live' | 'paper') => {
+      setIsExportingCsvData(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) throw new Error('Please log in to export trades.');
+
+         const { data: allTrades, error } = await supabase
+            .from('trades')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+         if (error) throw error;
+
+         const filtered = (allTrades || []).filter((t: any) => {
+            const src = String(t.source || '').toLowerCase();
+            const isPaper = src === 'paper' || src === 'demo';
+            if (scope === 'live') return !isPaper;
+            if (scope === 'paper') return isPaper;
+            return true;
+         });
+
+         if (filtered.length === 0) {
+            toast.info('No trades found for that filter.');
+            setShowCsvExportModal(false);
+            return;
+         }
+
+         const headers = ['Trade ID', 'Symbol', 'Side', 'Lots', 'Open Price', 'Close Price', 'P&L', 'Source', 'Closed At'];
+         const rows = filtered.map((t: any) => [
+            t.id,
+            t.symbol || 'N/A',
+            t.trade_type || t.type || t.side || 'BUY',
+            t.lot_size ?? 0,
+            t.open_price ?? t.entry_price ?? 0,
+            t.close_price ?? t.exit_price ?? 0,
+            t.profit ?? 0,
+            t.source || 'live',
+            t.closed_at || t.opened_at || '',
+         ]);
+
+         const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+         const url = URL.createObjectURL(blob);
+         const link = document.createElement('a');
+         link.href = url;
+         link.download = `tradifive_trades_${scope}_${new Date().toISOString().slice(0, 10)}.csv`;
+         document.body.appendChild(link);
+         link.click();
+         document.body.removeChild(link);
+         URL.revokeObjectURL(url);
+
+         toast.success(`Exported ${filtered.length} trades to CSV!`);
+         setShowCsvExportModal(false);
+      } catch (err: any) {
+         toast.error(err?.message || 'Failed to export CSV');
+      } finally {
+         setIsExportingCsvData(false);
+      }
+   };
+
+   const handleWipeHistory = async () => {
+      setIsWipingHistory(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) throw new Error('Please log in first.');
+
+         await Promise.allSettled([
+            supabase.from('trades').delete().eq('user_id', user.id),
+            supabase.from('journal_entries').delete().eq('user_id', user.id),
+         ]);
+
+         try {
+            const prefix = `fialgo_journal_log_${user.id}_`;
+            const keysToRemove: string[] = [];
+            for (let i = 0; i < localStorage.length; i++) {
+               const k = localStorage.key(i);
+               if (k && k.startsWith(prefix)) keysToRemove.push(k);
+            }
+            keysToRemove.forEach((k) => localStorage.removeItem(k));
+            localStorage.removeItem('fialgo_demo_trades_today');
+         } catch {
+            // Ignore localStorage restrictions
+         }
+
+         setDataCounts({
+            totalTrades: 0,
+            liveTrades: 0,
+            paperTrades: 0,
+            dailyEntries: 0,
+            weeklyReviews: 0,
+         });
+         window.dispatchEvent(new Event('tradifive:trades-updated'));
+         window.dispatchEvent(new Event('tradifive_profile_update'));
+         toast.success('All trades, daily entries, and weekly reviews have been deleted.');
+      } catch (err: any) {
+         toast.error(err?.message || 'Failed to delete history');
+      } finally {
+         setIsWipingHistory(false);
+      }
+   };
+
+   const handlePermanentDeleteAccount = async () => {
+      if (deleteAccountConfirm.trim().toUpperCase() !== 'DELETE') {
+         toast.error('Please type DELETE to confirm.');
+         return;
+      }
+      setIsDeletingAccount(true);
+      try {
+         const { data: { user } } = await supabase.auth.getUser();
+         if (!user) {
+            navigate('/login');
+            return;
+         }
+         const userId = user.id;
+         try {
+            await supabase.rpc('delete_user_account');
+         } catch {
+            // Fallback row cleanup below
+         }
+         await Promise.allSettled([
+            supabase.from('social_follows').delete().or(`follower_id.eq.${userId},following_id.eq.${userId}`),
+            supabase.from('social_follow_requests').delete().or(`requester_id.eq.${userId},target_id.eq.${userId}`),
+            supabase.from('dm_conversations').delete().or(`user1_id.eq.${userId},user2_id.eq.${userId}`),
+            supabase.from('direct_messages').delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
+            supabase.from('channel_members').delete().eq('user_id', userId),
+            supabase.from('channel_messages').delete().eq('user_id', userId),
+            supabase.from('channels').delete().eq('created_by', userId),
+            supabase.from('social_post_likes').delete().eq('user_id', userId),
+            supabase.from('social_post_bookmarks').delete().eq('user_id', userId),
+            supabase.from('social_post_comments').delete().eq('user_id', userId),
+            supabase.from('social_posts').delete().eq('user_id', userId),
+            supabase.from('trades').delete().eq('user_id', userId),
+            supabase.from('journal_entries').delete().eq('user_id', userId),
+            supabase.from('mt5_accounts').delete().eq('user_id', userId),
+            supabase.from('notifications').delete().eq('user_id', userId),
+            supabase.from('active_bots').delete().eq('user_id', userId),
+            supabase.from('ai_coach_messages').delete().eq('user_id', userId),
+            supabase.from('ai_coach_sessions').delete().eq('user_id', userId),
+            supabase.from('user_activity_logs').delete().eq('user_id', userId),
+            supabase.from('user_feedback').delete().eq('user_id', userId),
+            supabase.from('user_mission_progress').delete().eq('user_id', userId),
+            supabase.from('user_risk_configs').delete().eq('user_id', userId),
+            supabase.from('user_xp_ledger').delete().eq('user_id', userId),
+            supabase.from('profiles').delete().eq('id', userId),
+         ]);
+         await supabase.auth.signOut();
+         try {
+            localStorage.clear();
+            sessionStorage.clear();
+         } catch {
+            // Ignore storage restrictions
+         }
+         toast.success('Your account and all data have been permanently erased.');
+         navigate('/account-deleted');
+      } catch (err: any) {
+         toast.error(err?.message || 'Failed to delete account');
+      } finally {
+         setIsDeletingAccount(false);
+         setShowDeleteAccountDialog(false);
+      }
+   };
 
    const handleToggle = (category: string, id: string, type: 'app' | 'push' | 'email') => {
       if (globalOff) {
@@ -1371,11 +1858,11 @@ export default function Settings() {
                   { id: "password-security", label: "Password & Security" },
                   { id: "active-sessions", label: "Active Sessions" },
                   { id: "account-standing", label: "Account Standing" },
-                  { id: "family-center", label: "Family Center" },
-                  { id: "data-export", label: "Export & Privacy" },
-                  { id: "danger-zone", label: "Danger Zone" }
+                  { id: "family-center", label: "Family Center" }
                ]
             },
+            { id: "data-privacy", label: "Data & Privacy", icon: Document },
+            { id: "delete-history", label: "Delete history", icon: Trash2 },
             { id: "notifications", label: "Notifications", icon: Notification }
          ]
       },
@@ -1391,7 +1878,6 @@ export default function Settings() {
          items: [
             { id: "appearance", label: "Preferences", icon: Category },
             { id: "subscription", label: "Subscription", icon: TicketStar },
-            { id: "channel", label: "Channel Settings", icon: Chat },
             { id: "creator", label: "Creator Account", icon: Star },
             { id: "help", label: "Help Center", icon: InfoCircle },
             { id: "report", label: "Report a Problem", icon: Danger },
@@ -1474,7 +1960,7 @@ export default function Settings() {
             
             {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
             <div className="hidden md:block relative shrink-0 select-none">
-               <div className="relative h-[116px] w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+               <div className="relative h-[116px] w-full overflow-hidden bg-gradient-to-r from-zinc-800 via-neutral-900 to-zinc-950">
                   {profile.bannerUrl ? (
                      <img
                         src={profile.bannerUrl}
@@ -1485,7 +1971,7 @@ export default function Settings() {
                   ) : (
                      <div
                         aria-hidden="true"
-                        className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_24%_32%,rgba(255,255,255,0.12),transparent_55%)]"
                      />
                   )}
                   {/* Crisp bottom-edge blend without washing out upper banner detail */}
@@ -1558,8 +2044,8 @@ export default function Settings() {
                 <div className="p-4 space-y-4 pb-28">
                    {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
                    <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
-                      {/* Banner Image with clean gradient fallback */}
-                      <div className="relative h-32 w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+                      {/* Banner Image with clean editorial fallback */}
+                      <div className="relative h-32 w-full overflow-hidden bg-gradient-to-r from-zinc-800 via-neutral-900 to-zinc-950">
                          {profile.bannerUrl ? (
                             <img
                                src={profile.bannerUrl}
@@ -1570,7 +2056,7 @@ export default function Settings() {
                          ) : (
                             <div
                                aria-hidden="true"
-                               className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                               className="absolute inset-0 bg-[radial-gradient(circle_at_24%_32%,rgba(255,255,255,0.12),transparent_55%)]"
                             />
                          )}
                          <div
@@ -1623,7 +2109,7 @@ export default function Settings() {
                    </div>
 
                    {/* 2. Search Settings Box */}
-                   <div className="flex items-center gap-2 bg-[#F3F4F6] dark:bg-[#1E1E22] rounded-xl px-3.5 py-2.5 border border-slate-200/90 dark:border-white/[0.08] focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-[#232329] transition-colors">
+                   <div className="flex items-center gap-2 bg-[#F3F4F6] dark:bg-[#1E1E22] rounded-xl px-3.5 py-2.5 border border-slate-200/90 dark:border-white/[0.08] focus-within:border-slate-900 dark:focus-within:border-white focus-within:bg-white dark:focus-within:bg-[#232329] transition-colors">
                       <span className="text-slate-400 dark:text-neutral-500 shrink-0 flex items-center">
                          <Search set="curved" stroke="bold" primaryColor="currentColor" size={15} />
                       </span>
@@ -1734,17 +2220,33 @@ export default function Settings() {
                                   </button>
                                )}
 
-                               {(!searchQuery || "delete history privacy data".includes(searchQuery.toLowerCase())) && (
+                               {(!searchQuery || "privacy data export backup".includes(searchQuery.toLowerCase())) && (
                                   <button
                                      type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('data-export'); setMobileShowDetails(true); }}
+                                     onClick={() => { setActiveTab('data-privacy'); setMobileShowDetails(true); }}
                                      className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
                                   >
                                      <div className="flex items-center gap-3">
                                         <div className="text-slate-700 dark:text-neutral-300">
                                            <Document set="curved" stroke="bold" primaryColor="currentColor" size={17} />
                                         </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Data & Privacy</span>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Data &amp; Privacy</span>
+                                     </div>
+                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                  </button>
+                               )}
+
+                               {(!searchQuery || "delete history wipe trades".includes(searchQuery.toLowerCase())) && (
+                                  <button
+                                     type="button"
+                                     onClick={() => { setActiveTab('delete-history'); setMobileShowDetails(true); }}
+                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
+                                  >
+                                     <div className="flex items-center gap-3">
+                                        <div className="text-slate-700 dark:text-neutral-300">
+                                           <Trash2 size={16} />
+                                        </div>
+                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Delete history</span>
                                      </div>
                                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                                   </button>
@@ -1874,7 +2376,7 @@ export default function Settings() {
 
                <div className="pt-1 pb-5 px-5 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
                   {/* Search Settings Pill */}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-[11px] bg-[#F4F5F8] dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/[0.1] focus-within:border-[#2563EB] focus-within:bg-white dark:focus-within:bg-[#1C1C21] shadow-2xs transition-all">
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-[11px] bg-[#F4F5F8] dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/[0.1] focus-within:border-slate-900 dark:focus-within:border-white focus-within:bg-white dark:focus-within:bg-[#1C1C21] shadow-2xs transition-all">
                      <span className="text-slate-400 dark:text-neutral-500 shrink-0 flex items-center">
                         <Search stroke="bold" set="curved" primaryColor="currentColor" size={14} />
                      </span>
@@ -1937,7 +2439,7 @@ export default function Settings() {
                                                    : 'text-slate-500 dark:text-neutral-400'
                                              }`}
                                           >
-                                             {item.icon === Sparkles || item.icon === Sliders ? (
+                                             {item.icon === Sparkles || item.icon === Sliders || item.icon === Trash2 ? (
                                                 <item.icon size={15} strokeWidth={2.1} />
                                              ) : (
                                                 <item.icon
@@ -2094,7 +2596,7 @@ export default function Settings() {
                               <div className="hidden md:block space-y-5">
                                  {/* Card 1: Profile Showcase Card (Clean Banner + Fade + Avatar + Name + Bio preview + Edit Profile) */}
                                  <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
-                                    <div className="relative h-[200px] w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+                                    <div className="relative h-[200px] w-full overflow-hidden bg-gradient-to-r from-zinc-800 via-neutral-900 to-zinc-950">
                                        {profile.bannerUrl ? (
                                           <img
                                              src={profile.bannerUrl}
@@ -2105,7 +2607,7 @@ export default function Settings() {
                                        ) : (
                                           <div
                                              aria-hidden="true"
-                                             className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                                             className="absolute inset-0 bg-[radial-gradient(circle_at_24%_32%,rgba(255,255,255,0.12),transparent_55%)]"
                                           />
                                        )}
                                        <div
@@ -2257,7 +2759,7 @@ export default function Settings() {
                               <p className="text-[12px] text-slate-500">Need to update your security credentials? Click below to dispatch an automated secure reset trigger to your registered email.</p>
                               <button 
                                  onClick={() => { toast.success("Password reset token dispatched to registered address."); }}
-                                 className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded transition-all shadow-sm"
+                                 className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 text-white font-bold text-xs rounded transition-all shadow-sm"
                               >
                                  Change Password
                               </button>
@@ -2303,56 +2805,159 @@ export default function Settings() {
                         </motion.div>
                      )}
 
-                     {/* TAB 3: PRIVACY & COMMUNITY */}
-                     {activeTab === 'privacy' && (
+                     {/* TAB 3: DATA & PRIVACY (Clean Backup, CSV Export & Delete Account) */}
+                     {(activeTab === 'data-privacy' || activeTab === 'privacy') && (
                         <motion.div
-                           key="privacy"
-                           initial={{ opacity: 0, y: 10 }}
+                           key="data-privacy"
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-2 w-full max-w-[820px]"
                         >
-                           
-                           {/* Visibility list */}
-                           <div className="p-6 rounded-xl bg-slate-50 dark:bg-[#121212] border border-slate-200/50 dark:border-transparent space-y-4">
-                              <h4 className="text-[11px] font-semibold text-slate-900 dark:text-white uppercase tracking-wider">Analytics Sharing Preferences</h4>
-                              
-                              <div className="space-y-3">
-                                 <div className={`p-4 rounded-lg bg-white dark:bg-[#121212] flex items-center justify-between transition-opacity`}>
-                                    <div className="flex flex-col gap-0.5 max-w-[80%]">
-                                       <span className="text-[13px] font-bold text-slate-800 dark:text-white">Private Profile Account</span>
-                                       <span className="text-[11px] text-slate-500">Only approved followers can view your feed posts and calendar heatmap.</span>
-                                    </div>
-                                    <SettingsToggle checked={privacySettings.is_private} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, is_private: v }))} />
-                                 </div>
+                           {/* Top Account Sync Info Banner */}
+                           <div className="rounded-2xl bg-slate-50/90 dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] px-4 py-3.5 flex items-start sm:items-center gap-2.5 shadow-[0_1px_6px_rgba(15,23,42,0.03)] dark:shadow-none mb-3">
+                              <Info size={16} className="text-slate-500 dark:text-neutral-400 shrink-0 mt-0.5 sm:mt-0" />
+                              <p className="text-[12.5px] text-slate-600 dark:text-neutral-300 leading-relaxed">
+                                 <strong className="font-semibold text-slate-900 dark:text-white">Your journal is saved to your account.</strong>{' '}
+                                 Sign in on any device and your trades and notes are there. Export a backup if you want your own copy.
+                              </p>
+                           </div>
 
-                                 {[
-                                    { key: "show_location", label: "Share Location Indicators", desc: "Allow community members to view city, state, and flag emojis." },
-                                    { key: "show_winrate", label: "Share Win Rate Stats", desc: "Publicly showcase win rate metrics in feed panels." },
-                                    { key: "show_roi", label: "Share ROI (All Time)", desc: "Render active PnL curve percentages on public profiles." },
-                                    { key: "show_streak", label: "Share Active Trading Streaks", desc: "Show consecutive green/red trading days." },
-                                    { key: "show_trades", label: "Share Active Trade Ledger", desc: "Allows open viewing of individual position histories." }
-                                 ].map((item) => (
-                                    <div key={item.key} className="p-4 rounded-lg bg-white dark:bg-[#121212] flex items-center justify-between">
-                                       <div className="flex flex-col gap-0.5 max-w-[80%]">
-                                          <span className="text-[13px] font-bold text-slate-800 dark:text-white">{item.label}</span>
-                                          <span className="text-[11px] text-slate-500">{item.desc}</span>
-                                       </div>
-                                       <SettingsToggle checked={privacySettings[item.key]} onChange={(v) => setPrivacySettings((prev: any) => ({ ...prev, [item.key]: v }))} />
-                                    </div>
-                                 ))}
+                           {/* Action Rows */}
+                           <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                              {/* Row 1: Export Backup (JSON) */}
+                              <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div className="min-w-0">
+                                    <h3 className="text-[14px] font-semibold text-slate-900 dark:text-white">
+                                       Export Backup
+                                    </h3>
+                                    <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 tabular-nums">
+                                       {dataCounts.totalTrades} {dataCounts.totalTrades === 1 ? 'trade' : 'trades'} · {dataCounts.dailyEntries} {dataCounts.dailyEntries === 1 ? 'journal entry' : 'journal entries'} · {dataCounts.weeklyReviews} {dataCounts.weeklyReviews === 1 ? 'weekly review' : 'weekly reviews'}
+                                    </p>
+                                 </div>
+                                 <TactileBoxButton
+                                    onClick={handleDownloadBackupJson}
+                                    disabled={isExportingBackup}
+                                    className="h-9 px-4 text-[12.5px] font-semibold shrink-0 self-start sm:self-center inline-flex items-center gap-1.5"
+                                 >
+                                    {isExportingBackup ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                                    <span>{isExportingBackup ? 'Downloading...' : 'Download JSON'}</span>
+                                 </TactileBoxButton>
+                              </div>
+
+                              {/* Row 2: Export trades as CSV */}
+                              <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div className="min-w-0">
+                                    <h3 className="text-[14px] font-semibold text-slate-900 dark:text-white">
+                                       Export trades as CSV
+                                    </h3>
+                                    <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                                       One row per trade, for your own scripts or a spreadsheet.
+                                    </p>
+                                 </div>
+                                 <TactileBoxButton
+                                    onClick={() => setShowCsvExportModal(true)}
+                                    className="h-9 px-4 text-[12.5px] font-semibold shrink-0 self-start sm:self-center inline-flex items-center gap-1.5"
+                                 >
+                                    <Download size={14} />
+                                    <span>Choose and export</span>
+                                 </TactileBoxButton>
+                              </div>
+
+                              {/* Row 3: Delete account */}
+                              <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div className="min-w-0">
+                                    <h3 className="text-[14px] font-semibold text-slate-900 dark:text-white">
+                                       Delete account
+                                    </h3>
+                                    <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                                       Erase your account and everything in it
+                                    </p>
+                                 </div>
+                                 <TactileBoxButton
+                                    onClick={() => {
+                                       setDeleteAccountConfirm('');
+                                       setShowDeleteAccountDialog(true);
+                                    }}
+                                    className="h-9 px-4 text-[12.5px] font-semibold shrink-0 self-start sm:self-center inline-flex items-center gap-1.5 text-slate-700 dark:text-neutral-200 hover:text-rose-600"
+                                 >
+                                    <Trash2 size={14} />
+                                    <span>Delete account</span>
+                                 </TactileBoxButton>
+                              </div>
+                           </div>
+                        </motion.div>
+                     )}
+
+                     {/* TAB 3B: DELETE HISTORY */}
+                     {activeTab === 'delete-history' && (
+                        <motion.div
+                           key="delete-history"
+                           initial={{ opacity: 0, y: 6 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[820px]"
+                        >
+                           {/* Prompt Box */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
+                              <p className="text-[15.5px] sm:text-[16.5px] font-semibold text-slate-900 dark:text-white leading-snug">
+                                 Are you sure you want to delete your past and hide from it and not face it and try to learn from it?
+                              </p>
+                              <div className="flex items-center gap-2.5 pt-1">
+                                 <TactileBoxButton
+                                    onClick={() => {
+                                       toast.info('Your trading history was kept intact.');
+                                       setActiveTab('data-privacy');
+                                    }}
+                                    disabled={isWipingHistory}
+                                    className="h-9 px-6 text-[13px] font-semibold"
+                                 >
+                                    No
+                                 </TactileBoxButton>
+                                 <button
+                                    type="button"
+                                    disabled={isWipingHistory}
+                                    onClick={handleWipeHistory}
+                                    className="h-9 px-6 rounded-xl bg-neutral-500 hover:bg-rose-600 dark:bg-neutral-600 dark:hover:bg-rose-600 text-white text-[13px] font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                                 >
+                                    {isWipingHistory ? (
+                                       <>
+                                          <Loader2 size={14} className="animate-spin" />
+                                          <span>Deleting...</span>
+                                       </>
+                                    ) : (
+                                       <span>Yes</span>
+                                    )}
+                                 </button>
                               </div>
                            </div>
 
-                           <div className="flex justify-end pt-2 pb-8">
-                              <ConsistencyToggleButton 
-                                 label="Save Privacy Preferences" 
-                                 checked={true} 
-                                 onChange={() => handleUpdateProfile()} 
-                              />
-                           </div>
+                           {/* Scope Summary Line */}
+                           <p className="text-[12.5px] text-slate-500 dark:text-neutral-400 leading-relaxed px-0.5 tabular-nums">
+                              This deletes {dataCounts.totalTrades} {dataCounts.totalTrades === 1 ? 'trade' : 'trades'}, {dataCounts.dailyEntries} {dataCounts.dailyEntries === 1 ? 'Daily entry' : 'Daily entries'} and {dataCounts.weeklyReviews} {dataCounts.weeklyReviews === 1 ? 'Weekly review' : 'Weekly reviews'}, live and paper, with their pictures, on every device. Connected brokers, payouts, strategies, and settings stay.
+                           </p>
 
+                           {/* Download a backup first row */}
+                           <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                 <h4 className="text-[13.5px] font-semibold text-slate-900 dark:text-white">
+                                    Download a backup first
+                                 </h4>
+                                 <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                                    Nothing is kept after you delete. A backup is your own copy.
+                                 </p>
+                              </div>
+                              <TactileBoxButton
+                                 onClick={handleDownloadBackupJson}
+                                 disabled={isExportingBackup}
+                                 className="h-9 px-4 text-[12.5px] font-semibold shrink-0 self-start sm:self-center inline-flex items-center gap-1.5"
+                              >
+                                 {isExportingBackup ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                                 <span>{isExportingBackup ? 'Downloading...' : 'Download JSON'}</span>
+                              </TactileBoxButton>
+                           </div>
                         </motion.div>
                      )}
 
@@ -2371,7 +2976,7 @@ export default function Settings() {
                               {/* Global Color Theme */}
                               <div className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                        {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
                                     </div>
                                     <div className="min-w-0">
@@ -2387,7 +2992,7 @@ export default function Settings() {
                               {/* Immersive Full Screen */}
                               <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                        <Monitor size={16} />
                                     </div>
                                     <div className="min-w-0">
@@ -2403,7 +3008,7 @@ export default function Settings() {
                               {/* Background Fade Style (Light Mode) */}
                               <div className={`py-4 flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
                                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
                                        <Palette size={16} />
                                     </div>
                                     <div className="min-w-0">
@@ -2422,15 +3027,15 @@ export default function Settings() {
                                           window.dispatchEvent(new Event("fialgo_bg_style_changed"));
                                        }}
                                     >
-                                       <SelectTrigger className="w-full bg-[#F4F5F8] border border-slate-200/80 text-slate-800 text-[12.5px] font-semibold rounded-xl h-9 focus:ring-2 focus:ring-[#2563EB]/25">
+                                       <SelectTrigger className="w-full bg-[#F4F5F8] border border-slate-200/80 text-slate-800 text-[12.5px] font-semibold rounded-xl h-9 focus:ring-2 focus:ring-slate-900/15">
                                           <SelectValue placeholder="Select Fade" />
                                        </SelectTrigger>
                                        <SelectContent className="bg-white border-slate-200 rounded-xl shadow-lg z-[9999]">
-                                          <SelectItem value="purple" className="text-[12.5px] font-semibold cursor-pointer">Purple Fade</SelectItem>
                                           <SelectItem value="gray" className="text-[12.5px] font-semibold cursor-pointer">Gray Fade</SelectItem>
                                           <SelectItem value="black" className="text-[12.5px] font-semibold cursor-pointer">Black Fade</SelectItem>
-                                          <SelectItem value="blue" className="text-[12.5px] font-semibold cursor-pointer">Blue Fade</SelectItem>
-                                          <SelectItem value="rose" className="text-[12.5px] font-semibold cursor-pointer">Rose Fade</SelectItem>
+                                          <SelectItem value="purple" className="text-[12.5px] font-semibold cursor-pointer">Muted Violet</SelectItem>
+                                          <SelectItem value="blue" className="text-[12.5px] font-semibold cursor-pointer">Cool Slate</SelectItem>
+                                          <SelectItem value="rose" className="text-[12.5px] font-semibold cursor-pointer">Warm Rose</SelectItem>
                                        </SelectContent>
                                     </Select>
                                  </div>
@@ -2439,23 +3044,23 @@ export default function Settings() {
                               {/* Interface Accent Tint */}
                               <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                        <Sparkles size={16} />
                                     </div>
                                     <div className="min-w-0">
-                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Interface Accent Tint</h3>
+                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Interface Neutral Tone</h3>
                                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Choose your highlight color across active tabs and controls.
+                                          Choose your subtle highlight finish across controls.
                                        </p>
                                     </div>
                                  </div>
                                  <div className="flex items-center gap-2 shrink-0">
                                     {[
-                                       { id: 'blue', color: 'bg-[#2563EB]', name: 'TradiFive Blue' },
-                                       { id: 'emerald', color: 'bg-emerald-500', name: 'Emerald' },
-                                       { id: 'purple', color: 'bg-purple-500', name: 'Royal Violet' },
-                                       { id: 'amber', color: 'bg-amber-500', name: 'Amber' },
-                                       { id: 'rose', color: 'bg-rose-500', name: 'Rose' },
+                                       { id: 'slate', color: 'bg-slate-900', name: 'Obsidian' },
+                                       { id: 'zinc', color: 'bg-zinc-600', name: 'Graphite' },
+                                       { id: 'emerald', color: 'bg-emerald-600', name: 'Forest' },
+                                       { id: 'amber', color: 'bg-amber-600', name: 'Amber' },
+                                       { id: 'rose', color: 'bg-rose-600', name: 'Crimson' },
                                     ].map((tint) => (
                                        <button
                                           key={tint.id}
@@ -2464,9 +3069,9 @@ export default function Settings() {
                                           onClick={() => {
                                              setAccentColor(tint.id);
                                              localStorage.setItem('tradifive_accent_color', tint.id);
-                                             toast.success(tint.name + ' accent selected');
+                                             toast.success(tint.name + ' tone selected');
                                           }}
-                                          className={'w-7 h-7 rounded-full cursor-pointer ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-[#2563EB] dark:ring-offset-[#1B1B20] scale-105' : 'opacity-75 hover:opacity-100')}
+                                          className={'w-7 h-7 rounded-full cursor-pointer ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white dark:ring-offset-[#1B1B20] scale-105' : 'opacity-75 hover:opacity-100')}
                                        >
                                           {accentColor === tint.id && <Check size={13} className="text-white" strokeWidth={3} />}
                                        </button>
@@ -2478,7 +3083,7 @@ export default function Settings() {
                            {/* Card 2: Trading & P&L Colors Palette */}
                            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
                               <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                 <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                     <TrendingUp size={16} />
                                  </div>
                                  <div className="min-w-0">
@@ -2486,7 +3091,7 @@ export default function Settings() {
                                        <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
                                           Trading &amp; P&amp;L Colors
                                        </h3>
-                                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400">
+                                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300">
                                           Dashboard &amp; Journal
                                        </span>
                                     </div>
@@ -2512,7 +3117,7 @@ export default function Settings() {
                                           }}
                                           className={`text-left p-4 rounded-2xl border transition-all relative flex flex-col justify-between cursor-pointer ${
                                              isSelected
-                                                ? "border-[#2563EB] bg-blue-50/35 dark:bg-blue-500/10 ring-1 ring-[#2563EB]/30"
+                                                ? "border-slate-900 dark:border-white bg-slate-50/70 dark:bg-white/[0.05] shadow-[0_1px_6px_rgba(15,23,42,0.06)]"
                                                 : "border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20"
                                           }`}
                                        >
@@ -2522,7 +3127,7 @@ export default function Settings() {
                                                    {t.label}
                                                 </span>
                                                 {isSelected ? (
-                                                   <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0">
+                                                   <span className="w-4 h-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
                                                       <Check size={10} strokeWidth={3} />
                                                    </span>
                                                 ) : t.badge ? (
@@ -2554,7 +3159,7 @@ export default function Settings() {
                            {/* Card 3: Mouse Pointer & Cursor Selection */}
                            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
                               <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                 <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                     <MousePointer size={16} />
                                  </div>
                                  <div className="min-w-0">
@@ -2588,7 +3193,7 @@ export default function Settings() {
                                        desc: 'Minimalist dot cursor with subtle dynamic hover ring.',
                                        preview: (
                                           <div className="w-full h-12 rounded-xl bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
-                                             <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-[#2563EB]/20" />
+                                             <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-slate-900/15 dark:ring-white/20" />
                                           </div>
                                        ),
                                     },
@@ -2612,7 +3217,7 @@ export default function Settings() {
                                           onClick={() => handleCursorStyleChange(opt.id)}
                                           className={`text-left p-4 rounded-2xl border transition-all relative flex flex-col justify-between cursor-pointer ${
                                              isSelected
-                                                ? "border-[#2563EB] bg-blue-50/35 dark:bg-blue-500/10 ring-1 ring-[#2563EB]/30"
+                                                ? "border-slate-900 dark:border-white bg-slate-50/70 dark:bg-white/[0.05] shadow-[0_1px_6px_rgba(15,23,42,0.06)]"
                                                 : "border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20"
                                           }`}
                                        >
@@ -2622,7 +3227,7 @@ export default function Settings() {
                                                    {opt.title}
                                                 </span>
                                                 {isSelected ? (
-                                                   <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0">
+                                                   <span className="w-4 h-4 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shrink-0">
                                                       <Check size={10} strokeWidth={3} />
                                                    </span>
                                                 ) : (
@@ -2686,7 +3291,7 @@ export default function Settings() {
                                        onClick={handleEmailOnly}
                                        className={`h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
                                           globalEmailOnly
-                                             ? 'bg-[#2563EB] text-white border border-[#2563EB] shadow-xs'
+                                             ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs'
                                              : 'tactile-white-pill text-slate-700 dark:text-neutral-200'
                                        }`}
                                     >
@@ -2710,7 +3315,7 @@ export default function Settings() {
                                  {/* Push alerts */}
                                  <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] px-3.5 py-3 flex items-center justify-between gap-2.5">
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                       <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                           <Smartphone size={15} />
                                        </div>
                                        <div className="min-w-0">
@@ -2724,7 +3329,7 @@ export default function Settings() {
                                  {/* Sound Chimes */}
                                  <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] px-3.5 py-3 flex items-center justify-between gap-2.5">
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                       <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                           <Volume2 size={15} />
                                        </div>
                                        <div className="min-w-0">
@@ -2738,7 +3343,7 @@ export default function Settings() {
                                  {/* Email Digests */}
                                  <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] px-3.5 py-3 flex items-center justify-between gap-2.5">
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                       <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                           <Mail size={15} />
                                        </div>
                                        <div className="min-w-0">
@@ -2784,7 +3389,7 @@ export default function Settings() {
                               >
                                  {/* Section Header */}
                                  <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                    <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                        <section.icon size={16} />
                                     </div>
                                     <div>
@@ -2827,7 +3432,7 @@ export default function Settings() {
                                                       onClick={() => handleToggle(section.key, notif.id, channel)}
                                                       className={`h-7 px-3 rounded-full text-[11px] font-semibold transition-all cursor-pointer select-none active:scale-95 ${
                                                          isActive
-                                                            ? 'bg-[#2563EB] text-white border border-[#2563EB] shadow-[0_2px_6px_rgba(37,99,235,0.24)]'
+                                                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs'
                                                             : 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-neutral-400 border border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-800 dark:hover:text-white'
                                                       }`}
                                                       title={`Toggle ${label} alert`}
@@ -2859,7 +3464,7 @@ export default function Settings() {
                            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                  <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                        <Sparkles size={16} />
                                     </div>
                                     <div className="min-w-0">
@@ -2876,7 +3481,7 @@ export default function Settings() {
 
                                  {!isStarter ? (
                                     <div className="text-left sm:text-right shrink-0">
-                                       <p className="text-[22px] font-bold text-[#2563EB] dark:text-blue-400 tracking-tight tabular-nums leading-none">
+                                       <p className="text-[22px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums leading-none">
                                           {aiCredits} <span className="text-[12.5px] font-semibold text-slate-400 dark:text-neutral-500">/ {activeMaxCredits}</span>
                                        </p>
                                        <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mt-1">
@@ -2884,9 +3489,9 @@ export default function Settings() {
                                        </p>
                                     </div>
                                  ) : (
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/15 border border-blue-200/70 dark:border-blue-500/25 text-[11px] font-bold shrink-0 self-start sm:self-center">
-                                       <Lock size={11} strokeWidth={2.5} className="text-[#2563EB] dark:text-blue-400" />
-                                       <span className="btn-shine">Pro &amp; Elite</span>
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.07] border border-slate-200/80 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-neutral-200 shrink-0 self-start sm:self-center">
+                                       <Lock size={11} strokeWidth={2.5} className="text-slate-600 dark:text-neutral-300" />
+                                       <span>Pro &amp; Elite</span>
                                     </span>
                                  )}
                               </div>
@@ -2894,7 +3499,7 @@ export default function Settings() {
                               {!isStarter && (
                                  <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-2 overflow-hidden">
                                     <div
-                                       className="bg-[#2563EB] h-2 rounded-full transition-all duration-300"
+                                       className="bg-slate-900 dark:bg-white h-2 rounded-full transition-all duration-300"
                                        style={{ width: `${Math.min(100, Math.max(0, (aiCredits / activeMaxCredits) * 100))}%` }}
                                     />
                                  </div>
@@ -2913,145 +3518,12 @@ export default function Settings() {
                                  </div>
                                  <button
                                     type="button"
-                                    onClick={() => navigate('/upgrade')}
-                                    className="h-9 px-4 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold shadow-xs inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all"
+                                    onClick={() => setActiveTab('subscription')}
+                                    className="h-9 px-4 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12px] font-semibold shadow-xs inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all"
                                  >
                                     <span>{isStarter ? 'Upgrade' : 'View Plans'}</span>
                                     <ArrowRight size={13} />
                                  </button>
-                              </div>
-                           </div>
-
-                           {/* Card 2: AI Coach Persona & Guardrails */}
-                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-5">
-                              <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                 <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
-                                    Coach Persona &amp; Guardrails
-                                 </h3>
-                                 <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                    Select the coaching style and feedback cadence inside TradiFive AI.
-                                 </p>
-                              </div>
-
-                              <div>
-                                 <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-2 px-1">
-                                    COACH PERSONA
-                                 </label>
-                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    {[
-                                       {
-                                          id: 'Strict Guard',
-                                          desc: 'Direct, zero-excuse rule enforcement on risk and tilt.',
-                                       },
-                                       {
-                                          id: 'Analytical Quant',
-                                          desc: 'Data-first review focused on expectancy, R-multiple, and edge.',
-                                       },
-                                       {
-                                          id: 'Mindset Partner',
-                                          desc: 'Balanced psychological reflection to prevent emotional mistakes.',
-                                       },
-                                    ].map((persona) => {
-                                       const selected = aiTone === persona.id;
-                                       return (
-                                          <button
-                                             key={persona.id}
-                                             type="button"
-                                             onClick={() => {
-                                                if (isStarter) {
-                                                   toast.info('Pro & Elite Feature · AI Coach', {
-                                                      description: 'Upgrade to Pro or Elite to customize AI Coach personas.',
-                                                      action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
-                                                   });
-                                                   return;
-                                                }
-                                                setAiTone(persona.id);
-                                                localStorage.setItem('tradifive_ai_persona', persona.id);
-                                                if (globalUserId) localStorage.setItem(`tradifive_ai_persona_${globalUserId}`, persona.id);
-                                                toast.success(`AI persona set to ${persona.id}`);
-                                             }}
-                                             className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
-                                                selected
-                                                   ? 'border-[#2563EB] bg-blue-50/40 dark:bg-blue-500/10 ring-1 ring-[#2563EB]/25'
-                                                   : 'border-slate-200/80 dark:border-white/[0.08] bg-slate-50/60 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20'
-                                             }`}
-                                          >
-                                             <div className="flex items-center justify-between gap-2 mb-1">
-                                                <span className="text-[13px] font-bold text-slate-900 dark:text-white">
-                                                   {persona.id}
-                                                </span>
-                                                {selected && (
-                                                   <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0">
-                                                      <Check size={10} strokeWidth={3} />
-                                                   </span>
-                                                )}
-                                             </div>
-                                             <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 leading-relaxed">
-                                                {persona.desc}
-                                             </p>
-                                          </button>
-                                       );
-                                    })}
-                                 </div>
-                              </div>
-
-                              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                 <div>
-                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Analysis Cadence</h4>
-                                    <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                       Choose when AI Coach highlights session feedback.
-                                    </p>
-                                 </div>
-                                 <div className="inline-flex p-1 bg-[#EAECEF] dark:bg-[#232329] rounded-xl gap-1 shrink-0 self-start sm:self-center">
-                                    {['Every Trade', 'Session End', 'Tilt Only'].map((freq) => (
-                                       <button
-                                          key={freq}
-                                          type="button"
-                                          onClick={() => {
-                                             if (isStarter) {
-                                                toast.info('Pro & Elite Feature · AI Coach', {
-                                                   description: 'Upgrade to Pro or Elite to enable automated AI coaching.',
-                                                   action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
-                                                });
-                                                return;
-                                             }
-                                             setAiFrequency(freq);
-                                             localStorage.setItem('tradifive_ai_frequency', freq);
-                                             toast.success(`AI cadence set to ${freq}`);
-                                          }}
-                                          className={`px-3 py-1.5 rounded-[10px] text-[12px] font-semibold transition-all cursor-pointer ${
-                                             aiFrequency === freq
-                                                ? 'bg-white dark:bg-[#1B1B20] text-slate-900 dark:text-white shadow-xs'
-                                                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white'
-                                          }`}
-                                       >
-                                          {freq}
-                                       </button>
-                                    ))}
-                                 </div>
-                              </div>
-
-                              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between gap-4">
-                                 <div>
-                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Post-Trade Auto Reflection</h4>
-                                    <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                       Automatically check closed MT5 trades for early-exit or revenge bias.
-                                    </p>
-                                 </div>
-                                 <SettingsToggle
-                                    checked={!isStarter && aiAutoReview}
-                                    onChange={(v) => {
-                                       if (isStarter) {
-                                          toast.info('Pro & Elite Feature · AI Coach', {
-                                             description: 'Upgrade to Pro or Elite to enable automated trade reflections.',
-                                             action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
-                                          });
-                                          return;
-                                       }
-                                       setAiAutoReview(v);
-                                       localStorage.setItem('tradifive_ai_auto_review', String(v));
-                                    }}
-                                 />
                               </div>
                            </div>
                         </motion.div>
@@ -3071,9 +3543,9 @@ export default function Settings() {
                            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-5">
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
                                  <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/15 border border-blue-100 dark:border-blue-500/25 flex items-center justify-center shrink-0 overflow-hidden">
+                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/[0.07] border border-slate-200/80 dark:border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                                        {activeMarket === 'indian' ? (
-                                          <Wallet size={18} primaryColor="#2563EB" />
+                                          <Wallet size={18} primaryColor="currentColor" />
                                        ) : (
                                           <img src="/Mt5 logo.png" alt="MT5" className="w-6 h-6 object-contain" />
                                        )}
@@ -3098,8 +3570,8 @@ export default function Settings() {
                                  ) : isBrokerLocked && activeMarket !== 'indian' ? (
                                     <button
                                        type="button"
-                                       onClick={() => navigate('/upgrade')}
-                                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold shadow-xs transition-all cursor-pointer shrink-0 self-start sm:self-center active:scale-95"
+                                       onClick={() => setActiveTab('subscription')}
+                                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12px] font-semibold shadow-xs transition-all cursor-pointer shrink-0 self-start sm:self-center active:scale-95"
                                     >
                                        <Lock size={12} strokeWidth={2.3} />
                                        <span>Upgrade</span>
@@ -3165,11 +3637,11 @@ export default function Settings() {
                                     {isBrokerLocked && (
                                        <div className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] p-3.5 flex items-center justify-between gap-3">
                                           <div className="flex items-center gap-2.5 min-w-0">
-                                             <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                             <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                                                 <Lock size={14} strokeWidth={2.4} />
                                              </div>
                                              <div className="min-w-0">
-                                                <span className="btn-shine text-[12.5px] font-bold block leading-tight">
+                                                <span className="text-[12.5px] font-bold text-slate-900 dark:text-white block leading-tight">
                                                    Live MT5 Auto-Sync
                                                 </span>
                                                 <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
@@ -3179,8 +3651,8 @@ export default function Settings() {
                                           </div>
                                           <button
                                              type="button"
-                                             onClick={() => navigate('/upgrade')}
-                                             className="px-3.5 py-1.5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[11.5px] font-semibold shrink-0 shadow-xs cursor-pointer active:scale-95 transition-all"
+                                             onClick={() => setActiveTab('subscription')}
+                                             className="px-3.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[11.5px] font-semibold shrink-0 shadow-xs cursor-pointer active:scale-95 transition-all"
                                           >
                                              Upgrade
                                           </button>
@@ -3197,7 +3669,7 @@ export default function Settings() {
                                              value={mt5SettingsForm.server}
                                              onChange={(e) => setMt5SettingsForm((p) => ({ ...p, server: e.target.value }))}
                                              placeholder="e.g. VantageInternational-Live, Exness-MT5Real9"
-                                             className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
+                                             className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
                                           />
                                           <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 px-1">
                                              Enter the exact MetaTrader 5 server name provided by your broker.
@@ -3214,7 +3686,7 @@ export default function Settings() {
                                                 value={mt5SettingsForm.login}
                                                 onChange={(e) => setMt5SettingsForm((p) => ({ ...p, login: e.target.value }))}
                                                 placeholder="e.g. 98310842"
-                                                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors tabular-nums"
+                                                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors tabular-nums"
                                              />
                                           </div>
                                           <div>
@@ -3227,7 +3699,7 @@ export default function Settings() {
                                                    value={mt5SettingsForm.password}
                                                    onChange={(e) => setMt5SettingsForm((p) => ({ ...p, password: e.target.value }))}
                                                    placeholder="Enter MT5 password"
-                                                   className="w-full h-10 pl-3.5 pr-9 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
+                                                   className="w-full h-10 pl-3.5 pr-9 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
                                                 />
                                                 <button
                                                    type="button"
@@ -3257,8 +3729,8 @@ export default function Settings() {
                                        {isBrokerLocked ? (
                                           <button
                                              type="button"
-                                             onClick={() => navigate('/upgrade')}
-                                             className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+                                             onClick={() => setActiveTab('subscription')}
+                                             className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
                                           >
                                              <Lock size={13} strokeWidth={2.4} />
                                              <span>Connect MT5 Account</span>
@@ -3267,7 +3739,7 @@ export default function Settings() {
                                           <button
                                              type="submit"
                                              disabled={isConnectingMt5Settings}
-                                             className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 text-white text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+                                             className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-50 text-white dark:text-slate-900 text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
                                           >
                                              <Link2 size={14} />
                                              <span>{isConnectingMt5Settings ? 'Connecting...' : 'Connect MT5 Account'}</span>
@@ -3287,7 +3759,7 @@ export default function Settings() {
                                                 key={broker}
                                                 type="button"
                                                 onClick={() => setSelectedBrokerToConnect(broker)}
-                                                className="rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] hover:bg-blue-50/60 dark:hover:bg-blue-500/10 border border-slate-200/80 dark:border-white/[0.08] hover:border-blue-300 dark:hover:border-blue-500/30 p-4 flex items-center gap-3 transition-all cursor-pointer text-left"
+                                                className="rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100/80 dark:hover:bg-white/[0.06] border border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 p-4 flex items-center gap-3 transition-all cursor-pointer text-left"
                                              >
                                                 <BrokerIcon name={broker} size={32} />
                                                 <div>
@@ -3310,7 +3782,7 @@ export default function Settings() {
                                                    value={brokerApiKey}
                                                    onChange={(e) => setBrokerApiKey(e.target.value)}
                                                    placeholder="KITE-XXXXX or UPSTOX-XXXXX"
-                                                   className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#2563EB]"
+                                                   className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-900 dark:text-white outline-none focus:border-slate-900 dark:focus:border-white"
                                                 />
                                              </div>
                                           )}
@@ -3324,7 +3796,7 @@ export default function Settings() {
                                                 value={brokerClientId}
                                                 onChange={(e) => setBrokerClientId(e.target.value)}
                                                 placeholder={selectedBrokerToConnect === 'dhan' ? 'e.g. 1000000000' : 'User unique ID'}
-                                                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#2563EB]"
+                                                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-900 dark:text-white outline-none focus:border-slate-900 dark:focus:border-white"
                                              />
                                           </div>
                                           <div className="flex items-center gap-2.5 pt-2">
@@ -3336,7 +3808,7 @@ export default function Settings() {
                                              </TactileBoxButton>
                                              <button
                                                 type="submit"
-                                                className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12.5px] font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                                                className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12.5px] font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs"
                                              >
                                                 <Link2 size={14} />
                                                 <span>Connect {selectedBrokerToConnect.toUpperCase()}</span>
@@ -3356,7 +3828,7 @@ export default function Settings() {
                                        <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
                                           Open a Partner Forex Account
                                        </h3>
-                                       <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/15 border border-amber-200/70 dark:border-amber-500/25 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                                       <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-200 text-[10px] font-bold">
                                           +500 XP
                                        </span>
                                     </div>
@@ -3422,7 +3894,7 @@ export default function Settings() {
                                                       {partner.name}
                                                    </h4>
                                                    {partner.badge && (
-                                                      <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 text-[10px] font-bold">
+                                                      <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-200 text-[10px] font-bold">
                                                          {partner.badge}
                                                       </span>
                                                    )}
@@ -3438,7 +3910,7 @@ export default function Settings() {
                                              onClick={() => window.open(partner.url, '_blank', 'noopener,noreferrer')}
                                              className={
                                                 partner.featured
-                                                   ? 'h-8 px-4 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold inline-flex items-center gap-1.5 shadow-xs shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all'
+                                                   ? 'h-8 px-4 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12px] font-semibold inline-flex items-center gap-1.5 shadow-xs shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all'
                                                    : 'tactile-white-pill h-8 px-3.5 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 text-slate-800 dark:text-white shrink-0 self-start sm:self-center cursor-pointer'
                                              }
                                           >
@@ -3465,17 +3937,20 @@ export default function Settings() {
          return 'starter';
       };
       const currentTier = normalizePlan(activePlan);
+      const currentMonthlyRate = getDiscountedMonthlyPrice(currentTier, billingInterval, appliedCoupon);
+      const proDisplayMonthly = getDiscountedMonthlyPrice('pro', billingInterval, appliedCoupon);
+      const eliteDisplayMonthly = getDiscountedMonthlyPrice('elite', billingInterval, appliedCoupon);
 
       const nextBillingDate = (() => {
          if (billingHistory && billingHistory.length > 0 && billingHistory[0]?.period_end) {
             try {
                return new Date(billingHistory[0].period_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             } catch {
-       // Ignore storage restrictions
-     }
+               // Ignore date parse fallback
+            }
          }
          const d = new Date();
-         d.setDate(d.getDate() + 30);
+         d.setDate(d.getDate() + (billingInterval === 'annually' ? 365 : 30));
          return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
       })();
 
@@ -3484,11 +3959,13 @@ export default function Settings() {
             try {
                return new Date(profile.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
             } catch {
-       // Ignore storage restrictions
-     }
+               // Ignore date parse fallback
+            }
          }
          return new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
       })();
+
+      const formatAmount = (amount: number) => `₹${amount.toLocaleString('en-IN')}`;
 
       return (
          <motion.div
@@ -3501,37 +3978,52 @@ export default function Settings() {
          >
             {/* Card 1: Active Subscription Overview */}
             <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] border border-slate-200/80 dark:border-white/[0.08] p-5 sm:p-6 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none space-y-3.5">
-               <div className="flex items-center justify-between">
+               <div className="flex items-center justify-between gap-2">
                   <span className="text-[14px] font-bold text-slate-900 dark:text-white">
                      {currentTier === 'starter' ? 'Standard Plan' : currentTier === 'pro' ? 'Pro Plan' : 'Elite Plan'}
                   </span>
-                  <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
-                     {currentTier === 'starter' ? 'Standard active' : `${currentTier.toUpperCase()} active`}
-                  </span>
+                  <div className="flex items-center gap-2">
+                     {currentTier !== 'starter' && (
+                        <button
+                           type="button"
+                           onClick={() => setShowCancelPlanModal(true)}
+                           className="text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:underline cursor-pointer"
+                        >
+                           Cancel plan
+                        </button>
+                     )}
+                     <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
+                        {currentTier === 'starter' ? 'Standard active' : `${currentTier.toUpperCase()} active`}
+                     </span>
+                  </div>
                </div>
 
                <div className="space-y-2.5 pt-1">
                   <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
                      <span className="text-slate-500 dark:text-slate-400">Plan status</span>
                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'Active (Free tier)' : 'Active (Paid monthly)'}
+                        {currentTier === 'starter'
+                           ? 'Active (Free tier)'
+                           : billingInterval === 'annually'
+                              ? 'Active (Billed annually)'
+                              : 'Active (Paid monthly)'}
                      </span>
                   </div>
                   <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
                      <span className="text-slate-500 dark:text-slate-400">Current rate</span>
-                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums flex items-center gap-1">
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums flex items-center gap-1.5">
                         {currentTier === 'starter' ? (
                            <>
                               <RunningNumber value={0} prefix="₹" /> <span>/ forever</span>
                            </>
-                        ) : currentTier === 'pro' ? (
-                           <>
-                              <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
-                              <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
-                           </>
                         ) : (
                            <>
-                              <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                              {appliedCoupon && (
+                                 <span className="text-slate-400 line-through font-normal">
+                                    {formatAmount(BASE_PLAN_PRICES[currentTier][billingInterval])}
+                                 </span>
+                              )}
+                              <RunningNumber value={currentMonthlyRate} prefix="₹" />
                               <span>{billingInterval === 'monthly' ? '/ month' : '/ month (billed annually)'}</span>
                            </>
                         )}
@@ -3539,39 +4031,55 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center justify-between text-xs py-1.5 border-t border-slate-100 dark:border-white/5">
                      <span className="text-slate-500 dark:text-slate-400">Next payment</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'No charges scheduled' : `${nextBillingDate} · ${currentTier === 'pro' ? (billingInterval === 'monthly' ? '₹1,399' : '₹1,119') : (billingInterval === 'monthly' ? '₹2,799' : '₹2,239')}`}
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                        {currentTier === 'starter'
+                           ? 'No charges scheduled'
+                           : `${nextBillingDate} · ${formatAmount(billingInterval === 'annually' ? currentMonthlyRate * 12 : currentMonthlyRate)}`}
                      </span>
                   </div>
                </div>
 
                <div className="pt-2 border-t border-slate-100 dark:border-white/5">
                   <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mb-2">
-                     Have a code? Add it before your next billing cycle and it counts on your next payment.
+                     Have a coupon code? Enter it below for instant real-time pricing updates on upgrades and renewals.
                   </p>
                   <div className="flex items-center gap-2">
                      <AnimatedInput
                         type="text"
-                        placeholder="Discount code"
+                        placeholder="Enter coupon code (e.g. WELCOME20, FOUNDER50)"
                         value={discountCodeInput}
                         onChange={(e) => setDiscountCodeInput(e.target.value)}
-                        className="flex-1 h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400"
+                        onKeyDown={(e) => {
+                           if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleApplyCouponCode();
+                           }
+                        }}
+                        className="flex-1 h-9 px-3.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1E1E22] text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-900 dark:focus:border-white"
                      />
                      <TactileBoxButton
-                        onClick={() => {
-                           if (!discountCodeInput.trim()) return toast.error("Please enter a discount code");
-                           setAppliedDiscount(discountCodeInput.trim().toUpperCase());
-                           toast.success(`Discount code "${discountCodeInput.trim().toUpperCase()}" applied!`);
-                           setDiscountCodeInput('');
-                        }}
+                        onClick={() => handleApplyCouponCode()}
+                        disabled={isValidatingCoupon}
                         className="h-9 px-5 text-xs font-bold"
                      >
-                        Add
+                        {isValidatingCoupon ? 'Checking...' : 'Apply'}
                      </TactileBoxButton>
                   </div>
-                  {appliedDiscount && (
-                     <div className="mt-2 text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
-                        <Check size={12} /> Code {appliedDiscount} applied
+                  {appliedCoupon && (
+                     <div className="mt-2.5 flex items-center justify-between gap-2 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200/70 dark:border-emerald-500/20 px-3 py-1.5">
+                        <div className="text-[11.5px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                           <Check size={12.5} strokeWidth={2.6} />
+                           <span>
+                              Code <strong className="font-bold">{appliedCoupon.code}</strong> applied · {appliedCoupon.percentOff}% off active
+                           </span>
+                        </div>
+                        <button
+                           type="button"
+                           onClick={handleRemoveCouponCode}
+                           className="text-[11px] font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white cursor-pointer"
+                        >
+                           Remove
+                        </button>
                      </div>
                   )}
                </div>
@@ -3589,8 +4097,10 @@ export default function Settings() {
                <div className="space-y-2 pt-1 text-xs">
                   <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
                      <span className="text-slate-500 dark:text-slate-400">Plan</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'Free · ₹0 a month' : currentTier === 'pro' ? 'Pro · ₹1,399 a month' : 'Elite · ₹2,799 a month'}
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                        {currentTier === 'starter'
+                           ? 'Free · ₹0 a month'
+                           : `${currentTier === 'pro' ? 'Pro' : 'Elite'} · ${formatAmount(currentMonthlyRate)} a month`}
                      </span>
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
@@ -3599,8 +4109,10 @@ export default function Settings() {
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
                      <span className="text-slate-500 dark:text-slate-400">Next renewal</span>
-                     <span className="font-semibold text-slate-900 dark:text-white">
-                        {currentTier === 'starter' ? 'None (Free plan)' : `${nextBillingDate} · ₹${currentTier === 'pro' ? (billingInterval === 'monthly' ? '1,399' : '1,119') : (billingInterval === 'monthly' ? '2,799' : '2,239')}`}
+                     <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                        {currentTier === 'starter'
+                           ? 'None (Free plan)'
+                           : `${nextBillingDate} · ${formatAmount(billingInterval === 'annually' ? currentMonthlyRate * 12 : currentMonthlyRate)}`}
                      </span>
                   </div>
                   <div className="flex items-center justify-between py-1.5 border-t border-slate-100 dark:border-white/5">
@@ -3613,7 +4125,7 @@ export default function Settings() {
                </div>
 
                <div className="pt-2 border-t border-slate-100 dark:border-white/5 text-[11.5px] text-slate-500 flex items-center gap-1.5">
-                  <ArrowUpRight size={13} className="text-slate-400" /> Change plan or manage subscription below
+                  <ArrowUpRight size={13} className="text-slate-400" /> Switch, upgrade, downgrade, or cancel below
                </div>
             </div>
 
@@ -3622,19 +4134,45 @@ export default function Settings() {
                <div className="text-xs font-bold text-slate-900 dark:text-white mb-3">Payments</div>
                {billingHistory && billingHistory.length > 0 ? (
                   <div className="space-y-2">
-                     {billingHistory.map((inv: any) => (
-                        <div key={inv.id || Math.random()} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 dark:border-white/5 last:border-b-0">
-                           <span className="text-slate-500">
-                              {inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
-                           </span>
-                           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                     {billingHistory.map((inv: any, idx: number) => (
+                        <div key={inv.id || idx} className="flex items-center justify-between text-xs py-2 border-b border-slate-100 dark:border-white/5 last:border-b-0">
+                           <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-slate-500 tabular-nums">
+                                 {inv.created_at ? new Date(inv.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
+                              </span>
+                              <span className="text-[11px] font-semibold text-slate-700 dark:text-neutral-300 capitalize">
+                                 {inv.plan === 'starter' ? 'Free' : inv.plan} · {inv.status || 'paid'}
+                              </span>
+                           </div>
+                           <span className="font-semibold text-slate-900 dark:text-white flex items-center gap-3 tabular-nums">
                               ₹{Number(inv.amount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                              <span
-                                 className="text-slate-400 hover:text-slate-700 dark:hover:text-white font-normal cursor-pointer hover:underline text-xs"
-                                 onClick={() => toast.info(`Invoice receipt #${String(inv.id || '').slice(0, 8)} generated`)}
+                              <button
+                                 type="button"
+                                 className="text-slate-500 hover:text-slate-900 dark:hover:text-white font-medium cursor-pointer hover:underline text-xs"
+                                 onClick={() => {
+                                    const receiptLines = [
+                                       `TRADIFIVE BILLING RECEIPT`,
+                                       `Receipt ID: #${String(inv.id || idx).slice(0, 12)}`,
+                                       `Date: ${inv.created_at ? new Date(inv.created_at).toLocaleString('en-IN') : 'Recent'}`,
+                                       `Plan: ${String(inv.plan || 'starter').toUpperCase()}`,
+                                       `Status: ${String(inv.status || 'paid').toUpperCase()}`,
+                                       `Amount: INR ${Number(inv.amount || 0).toFixed(2)}`,
+                                       inv.stripe_payment_id ? `Reference: ${inv.stripe_payment_id}` : '',
+                                    ].filter(Boolean).join('\n');
+                                    const blob = new Blob([receiptLines], { type: 'text/plain;charset=utf-8' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = `tradifive_receipt_${String(inv.id || idx).slice(0, 8)}.txt`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    URL.revokeObjectURL(url);
+                                    toast.success(`Receipt #${String(inv.id || idx).slice(0, 8)} downloaded`);
+                                 }}
                               >
                                  Invoice
-                              </span>
+                              </button>
                            </span>
                         </div>
                      ))}
@@ -3645,7 +4183,7 @@ export default function Settings() {
                      <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
                         {currentTier === 'starter'
                            ? 'You are currently on the Free tier. Upgrade below to activate pro features.'
-                           : 'Receipts and tax invoices will automatically appear here.'}
+                           : 'Receipts and billing events appear here in real time.'}
                      </p>
                   </div>
                )}
@@ -3655,12 +4193,16 @@ export default function Settings() {
             <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex items-center justify-between">
                <div>
                   <div className="text-xs font-bold text-slate-900 dark:text-white">Billing cycle</div>
-                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Switch to annual for a lower monthly rate</p>
+                  <p className="text-[11.5px] text-slate-500 dark:text-slate-400 mt-0.5">Switch to annual for a lower monthly rate (save 20%)</p>
                </div>
                <div className="bg-slate-100 dark:bg-white/5 p-1 rounded-full inline-flex items-center gap-1 border border-slate-200/80 dark:border-white/10">
                   <button
-                     onClick={() => setBillingInterval('monthly')}
-                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                     type="button"
+                     onClick={() => {
+                        setBillingInterval('monthly');
+                        try { localStorage.setItem('tradifive_billing_interval', 'monthly'); } catch { /* ignore */ }
+                     }}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                         billingInterval === 'monthly'
                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -3669,8 +4211,12 @@ export default function Settings() {
                      Monthly
                   </button>
                   <button
-                     onClick={() => setBillingInterval('annually')}
-                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                     type="button"
+                     onClick={() => {
+                        setBillingInterval('annually');
+                        try { localStorage.setItem('tradifive_billing_interval', 'annually'); } catch { /* ignore */ }
+                     }}
+                     className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                         billingInterval === 'annually'
                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
                            : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
@@ -3685,39 +4231,45 @@ export default function Settings() {
             <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                <div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white">Free Plan</div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">1 broker connection, basic trading journal & core risk guard</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manual &amp; CSV journal, core risk guard &amp; 5 AI coach credits/day</p>
                </div>
                <div className="flex items-center gap-4 self-end sm:self-auto">
                   <RunningNumber value={0} prefix="₹" className="text-sm font-bold text-slate-900 dark:text-white" />
                   {currentTier === 'starter' ? (
-                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                     <span className="text-xs font-semibold text-slate-500 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
                         Current
                      </span>
                   ) : (
                      <TactileBoxButton
                         onClick={() => handleSettingsDowngrade('starter')}
+                        disabled={isChangingPlan}
                         className="h-8 px-4 text-xs font-semibold rounded-xl"
                      >
-                        Switch
+                        Downgrade
                      </TactileBoxButton>
                   )}
                </div>
             </div>
 
-            {/* Card 6: Pro Plan — ₹1,399/mo */}
+            {/* Card 6: Pro Plan */}
             <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                <div>
-                  <div className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                  <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                      Pro Plan
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                     Up to 6 broker connections, loss cooldown & 50 AI coach credits/day
+                     Live MT5 broker sync, loss cooldown, privacy controls &amp; 50 AI credits/day
                   </p>
                </div>
                <div className="flex items-center gap-4 self-end sm:self-auto">
                   <div className="text-right">
-                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums flex items-baseline justify-end gap-0.5">
-                        <RunningNumber value={billingInterval === 'monthly' ? 1399 : 1119} prefix="₹" />
+                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums flex items-baseline justify-end gap-1.5">
+                        {appliedCoupon && (
+                           <span className="text-xs text-slate-400 line-through font-normal">
+                              ₹{BASE_PLAN_PRICES.pro[billingInterval].toLocaleString('en-IN')}
+                           </span>
+                        )}
+                        <RunningNumber value={proDisplayMonthly} prefix="₹" />
                         <span className="text-xs text-slate-400 font-normal">/mo</span>
                      </span>
                      {billingInterval === 'annually' && (
@@ -3725,44 +4277,51 @@ export default function Settings() {
                      )}
                   </div>
                   {currentTier === 'pro' ? (
-                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                     <span className="text-xs font-semibold text-slate-500 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
                         Current
                      </span>
                   ) : currentTier === 'elite' ? (
                      <TactileBoxButton
                         onClick={() => handleSettingsDowngrade('pro')}
+                        disabled={isChangingPlan}
                         className="h-8 px-4 text-xs font-semibold rounded-xl"
                      >
-                        Switch
+                        Downgrade
                      </TactileBoxButton>
                   ) : (
                      <TactileBoxButton
                         onClick={() => handleSettingsUpgrade('pro')}
+                        disabled={isChangingPlan}
                         className="h-8 px-4 text-xs font-semibold rounded-xl"
                      >
-                        Switch
+                        {isChangingPlan ? 'Switching...' : 'Switch'}
                      </TactileBoxButton>
                   )}
                </div>
             </div>
 
-            {/* Card 7: Elite Plan — ₹2,799/mo + TOP badge */}
+            {/* Card 7: Elite Plan */}
             <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                <div>
-                  <div className="text-sm font-bold text-purple-600 dark:text-purple-400 flex items-center gap-1.5">
+                  <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                      Elite Plan
-                     <span className="bg-[#7c3aed] text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
+                     <span className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider">
                         TOP
                      </span>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                     Unlimited broker connections, automated trading & 100 AI credits/day
+                     Up to 3 MT5 accounts, automated execution, Creator Mode &amp; 150 AI credits/day
                   </p>
                </div>
                <div className="flex items-center gap-4 self-end sm:self-auto">
                   <div className="text-right">
-                     <span className="text-sm font-bold text-purple-600 dark:text-purple-400 tabular-nums flex items-baseline justify-end gap-0.5">
-                        <RunningNumber value={billingInterval === 'monthly' ? 2799 : 2239} prefix="₹" />
+                     <span className="text-sm font-bold text-slate-900 dark:text-white tabular-nums flex items-baseline justify-end gap-1.5">
+                        {appliedCoupon && (
+                           <span className="text-xs text-slate-400 line-through font-normal">
+                              ₹{BASE_PLAN_PRICES.elite[billingInterval].toLocaleString('en-IN')}
+                           </span>
+                        )}
+                        <RunningNumber value={eliteDisplayMonthly} prefix="₹" />
                         <span className="text-xs text-slate-400 font-normal">/mo</span>
                      </span>
                      {billingInterval === 'annually' && (
@@ -3770,21 +4329,41 @@ export default function Settings() {
                      )}
                   </div>
                   {currentTier === 'elite' ? (
-                     <span className="text-xs font-semibold text-slate-400 px-3 py-1 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
+                     <span className="text-xs font-semibold text-slate-500 px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-xl border border-slate-200/60 dark:border-white/5">
                         Current
                      </span>
                   ) : (
                      <TactileBoxButton
                         onClick={() => handleSettingsUpgrade('elite')}
+                        disabled={isChangingPlan}
                         className="h-8 px-4 text-xs font-semibold rounded-xl"
                      >
-                        Switch
+                        {isChangingPlan ? 'Switching...' : 'Switch'}
                      </TactileBoxButton>
                   )}
                </div>
             </div>
 
-            {/* Card 8: Refund & Cancellation */}
+            {/* Card 8: Cancel Plan (when on paid tier) */}
+            {currentTier !== 'starter' && (
+               <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                     <div className="text-xs font-bold text-slate-900 dark:text-white">Cancel subscription</div>
+                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Stop future renewals and revert immediately to the Free Plan. Your journal and trades stay saved.
+                     </p>
+                  </div>
+                  <button
+                     type="button"
+                     onClick={() => setShowCancelPlanModal(true)}
+                     className="h-9 px-4 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-500/25 transition-colors self-end sm:self-auto shrink-0 cursor-pointer"
+                  >
+                     Cancel Plan
+                  </button>
+               </div>
+            )}
+
+            {/* Card 9: Refund & Billing Support */}
             <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                <div>
                   <div className="text-xs font-bold text-slate-900 dark:text-white">Refund</div>
@@ -3807,109 +4386,6 @@ export default function Settings() {
          </motion.div>
       );
    })()}
-
-                     {/* TAB 11: CHANNEL SETTINGS */}
-                     {activeTab === 'channel' && (
-                        <motion.div
-                           key="channel"
-                           initial={{ opacity: 0, y: 6 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -6 }}
-                           transition={{ duration: 0.16, ease: "easeOut" }}
-                           className="space-y-5 w-full max-w-[820px]"
-                        >
-                           {/* Card 1: Channel Privacy Level */}
-                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
-                              <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                 <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
-                                    Channel Privacy Level
-                                 </h3>
-                                 <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                    Determine who can search, view, and interact with posts in your channel.
-                                 </p>
-                              </div>
-
-                              <div className="space-y-2.5">
-                                 {[
-                                    {
-                                       id: 'public',
-                                       title: 'Public (Everyone)',
-                                       desc: 'Anyone on TradiFive can search and read your channel posts.',
-                                    },
-                                    {
-                                       id: 'request',
-                                       title: 'Request-Only',
-                                       desc: 'Traders must request approval before joining and reading posts.',
-                                    },
-                                    {
-                                       id: 'private',
-                                       title: 'Private (Paid Subscribers)',
-                                       desc: 'Only your approved or paid channel members have access.',
-                                    },
-                                 ].map((opt) => {
-                                    const active = feedVisibility === opt.id;
-                                    return (
-                                       <button
-                                          key={opt.id}
-                                          type="button"
-                                          onClick={() => {
-                                             setFeedVisibility(opt.id);
-                                             localStorage.setItem('tradifive_channel_visibility', opt.id);
-                                             toast.success('Channel visibility updated');
-                                          }}
-                                          className={`w-full text-left p-3.5 rounded-2xl border flex items-start gap-3 transition-all cursor-pointer ${
-                                             active
-                                                ? 'border-[#2563EB] bg-blue-50/35 dark:bg-blue-500/10'
-                                                : 'border-slate-200/70 dark:border-white/[0.07] bg-slate-50/60 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20'
-                                          }`}
-                                       >
-                                          <div className={`mt-0.5 w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${active ? 'border-[#2563EB]' : 'border-slate-300 dark:border-neutral-600'}`}>
-                                             {active && <div className="w-2 h-2 rounded-full bg-[#2563EB]" />}
-                                          </div>
-                                          <div>
-                                             <div className="text-[13.5px] font-semibold text-slate-900 dark:text-white">{opt.title}</div>
-                                             <div className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">{opt.desc}</div>
-                                          </div>
-                                       </button>
-                                    );
-                                 })}
-                              </div>
-                           </div>
-
-                           {/* Card 2: Channel Guidelines */}
-                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
-                              <div>
-                                 <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
-                                    Channel Guidelines
-                                 </h3>
-                                 <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                    Displayed to traders before they join your channel.
-                                 </p>
-                              </div>
-
-                              <textarea
-                                 rows={4}
-                                 value={channelRules}
-                                 onChange={e => setChannelRules(e.target.value)}
-                                 className="w-full p-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-800 dark:text-white outline-none resize-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] placeholder:text-slate-400 transition-colors"
-                                 placeholder="Set the rules and guidelines for your channel..."
-                              />
-
-                              <div className="flex justify-end">
-                                 <button
-                                    type="button"
-                                    onClick={() => {
-                                       localStorage.setItem(`tradifive_channel_rules_${globalUserId || 'default'}`, channelRules);
-                                       toast.success('Channel guidelines saved!');
-                                    }}
-                                    className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12.5px] font-semibold shadow-xs transition-all cursor-pointer active:scale-95"
-                                 >
-                                    Save Guidelines
-                                 </button>
-                              </div>
-                           </div>
-                        </motion.div>
-                     )}
 
                      {/* TAB 12: CREATOR / BUSINESS ACCOUNT */}
                      {activeTab === 'creator' && (
@@ -3994,53 +4470,53 @@ export default function Settings() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">First Name</label>
-                              <AnimatedInput type="text" value={profile.firstName} onChange={e => setProfile({...profile, firstName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.firstName} onChange={e => setProfile({...profile, firstName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Last Name</label>
-                              <AnimatedInput type="text" value={profile.lastName} onChange={e => setProfile({...profile, lastName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.lastName} onChange={e => setProfile({...profile, lastName: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                         </div>
                         <div>
                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Username</label>
-                           <AnimatedInput type="text" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           <AnimatedInput type="text" value={profile.name} onChange={e => setProfile({...profile, name: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                         </div>
                         <div>
                            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Email</label>
-                           <AnimatedInput type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           <AnimatedInput type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Address</label>
-                              <AnimatedInput type="text" value={profile.address || ''} onChange={e => setProfile({...profile, address: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.address || ''} onChange={e => setProfile({...profile, address: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">City</label>
-                              <AnimatedInput type="text" value={profile.city || ''} onChange={e => setProfile({...profile, city: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.city || ''} onChange={e => setProfile({...profile, city: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">State</label>
-                              <AnimatedInput type="text" value={profile.state || ''} onChange={e => setProfile({...profile, state: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.state || ''} onChange={e => setProfile({...profile, state: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Zip Code</label>
-                              <AnimatedInput type="text" value={profile.zipCode || ''} onChange={e => setProfile({...profile, zipCode: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.zipCode || ''} onChange={e => setProfile({...profile, zipCode: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Country</label>
-                              <AnimatedInput type="text" value={profile.country || ''} onChange={e => setProfile({...profile, country: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.country || ''} onChange={e => setProfile({...profile, country: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Date of Birth</label>
-                              <AnimatedInput type="text" value={profile.dob || ''} onChange={e => setProfile({...profile, dob: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.dob || ''} onChange={e => setProfile({...profile, dob: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                            <div>
                               <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Gender</label>
-                              <AnimatedInput type="text" value={profile.gender || ''} onChange={e => setProfile({...profile, gender: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                              <AnimatedInput type="text" value={profile.gender || ''} onChange={e => setProfile({...profile, gender: e.target.value})} className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all" />
                            </div>
                         </div>
                         <div className="pt-4 border-t border-slate-100 dark:border-[#333333] flex justify-end items-center gap-3">
@@ -4083,7 +4559,7 @@ export default function Settings() {
                               value={phoneDraft}
                               onChange={(e) => setPhoneDraft(e.target.value)}
                               placeholder="Enter phone number with country code"
-                              className="w-full bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-all"
+                              className="w-full bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-all"
                            />
                         </div>
                         <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-white/[0.06]">
@@ -4119,7 +4595,7 @@ export default function Settings() {
                                     setIsSavingPhone(false);
                                  }
                               }}
-                              className="rounded-full px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer disabled:opacity-60"
+                              className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm transition-colors cursor-pointer disabled:opacity-60"
                            >
                               {isSavingPhone ? "Saving..." : "Save Number"}
                            </button>
@@ -4172,16 +4648,16 @@ export default function Settings() {
          <Dialog open={!!downgradeModalPlan} onOpenChange={(open) => !open && setDowngradeModalPlan(null)}>
            <DialogContent className="sm:max-w-[440px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-3xl p-7 text-slate-900 dark:text-white">
              <DialogHeader>
-               <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2">
+               <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center mb-2">
                  <AlertCircle size={24} />
                </div>
                <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
-                 Downgrade to {downgradeModalPlan === 'starter' ? 'Free Plan (₹0)' : 'Pro Plan (₹1,399/mo)'}?
+                 Downgrade to {downgradeModalPlan === 'starter' ? 'Free Plan (₹0)' : `Pro Plan (₹${getDiscountedMonthlyPrice('pro', billingInterval, appliedCoupon).toLocaleString('en-IN')}/mo)`}?
                </DialogTitle>
                <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
                  {downgradeModalPlan === 'starter'
-                   ? 'By switching to the Free plan, your broker connections will be limited to 1, daily AI credits will revert to 20/day, and automated execution features will be paused.'
-                   : 'By downgrading to Pro (₹1,399/mo), broker connections will be set to 6 and AI credits will be 100/day.'}
+                   ? 'Switching to Free Plan limits live broker sync and sets daily AI credits to 5/day. Your saved trades and journal remain intact.'
+                   : 'Switching to Pro updates your broker slot to 1 live MT5 account and daily AI credits to 50/day.'}
                </DialogDescription>
              </DialogHeader>
              <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2.5 sm:justify-end">
@@ -4195,16 +4671,173 @@ export default function Settings() {
                <button 
                  type="button" 
                  disabled={isChangingPlan}
-                 onClick={() => downgradeModalPlan && applyPlanChange(downgradeModalPlan)}
-                 className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2"
+                 onClick={() => downgradeModalPlan && applyPlanChange(downgradeModalPlan, { reason: 'switch' })}
+                 className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                >
                  {isChangingPlan ? (
                    <>
-                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                     <span className="w-4 h-4 border-2 border-white/30 dark:border-slate-900/30 border-t-white dark:border-t-slate-900 rounded-full animate-spin" />
                      Updating...
                    </>
                  ) : (
                    'Confirm Downgrade'
+                 )}
+               </button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+
+         {/* Cancel Plan Confirmation Dialog */}
+         <Dialog open={showCancelPlanModal} onOpenChange={(open) => !open && setShowCancelPlanModal(false)}>
+           <DialogContent className="sm:max-w-[440px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-3xl p-7 text-slate-900 dark:text-white">
+             <DialogHeader>
+               <div className="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-2">
+                 <AlertTriangle size={22} />
+               </div>
+               <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white">
+                 Cancel your {activePlan === 'elite' ? 'Elite' : 'Pro'} plan?
+               </DialogTitle>
+               <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm leading-relaxed">
+                 Your subscription will be canceled immediately with no future charges scheduled, and your account will revert to the Free tier.
+               </DialogDescription>
+             </DialogHeader>
+             <DialogFooter className="mt-6 flex flex-col sm:flex-row gap-2.5 sm:justify-end">
+               <TactileBoxButton 
+                 onClick={() => setShowCancelPlanModal(false)}
+                 disabled={isChangingPlan}
+                 className="h-10 px-5 rounded-xl font-semibold text-xs"
+               >
+                 Keep Subscription
+               </TactileBoxButton>
+               <button 
+                 type="button" 
+                 disabled={isChangingPlan}
+                 onClick={() => applyPlanChange('starter', { reason: 'cancel' })}
+                 className="h-10 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+               >
+                 {isChangingPlan ? 'Canceling...' : 'Confirm Cancellation'}
+               </button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+
+         {/* Export CSV Scope Chooser Dialog */}
+         <Dialog open={showCsvExportModal} onOpenChange={setShowCsvExportModal}>
+           <DialogContent className="sm:max-w-[420px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/10 rounded-[22px]">
+             <DialogHeader>
+               <DialogTitle className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                 <FileSpreadsheet size={17} className="text-slate-700 dark:text-neutral-300" />
+                 Export trades as CSV
+               </DialogTitle>
+               <DialogDescription className="text-[12px] text-slate-500 dark:text-neutral-400">
+                 Select which trade ledger rows to include in your CSV download.
+               </DialogDescription>
+             </DialogHeader>
+             <div className="space-y-2 py-2">
+               {[
+                 { id: 'all' as const, label: 'All trades', count: dataCounts.totalTrades, desc: 'Combined live & paper execution ledger' },
+                 { id: 'live' as const, label: 'Live & synced trades', count: dataCounts.liveTrades, desc: 'Only broker / MT5 synced trades' },
+                 { id: 'paper' as const, label: 'Paper & demo trades', count: dataCounts.paperTrades, desc: 'Only simulated practice executions' },
+               ].map((opt) => (
+                 <button
+                   key={opt.id}
+                   type="button"
+                   onClick={() => setCsvExportScope(opt.id)}
+                   className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                     csvExportScope === opt.id
+                       ? 'border-slate-900 dark:border-white bg-slate-50/80 dark:bg-white/[0.05]'
+                       : 'border-slate-200/80 dark:border-white/[0.08] bg-white dark:bg-white/[0.02] hover:border-slate-300'
+                   }`}
+                 >
+                   <div>
+                     <div className="text-[13px] font-semibold text-slate-900 dark:text-white">{opt.label}</div>
+                     <div className="text-[11px] text-slate-500 dark:text-neutral-400 mt-0.5">{opt.desc}</div>
+                   </div>
+                   <span className="text-[11.5px] font-bold text-slate-700 dark:text-neutral-200 tabular-nums px-2 py-0.5 rounded-md bg-slate-100 dark:bg-white/[0.07]">
+                     {opt.count}
+                   </span>
+                 </button>
+               ))}
+             </div>
+             <DialogFooter className="gap-2 pt-2">
+               <button
+                 type="button"
+                 onClick={() => setShowCsvExportModal(false)}
+                 className="tactile-white-pill rounded-full px-4 py-2 text-xs font-semibold cursor-pointer"
+               >
+                 Cancel
+               </button>
+               <button
+                 type="button"
+                 disabled={isExportingCsvData}
+                 onClick={() => handleExportTradesCsv(csvExportScope)}
+                 className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+               >
+                 {isExportingCsvData ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                 <span>{isExportingCsvData ? 'Exporting...' : 'Download CSV'}</span>
+               </button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+
+         {/* Delete Account Confirmation Dialog (Data & Privacy) */}
+         <Dialog
+           open={showDeleteAccountDialog}
+           onOpenChange={(open) => {
+             setShowDeleteAccountDialog(open);
+             if (!open) setDeleteAccountConfirm('');
+           }}
+         >
+           <DialogContent className="sm:max-w-[440px] border-rose-500/20 bg-white dark:bg-[#1B1B20] rounded-[22px]">
+             <DialogHeader>
+               <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-2">
+                 <Trash2 className="w-5 h-5" />
+               </div>
+               <DialogTitle className="text-[16px] font-bold text-slate-900 dark:text-white">
+                 Permanently Delete Account?
+               </DialogTitle>
+               <DialogDescription className="text-[12.5px] text-slate-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
+                 This permanently erases your login, trading ledger, MT5 connections, journal entries, and profile data.
+               </DialogDescription>
+             </DialogHeader>
+             <div className="py-2">
+               <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mb-1.5">
+                 Type <span className="text-rose-600 font-black">DELETE</span> to confirm:
+               </label>
+               <input
+                 type="text"
+                 value={deleteAccountConfirm}
+                 onChange={(e) => setDeleteAccountConfirm(e.target.value)}
+                 placeholder="DELETE"
+                 disabled={isDeletingAccount}
+                 className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202024] text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
+               />
+             </div>
+             <DialogFooter className="gap-2 pt-2">
+               <button
+                 type="button"
+                 disabled={isDeletingAccount}
+                 onClick={() => {
+                   setShowDeleteAccountDialog(false);
+                   setDeleteAccountConfirm('');
+                 }}
+                 className="tactile-white-pill rounded-full px-4 py-2 text-xs font-semibold cursor-pointer"
+               >
+                 Cancel
+               </button>
+               <button
+                 type="button"
+                 disabled={deleteAccountConfirm.trim().toUpperCase() !== 'DELETE' || isDeletingAccount}
+                 className="rounded-full px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
+                 onClick={handlePermanentDeleteAccount}
+               >
+                 {isDeletingAccount ? (
+                   <>
+                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                     <span>Deleting...</span>
+                   </>
+                 ) : (
+                   <span>Permanently Delete</span>
                  )}
                </button>
              </DialogFooter>

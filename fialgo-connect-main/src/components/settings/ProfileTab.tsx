@@ -104,13 +104,13 @@ const ProfileToggle = ({ checked, onChange, disabled = false }: { checked: boole
       className={cn(
          "relative w-11 h-[24px] rounded-full transition-colors duration-200 outline-none focus:outline-none shrink-0 cursor-pointer",
          disabled && "opacity-40 cursor-not-allowed",
-         checked ? "bg-[#3b82f6]" : "bg-[#64748B] dark:bg-[#475569]"
+         checked ? "bg-slate-900 dark:bg-white" : "bg-slate-300 dark:bg-white/20"
       )}
    >
       <div
          className={cn(
-            "absolute top-1/2 -translate-y-1/2 left-[3px] w-[18px] h-[18px] rounded-full bg-white shadow-sm transition-transform duration-200",
-            checked ? "translate-x-[20px]" : "translate-x-0"
+            "absolute top-1/2 -translate-y-1/2 left-[3px] w-[18px] h-[18px] rounded-full shadow-sm transition-transform duration-200",
+            checked ? "translate-x-[20px] bg-white dark:bg-slate-900" : "translate-x-0 bg-white"
          )}
       />
    </button>
@@ -131,7 +131,7 @@ const SearchableCombobox = ({ value, onChange, items, placeholder, disabled }: a
             <button
                disabled={disabled}
                className={cn(
-                  "w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] text-[13px] font-medium text-slate-800 dark:text-white outline-none focus:border-[#3b82f6] transition-all disabled:opacity-50",
+                  "w-full flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] text-[13px] font-medium text-slate-800 dark:text-white outline-none focus:border-slate-900 dark:focus:border-white transition-all disabled:opacity-50",
                   !value && "text-slate-500"
                )}
             >
@@ -588,8 +588,8 @@ export default function ProfileTab({
 
             {/* 1. Hero Profile Card with crisp cover banner (or gradient), cover camera button, avatar with camera overlay, name, username, Cancel & Save tactile buttons */}
             <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] overflow-hidden border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none relative">
-               {/* Banner Image with clean gradient fallback */}
-               <div className="relative h-48 w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+               {/* Banner Image with clean editorial monochrome fallback */}
+               <div className="relative h-48 w-full overflow-hidden bg-gradient-to-r from-zinc-800 via-neutral-900 to-zinc-950">
                   {profile.bannerUrl ? (
                      <img
                         src={profile.bannerUrl}
@@ -600,7 +600,7 @@ export default function ProfileTab({
                   ) : (
                      <div
                         aria-hidden="true"
-                        className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_24%_32%,rgba(255,255,255,0.12),transparent_55%)]"
                      />
                   )}
                   <div
@@ -670,32 +670,32 @@ export default function ProfileTab({
                   {(profile.website || profile.instagram || profile.youtube || profile.discord || profile.tradingview) && (
                      <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                         {profile.website && (
-                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[11px] font-semibold">
+                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/[0.07] text-slate-700 dark:text-neutral-200 text-[11px] font-semibold">
                               <Link2 size={11} />
                               <span className="truncate max-w-[150px]">{profile.website.replace(/^https?:\/\//, '')}</span>
                            </span>
                         )}
                         {profile.instagram && (
                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-neutral-300 text-[10.5px] font-medium">
-                              <Instagram size={11} className="text-pink-500" />
+                              <Instagram size={11} className="text-slate-500 dark:text-neutral-400" />
                               <span className="truncate max-w-[90px]">@{profile.instagram.replace('@', '')}</span>
                            </span>
                         )}
                         {profile.youtube && (
                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-neutral-300 text-[10.5px] font-medium">
-                              <Youtube size={11} className="text-red-500" />
+                              <Youtube size={11} className="text-slate-500 dark:text-neutral-400" />
                               <span className="truncate max-w-[90px]">{profile.youtube}</span>
                            </span>
                         )}
                         {profile.discord && (
                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-neutral-300 text-[10.5px] font-medium">
-                              <MessageSquare size={11} className="text-indigo-500" />
+                              <MessageSquare size={11} className="text-slate-500 dark:text-neutral-400" />
                               <span className="truncate max-w-[90px]">{profile.discord}</span>
                            </span>
                         )}
                         {profile.tradingview && (
                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-neutral-300 text-[10.5px] font-medium">
-                              <TrendingUp size={11} className="text-blue-500" />
+                              <TrendingUp size={11} className="text-slate-500 dark:text-neutral-400" />
                               <span className="truncate max-w-[90px]">{profile.tradingview}</span>
                            </span>
                         )}
@@ -709,7 +709,7 @@ export default function ProfileTab({
                            <span className="text-[10px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider">
                               WHAT OTHERS SEE ON YOUR CARD
                            </span>
-                           <span className="text-[10px] text-blue-500 font-bold bg-blue-500/10 px-2 py-0.5 rounded-full">
+                           <span className="text-[10px] text-slate-600 dark:text-neutral-300 font-semibold bg-slate-100 dark:bg-white/[0.07] px-2 py-0.5 rounded-full">
                               Live Preview
                            </span>
                         </div>
@@ -718,8 +718,8 @@ export default function ProfileTab({
                               <div className="py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-[#202024] border border-black/[0.04] dark:border-white/5 flex flex-col justify-between">
                                  <div className="flex items-center justify-between mb-1">
                                     <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">TRADES</span>
-                                    <div className="w-5 h-5 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                       <BarChart2 size={11} className="text-blue-500" />
+                                    <div className="w-5 h-5 rounded-full bg-slate-200/70 dark:bg-white/10 flex items-center justify-center">
+                                       <BarChart2 size={11} className="text-slate-600 dark:text-neutral-300" />
                                     </div>
                                  </div>
                                  <span className="text-[16px] font-extrabold text-slate-900 dark:text-white leading-tight font-sans">
@@ -816,7 +816,7 @@ export default function ProfileTab({
                      value={profile.display_name ?? profile.name ?? ""}
                      onChange={e => setProfile({ ...profile, display_name: e.target.value, name: e.target.value })}
                      placeholder="Display Name"
-                     className="w-full bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-2.5 text-[13.5px] text-slate-900 dark:text-white font-medium outline-none border border-transparent focus:border-blue-500 transition-colors"
+                     className="w-full bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-2.5 text-[13.5px] text-slate-900 dark:text-white font-medium outline-none border border-transparent focus:border-slate-900 dark:focus:border-white transition-colors"
                   />
                </div>
 
@@ -825,7 +825,7 @@ export default function ProfileTab({
                   <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
                      USERNAME
                   </label>
-                  <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 border border-transparent focus-within:border-blue-500 transition-colors">
+                  <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 border border-transparent focus-within:border-slate-900 dark:focus-within:border-white transition-colors">
                      <span className="text-[13.5px] font-semibold text-slate-400 mr-1 select-none">@</span>
                      <input
                         type="text"
@@ -852,7 +852,7 @@ export default function ProfileTab({
                      placeholder="No bio yet. Update your profile to tell others about your trading style."
                      maxLength={280}
                      rows={3}
-                     className="w-full bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-3 text-[13.5px] text-slate-900 dark:text-white font-medium outline-none border border-transparent focus:border-blue-500 transition-colors resize-none"
+                     className="w-full bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-3 text-[13.5px] text-slate-900 dark:text-white font-medium outline-none border border-transparent focus:border-slate-900 dark:focus:border-white transition-colors resize-none"
                   />
                   <div className="text-right text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5 px-1">
                      {(profile.bio?.length || 0)}/280
@@ -864,13 +864,13 @@ export default function ProfileTab({
                   <div className="flex items-center gap-1.5 mb-1.5 px-1">
                      <span className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider">LINK</span>
                      {isStarterPlan && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[10px] font-bold">
-                           <Lock size={10} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400" />
-                           <span className="btn-shine">Pro &amp; Elite</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.08] text-[10px] font-bold text-slate-700 dark:text-neutral-200">
+                           <Lock size={10} strokeWidth={2.4} />
+                           <span>Pro &amp; Elite</span>
                         </span>
                      )}
                   </div>
-                  <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2 border border-transparent focus-within:border-blue-500 transition-colors">
+                  <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2 border border-transparent focus-within:border-slate-900 dark:focus-within:border-white transition-colors">
                      <Link2 size={15} className="text-slate-400 shrink-0" />
                      <input
                         type="text"
@@ -889,7 +889,7 @@ export default function ProfileTab({
                         <button
                            type="button"
                            onClick={() => setActiveTab && setActiveTab('subscription')}
-                           className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11.5px] px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
+                           className="shrink-0 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-[11.5px] px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
                         >
                            Upgrade
                         </button>
@@ -903,7 +903,7 @@ export default function ProfileTab({
                      SOCIALS
                   </label>
                   <div className="space-y-2">
-                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-blue-500 transition-colors">
+                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-slate-900 dark:focus-within:border-white transition-colors">
                         <Instagram size={16} className="text-slate-400 shrink-0" />
                         <input
                            type="text"
@@ -913,7 +913,7 @@ export default function ProfileTab({
                            className="w-full bg-transparent text-[13.5px] text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 dark:placeholder:text-neutral-500"
                         />
                      </div>
-                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-blue-500 transition-colors">
+                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-slate-900 dark:focus-within:border-white transition-colors">
                         <Youtube size={16} className="text-slate-400 shrink-0" />
                         <input
                            type="text"
@@ -923,7 +923,7 @@ export default function ProfileTab({
                            className="w-full bg-transparent text-[13.5px] text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 dark:placeholder:text-neutral-500"
                         />
                      </div>
-                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-blue-500 transition-colors">
+                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-slate-900 dark:focus-within:border-white transition-colors">
                         <MessageSquare size={16} className="text-slate-400 shrink-0" />
                         <input
                            type="text"
@@ -933,7 +933,7 @@ export default function ProfileTab({
                            className="w-full bg-transparent text-[13.5px] text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 dark:placeholder:text-neutral-500"
                         />
                      </div>
-                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-blue-500 transition-colors">
+                     <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2.5 border border-transparent focus-within:border-slate-900 dark:focus-within:border-white transition-colors">
                         <TrendingUp size={16} className="text-slate-400 shrink-0" />
                         <input
                            type="text"
@@ -966,7 +966,7 @@ export default function ProfileTab({
                               const nextVal = !anyOn;
                               toggleKeys.forEach((k) => updateCardToggle(k, nextVal));
                            }}
-                           className="text-[11px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                           className="text-[11px] font-semibold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:underline cursor-pointer"
                         >
                            {anyOn ? 'Hide all' : 'Show all'}
                         </button>

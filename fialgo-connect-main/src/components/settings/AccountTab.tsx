@@ -616,7 +616,7 @@ export default function AccountTab({
                     <button
                       type="button"
                       onClick={() => setRevealEmail(!revealEmail)}
-                      className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                      className="text-[12px] font-semibold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:underline cursor-pointer"
                     >
                       {revealEmail ? 'Hide' : 'Reveal'}
                     </button>
@@ -649,7 +649,7 @@ export default function AccountTab({
                     <button
                       type="button"
                       onClick={() => setRevealPhone(!revealPhone)}
-                      className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                      className="text-[12px] font-semibold text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white hover:underline cursor-pointer"
                     >
                       {revealPhone ? 'Hide' : 'Reveal'}
                     </button>
@@ -671,7 +671,7 @@ export default function AccountTab({
             <DialogContent className="sm:max-w-[420px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/10 rounded-[22px]">
               <DialogHeader>
                 <DialogTitle className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Mail size={16} className="text-blue-600 dark:text-blue-400" />
+                  <Mail size={16} className="text-slate-700 dark:text-neutral-300" />
                   Update Email Address
                 </DialogTitle>
                 <DialogDescription className="text-[12px] text-slate-500 dark:text-neutral-400">
@@ -689,7 +689,7 @@ export default function AccountTab({
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
                     placeholder="name@domain.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white"
                   />
                 </div>
                 <DialogFooter className="gap-2 pt-2">
@@ -703,7 +703,7 @@ export default function AccountTab({
                   <button
                     type="submit"
                     disabled={isUpdatingEmail}
-                    className="rounded-full px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer disabled:opacity-60"
+                    className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-xs font-bold shadow-sm transition-colors cursor-pointer disabled:opacity-60"
                   >
                     {isUpdatingEmail ? 'Sending...' : 'Update Email'}
                   </button>
@@ -729,7 +729,7 @@ export default function AccountTab({
           {/* Password Controls Box */}
           <div className={`${SETTINGS_BOX} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                 <Key size={16} />
               </div>
               <div>
@@ -817,7 +817,7 @@ export default function AccountTab({
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
-                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white"
                   />
                 </div>
                 <div>
@@ -829,7 +829,7 @@ export default function AccountTab({
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Re-enter new password"
-                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white"
                   />
                 </div>
                 <DialogFooter className="gap-2 pt-2">
@@ -843,7 +843,7 @@ export default function AccountTab({
                   <button
                     type="submit"
                     disabled={isUpdatingPassword}
-                    className="rounded-full px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60"
+                    className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60"
                   >
                     {isUpdatingPassword ? 'Updating...' : 'Save Password'}
                   </button>
@@ -886,7 +886,7 @@ export default function AccountTab({
                     value={mfaCode}
                     onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
                     placeholder="Enter 6-digit code"
-                    className="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono tracking-widest bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-sm font-mono tracking-widest bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white"
                   />
                 </div>
                 <DialogFooter className="gap-2 pt-2">
@@ -900,7 +900,7 @@ export default function AccountTab({
                   <button
                     type="submit"
                     disabled={isMfaWorking}
-                    className="rounded-full px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60"
+                    className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60"
                   >
                     {isMfaWorking ? 'Verifying...' : 'Verify & Enable'}
                   </button>
@@ -1034,7 +1034,7 @@ export default function AccountTab({
         <div className={SETTINGS_CARD}>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                 <Users size={17} />
               </div>
               <div>
@@ -1064,7 +1064,7 @@ export default function AccountTab({
               <button
                 type="button"
                 onClick={() => setIsFamilyCenterModalOpen(true)}
-                className="rounded-full px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shadow-sm transition-colors cursor-pointer"
+                className="rounded-full px-4 py-1.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[11.5px] font-bold shadow-sm transition-colors cursor-pointer"
               >
                 {familyCenterActive ? 'Manage' : 'Configure'}
               </button>
@@ -1075,7 +1075,7 @@ export default function AccountTab({
             <DialogContent className="sm:max-w-[440px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/10 rounded-[22px]">
               <DialogHeader>
                 <DialogTitle className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Shield size={16} className="text-blue-600 dark:text-blue-400" />
+                  <Shield size={16} className="text-slate-700 dark:text-neutral-300" />
                   Configure Guardian Guard
                 </DialogTitle>
                 <DialogDescription className="text-[12px] text-slate-500 dark:text-neutral-400">
@@ -1092,7 +1092,7 @@ export default function AccountTab({
                     value={guardianEmail}
                     onChange={(e) => setGuardianEmail(e.target.value)}
                     placeholder="mentor@domain.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white"
                   />
                 </div>
                 <div>
@@ -1104,7 +1104,7 @@ export default function AccountTab({
                     value={guardianMaxLoss}
                     onChange={(e) => setGuardianMaxLoss(e.target.value)}
                     placeholder="2500"
-                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-[13px] bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white"
                   />
                 </div>
                 <div className={`${SETTINGS_BOX} flex items-center justify-between gap-3`}>
@@ -1120,12 +1120,12 @@ export default function AccountTab({
                     type="button"
                     onClick={() => setGuardianWeeklyReport(!guardianWeeklyReport)}
                     className={`relative w-10 h-5 rounded-full transition-colors cursor-pointer shrink-0 ${
-                      guardianWeeklyReport ? 'bg-blue-600' : 'bg-slate-300 dark:bg-white/20'
+                      guardianWeeklyReport ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-white/20'
                     }`}
                   >
                     <div
-                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${
-                        guardianWeeklyReport ? 'translate-x-5' : 'translate-x-0'
+                      className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full transition-transform ${
+                        guardianWeeklyReport ? 'translate-x-5 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'
                       }`}
                     />
                   </button>
@@ -1142,7 +1142,7 @@ export default function AccountTab({
                 <button
                   type="button"
                   onClick={handleSaveFamilyCenter}
-                  className="rounded-full px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm cursor-pointer"
+                  className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm cursor-pointer"
                 >
                   Save Guard Settings
                 </button>
@@ -1216,7 +1216,7 @@ export default function AccountTab({
 
             <div className={`${SETTINGS_BOX} flex flex-col justify-between gap-3`}>
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                   <FileJson size={16} />
                 </div>
                 <div>
