@@ -42,8 +42,8 @@ export const RISK_WIDGET_CATALOG: {
   },
   {
     id: "martingale",
-    title: "Martingale Protection",
-    subtitle: "72-notch dial: post-loss lot cap scale",
+    title: "Post-Loss Lot Cap",
+    subtitle: "Step flow + bar: limit size after a loss",
   },
   {
     id: "one_instrument",
@@ -516,54 +516,48 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
           <WidgetHeader
             id="martingale"
             icon={AlertTriangle}
-            title="Martingale Guard"
+            title="Post-Loss Lot Cap"
             badge={widgetData.martingale.active ? `${widgetData.martingale.multiplier.toFixed(1)}×` : "Off"}
             badgeTone={widgetData.martingale.active ? "amber" : "neutral"}
           />
-          <div className="flex items-center gap-2.5">
-            <div className="w-[126px] shrink-0 flex justify-center">
-              <Gauge
-                compact
-                ariaLabel="Martingale Scale Cap Gauge"
-                value={widgetData.martingale.pct}
-                centerValue={widgetData.martingale.pct}
-                defaultLabel={`${widgetData.martingale.currentNextLot.toFixed(2)} / ${widgetData.martingale.allowedNextLot.toFixed(2)}`}
-                suffix="%"
-                needle="line"
-                ruler
-                totalNotches={72}
-                spacing={40}
-                notchLengthPercent={34}
-                notchCornerRadius={2}
-                startAngle={148}
-                endAngle={392}
-                enterTransition={{ type: "spring", visualDuration: 1.4, bounce: 0 }}
-                enterStaggerScale={2}
-                inactiveFillOpacity={0.4}
-                useGradient
-                gradientColors={widgetData.martingale.grad}
-              />
-            </div>
-            <div className="flex-1 min-w-0 space-y-1.5 text-[11px]">
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-slate-400 dark:text-neutral-500">Scale</span>
+          <div className="space-y-2">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-1.5 text-[10.5px]">
+              <div className="px-2 py-1 rounded-lg bg-slate-50 dark:bg-white/[0.04]">
+                <span className="text-[9px] text-slate-400 block">Last Losing Lot</span>
                 <span className="font-bold text-slate-800 dark:text-white tabular-nums">
-                  {widgetData.martingale.multiplier.toFixed(1)}× max
+                  {widgetData.martingale.lastLossLot.toFixed(2)} Lots
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-slate-400 dark:text-neutral-500">Last Loss</span>
-                <span className="font-bold text-slate-900 dark:text-white tabular-nums">
-                  {widgetData.martingale.lastLossLot.toFixed(2)}
+              <span className="px-1.5 py-0.5 rounded-full text-[9.5px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 tabular-nums">
+                × {widgetData.martingale.multiplier.toFixed(1)}
+              </span>
+              <div className="px-2 py-1 rounded-lg bg-emerald-50/70 dark:bg-emerald-500/10 text-right">
+                <span className="text-[9px] text-emerald-700/80 dark:text-emerald-400/80 block">
+                  Max Next
                 </span>
-              </div>
-              <div className="flex items-center justify-between gap-1">
-                <span className="text-slate-400 dark:text-neutral-500">Next Cap</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                <span className="font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
                   {widgetData.martingale.allowedNextLot.toFixed(2)} Lots
                 </span>
               </div>
             </div>
+
+            <Gauge
+              orientation="linear"
+              ariaLabel="Dashboard Martingale Scale Cap"
+              value={widgetData.martingale.pct}
+              centerValue={widgetData.martingale.pct}
+              defaultLabel={`Open ${widgetData.martingale.currentNextLot.toFixed(2)} of ${widgetData.martingale.allowedNextLot.toFixed(2)} Lots max`}
+              suffix="% used"
+              labelPlacement="top"
+              labelAlign="start"
+              totalNotches={36}
+              linearHeight={12}
+              spacing={2}
+              notchCornerRadius={3}
+              inactiveFillOpacity={0.35}
+              useGradient
+              gradientColors={widgetData.martingale.grad}
+            />
           </div>
         </div>
       )}

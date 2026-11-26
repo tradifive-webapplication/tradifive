@@ -1678,7 +1678,7 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={AlertTriangle}
                           title="Martingale Protection"
-                          description="Block increasing lot sizes after a loss"
+                          description="Don't double or oversize trades after a loss"
                           value={`${martingaleMultiplier.toFixed(1)}×`}
                           active={martingaleDetection}
                           onToggle={setMartingaleDetection}
@@ -1686,61 +1686,64 @@ export default function RiskGuard() {
                           hasDashboardWidget={pinnedWidgets.includes("martingale")}
                         >
                           <div className="space-y-2.5">
-                            <div className="flex items-center gap-3">
-                              <div className="w-[134px] shrink-0 flex flex-col items-center">
-                                <Gauge
-                                  compact
-                                  ariaLabel="Martingale Scale Dial Gauge"
-                                  value={lotTelemetry.martingale.pct}
-                                  centerValue={lotTelemetry.martingale.pct}
-                                  defaultLabel={`${lotTelemetry.martingale.current.toFixed(2)} / ${lotTelemetry.martingale.maxNext.toFixed(2)}`}
-                                  suffix="%"
-                                  needle="line"
-                                  ruler
-                                  totalNotches={72}
-                                  spacing={40}
-                                  notchLengthPercent={34}
-                                  notchCornerRadius={2}
-                                  startAngle={148}
-                                  endAngle={392}
-                                  enterTransition={{
-                                    type: "spring",
-                                    visualDuration: 1.4,
-                                    bounce: 0,
-                                  }}
-                                  enterStaggerScale={2}
-                                  inactiveFillOpacity={0.4}
-                                  useGradient
-                                  gradientColors={lotTelemetry.martingale.grad}
-                                />
+                            {/* Simple Visual Step Flow: Last Loss -> Multiplier -> Next Max Allowed */}
+                            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                              <div className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.07]">
+                                <span className="text-[9.5px] font-medium text-slate-400 dark:text-neutral-500 block">
+                                  Last Losing Lot
+                                </span>
+                                <span className="text-[12.5px] font-bold text-slate-800 dark:text-white tabular-nums">
+                                  {lotTelemetry.martingale.lastLossLot.toFixed(2)} Lots
+                                </span>
                               </div>
 
-                              <div className="flex-1 min-w-0 space-y-1.5 text-[11px]">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                                    Scale Cap
-                                  </span>
-                                  <span className="font-bold text-slate-800 dark:text-white tabular-nums">
-                                    {martingaleMultiplier.toFixed(1)}×
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                                    Last Loss
-                                  </span>
-                                  <span className="font-bold text-slate-900 dark:text-white tabular-nums">
-                                    {lotTelemetry.martingale.lastLossLot.toFixed(2)} Lots
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                                    Next Max
-                                  </span>
-                                  <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                                    {lotTelemetry.martingale.maxNext.toFixed(2)} Lots
-                                  </span>
-                                </div>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200/70 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30 tabular-nums">
+                                × {martingaleMultiplier.toFixed(1)}
+                              </span>
+
+                              <div className="px-2.5 py-1.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-500/10 border border-emerald-200/70 dark:border-emerald-500/25 text-right">
+                                <span className="text-[9.5px] font-medium text-emerald-700/80 dark:text-emerald-400/80 block">
+                                  Max Next Trade
+                                </span>
+                                <span className="text-[12.5px] font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+                                  {lotTelemetry.martingale.maxNext.toFixed(2)} Lots
+                                </span>
                               </div>
+                            </div>
+
+                            {/* Linear Safety Scale vs Current Open Exposure */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10.5px]">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                  <span>
+                                    Open: {lotTelemetry.martingale.current.toFixed(2)} Lots
+                                  </span>
+                                  <span
+                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                  {lotTelemetry.martingale.pct}% of cap ({lotTelemetry.martingale.maxNext.toFixed(2)} max)
+                                </span>
+                              </div>
+                              <Gauge
+                                orientation="linear"
+                                ariaLabel="Martingale Scale Cap Bar"
+                                value={lotTelemetry.martingale.pct}
+                                totalNotches={42}
+                                linearHeight={12}
+                                spacing={2}
+                                notchCornerRadius={3}
+                                inactiveFillOpacity={0.35}
+                                useGradient
+                                gradientColors={lotTelemetry.martingale.grad}
+                              />
                             </div>
 
                             <div className="flex items-center gap-3">
