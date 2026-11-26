@@ -1830,7 +1830,7 @@ export default function RiskGuard() {
                           : "bg-amber-500"
                       }`}
                     />
-                    {tabCounts.total} Guards Active
+                    {tabCounts.total} {tabCounts.total === 1 ? "Guard" : "Guards"} Active
                   </span>
                   <span
                     className={`hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap border ${
@@ -2010,40 +2010,26 @@ export default function RiskGuard() {
               </motion.div>
             )}
 
-            {/* 1. MT5 Capital Goal & Milestone Rewards Banner (Full Width) */}
+            {/* 1. Simple Horizontal Capital Goal & XP Star Track */}
             <motion.section
               variants={sectionVariants}
-              className={`${SURFACE_CARD} px-4 py-3.5 sm:px-5 sm:py-4 border-blue-200/60 dark:border-blue-500/20`}
+              className={`${SURFACE_CARD} px-4 py-3 sm:px-5 sm:py-3.5 border-blue-200/60 dark:border-blue-500/20`}
             >
-              {/* Top Row: Trader Rank & Balance -> Profit Goal -> XP & Edit Goal */}
-              <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#2563EB] dark:text-blue-400 uppercase tracking-wider px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-500/15 shrink-0">
-                    <Trophy size={11} />
-                    <span>Capital Goal</span>
+              {/* Clean Top Line: Title + Level | MT5 Balance -> Target | XP | Pencil */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-[10px] font-bold text-[#2563EB] dark:text-blue-400 uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-500/15 shrink-0">
+                    Capital Goal
                   </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h2 className="text-[14px] sm:text-[15px] font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
-                        Level <AnimatedNumber value={gamificationState.level} duration={700} />{" "}
-                        {getTitleForLevel(gamificationState.level)}
-                      </h2>
-                      <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/15 px-2 py-0.5 rounded-full tabular-nums">
-                        +{sym}
-                        {Math.round(currentProfit).toLocaleString()} / +{sym}
-                        {Math.round(effectiveGoalAmount).toLocaleString()} Profit ({Math.round(progressPercent)}%)
-                      </span>
-                    </div>
-                  </div>
+                  <h2 className="text-[14px] sm:text-[15px] font-bold text-slate-900 dark:text-white tracking-tight truncate tabular-nums">
+                    Level <AnimatedNumber value={gamificationState.level} duration={700} />{" "}
+                    {getTitleForLevel(gamificationState.level)}
+                  </h2>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap shrink-0">
-                  {/* Fetched MT5 / Demo Account Balance Pill */}
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[9px] bg-slate-50 dark:bg-white/[0.04] border border-slate-200/80 dark:border-white/[0.08] text-[11px] tabular-nums">
-                    <span className="text-slate-400 font-medium">
-                      {useDemoData ? "Demo" : "MT5"} Bal:
-                    </span>
-                    <strong className="font-bold text-slate-800 dark:text-white">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="hidden sm:inline text-[11px] text-slate-400 tabular-nums">
+                    <strong className="font-semibold text-slate-700 dark:text-neutral-200">
                       {sym}
                       <AnimatedNumber
                         value={effectiveCurrentBalance}
@@ -2051,54 +2037,22 @@ export default function RiskGuard() {
                         format={(v) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       />
                     </strong>
-                    <span className="text-slate-300 dark:text-neutral-600">→</span>
-                    <strong className="font-bold text-[#2563EB] dark:text-blue-400">
+                    {" → "}
+                    <strong className="font-semibold text-[#2563EB] dark:text-blue-400">
                       {sym}
                       <AnimatedNumber
                         value={effectiveTargetBalance}
                         duration={800}
+                        delay={60}
                         format={(v) => v.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       />
-                    </strong>
-                  </div>
+                    </strong>{" "}
+                    {iso}
+                  </span>
 
-                  {/* Interactive Demo Profit Stepper so users can test XP & Gifts */}
-                  {useDemoData && (
-                    <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[9px] bg-amber-50/80 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/20">
-                      <span className="text-[9.5px] font-bold text-amber-700 dark:text-amber-300 px-1 uppercase">
-                        Sim Profit
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDemoGoalProfit((p) =>
-                            Math.max(0, p - (activeMarket === "indian" ? 1000 : 250))
-                          )
-                        }
-                        className="w-5 h-5 rounded-md bg-white dark:bg-[#1C1C20] border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-amber-100 transition-colors cursor-pointer"
-                        title="Decrease simulated profit"
-                      >
-                        <Minus size={10} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setDemoGoalProfit(
-                            (p) => p + (activeMarket === "indian" ? 1000 : 250)
-                          )
-                        }
-                        className="w-5 h-5 rounded-md bg-white dark:bg-[#1C1C20] border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-center text-slate-600 dark:text-neutral-300 hover:bg-amber-100 transition-colors cursor-pointer"
-                        title="Increase simulated profit to unlock milestone XP & gifts"
-                      >
-                        <Plus size={10} />
-                      </button>
-                    </div>
-                  )}
-
-                  {/* XP Pill */}
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400">
-                    <Star size={11} className="fill-[#2563EB] dark:fill-blue-400" />
-                    <span className="text-[11px] font-bold tabular-nums">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400">
+                    <Trophy size={11} />
+                    <span className="text-[11px] font-semibold tabular-nums">
                       <AnimatedNumber
                         value={gamificationState.xp}
                         duration={850}
@@ -2109,16 +2063,14 @@ export default function RiskGuard() {
                     </span>
                   </div>
 
-                  {/* Goal Picker Popover */}
                   <Popover>
                     <PopoverTrigger asChild>
                       <button
                         type="button"
-                        className="tactile-white-pill inline-flex items-center gap-1.5 h-[30px] px-2.5 rounded-[9px] text-[11px] font-semibold cursor-pointer"
-                        title="Select your profit goal"
+                        className="tactile-white-pill w-7 h-7 rounded-[9px] flex items-center justify-center cursor-pointer"
+                        title="Set your MT5 profit goal"
                       >
-                        <Pencil size={11} />
-                        <span>Set Goal</span>
+                        <Pencil size={12} />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent
@@ -2129,7 +2081,7 @@ export default function RiskGuard() {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center text-[11.5px]">
                           <span className="text-slate-400 font-medium">
-                            {useDemoData ? "Demo Start Balance" : "MT5 Baseline"}
+                            {useDemoData ? "Demo Balance" : "MT5 Balance"}
                           </span>
                           <span className="font-semibold text-slate-800 dark:text-white tabular-nums">
                             {sym}
@@ -2138,7 +2090,7 @@ export default function RiskGuard() {
                         </div>
 
                         <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06]">
-                          <label className={FIELD_LABEL}>Quick Profit Goal</label>
+                          <label className={FIELD_LABEL}>Select Profit Goal</label>
                           <div className="grid grid-cols-4 gap-1.5 mt-1">
                             {(activeMarket === "indian"
                               ? [5000, 10000, 25000, 50000]
@@ -2162,7 +2114,7 @@ export default function RiskGuard() {
                         </div>
 
                         <div>
-                          <label className={FIELD_LABEL}>Custom Profit Target</label>
+                          <label className={FIELD_LABEL}>Custom Profit Goal</label>
                           <div className="relative">
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-semibold text-[12px]">
                               +{sym}
@@ -2180,7 +2132,41 @@ export default function RiskGuard() {
                           </div>
                         </div>
 
-                        {!useDemoData && balance > 0 && (
+                        {useDemoData ? (
+                          <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between">
+                            <span className="text-[11px] text-slate-400 font-medium">
+                              Demo Profit Preview
+                            </span>
+                            <div className="inline-flex items-center gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDemoGoalProfit((p) =>
+                                    Math.max(0, p - (activeMarket === "indian" ? 1000 : 250))
+                                  )
+                                }
+                                className="w-6 h-6 rounded-md bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                              >
+                                <Minus size={11} />
+                              </button>
+                              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 tabular-nums min-w-[48px] text-center">
+                                +{sym}
+                                {demoGoalProfit.toLocaleString()}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDemoGoalProfit(
+                                    (p) => p + (activeMarket === "indian" ? 1000 : 250)
+                                  )
+                                }
+                                className="w-6 h-6 rounded-md bg-slate-100 dark:bg-white/[0.08] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                              >
+                                <Plus size={11} />
+                              </button>
+                            </div>
+                          </div>
+                        ) : balance > 0 ? (
                           <button
                             type="button"
                             onClick={() => {
@@ -2190,82 +2176,93 @@ export default function RiskGuard() {
                             }}
                             className="w-full py-1.5 rounded-lg text-[11px] font-semibold text-[#2563EB] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/15 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors cursor-pointer"
                           >
-                            Reset Start to Current MT5 ({sym}{balance.toLocaleString()})
+                            Reset Start to MT5 ({sym}{balance.toLocaleString()})
                           </button>
-                        )}
+                        ) : null}
                       </div>
                     </PopoverContent>
                   </Popover>
                 </div>
               </div>
 
-              {/* Progress Bar + Interactive XP & Gift Milestone Cards */}
-              <div className="mt-3 space-y-2.5">
-                <div className="w-full h-2 bg-slate-100 dark:bg-white/[0.08] rounded-full overflow-hidden">
+              {/* Simple Horizontal Progress Bar + Stars on Checkpoints */}
+              <div className="mt-2.5 space-y-1.5">
+                <div className="w-full h-1.5 bg-slate-100 dark:bg-white/[0.08] rounded-full overflow-hidden">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercent}%` }}
                     transition={{ duration: 0.7, ease: EXPO_OUT }}
-                    className="h-full bg-gradient-to-r from-[#2563EB] via-blue-500 to-emerald-500 rounded-full"
+                    className="h-full bg-[#2563EB] rounded-full"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="flex items-center justify-between gap-1">
+                  {/* Start Star */}
+                  <div className="inline-flex items-center gap-1">
+                    <Star size={9} className="text-[#2563EB] fill-[#2563EB]" />
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-neutral-400 tabular-nums">
+                      {sym}0
+                    </span>
+                  </div>
+
+                  {/* 4 Star + XP/Gift Checkpoints */}
                   {goalMilestones.map((m) => {
                     const targetAmt = Math.round((m.pct / 100) * effectiveGoalAmount);
                     const reached = progressPercent >= m.pct;
                     const claimed = claimedGoalMilestones.includes(m.id);
+                    const canClaim = reached && !claimed;
+
                     return (
                       <button
                         key={m.id}
                         type="button"
-                        disabled={!reached || claimed}
+                        disabled={!canClaim}
                         onClick={() => handleClaimGoalMilestone(m)}
-                        className={`group flex items-center justify-between gap-2 px-2.5 py-2 rounded-[11px] border text-left transition-all ${
+                        title={
                           claimed
-                            ? "bg-emerald-50/70 dark:bg-emerald-500/10 border-emerald-200/80 dark:border-emerald-500/25 cursor-default"
+                            ? `${m.rewardTitle} claimed (+${m.xp} XP)`
                             : reached
-                            ? "bg-blue-50 dark:bg-blue-500/15 border-[#2563EB]/40 shadow-[0_2px_10px_rgba(37,99,235,0.14)] hover:border-[#2563EB] cursor-pointer"
-                            : "bg-slate-50/70 dark:bg-white/[0.03] border-slate-200/70 dark:border-white/[0.07] opacity-80 cursor-default"
+                            ? `Click to claim ${m.giftLabel} (+${m.xp} XP)`
+                            : `Reach +${sym}${targetAmt.toLocaleString()} profit for +${m.xp} XP`
+                        }
+                        className={`inline-flex items-center gap-1 rounded-full transition-all ${
+                          canClaim
+                            ? "px-2 py-0.5 bg-blue-50 dark:bg-blue-500/20 text-[#2563EB] dark:text-blue-300 ring-1 ring-[#2563EB]/40 cursor-pointer hover:bg-blue-100"
+                            : "cursor-default"
                         }`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${
+                        {m.pct === 100 && claimed ? (
+                          <Gift size={9} className="text-emerald-500" />
+                        ) : (
+                          <Star
+                            size={9}
+                            className={
                               claimed
-                                ? "bg-emerald-500 text-white"
+                                ? "text-emerald-500 fill-emerald-500"
                                 : reached
-                                ? "bg-[#2563EB] text-white"
-                                : "bg-white dark:bg-[#1C1C20] border border-slate-200/80 dark:border-white/10 text-slate-400"
-                            }`}
-                          >
-                            {claimed ? (
-                              <Check size={12} strokeWidth={2.6} />
-                            ) : (
-                              <Gift size={12} />
-                            )}
-                          </span>
-                          <div className="min-w-0">
-                            <div className="text-[11px] font-bold text-slate-800 dark:text-white tabular-nums truncate">
-                              +{sym}
-                              {targetAmt.toLocaleString()}
-                            </div>
-                            <div className="text-[9.5px] font-medium text-slate-400 dark:text-neutral-400 truncate">
-                              {m.giftLabel}
-                            </div>
-                          </div>
-                        </div>
+                                ? "text-[#2563EB] fill-[#2563EB]"
+                                : "text-slate-300 dark:text-neutral-600"
+                            }
+                          />
+                        )}
                         <span
-                          className={`px-1.5 py-0.5 rounded-md text-[9.5px] font-bold tabular-nums shrink-0 ${
+                          className={`text-[10px] font-semibold tabular-nums ${
                             claimed
-                              ? "text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-500/20"
+                              ? "text-emerald-600 dark:text-emerald-400"
                               : reached
-                              ? "bg-[#2563EB] text-white group-hover:scale-105 transition-transform"
-                              : "text-slate-500 dark:text-neutral-400 bg-white dark:bg-white/[0.06]"
+                              ? "text-[#2563EB] dark:text-blue-300"
+                              : "text-slate-400 dark:text-neutral-400"
                           }`}
                         >
-                          {claimed ? "Claimed" : reached ? `Claim +${m.xp}` : `+${m.xp} XP`}
+                          {canClaim
+                            ? `Claim +${m.xp} XP`
+                            : `+${sym}${targetAmt.toLocaleString()}`}
                         </span>
+                        {!canClaim && (
+                          <span className="hidden sm:inline text-[9px] font-semibold text-slate-300 dark:text-neutral-500 tabular-nums">
+                            {claimed ? "✓" : `· ${m.xp}XP`}
+                          </span>
+                        )}
                       </button>
                     );
                   })}
