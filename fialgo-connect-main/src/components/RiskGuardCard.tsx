@@ -2,6 +2,9 @@ import React from "react";
 import { Switch } from "./ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock } from "lucide-react";
+import { usePlan } from "@/hooks/usePlan";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 type CardIntent = "trading" | "warning" | "discipline" | "emergency" | "positive";
 
@@ -26,6 +29,24 @@ export function RiskGuardCard({
   hasDashboardWidget?: boolean;
   children?: React.ReactNode;
 }) {
+  const { isStarter } = usePlan();
+  const navigate = useNavigate();
+  const effectiveActive = isStarter ? false : active;
+
+  const handleGuardedToggle = (val: boolean) => {
+    if (isStarter) {
+      toast.info("Pro & Elite Feature · Risk Guard", {
+        description: "Subscribe to Pro or Elite to enable live MT5 Risk Guard automation.",
+        action: {
+          label: "Subscribe",
+          onClick: () => navigate("/upgrade"),
+        },
+      });
+      return;
+    }
+    onToggle(val);
+  };
+
   const activeIconStyle =
     intent === "emergency"
       ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
@@ -54,7 +75,7 @@ export function RiskGuardCard({
   return (
     <div
       className={`p-3 sm:p-3.5 rounded-[16px] transition-all flex flex-col justify-start relative overflow-hidden isolate bg-white dark:bg-[#17171A] border shadow-[0_2px_8px_rgba(15,23,42,0.035),0_8px_20px_-10px_rgba(15,23,42,0.06)] dark:shadow-none ${
-        active
+        effectiveActive
           ? intent === "emergency"
             ? "border-rose-200/80 dark:border-rose-500/25"
             : intent === "positive"
@@ -78,7 +99,7 @@ export function RiskGuardCard({
         <div className="flex items-center gap-2.5 flex-1 min-w-0">
           <div
             className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-colors ${
-              active
+              effectiveActive
                 ? activeIconStyle
                 : "bg-slate-100 dark:bg-white/[0.06] text-slate-500 dark:text-neutral-400"
             }`}
@@ -88,7 +109,7 @@ export function RiskGuardCard({
           <div className="flex-1 min-w-0">
             <h3
               className={`text-[13px] font-semibold truncate leading-tight ${
-                active
+                effectiveActive
                   ? "text-slate-900 dark:text-white"
                   : "text-slate-800 dark:text-neutral-200"
               }`}
@@ -105,7 +126,7 @@ export function RiskGuardCard({
           {showValuePill && (
             <span
               className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-md tabular-nums ${
-                active
+                effectiveActive
                   ? activeBadgeStyle
                   : "bg-slate-100 text-slate-500 dark:bg-white/[0.06] dark:text-neutral-400"
               }`}
@@ -113,7 +134,10 @@ export function RiskGuardCard({
               {valueStr}
             </span>
           )}
-          <Switch size="sm" checked={active} onChange={onToggle} />
+          {isStarter && (
+            <Lock size={11.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+          )}
+          <Switch size="sm" checked={effectiveActive} onChange={handleGuardedToggle} />
         </div>
       </div>
 
@@ -122,14 +146,14 @@ export function RiskGuardCard({
         <div className="relative pt-2.5 mt-2.5 border-t border-slate-100 dark:border-white/[0.06]">
           <div
             className={`transition-all duration-200 ${
-              active ? "opacity-35 pointer-events-none select-none blur-[1px]" : ""
+              effectiveActive ? "opacity-35 pointer-events-none select-none blur-[1px]" : ""
             }`}
           >
             {children}
           </div>
 
           <AnimatePresence>
-            {active && (
+            {effectiveActive && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

@@ -448,14 +448,24 @@ export default function RiskGuard() {
   }, []);
 
   // C. Institutional Discipline States
-  const { isProOrElite } = usePlan();
+  const { isStarter, isPro, isElite, isProOrElite } = usePlan();
+  const maxAllowedDailyTrades = isElite ? 5 : 10;
+  const promptRiskGuardUpgrade = (feature = "Risk Guard") => {
+    toast.info(`Pro & Elite Feature · ${feature}`, {
+      description: "Subscribe to Pro or Elite to activate automated MT5 Risk Guard controls.",
+      action: {
+        label: "Subscribe",
+        onClick: () => navigate("/upgrade"),
+      },
+    });
+  };
   const [disciplineActive, setDisciplineActive] = useState(false);
   const { activeMarket } = useMarket();
   const sym = activeMarket === "indian" ? "₹" : "$";
   const iso = activeMarket === "indian" ? "INR" : "USD";
 
   const [revengeGuard, setRevengeGuard] = useState(false);
-  const [tradeLimit, setTradeLimit] = useState(3);
+  const [tradeLimit, setTradeLimit] = useState(() => (isElite ? 5 : 10));
   const [waitPeriod, setWaitPeriod] = useState(5);
   const [cooldownActive, setCooldownActive] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
@@ -800,9 +810,9 @@ export default function RiskGuard() {
       if (dbConfig.max_daily_loss_percent !== null && dbConfig.max_daily_loss_percent > 0)
         setMaxDrawdown(dbConfig.max_daily_loss_percent);
       if (dbConfig.max_open_trades !== null && dbConfig.max_open_trades > 0)
-        setTradeLimit(dbConfig.max_open_trades);
+        setTradeLimit(Math.min(maxAllowedDailyTrades, dbConfig.max_open_trades));
     }
-  }, [dbConfig]);
+  }, [dbConfig, maxAllowedDailyTrades]);
 
   useEffect(() => {
     try {
@@ -836,7 +846,8 @@ export default function RiskGuard() {
         setAllowHedging(config.allowHedging);
       if (config.revengeGuard !== undefined)
         setRevengeGuard(config.revengeGuard);
-      if (config.tradeLimit && config.tradeLimit > 0) setTradeLimit(config.tradeLimit);
+      if (config.tradeLimit && config.tradeLimit > 0)
+        setTradeLimit(Math.min(isElite ? 5 : 10, config.tradeLimit));
       if (config.waitPeriod && config.waitPeriod > 0) setWaitPeriod(config.waitPeriod);
       if (config.lossCooldownTrigger) setLossCooldownTrigger(config.lossCooldownTrigger);
       if (config.selectedSessions)
@@ -1030,7 +1041,19 @@ export default function RiskGuard() {
     }
   };
 
+  useEffect(() => {
+    if (isElite && tradeLimit > 5) {
+      setTradeLimit(5);
+    } else if (!isElite && tradeLimit > 10) {
+      setTradeLimit(10);
+    }
+  }, [isElite, tradeLimit]);
+
   const handleSave = async () => {
+    if (isStarter) {
+      promptRiskGuardUpgrade("Live MT5 Sync");
+      return;
+    }
     const activeLotCap = maxLotActive ? maxLot : 0;
     if (user?.id) {
       await Promise.all([
@@ -1064,6 +1087,7 @@ export default function RiskGuard() {
     }
 
     const timer = setTimeout(() => {
+      if (isStarter) return;
       localStorage.setItem(
         "fialgo_risk_config",
         JSON.stringify(buildConfigPayload())
@@ -1942,9 +1966,13 @@ export default function RiskGuard() {
                 </div>
                 <Switch
                   size="sm"
-                  checked={killSwitchActive}
+                  checked={isStarter ? false : killSwitchActive}
                   disabled={isTogglingKillSwitch}
                   onChange={(val) => {
+                    if (isStarter) {
+                      promptRiskGuardUpgrade("Emergency Kill Switch");
+                      return;
+                    }
                     if (val) {
                       setKillSwitchModalOpen(true);
                     } else {
@@ -1971,6 +1999,25 @@ export default function RiskGuard() {
             animate="visible"
             className="max-w-[1380px] mx-auto px-3.5 sm:px-6 pt-2 pb-12 space-y-4"
           >
+            {/* Standard Plan Banner matching Journal Page */}
+            {isStarter && (
+              <motion.div
+                variants={sectionVariants}
+                className={`${SURFACE_CARD} px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5`}
+              >
+                <p className="text-[12.5px] text-slate-600 dark:text-neutral-300">
+                  Want automated MetaAPI Risk Guard protection?{" "}
+                  <button
+                    type="button"
+                    onClick={() => navigate("/upgrade")}
+                    className="font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    Activate PRO to unlock Risk Guard protections &amp; live kill switch →
+                  </button>
+                </p>
+              </motion.div>
+            )}
+
             {/* Active Emergency Kill Switch Banner */}
             <AnimatePresence>
               {killSwitchActive && (
@@ -4086,9 +4133,13 @@ export default function RiskGuard() {
                             <div className="flex items-center gap-1.5 w-[132px]">
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setTradeLimit((prev) => Math.max(1, (prev || 1) - 1))
-                                }
+                                onClick={() => {
+                                  if (isStarter) {
+                                    promptRiskGuardUpgrade("Daily Trade Limit");
+                                    return;
+                                  }
+                                  setTradeLimit((prev) => Math.max(1, (prev || 1) - 1));
+                                }}
                                 className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
                               >
                                 -
@@ -4101,15 +4152,25 @@ export default function RiskGuard() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  if (!isProOrElite && lotTelemetry.behaviour.tradeCap >= 5) {
-                                    toast.error("Pro Feature", {
-                                      description:
-                                        "Upgrade to Pro to increase daily execution limits above 5.",
-                                    });
+                                  if (isStarter) {
+                                    promptRiskGuardUpgrade("Daily Trade Limit");
+                                    return;
+                                  }
+                                  if (lotTelemetry.behaviour.tradeCap >= maxAllowedDailyTrades) {
+                                    toast.info(
+                                      isElite
+                                        ? "Elite Discipline Limit · Max 5 trades/day"
+                                        : "Pro Plan Limit · Max 10 trades/day",
+                                      {
+                                        description: isElite
+                                          ? "Elite keeps a strict maximum of 5 trades per day for peak precision."
+                                          : "Pro supports up to 10 trades per day.",
+                                      }
+                                    );
                                     return;
                                   }
                                   setTradeLimit((prev) =>
-                                    Math.min(20, (prev || 1) + 1)
+                                    Math.min(maxAllowedDailyTrades, (prev || 1) + 1)
                                   );
                                 }}
                                 className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
