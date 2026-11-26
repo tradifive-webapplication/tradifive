@@ -9,8 +9,8 @@ import {
   Zap,
   RefreshCw,
   ShieldCheck,
-  Lock,
 } from "lucide-react";
+import { Lock as IconlyLock } from "react-iconly";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { usePlan } from "@/hooks/usePlan";
@@ -371,7 +371,9 @@ export default function ConnectBrokerTopDrawer({
                       title="Pro & Elite Feature · Upgrade to connect MT5"
                       className="tactile-white-pill rounded-full px-5 py-2 font-bold text-[12.5px] transition-all inline-flex items-center gap-1.5 cursor-pointer select-none shadow-sm hover:border-blue-400/60"
                     >
-                      <Lock size={13} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                        <IconlyLock set="curved" primaryColor="currentColor" size={14} stroke="bold" />
+                      </span>
                       <span className="btn-shine">Connect MT5 Account</span>
                     </Link>
                   ) : (

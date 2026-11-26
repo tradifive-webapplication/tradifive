@@ -30,7 +30,7 @@ import {
    Settings as SettingsIcon, Camera, Check, 
    Twitter, Instagram, Youtube, Trash2, Shield, 
    Smartphone, Monitor, Moon, Sun, MonitorSmartphone, Power, X,
-   Key, Lock, Globe, Bot, Brain, TrendingUp, Gem, Receipt, Hash, Award, 
+   Key, Globe, Bot, Brain, TrendingUp, Gem, Receipt, Hash, Award, 
    FileText, ChevronDown, CheckCircle, RefreshCw, Eye, EyeOff,
    ArrowUpRight, ShieldCheck, Terminal, Volume2, Calendar, LockKeyhole, Sparkles,
    CircleUserRound, Languages, BellRing, MessageCircle, AlertCircle, Inbox, MoreVertical, ArrowRight, Plus, Minus, Download,
@@ -38,7 +38,7 @@ import {
    ChevronLeft, Sliders, Copy, Pencil, HelpCircle, MousePointer, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { triggerHaptic } from '@/utils/haptics';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { User, Category, Notification, Star, Swap, TicketStar, Wallet, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting } from 'react-iconly';
+import { User, Category, Notification, Star, Swap, TicketStar, Wallet, InfoCircle, Danger, Logout, Edit, Search, ChevronRight, Activity, ShieldDone, Document, Setting, Lock as IconlyLock } from 'react-iconly';
 import { useAICoachData } from '@/hooks/useAICoachData';
 import { useTradingTheme } from '@/hooks/useTradingTheme';
 import { TradingThemeId } from '@/utils/tradingTheme';
@@ -3493,7 +3493,9 @@ export default function Settings() {
                                     </div>
                                  ) : (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/[0.07] border border-slate-200/80 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-neutral-200 shrink-0 self-start sm:self-center">
-                                       <Lock size={11} strokeWidth={2.5} className="text-slate-600 dark:text-neutral-300" />
+                                       <span className="inline-flex items-center text-slate-600 dark:text-neutral-300">
+                                          <IconlyLock set="curved" primaryColor="currentColor" size={12} stroke="bold" />
+                                       </span>
                                        <span>Pro &amp; Elite</span>
                                     </span>
                                  )}
@@ -3576,7 +3578,7 @@ export default function Settings() {
                                        onClick={() => setActiveTab('subscription')}
                                        className="tactile-blue-pill inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-bold cursor-pointer shrink-0 self-start sm:self-center"
                                     >
-                                       <Lock size={12} strokeWidth={2.3} />
+                                       <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
                                        <span>Upgrade</span>
                                     </button>
                                  ) : null}
@@ -3645,7 +3647,7 @@ export default function Settings() {
                                        <div className="rounded-2xl bg-[#F8F9FA] dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] p-3.5 flex items-center justify-between gap-3">
                                           <div className="flex items-center gap-3 min-w-0">
                                              <div className="w-9 h-9 rounded-xl bg-white dark:bg-white/[0.07] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
-                                                <Lock size={14} strokeWidth={2.3} />
+                                                <IconlyLock set="curved" primaryColor="currentColor" size={16} stroke="bold" />
                                              </div>
                                              <div className="min-w-0">
                                                 <span className="text-[12.5px] font-bold text-slate-900 dark:text-white block leading-tight">
@@ -3764,7 +3766,7 @@ export default function Settings() {
                                              onClick={() => setActiveTab('subscription')}
                                              className="tactile-black-pill h-9 px-5 rounded-full text-[12.5px] font-bold inline-flex items-center gap-2 cursor-pointer"
                                           >
-                                             <Lock size={13} strokeWidth={2.4} />
+                                             <IconlyLock set="curved" primaryColor="currentColor" size={14} stroke="bold" />
                                              <span>Unlock &amp; Connect MT5</span>
                                           </button>
                                        ) : (

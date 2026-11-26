@@ -18,8 +18,8 @@ import {
   Flame,
   Clock,
   Tag,
-  Lock,
 } from "lucide-react";
+import { Lock as IconlyLock } from "react-iconly";
 import DashboardLayout from "@/components/DashboardLayout";
 import JournalMetrics from "@/components/journal/JournalMetrics";
 import JournalGrid from "@/components/journal/JournalGrid";
@@ -417,7 +417,9 @@ function JournalContent() {
                 title="Hide all P&L values across the journal"
               >
                 {isStarter ? (
-                  <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                  <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                    <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                  </span>
                 ) : hideBalance ? (
                   <Eye size={13} />
                 ) : (
@@ -444,7 +446,9 @@ function JournalContent() {
                 title="Hide account balance only while keeping P&L visible"
               >
                 {isStarter ? (
-                  <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                  <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                    <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                  </span>
                 ) : (
                   <ShieldCheck size={13} />
                 )}
@@ -469,7 +473,9 @@ function JournalContent() {
                 title="Display trade P&L in % return instead of currency"
               >
                 {isStarter ? (
-                  <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
+                  <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                    <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                  </span>
                 ) : (
                   <Percent size={12} strokeWidth={2.4} />
                 )}
@@ -503,7 +509,11 @@ function JournalContent() {
                     : "Drag & reorder journal cards"
                 }
               >
-                {isStarter && <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />}
+                {isStarter && (
+                  <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                    <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                  </span>
+                )}
                 {isEditMode ? (
                   <>
                     <Check size={13} strokeWidth={2.8} />
@@ -902,7 +912,7 @@ function JournalContent() {
                     <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[340px] w-full">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
-                          <Lock size={14} strokeWidth={2.4} />
+                          <IconlyLock set="curved" primaryColor="currentColor" size={16} stroke="bold" />
                         </div>
                         <div className="min-w-0 flex flex-col justify-center">
                           <span className="btn-shine text-[13px] font-bold leading-tight">

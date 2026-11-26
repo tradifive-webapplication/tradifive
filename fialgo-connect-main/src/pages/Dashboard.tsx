@@ -14,9 +14,9 @@ import {
   Quote,
   Check,
   TrendingUp,
-  Lock,
   GripVertical,
 } from "lucide-react";
+import { Lock as IconlyLock } from "react-iconly";
 import {
   DndContext,
   DragOverlay,
@@ -668,7 +668,11 @@ const Dashboard = () => {
                         title={isBrokerLocked ? "Pro & Elite: Upgrade to connect live MT5 broker" : "Connect your MT5 broker"}
                         className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap hover:border-blue-400 dark:hover:border-blue-500/40"
                       >
-                        {isBrokerLocked && <Lock size={11.5} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />}
+                        {isBrokerLocked && (
+                          <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                            <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                          </span>
+                        )}
                         <span className={isBrokerLocked ? "btn-shine" : ""}>Connect broker</span>
                       </motion.button>
                     </div>
@@ -754,7 +758,11 @@ const Dashboard = () => {
                       title={isBrokerLocked ? "Pro & Elite: Upgrade to connect live MT5 broker" : "Connect your MT5 broker"}
                       className="tactile-white-pill rounded-full px-3.5 py-1.5 text-[12px] font-semibold inline-flex items-center gap-1.5 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500/40"
                     >
-                      {isBrokerLocked && <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />}
+                      {isBrokerLocked && (
+                        <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                          <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                        </span>
+                      )}
                       <span className={isBrokerLocked ? "btn-shine" : ""}>Connect broker</span>
                     </motion.button>
                   </div>
@@ -824,7 +832,11 @@ const Dashboard = () => {
                       title={isBrokerLocked ? "Pro & Elite: Upgrade to connect live MT5 broker" : "Connect your MT5 broker"}
                       className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer hover:border-blue-400"
                     >
-                      {isBrokerLocked && <Lock size={11.5} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />}
+                      {isBrokerLocked && (
+                        <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                          <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                        </span>
+                      )}
                       <span className={isBrokerLocked ? "btn-shine" : ""}>Connect broker</span>
                     </motion.button>
                   </div>
@@ -929,7 +941,11 @@ const Dashboard = () => {
                             : "Blur amounts"
                         }
                       >
-                        {isStarter && <Lock size={11} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />}
+                        {isStarter && (
+                          <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                            <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                          </span>
+                        )}
                         {!isStarter && (hidePnl ? <Eye size={12.5} /> : <EyeOff size={12.5} />)}
                         <span className={isStarter ? "btn-shine" : ""}>{hidePnl ? "Show" : "Hide"}</span>
                       </motion.button>

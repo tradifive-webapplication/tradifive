@@ -8,7 +8,7 @@ import {
 
 } from "lucide-react";
 
-import { Home, Category, Discovery, Document, Star, Bookmark, ShieldDone, TwoUsers, Scan, TicketStar, Discount, Work, Bag, Video as IconlyVideo, Message, Notification, Logout, Wallet, Setting, User as IconlyUser, Graph, Chat, AddUser, Activity, TimeCircle, Play, ShieldFail, Danger, Filter, Paper } from "react-iconly";
+import { Home, Category, Discovery, Document, Star, Bookmark, ShieldDone, TwoUsers, Scan, TicketStar, Discount, Work, Bag, Video as IconlyVideo, Message, Notification, Logout, Wallet, Setting, User as IconlyUser, Graph, Chat, AddUser, Activity, TimeCircle, Play, ShieldFail, Danger, Filter, Paper, Lock as IconlyLock } from "react-iconly";
 
 
 
@@ -3426,7 +3426,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                               <>
 
-                                <Lock size={12.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                                <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                                  <IconlyLock set="curved" primaryColor="currentColor" size={14} stroke="bold" />
+                                </span>
 
                                 <span className="btn-shine text-[13px] font-semibold font-sans">Add account</span>
 

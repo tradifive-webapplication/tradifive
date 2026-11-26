@@ -29,13 +29,13 @@ import {
   Wallet,
   ShieldOff,
   RefreshCw,
-  Lock,
   Search,
   Check,
   ChevronDown,
   Gift,
   X,
 } from "lucide-react";
+import { Lock as IconlyLock } from "react-iconly";
 import {
   Select,
   SelectContent,
@@ -5123,7 +5123,7 @@ export default function RiskGuard() {
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
-                            <Lock size={14} strokeWidth={2.4} />
+                            <IconlyLock set="curved" primaryColor="currentColor" size={16} stroke="bold" />
                           </div>
                           <div className="min-w-0 flex flex-col justify-center">
                             <span className="btn-shine text-[13px] font-bold leading-tight">
@@ -5203,7 +5203,9 @@ export default function RiskGuard() {
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] px-3 py-2.5">
-                  <Lock size={14} className="text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" />
+                  <span className="inline-flex items-center shrink-0 mt-0.5 text-slate-500 dark:text-slate-400">
+                    <IconlyLock set="curved" primaryColor="currentColor" size={15} stroke="bold" />
+                  </span>
                   <p className="text-slate-700 dark:text-neutral-200 leading-snug">
                     <strong className="font-semibold text-slate-900 dark:text-white">Halts all trading:</strong> Pauses Auto-Trading and locks new entries until you turn Kill Switch off.
                   </p>

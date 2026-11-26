@@ -9,7 +9,8 @@ import {
   Discovery as IconlyDiscovery,
   ArrowUp as IconlyArrowUp,
   Search as IconlySearch,
-  Message as IconlyMessage
+  Message as IconlyMessage,
+  Lock as IconlyLock
 } from "react-iconly";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAICoachData } from "@/hooks/useAICoachData";
@@ -48,7 +49,6 @@ import {
   ArrowUp,
   X,
   Crown,
-  Lock,
   TrendingUp,
   Target,
   CheckCircle2
@@ -1218,7 +1218,7 @@ ${JSON.stringify(contextData)}`;
               <div className="flex items-center justify-between gap-3 px-0.5">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
-                    <Lock size={14} strokeWidth={2.4} />
+                    <IconlyLock set="curved" primaryColor="currentColor" size={16} stroke="bold" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-[13px] font-bold leading-tight">
@@ -1246,17 +1246,12 @@ ${JSON.stringify(contextData)}`;
                     action: { label: "Upgrade", onClick: () => navigate('/upgrade') },
                   });
                 }}
-                className="w-full bg-slate-50/90 dark:bg-[#111114] hover:border-blue-400/50 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2.5 border border-slate-200/80 dark:border-white/[0.08] transition-all cursor-pointer text-left"
+                className="w-full bg-slate-50/90 dark:bg-[#111114] hover:border-blue-400/50 rounded-xl px-4 py-3 flex items-center justify-between gap-2.5 border border-slate-200/80 dark:border-white/[0.08] transition-all cursor-pointer text-left"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Lock size={14} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
-                  <span className="btn-shine text-[13px] font-semibold truncate">
-                    Unlock with Pro &amp; Elite to ask AI Coach...
-                  </span>
-                </div>
-                <span className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-400 shrink-0">
-                  <Lock size={13} strokeWidth={2.4} />
+                <span className="btn-shine text-[13px] font-semibold truncate">
+                  Unlock with Pro &amp; Elite to ask AI Coach...
                 </span>
+                <ChevronRight size={15} className="text-slate-400 dark:text-neutral-500 shrink-0" />
               </button>
             </>
           ) : (
@@ -1631,7 +1626,11 @@ ${JSON.stringify(contextData)}`;
                     onClick={() => navigate(isBrokerLocked ? '/upgrade' : '/settings?tab=trading')}
                     className="w-full py-2.5 px-3 rounded-xl bg-white dark:bg-[#17171A] border border-slate-200/80 dark:border-white/[0.08] hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-white/[0.04] text-[12px] font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-all cursor-pointer inline-flex items-center justify-center gap-1.5 active:scale-[0.98]"
                   >
-                    {isBrokerLocked && <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
+                    {isBrokerLocked && (
+                      <span className="inline-flex items-center shrink-0 text-slate-500 dark:text-slate-400">
+                        <IconlyLock set="curved" primaryColor="currentColor" size={13} stroke="bold" />
+                      </span>
+                    )}
                     <span className={isBrokerLocked ? "btn-shine" : ""}>Connect Broker</span>
                   </button>
                 )}
@@ -1737,7 +1736,6 @@ ${JSON.stringify(contextData)}`;
                           </p>
                         </div>
                         <ChevronRight size={14} className="text-slate-300 dark:text-neutral-600 group-hover:text-blue-500 transition-colors shrink-0" />
-                        {isStarter && <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
                       </button>
                     );
                   })}

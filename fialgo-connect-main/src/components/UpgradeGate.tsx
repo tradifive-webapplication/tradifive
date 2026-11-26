@@ -1,5 +1,6 @@
 import React from 'react';
 import { Lock } from 'lucide-react';
+import { Lock as IconlyLock } from 'react-iconly';
 import { useNavigate } from 'react-router-dom';
 import { usePlan, PlanTier } from '@/hooks/usePlan';
 
@@ -74,7 +75,7 @@ export function UpgradeGate({
       {/* Overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-4 bg-black/50 dark:bg-black/60 backdrop-blur-[2px] rounded-xl">
         <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1C1C20] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center mb-3">
-          <Lock size={17} strokeWidth={2.2} />
+          <IconlyLock set="curved" primaryColor="currentColor" size={20} stroke="bold" />
         </div>
         {feature && (
           <p className="text-[13px] font-bold text-slate-800 dark:text-white text-center mb-1">

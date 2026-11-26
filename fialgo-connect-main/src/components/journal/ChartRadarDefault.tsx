@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Info, Lock, TrendingUp } from "lucide-react";
+import { Info, TrendingUp } from "lucide-react";
+import { Lock as IconlyLock } from "react-iconly";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { usePlan } from "@/hooks/usePlan";
 import { toast } from "sonner";
@@ -524,7 +525,9 @@ export function ChartRadarDefault({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 min-w-0">
             {activeMetric.isLocked && (
-              <Lock size={12.5} className="text-slate-400 shrink-0" />
+              <span className="inline-flex items-center shrink-0 text-slate-400">
+                <IconlyLock set="curved" primaryColor="currentColor" size={14} stroke="bold" />
+              </span>
             )}
             <h4 className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate">
               {activeMetric.label}
@@ -557,7 +560,9 @@ export function ChartRadarDefault({
             >
               <span className="text-[13.5px] font-bold text-slate-900 dark:text-white tabular-nums flex items-center justify-center min-h-[20px]">
                 {m.isLocked ? (
-                  <Lock size={12.5} className="text-slate-500 dark:text-neutral-400" />
+                  <span className="inline-flex items-center text-slate-500 dark:text-neutral-400">
+                    <IconlyLock set="curved" primaryColor="currentColor" size={14} stroke="bold" />
+                  </span>
                 ) : (
                   <AnimatedNumber value={m.pillValue} duration={700} />
                 )}
@@ -583,7 +588,7 @@ export function ChartRadarDefault({
           <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3.5 py-2.5 rounded-2xl shadow-xl flex items-center justify-between gap-3 max-w-[340px] w-full">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
-                <Lock size={14} strokeWidth={2.3} />
+                <IconlyLock set="curved" primaryColor="currentColor" size={16} stroke="bold" />
               </div>
               <div className="min-w-0 flex flex-col justify-center">
                 <span className="btn-shine text-[13px] font-bold leading-tight">
