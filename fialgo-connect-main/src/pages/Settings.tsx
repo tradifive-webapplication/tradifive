@@ -227,7 +227,13 @@ export default function Settings() {
    const [selectedPlan, setSelectedPlan] = useState(() => activePlan);
    const [searchQuery, setSearchQuery] = useState('');
    const [loading, setLoading] = useState(false);
-   const [isInitialLoading, setIsInitialLoading] = useState(true);
+   const [isInitialLoading, setIsInitialLoading] = useState(() => {
+      try {
+         return !(localStorage.getItem('prof_cache_data') || localStorage.getItem('tradifive_cached_username'));
+      } catch {
+         return true;
+      }
+   });
    const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
    
    // Billing State
@@ -315,38 +321,55 @@ export default function Settings() {
    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
    const [isDesktopEditingProfile, setIsDesktopEditingProfile] = useState(false);
    const [showSmsModal, setShowSmsModal] = useState(false);
+   const [phoneDraft, setPhoneDraft] = useState('');
+   const [isSavingPhone, setIsSavingPhone] = useState(false);
    const [isConnectingBroker, setIsConnectingBroker] = useState(false);
    const [selectedBrokerToConnect, setSelectedBrokerToConnect] = useState('');
    
-   // Profile State
-   const [profile, setProfile] = useState({
-      firstName: '',
-      lastName: '',
-      name: '',
-      display_name: '',
-      username: '',
-      email: '',
-      avatarUrl: '',
-      bannerUrl: '',
-      bio: '',
-      website: '',
-      twitter: '',
-      instagram: '',
-      youtube: '',
-      address: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: '',
-      dob: '',
-      gender: '',
-      countryEmoji: '🌍',
-      isPrivate: false,
-      hideFollowers: false,
-      hideTrades: false,
-      account_standing: 'GOOD',
-      standing_message: '',
-      preferred_market: 'global'
+   // Profile State (pre-hydrated from cache to avoid opening flash)
+   const [profile, setProfile] = useState<any>(() => {
+      let cached: any = {};
+      try {
+         const raw = localStorage.getItem('prof_cache_data');
+         if (raw) cached = JSON.parse(raw) || {};
+      } catch {
+         // Ignore malformed cache
+      }
+      const cachedDisplay = cached.display_name || localStorage.getItem('tradifive_cached_display_name') || '';
+      const cachedUser = cached.username || localStorage.getItem('tradifive_cached_username') || '';
+      const cachedAvatar = cached.avatar_url || localStorage.getItem('tradifive_cached_avatar_url') || '';
+      const cachedBanner = cached.banner_url || localStorage.getItem('tradifive_cached_banner_url') || '';
+      return {
+         firstName: cached.first_name || '',
+         lastName: cached.last_name || '',
+         name: cachedDisplay,
+         display_name: cachedDisplay,
+         username: cachedUser,
+         email: cached.email || '',
+         phone: cached.phone || '',
+         avatarUrl: cachedAvatar,
+         bannerUrl: cachedBanner,
+         bio: cached.bio || '',
+         tags: [],
+         website: cached.website || '',
+         twitter: cached.twitter_url || '',
+         instagram: cached.instagram_id || '',
+         youtube: cached.youtube_url || '',
+         address: '',
+         city: cached.location || '',
+         state: '',
+         zipCode: '',
+         country: cached.country || '',
+         dob: '',
+         gender: '',
+         countryEmoji: cached.country_emoji || '🌍',
+         isPrivate: false,
+         hideFollowers: false,
+         hideTrades: false,
+         account_standing: 'GOOD',
+         standing_message: '',
+         preferred_market: 'global'
+      };
    });
    
    const [password, setPassword] = useState({ current: '', new: '', confirm: '' });
@@ -687,6 +710,7 @@ export default function Settings() {
                   display_name: data.display_name || data.first_name || '',
                   username: data.username || '',
                   email: user.email || '',
+                  phone: (data as any).phone || user.phone || '',
                   avatarUrl: data.avatar_url || '',
                   bannerUrl: data.banner_url || '',
                   bio: data.bio || '',
@@ -988,6 +1012,11 @@ export default function Settings() {
          localStorage.setItem("tradifive_cached_display_name", profile.display_name !== undefined ? profile.display_name : (profile.name || `${profile.firstName} ${profile.lastName}`.trim()));
          localStorage.setItem("tradifive_cached_username", effectiveUsername);
          localStorage.setItem("tradifive_cached_avatar_url", profile.avatarUrl);
+         if (profile.bannerUrl) {
+            localStorage.setItem("tradifive_cached_banner_url", profile.bannerUrl);
+         } else {
+            localStorage.removeItem("tradifive_cached_banner_url");
+         }
          
          // Dispatch update event
          window.dispatchEvent(new Event("tradifive_profile_update"));
@@ -1290,7 +1319,7 @@ export default function Settings() {
          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[3px] p-0 sm:p-6 md:p-8 select-none font-sans"
          initial={{ opacity: 0 }}
          animate={{ opacity: 1 }}
-         transition={{ duration: 0.05, ease: "easeOut" }}
+         transition={{ duration: 0.16, ease: "easeOut" }}
       >
          
          {/* Click outside backdrop container back to dashboard page (desktop/tablet only) */}
@@ -1301,15 +1330,17 @@ export default function Settings() {
             
             {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
             <div className="hidden md:block relative shrink-0 select-none">
-               <div className="relative h-[132px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-900">
-                  <img
-                     src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
-                     alt="Profile banner"
-                     className="w-full h-full object-cover object-center"
-                     onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                  />
+               <div className="relative h-[116px] w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
+                  {profile.bannerUrl && (
+                     <img
+                        src={profile.bannerUrl}
+                        alt="Profile banner"
+                        className="w-full h-full object-cover object-center"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                     />
+                  )}
                   {/* Smooth fade melting cover cleanly into white/dark surface */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/55 to-transparent dark:from-[#141417] dark:via-[#141417]/55" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#141417] dark:via-[#141417]/50" />
 
                   {/* Top-Right Translucent Close Circle */}
                   <button
@@ -1369,14 +1400,16 @@ export default function Settings() {
                 <div className="p-4 space-y-4 pb-28">
                    {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
                    <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
-                      {/* Banner Image with smooth bottom fade */}
-                      <div className="relative h-36 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
-                         <img
-                            src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
-                            alt="Cover"
-                            className="w-full h-full object-cover object-center"
-                            onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                         />
+                      {/* Banner Image with clean gradient fallback */}
+                      <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
+                         {profile.bannerUrl && (
+                            <img
+                               src={profile.bannerUrl}
+                               alt="Cover"
+                               className="w-full h-full object-cover object-center"
+                               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                            />
+                         )}
                          <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40" />
                       </div>
 
@@ -1384,7 +1417,7 @@ export default function Settings() {
                       <div className="relative -mt-9 ml-4 flex items-end justify-between pr-4">
                          <div className="w-16 h-16 rounded-full border-2 border-white dark:border-[#1A1A1E] shadow-md overflow-hidden bg-white dark:bg-neutral-800 shrink-0">
                             <img
-                               src={profile.avatarUrl || "/nikil_avatar.jpg"}
+                               src={profile.avatarUrl || defaultAvatar}
                                alt={displayName}
                                className="w-full h-full object-cover"
                                onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
@@ -1888,24 +1921,31 @@ export default function Settings() {
                         )}
                      </div>
 
-                     <AnimatePresence mode="wait">
+                     <AnimatePresence mode="wait" initial={false}>
 
                      {/* TAB 0: ACCOUNT SETTINGS */}
                      {activeTab === 'account' && (
                         <motion.div
                            key="account"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[780px]"
                         >
                            <AccountTab 
                               profile={profile}
                               isInitialLoading={isInitialLoading}
                               setActiveSubTab={setActiveSubTab} 
-                              onEditProfile={() => setActiveTab('profile')}
-                              onEditPhone={() => setShowSmsModal(true)}
+                              onEditProfile={() => {
+                                 setActiveTab('profile');
+                                 setIsDesktopEditingProfile(true);
+                              }}
+                              onEditPhone={() => {
+                                 setPhoneDraft(profile.phone || '');
+                                 setShowSmsModal(true);
+                              }}
+                              onProfileUpdated={(patch) => setProfile((prev: any) => ({ ...prev, ...patch }))}
                            />
                         </motion.div>
                      )}
@@ -1914,30 +1954,32 @@ export default function Settings() {
                      {activeTab === 'profile' && (
                         <motion.div
                            key="profile"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
                            className="space-y-5 w-full max-w-[820px]"
                         >
-                           {/* Desktop Profile Overview (Showcase Card + Details Card) when NOT in edit mode */}
+                           {/* Desktop Profile Overview Showcase Card when NOT in edit mode */}
                            {!isDesktopEditingProfile && (
                               <div className="hidden md:block space-y-5">
-                                 {/* Card 1: Profile Showcase Card (Banner + Fade + Avatar + Name + Edit Profile) */}
+                                 {/* Card 1: Profile Showcase Card (Clean Banner + Fade + Avatar + Name + Bio preview + Edit Profile) */}
                                  <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
-                                    <div className="relative h-[185px] w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
-                                       <img
-                                          src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
-                                          alt="Profile cover"
-                                          className="w-full h-full object-cover object-center"
-                                          onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                                       />
+                                    <div className="relative h-[170px] w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
+                                       {profile.bannerUrl && (
+                                          <img
+                                             src={profile.bannerUrl}
+                                             alt="Profile cover"
+                                             className="w-full h-full object-cover object-center"
+                                             onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                                          />
+                                       )}
                                        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/60" />
                                     </div>
 
                                     <div className="px-6 pb-6">
                                        <div className="relative z-10 -mt-12 mb-3">
-                                          <div className="w-[74px] h-[74px] rounded-full ring-4 ring-white dark:ring-[#1B1B20] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800">
+                                          <div className="w-[76px] h-[76px] rounded-full ring-4 ring-white dark:ring-[#1B1B20] shadow-md overflow-hidden bg-slate-100 dark:bg-neutral-800">
                                              <img
                                                 src={profile.avatarUrl || defaultAvatar}
                                                 alt={displayName}
@@ -1954,6 +1996,12 @@ export default function Settings() {
                                           @{profile.username || "trader"}
                                        </p>
 
+                                       {profile.bio?.trim() && (
+                                          <p className="text-[13px] text-slate-600 dark:text-neutral-300 mt-3 leading-relaxed max-w-xl">
+                                             {profile.bio.trim()}
+                                          </p>
+                                       )}
+
                                        <div className="mt-4">
                                           <TactileBoxButton
                                              onClick={() => {
@@ -1965,84 +2013,6 @@ export default function Settings() {
                                              <Pencil size={13.5} strokeWidth={2.2} className="text-slate-800 dark:text-white" />
                                              <span>Edit profile</span>
                                           </TactileBoxButton>
-                                       </div>
-                                    </div>
-                                 </div>
-
-                                 {/* Card 2: Account & Profile Summary Card */}
-                                 <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-4">
-                                    <div>
-                                       <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                                          Profile Details
-                                       </h3>
-                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Public identity, contact email, and workspace plan linked to your account.
-                                       </p>
-                                    </div>
-
-                                    <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
-                                       <div className="py-3 flex items-center justify-between gap-4">
-                                          <div>
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Email</p>
-                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                                {profile.email || "Not set"}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setActiveTab("account")}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
-                                          >
-                                             Manage
-                                          </button>
-                                       </div>
-
-                                       <div className="py-3 flex items-center justify-between gap-4">
-                                          <div className="min-w-0">
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Public Link</p>
-                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-                                                tradifive.in/{profile.username || "trader"}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setIsDesktopEditingProfile(true)}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                                          >
-                                             Edit
-                                          </button>
-                                       </div>
-
-                                       <div className="py-3 flex items-center justify-between gap-4">
-                                          <div className="min-w-0">
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Bio</p>
-                                             <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
-                                                {profile.bio?.trim() || "No bio added yet."}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setIsDesktopEditingProfile(true)}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                                          >
-                                             Edit
-                                          </button>
-                                       </div>
-
-                                       <div className="pt-3 flex items-center justify-between gap-4">
-                                          <div>
-                                             <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Workspace Plan</p>
-                                             <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 capitalize">
-                                                {activePlan} Plan · {profile.isPrivate ? "Private profile" : "Public profile"}
-                                             </p>
-                                          </div>
-                                          <button
-                                             type="button"
-                                             onClick={() => setActiveTab("subscription")}
-                                             className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
-                                          >
-                                             View plan
-                                          </button>
                                        </div>
                                     </div>
                                  </div>
@@ -2066,6 +2036,7 @@ export default function Settings() {
                               <ProfileTab 
                                  profile={profile} 
                                  setProfile={setProfile} 
+                                 activePlan={activePlan}
                                  privacySettings={privacySettings} 
                                  setPrivacySettings={setPrivacySettings} 
                                  avatarUploadRef={avatarUploadRef} 
@@ -2089,8 +2060,8 @@ export default function Settings() {
                               const file = e.target.files?.[0];
                               if (file) {
                                  try {
-                                    const base64 = await resizeImageFile(file, 250, 250, 0.8);
-                                    setProfile(p => ({...p, avatarUrl: base64}));
+                                    const base64 = await resizeImageFile(file, 512, 512, 0.9);
+                                    setProfile((p: any) => ({...p, avatarUrl: base64}));
                                  } catch (err) {
                                     console.error("Failed to resize avatar", err);
                                  }
@@ -2100,8 +2071,8 @@ export default function Settings() {
                               const file = e.target.files?.[0];
                               if (file) {
                                  try {
-                                    const base64 = await resizeImageFile(file, 800, 400, 0.8);
-                                    setProfile(p => ({...p, bannerUrl: base64}));
+                                    const base64 = await resizeImageFile(file, 1440, 480, 0.9);
+                                    setProfile((p: any) => ({...p, bannerUrl: base64}));
                                  } catch (err) {
                                     console.error("Failed to resize banner", err);
                                  }
@@ -3740,28 +3711,69 @@ export default function Settings() {
          {/* PHONE VERIFICATION MODAL */}
          <AnimatePresence>
             {showSmsModal && (
-               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-sm p-4">
                   <motion.div
-                     initial={{ opacity: 0, scale: 0.95 }}
-                     animate={{ opacity: 1, scale: 1 }}
-                     exit={{ opacity: 0, scale: 0.95 }}
-                     className="bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] rounded-3xl w-full max-w-md overflow-hidden shadow-2xl p-6"
+                     initial={{ opacity: 0, scale: 0.96, y: 6 }}
+                     animate={{ opacity: 1, scale: 1, y: 0 }}
+                     exit={{ opacity: 0, scale: 0.96, y: 6 }}
+                     transition={{ duration: 0.16, ease: "easeOut" }}
+                     className="bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/10 rounded-[22px] w-full max-w-md overflow-hidden shadow-2xl p-6"
                   >
-                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Add Phone Number</h3>
-                        <button type="button" onClick={() => setShowSmsModal(false)} className="text-slate-400 hover:text-slate-655 dark:hover:text-slate-250">
-                           <X size={20} />
+                     <div className="flex justify-between items-center mb-2">
+                        <h3 className="text-[16px] font-bold text-slate-900 dark:text-white tracking-tight">Phone Number</h3>
+                        <button type="button" onClick={() => setShowSmsModal(false)} className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer">
+                           <X size={16} />
                         </button>
                      </div>
-                     <p className="text-xs text-slate-505 mb-4">Enter your mobile phone number to receive SMS security alerts and code verifications.</p>
+                     <p className="text-[12px] text-slate-500 dark:text-neutral-400 mb-4">Save your mobile number for account recovery and security alerts.</p>
                      <div className="space-y-4">
                         <div>
-                           <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Phone Number</label>
-                           <AnimatedInput type="tel" placeholder="+1 (555) 000-0000" className="w-full bg-slate-50 dark:bg-[#202020] border border-slate-200/60 dark:border-[#333333] rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 transition-all" />
+                           <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1.5">Phone Number</label>
+                           <AnimatedInput
+                              type="tel"
+                              value={phoneDraft}
+                              onChange={(e) => setPhoneDraft(e.target.value)}
+                              placeholder="Enter phone number with country code"
+                              className="w-full bg-slate-50 dark:bg-[#202024] border border-slate-200/80 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition-all"
+                           />
                         </div>
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-[#333333]">
-                           <button type="button" onClick={() => setShowSmsModal(false)} className="px-5 py-2 bg-slate-100 dark:bg-[#2C2C2E] text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-[#3C3C3E] transition-colors">Cancel</button>
-                           <button type="button" onClick={() => { toast.success("Phone number verified successfully!"); setShowSmsModal(false); }} className="px-6 py-2 bg-indigo-650 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md transition-colors">Save Number</button>
+                        <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-white/[0.06]">
+                           <button
+                              type="button"
+                              disabled={isSavingPhone}
+                              onClick={() => setShowSmsModal(false)}
+                              className="tactile-white-pill rounded-full px-4 py-2 text-xs font-semibold cursor-pointer"
+                           >
+                              Cancel
+                           </button>
+                           <button
+                              type="button"
+                              disabled={isSavingPhone}
+                              onClick={async () => {
+                                 const cleaned = phoneDraft.trim();
+                                 if (!cleaned || cleaned.replace(/\D/g, '').length < 7) {
+                                    toast.error("Please enter a valid phone number.");
+                                    return;
+                                 }
+                                 setIsSavingPhone(true);
+                                 try {
+                                    const { data: { user } } = await supabase.auth.getUser();
+                                    if (user) {
+                                       await supabase.from('profiles').update({ phone: cleaned } as any).eq('id', user.id);
+                                    }
+                                    setProfile((prev: any) => ({ ...prev, phone: cleaned }));
+                                    toast.success("Phone number saved successfully!");
+                                    setShowSmsModal(false);
+                                 } catch (err: any) {
+                                    toast.error(err?.message || "Failed to save phone number.");
+                                 } finally {
+                                    setIsSavingPhone(false);
+                                 }
+                              }}
+                              className="rounded-full px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm transition-colors cursor-pointer disabled:opacity-60"
+                           >
+                              {isSavingPhone ? "Saving..." : "Save Number"}
+                           </button>
                         </div>
                      </div>
                   </motion.div>

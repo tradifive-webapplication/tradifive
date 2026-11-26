@@ -1,6 +1,6 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
+﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
-   Camera, ExternalLink, Check, ChevronDown, CheckCircle2, Circle, 
+   Camera, ExternalLink, Check, ChevronDown, CheckCircle2, Circle, Copy,
    ArrowRight, ChevronsUpDown, User, Crown, Briefcase, Lock, Link2, 
    Instagram, Youtube, MessageSquare, TrendingUp, X, BarChart2, Target, Flame 
 } from 'lucide-react';
@@ -179,6 +179,7 @@ const SearchableCombobox = ({ value, onChange, items, placeholder, disabled }: a
 export default function ProfileTab({
    profile,
    setProfile,
+   activePlan = 'starter',
    privacySettings,
    setPrivacySettings,
    avatarUploadRef,
@@ -189,6 +190,8 @@ export default function ProfileTab({
    loading = false,
    setActiveTab
 }: any) {
+   const isStarterPlan = !['pro', 'elite', 'advanced', 'institutional'].includes(String(activePlan || '').toLowerCase());
+   const bioInputRef = useRef<HTMLTextAreaElement | null>(null);
    const [newTag, setNewTag] = useState('');
    const [isAddingTag, setIsAddingTag] = useState(false);
    const tags = profile.tags || [];
@@ -197,7 +200,7 @@ export default function ProfileTab({
    const [cardToggles, setCardToggles] = useState(() => {
       const saved = localStorage.getItem('tradifive_card_toggles');
       if (saved) {
-         try { return JSON.parse(saved); } catch (e) {}
+         try { return JSON.parse(saved); } catch { /* ignore invalid cache */ }
       }
       return {
          trades: privacySettings?.show_trades ?? true,
@@ -257,7 +260,7 @@ export default function ProfileTab({
                         localStorage.setItem(`tradifive_privacy_user_${uname.toLowerCase()}`, JSON.stringify(pNext));
                      }
                      window.dispatchEvent(new Event("storage"));
-                  } catch (e) {}
+                  } catch { /* ignore storage restrictions */ }
                   return pNext;
                });
             }
@@ -410,17 +413,19 @@ export default function ProfileTab({
                </p>
             </div>
 
-            {/* 1. Hero Profile Card with cover banner, cover camera button, avatar with camera overlay, name, username, Cancel & Save tactile buttons */}
-            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
-               {/* Banner Image with smooth bottom fade */}
-               <div className="relative h-40 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
-                  <img
-                     src={profile.bannerUrl || profile.avatarUrl || "/nikil_avatar.jpg"}
-                     alt="Cover"
-                     className="w-full h-full object-cover object-center"
-                     onError={(e) => { (e.target as HTMLImageElement).src = "/default-cover.png"; }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40 pointer-events-none" />
+            {/* 1. Hero Profile Card with crisp cover banner (or gradient), cover camera button, avatar with camera overlay, name, username, Cancel & Save tactile buttons */}
+            <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] overflow-hidden border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none relative">
+               {/* Banner Image with clean gradient fallback */}
+               <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
+                  {profile.bannerUrl && (
+                     <img
+                        src={profile.bannerUrl}
+                        alt="Cover"
+                        className="w-full h-full object-cover object-center"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                     />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/40 pointer-events-none" />
                   
                   {/* Cover camera button */}
                   <button
@@ -435,9 +440,9 @@ export default function ProfileTab({
 
                {/* Overlapping Avatar */}
                <div className="relative -mt-10 ml-4 flex items-end justify-between pr-4">
-                  <div className="relative w-[72px] h-[72px] rounded-full border-[3px] border-white dark:border-[#1A1A1E] shadow-md overflow-hidden bg-white dark:bg-neutral-800 shrink-0 group">
+                  <div className="relative w-[72px] h-[72px] rounded-full border-[3px] border-white dark:border-[#1B1B20] shadow-md overflow-hidden bg-white dark:bg-neutral-800 shrink-0 group">
                      <img
-                        src={profile.avatarUrl || "/nikil_avatar.jpg"}
+                        src={profile.avatarUrl || defaultAvatar}
                         alt={profile.display_name || profile.name || "User"}
                         className="w-full h-full object-cover"
                         onError={(e) => { (e.target as HTMLImageElement).src = defaultAvatar; }}
@@ -457,10 +462,10 @@ export default function ProfileTab({
                {/* Name, Username, Live Bio, Link & Stats (Live Card Preview) */}
                <div className="px-4 pt-2.5 pb-4">
                   <h2 className="text-[17px] font-bold text-slate-900 dark:text-white truncate leading-tight">
-                     {profile.display_name || profile.name || "nikhil Harake"}
+                     {profile.display_name || profile.name || "Trader"}
                   </h2>
                   <p className="text-[12px] text-slate-400 dark:text-neutral-500 font-normal mt-0.5 truncate">
-                     @{profile.username || "nikhilharake"}
+                     @{profile.username || "trader"}
                   </p>
 
                   {/* Live Bio Preview */}
@@ -612,8 +617,91 @@ export default function ProfileTab({
                </div>
             </div>
 
+            {/* 1.5 Profile Details Summary inside Edit Profile */}
+            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-3">
+               <div>
+                  <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
+                     Profile Details
+                  </h3>
+                  <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                     Public identity, contact email, and workspace plan linked to your account.
+                  </p>
+               </div>
+
+               <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                  <div className="py-2.5 flex items-center justify-between gap-4">
+                     <div className="min-w-0">
+                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Email</p>
+                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                           {profile.email || "Not set"}
+                        </p>
+                     </div>
+                     <button
+                        type="button"
+                        onClick={() => setActiveTab && setActiveTab('account')}
+                        className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                     >
+                        Manage
+                     </button>
+                  </div>
+
+                  <div className="py-2.5 flex items-center justify-between gap-4">
+                     <div className="min-w-0">
+                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Public Link</p>
+                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                           tradifive.in/{profile.username || "trader"}
+                        </p>
+                     </div>
+                     <button
+                        type="button"
+                        onClick={() => {
+                           const url = `https://www.tradifive.in/${profile.username || "trader"}`;
+                           navigator.clipboard?.writeText(url);
+                           toast.success("Public profile link copied!");
+                        }}
+                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                     >
+                        <Copy size={12} />
+                        <span>Copy</span>
+                     </button>
+                  </div>
+
+                  <div className="py-2.5 flex items-center justify-between gap-4">
+                     <div className="min-w-0">
+                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Bio</p>
+                        <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
+                           {profile.bio?.trim() || "No bio added yet."}
+                        </p>
+                     </div>
+                     <button
+                        type="button"
+                        onClick={() => bioInputRef.current?.focus()}
+                        className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                     >
+                        Edit
+                     </button>
+                  </div>
+
+                  <div className="pt-2.5 flex items-center justify-between gap-4">
+                     <div>
+                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Workspace Plan</p>
+                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 capitalize">
+                           {activePlan} Plan · {privacySettings?.is_private || profile.isPrivate ? "Private profile" : "Public profile"}
+                        </p>
+                     </div>
+                     <button
+                        type="button"
+                        onClick={() => setActiveTab && setActiveTab('subscription')}
+                        className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
+                     >
+                        View plan
+                     </button>
+                  </div>
+               </div>
+            </div>
+
             {/* 2. Main Profile Settings Card (DISPLAY NAME, USERNAME, BIO, LINK, SOCIALS) */}
-            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl p-5 border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] space-y-4">
+            <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] p-5 border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none space-y-4">
                {/* DISPLAY NAME */}
                <div>
                   <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
@@ -654,6 +742,7 @@ export default function ProfileTab({
                      BIO
                   </label>
                   <textarea
+                     ref={bioInputRef}
                      value={profile.bio || ""}
                      onChange={e => setProfile({ ...profile, bio: e.target.value })}
                      placeholder="No bio yet. Update your profile to tell others about your trading style."
@@ -666,36 +755,42 @@ export default function ProfileTab({
                   </div>
                </div>
 
-               {/* LINK with Prestige badge & upgrade button */}
+               {/* LINK with Pro & Elite unified badge */}
                <div>
                   <div className="flex items-center gap-1.5 mb-1.5 px-1">
                      <span className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider">LINK</span>
-                     <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[9.5px] font-black uppercase tracking-wider">
-                        <Lock size={10} strokeWidth={2.5} /> PRESTIGE
-                     </span>
+                     {isStarterPlan && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[10px] font-bold">
+                           <Lock size={10} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400" />
+                           <span className="btn-shine">Pro &amp; Elite</span>
+                        </span>
+                     )}
                   </div>
                   <div className="flex items-center bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-3.5 py-2.5 gap-2 border border-transparent focus-within:border-blue-500 transition-colors">
                      <Link2 size={15} className="text-slate-400 shrink-0" />
                      <input
                         type="text"
                         value={profile.website || ""}
+                        disabled={isStarterPlan}
                         onChange={e => setProfile({ ...profile, website: e.target.value })}
-                        placeholder="Your Linktree, website or any page"
-                        className="w-full bg-transparent text-[13.5px] text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 dark:placeholder:text-neutral-500"
+                        placeholder="Your website or trading link"
+                        className="w-full bg-transparent text-[13.5px] text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 dark:placeholder:text-neutral-500 disabled:opacity-60 disabled:cursor-not-allowed"
                      />
                   </div>
-                  <div className="flex items-center justify-between gap-3 mt-2 px-1">
-                     <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 leading-tight">
-                        Add one link under your bio, like your Linktree, with Prestige.
-                     </p>
-                     <button
-                        type="button"
-                        onClick={() => setActiveTab && setActiveTab('subscription')}
-                        className="shrink-0 bg-gradient-to-r from-[#D99A2B] via-[#F5C451] to-[#E5A93C] text-slate-950 font-bold text-[11.5px] px-3.5 py-2 rounded-xl shadow-[0_2px_4px_rgba(217,154,43,0.3)] active:scale-95 transition-transform cursor-pointer"
-                     >
-                        Upgrade to Prestige
-                     </button>
-                  </div>
+                  {isStarterPlan && (
+                     <div className="flex items-center justify-between gap-3 mt-2 px-1">
+                        <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 leading-tight">
+                           Showcase a custom link directly on your public profile card with Pro or Elite.
+                        </p>
+                        <button
+                           type="button"
+                           onClick={() => setActiveTab && setActiveTab('subscription')}
+                           className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[11.5px] px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
+                        >
+                           Upgrade
+                        </button>
+                     </div>
+                  )}
                </div>
 
                {/* SOCIALS */}
