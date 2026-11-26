@@ -102,6 +102,16 @@ const sectionVariants = {
 
 type RiskTab = "trading_control" | "risk_management" | "behaviour";
 
+function formatTime12h(hhmm: string): string {
+  const [hStr = "20", mStr = "00"] = (hhmm || "20:00").split(":");
+  const h24 = Number(hStr);
+  const safeH = Number.isFinite(h24) ? Math.max(0, Math.min(23, h24)) : 20;
+  const period = safeH >= 12 ? "PM" : "AM";
+  const h12 = safeH % 12 === 0 ? 12 : safeH % 12;
+  const safeM = String(Math.max(0, Math.min(59, Number(mStr) || 0))).padStart(2, "0");
+  return `${h12}:${safeM} ${period}`;
+}
+
 function TimePickerPopover({
   value,
   onChange,
@@ -111,15 +121,35 @@ function TimePickerPopover({
   onChange: (val: string) => void;
   subtitle?: string;
 }) {
-  const [hour = "20", minute = "00"] = (value || "20:00").split(":");
+  const [open, setOpen] = useState(false);
+  const [hRaw = "20", mRaw = "00"] = (value || "20:00").split(":");
+  const h24 = Math.max(0, Math.min(23, Number(hRaw) || 0));
+  const minute = String(Math.max(0, Math.min(59, Number(mRaw) || 0))).padStart(2, "0");
+  const isPm = h24 >= 12;
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+
+  const commitTime = (nextH12: number, nextMin: string, nextPm: boolean) => {
+    const converted24 = nextPm
+      ? nextH12 === 12
+        ? 12
+        : nextH12 + 12
+      : nextH12 === 12
+      ? 0
+      : nextH12;
+    const hStr = String(converted24).padStart(2, "0");
+    onChange(`${hStr}:${nextMin}`);
+  };
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
           className={`flex items-center justify-between w-full h-[32px] px-2.5 cursor-pointer ${INPUT_BASE}`}
         >
-          <span>{value}</span>
+          <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+            {formatTime12h(value)}
+          </span>
           <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-400">
             <Clock size={11} />
             {subtitle}
@@ -127,49 +157,84 @@ function TimePickerPopover({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-[156px] p-0 border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-xl bg-white dark:bg-[#1C1C20]"
+        className="w-[228px] p-2.5 border-slate-200/80 dark:border-white/10 rounded-2xl shadow-xl bg-white dark:bg-[#1C1C20]"
         align="start"
       >
-        <div className="flex p-1.5 gap-1.5 border-b border-slate-100 dark:border-white/[0.06]">
-          <div className="flex-1 bg-[#2563EB] text-white font-bold text-center py-1 rounded-lg text-[12.5px] tabular-nums">
-            {hour}
+        {/* Top Live Preview + AM/PM Segmented Switcher */}
+        <div className="flex items-center justify-between gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-white/[0.07]">
+          <div>
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 dark:text-neutral-500 block">
+              {subtitle}
+            </span>
+            <span className="text-[14px] font-bold text-slate-900 dark:text-white tabular-nums">
+              {String(h12).padStart(2, "0")}:{minute}{" "}
+              <span className="text-[#2563EB] dark:text-blue-400">
+                {isPm ? "PM" : "AM"}
+              </span>
+            </span>
           </div>
-          <div className="flex-1 bg-[#2563EB] text-white font-bold text-center py-1 rounded-lg text-[12.5px] tabular-nums">
-            {minute}
-          </div>
-        </div>
-        <div className="flex h-[196px]">
-          <div className="flex-1 overflow-y-auto border-r border-slate-100 dark:border-white/[0.06] amazing-scrollbar">
-            {Array.from({ length: 24 }).map((_, i) => {
-              const h = i.toString().padStart(2, "0");
+
+          <div className="inline-flex p-0.5 rounded-lg bg-slate-100 dark:bg-white/[0.06]">
+            {(["AM", "PM"] as const).map((period) => {
+              const activePeriod = (period === "PM") === isPm;
               return (
                 <button
-                  key={`h-${h}`}
+                  key={period}
                   type="button"
-                  onClick={() => onChange(`${h}:${minute}`)}
-                  className={`w-full text-center py-2 text-[12px] tabular-nums transition-colors cursor-pointer ${
-                    h === hour
-                      ? "bg-blue-50 dark:bg-blue-500/15 font-bold text-[#2563EB] dark:text-blue-400"
-                      : "text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/[0.04]"
+                  onClick={() => commitTime(h12, minute, period === "PM")}
+                  className={`px-2 py-1 rounded-md text-[10.5px] font-bold transition-all cursor-pointer ${
+                    activePeriod
+                      ? "bg-[#2563EB] text-white shadow-xs"
+                      : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
                   }`}
                 >
-                  {h}
+                  {period}
                 </button>
               );
             })}
           </div>
-          <div className="flex-1 overflow-y-auto amazing-scrollbar">
+        </div>
+
+        {/* Column Labels */}
+        <div className="grid grid-cols-2 gap-2 px-1 pb-1 text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 text-center">
+          <span>Hour</span>
+          <span>Minute</span>
+        </div>
+
+        {/* Clean Rounded Columns */}
+        <div className="grid grid-cols-2 gap-2 h-[184px]">
+          <div className="overflow-y-auto amazing-scrollbar pr-0.5 space-y-0.5">
+            {[12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((itemH) => {
+              const selected = itemH === h12;
+              return (
+                <button
+                  key={`h12-${itemH}`}
+                  type="button"
+                  onClick={() => commitTime(itemH, minute, isPm)}
+                  className={`w-full text-center py-1.5 rounded-lg text-[12px] tabular-nums transition-colors cursor-pointer ${
+                    selected
+                      ? "bg-blue-50 dark:bg-blue-500/20 font-bold text-[#2563EB] dark:text-blue-300"
+                      : "text-slate-600 dark:text-neutral-300 hover:bg-slate-100/70 dark:hover:bg-white/[0.06]"
+                  }`}
+                >
+                  {String(itemH).padStart(2, "0")}
+                </button>
+              );
+            })}
+          </div>
+          <div className="overflow-y-auto amazing-scrollbar pr-0.5 space-y-0.5 border-l border-slate-100 dark:border-white/[0.06] pl-1.5">
             {Array.from({ length: 60 }).map((_, i) => {
               const m = i.toString().padStart(2, "0");
+              const selected = m === minute;
               return (
                 <button
                   key={`m-${m}`}
                   type="button"
-                  onClick={() => onChange(`${hour}:${m}`)}
-                  className={`w-full text-center py-2 text-[12px] tabular-nums transition-colors cursor-pointer ${
-                    m === minute
-                      ? "bg-blue-50 dark:bg-blue-500/15 font-bold text-[#2563EB] dark:text-blue-400"
-                      : "text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/[0.04]"
+                  onClick={() => commitTime(h12, m, isPm)}
+                  className={`w-full text-center py-1.5 rounded-lg text-[12px] tabular-nums transition-colors cursor-pointer ${
+                    selected
+                      ? "bg-blue-50 dark:bg-blue-500/20 font-bold text-[#2563EB] dark:text-blue-300"
+                      : "text-slate-600 dark:text-neutral-300 hover:bg-slate-100/70 dark:hover:bg-white/[0.06]"
                   }`}
                 >
                   {m}
@@ -177,6 +242,20 @@ function TimePickerPopover({
               );
             })}
           </div>
+        </div>
+
+        {/* Footer Action */}
+        <div className="flex items-center justify-between pt-2 mt-2 border-t border-slate-100 dark:border-white/[0.07]">
+          <span className="text-[10px] font-medium text-slate-400">
+            Selected: {formatTime12h(value)}
+          </span>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            className="px-2.5 py-1 rounded-lg bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[10.5px] font-semibold transition-colors cursor-pointer"
+          >
+            Done
+          </button>
         </div>
       </PopoverContent>
     </Popover>
@@ -3259,7 +3338,7 @@ export default function RiskGuard() {
                             ? "Auto square-off at daily IST cutoff time"
                             : "Auto flatten before Friday close to avoid weekend gaps"
                         }
-                        value={weekendCloseTime}
+                        value={formatTime12h(weekendCloseTime)}
                         active={weekendLock}
                         onToggle={setWeekendLock}
                         intent="warning"
@@ -3279,8 +3358,8 @@ export default function RiskGuard() {
                                   {lotTelemetry.weekend.isWindow
                                     ? "Cutoff Window Active"
                                     : activeMarket === "indian"
-                                    ? `Daily Cutoff @ ${weekendCloseTime} IST`
-                                    : `Friday @ ${weekendCloseTime} Broker`}
+                                    ? `Daily Cutoff @ ${formatTime12h(weekendCloseTime)} IST`
+                                    : `Friday @ ${formatTime12h(weekendCloseTime)} Broker`}
                                 </span>
                               </span>
                               <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
@@ -3779,7 +3858,7 @@ export default function RiskGuard() {
                         icon={Sunrise}
                         title="No Trading After Time"
                         description="Daily hard cutoff time"
-                        value={noTradingAfterTime}
+                        value={formatTime12h(noTradingAfterTime)}
                         active={noTradingAfterTimeActive}
                         onToggle={setNoTradingAfterTimeActive}
                         intent="discipline"
