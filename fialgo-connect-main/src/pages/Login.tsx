@@ -734,7 +734,7 @@ export default function Login() {
                         <div className="space-y-1 lg:space-y-1.5">
                           <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">First Name</label>
                           <div className="relative group">
-                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
+                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 transition-colors">
                               <IconlyUser set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                             </div>
                             <AnimatedInput
@@ -750,7 +750,7 @@ export default function Login() {
                         <div className="space-y-1 lg:space-y-1.5">
                           <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Last Name</label>
                           <div className="relative group">
-                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
+                            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 transition-colors">
                               <IconlyUser set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                             </div>
                             <AnimatedInput

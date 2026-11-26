@@ -417,7 +417,7 @@ function JournalContent() {
                 title="Hide all P&L values across the journal"
               >
                 {isStarter ? (
-                  <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
                 ) : hideBalance ? (
                   <Eye size={13} />
                 ) : (
@@ -444,7 +444,7 @@ function JournalContent() {
                 title="Hide account balance only while keeping P&L visible"
               >
                 {isStarter ? (
-                  <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
                 ) : (
                   <ShieldCheck size={13} />
                 )}
@@ -469,7 +469,7 @@ function JournalContent() {
                 title="Display trade P&L in % return instead of currency"
               >
                 {isStarter ? (
-                  <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
                 ) : (
                   <Percent size={12} strokeWidth={2.4} />
                 )}
@@ -503,7 +503,7 @@ function JournalContent() {
                     : "Drag & reorder journal cards"
                 }
               >
-                {isStarter && <Lock size={12} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />}
+                {isStarter && <Lock size={12} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />}
                 {isEditMode ? (
                   <>
                     <Check size={13} strokeWidth={2.8} />

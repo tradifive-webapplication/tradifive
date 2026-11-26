@@ -1249,12 +1249,12 @@ ${JSON.stringify(contextData)}`;
                 className="w-full bg-slate-50/90 dark:bg-[#111114] hover:border-blue-400/50 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2.5 border border-slate-200/80 dark:border-white/[0.08] transition-all cursor-pointer text-left"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <Lock size={14} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <Lock size={14} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
                   <span className="btn-shine text-[13px] font-semibold truncate">
                     Unlock with Pro &amp; Elite to ask AI Coach...
                   </span>
                 </div>
-                <span className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-200/70 dark:bg-white/[0.06] text-blue-600 dark:text-blue-400 shrink-0">
+                <span className="w-8 h-8 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-slate-400 shrink-0">
                   <Lock size={13} strokeWidth={2.4} />
                 </span>
               </button>

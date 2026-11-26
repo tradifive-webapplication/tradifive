@@ -72,8 +72,8 @@ export function UpgradeGate({
       </div>
 
       {/* Overlay */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-4 bg-white/60 dark:bg-[#111]/60 backdrop-blur-[2px] rounded-xl">
-        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center mb-3">
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-4 bg-black/50 dark:bg-black/60 backdrop-blur-[2px] rounded-xl">
+        <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1C1C20] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center mb-3">
           <Lock size={17} strokeWidth={2.2} />
         </div>
         {feature && (

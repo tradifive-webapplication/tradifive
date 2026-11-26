@@ -270,13 +270,13 @@ export const DashboardWidgetsPicker: React.FC<DashboardWidgetsPickerProps> = ({
           }
         >
           {locked ? (
-            <Lock size={12.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+            <Lock size={12.5} strokeWidth={2.4} className="text-slate-500 dark:text-slate-400 shrink-0" />
           ) : (
             <LayoutGrid size={13.5} className="text-blue-600 dark:text-blue-400 shrink-0" />
           )}
           <span className={locked ? "btn-shine font-semibold" : "font-semibold"}>Widgets</span>
           {locked ? (
-            <span className="px-1.5 py-[0.5px] rounded-full text-[9px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400 uppercase tracking-wide">
+            <span className="px-1.5 py-[0.5px] rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 dark:bg-white/[0.08] dark:text-neutral-300 uppercase tracking-wide">
               Pro
             </span>
           ) : (

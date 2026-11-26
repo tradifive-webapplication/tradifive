@@ -545,9 +545,9 @@ ${JSON.stringify(contextData)}`;
           <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 bg-[#F7F8FA]/55 dark:bg-[#131316]/60 text-center gap-5">
             {/* Lock icon with glow */}
             <div className="relative flex items-center justify-center">
-              <div className="absolute inset-0 rounded-full bg-blue-500/15 dark:bg-blue-400/10 blur-xl scale-150" />
-              <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-500/20 dark:to-blue-600/10 border border-blue-200/60 dark:border-blue-500/25 flex items-center justify-center shadow-[0_4px_16px_rgba(37,99,235,0.15)]">
-                <Crown size={28} className="text-blue-600 dark:text-blue-400" strokeWidth={1.8} />
+              <div className="absolute inset-0 rounded-full bg-slate-900/10 dark:bg-white/5 blur-xl scale-150" />
+              <div className="relative w-16 h-16 rounded-2xl bg-slate-100 dark:bg-white/[0.07] border border-slate-200/80 dark:border-white/[0.1] flex items-center justify-center shadow-[0_4px_16px_rgba(15,23,42,0.1)]">
+                <Crown size={28} className="text-slate-700 dark:text-neutral-200" strokeWidth={1.8} />
               </div>
             </div>
 
@@ -569,7 +569,7 @@ ${JSON.stringify(contextData)}`;
                 { icon: PlayCircle, label: "Post analysis", sub: "AI reviews your setups" },
               ].map(({ icon: Icon, label, sub }) => (
                 <div key={label} className="flex items-center gap-3 px-3.5 py-2.5">
-                  <div className="w-7 h-7 rounded-[9px] bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <div className="w-7 h-7 rounded-[9px] bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
                     <Icon size={13} strokeWidth={2.2} />
                   </div>
                   <div className="min-w-0">

@@ -5203,7 +5203,7 @@ export default function RiskGuard() {
                   </p>
                 </div>
                 <div className="flex items-start gap-2.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] px-3 py-2.5">
-                  <Lock size={14} className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                  <Lock size={14} className="text-slate-500 dark:text-slate-400 shrink-0 mt-0.5" />
                   <p className="text-slate-700 dark:text-neutral-200 leading-snug">
                     <strong className="font-semibold text-slate-900 dark:text-white">Halts all trading:</strong> Pauses Auto-Trading and locks new entries until you turn Kill Switch off.
                   </p>
