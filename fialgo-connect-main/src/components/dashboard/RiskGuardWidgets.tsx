@@ -325,6 +325,7 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
     const pairSegments = Array.from(symCounts.entries())
       .map(([symbol, count]) => ({
         symbol,
+        count,
         pct: totalInstrTrades > 0 ? Math.round((count / totalInstrTrades) * 100) : 0,
         isAllowed: symbol.includes(allowedTicker),
       }))
@@ -603,44 +604,58 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
           <WidgetHeader
             id="one_instrument"
             icon={Crosshair}
-            title={`Focus: ${widgetData.oneInstr.allowedTicker}`}
-            badge={widgetData.oneInstr.active ? "Locked" : "Off"}
+            title={
+              widgetData.oneInstr.active
+                ? `Only: ${widgetData.oneInstr.allowedTicker}`
+                : "One Instrument"
+            }
+            badge={widgetData.oneInstr.active ? "Locked" : "Any Pair"}
             badgeTone={widgetData.oneInstr.active ? "emerald" : "neutral"}
           />
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[11px]">
               <span className="font-bold text-slate-900 dark:text-white tabular-nums">
-                {widgetData.oneInstr.pct}% focused
+                {widgetData.oneInstr.active
+                  ? `${widgetData.oneInstr.allowedTicker} active`
+                  : "All pairs open"}
               </span>
               <span className="text-[10.5px] text-slate-400 tabular-nums">
-                {widgetData.oneInstr.onTickerCount} on · {widgetData.oneInstr.offTickerCount} blocked
+                {widgetData.oneInstr.pct}% on {widgetData.oneInstr.allowedTicker}
               </span>
             </div>
-            <div className="w-full h-[10px] rounded-full bg-slate-100 dark:bg-white/[0.07] p-[1px] flex gap-0.5 overflow-hidden">
+            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/[0.07] overflow-hidden flex gap-[2px]">
               {widgetData.oneInstr.pairSegments.length > 0 ? (
-                widgetData.oneInstr.pairSegments.map((seg) => (
+                widgetData.oneInstr.pairSegments.map((seg, idx) => (
                   <div
                     key={seg.symbol}
-                    style={{ width: `${Math.max(10, seg.pct)}%` }}
-                    className={`h-full rounded-full ${
+                    style={{ flexGrow: Math.max(1, seg.count), flexBasis: 0 }}
+                    className={`h-full ${idx === 0 ? "rounded-l-full" : ""} ${
+                      idx === widgetData.oneInstr.pairSegments.length - 1
+                        ? "rounded-r-full"
+                        : ""
+                    } ${
                       seg.isAllowed
-                        ? "bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]"
-                        : "bg-rose-500/85"
+                        ? "bg-[#2563EB] dark:bg-blue-500"
+                        : widgetData.oneInstr.active
+                        ? "bg-amber-400/80 dark:bg-amber-400/75"
+                        : "bg-slate-300 dark:bg-white/25"
                     }`}
                   />
                 ))
               ) : (
-                <div className="w-full h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]" />
+                <div className="w-full h-full rounded-full bg-[#2563EB] dark:bg-blue-500" />
               )}
             </div>
             <div className="flex items-center gap-1.5 flex-wrap">
               {widgetData.oneInstr.pairSegments.map((seg) => (
                 <span
                   key={seg.symbol}
-                  className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded ${
+                  className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded border ${
                     seg.isAllowed
-                      ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
-                      : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+                      ? "bg-blue-50/80 text-blue-600 border-blue-200/70 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30"
+                      : widgetData.oneInstr.active
+                      ? "bg-amber-50/70 text-amber-700 border-amber-200/60 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/25"
+                      : "bg-slate-50 text-slate-600 border-slate-200/70 dark:bg-white/[0.04] dark:text-neutral-300 dark:border-white/[0.08]"
                   }`}
                 >
                   {seg.symbol} {seg.pct}%

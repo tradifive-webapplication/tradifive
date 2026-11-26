@@ -1039,8 +1039,7 @@ export default function RiskGuard() {
       symbolCounts.set(allowedTicker.toUpperCase(), 4);
       symbolCounts.set(allowedTicker.toUpperCase() === "EURUSD" ? "GBPUSD" : "EURUSD", 1);
     } else {
-      const sourceList = livePositions.length > 0 ? allTrades : allTrades;
-      sourceList.forEach((t) => {
+      allTrades.forEach((t) => {
         const s = String(t.symbol || "").trim().toUpperCase();
         if (s) symbolCounts.set(s, (symbolCounts.get(s) || 0) + 1);
       });
@@ -1903,19 +1902,30 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={Crosshair}
                         title="One Instrument Mode"
-                        description="Allow trades only on 1 selected pair"
-                        value={allowedTicker}
+                        description="Switch ON to trade only 1 pair · OFF allows any pair"
+                        value={oneInstrumentMode ? `Only ${allowedTicker}` : "Any Pair"}
                         active={oneInstrumentMode}
                         onToggle={setOneInstrumentMode}
                         intent="trading"
                         hasDashboardWidget={pinnedWidgets.includes("one_instrument")}
                       >
                         <div className="space-y-2.5">
-                          {/* Segmented Pair Breakdown Bar */}
+                          {/* Pair Activity & Active Status Header */}
                           <div className="space-y-1.5">
                             <div className="flex items-center justify-between text-[10.5px]">
                               <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
-                                <span>{lotTelemetry.instr.focusPct}% Focused</span>
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    oneInstrumentMode
+                                      ? "bg-[#2563EB]"
+                                      : "bg-emerald-500"
+                                  }`}
+                                />
+                                <span>
+                                  {oneInstrumentMode
+                                    ? `${allowedTicker} Only Active`
+                                    : "Any Pair Allowed"}
+                                </span>
                                 <span
                                   className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
                                     useDemoData
@@ -1927,63 +1937,92 @@ export default function RiskGuard() {
                                 </span>
                               </span>
                               <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
-                                {lotTelemetry.instr.onTickerTrades} on {allowedTicker}
-                                {lotTelemetry.instr.offTickerTrades > 0
-                                  ? ` · ${lotTelemetry.instr.offTickerTrades} blocked`
-                                  : " · 0 off-pair"}
+                                {lotTelemetry.instr.focusPct}% on {allowedTicker}
                               </span>
                             </div>
 
-                            {/* Segmented Multi-Pair Split Bar */}
-                            <div className="w-full h-[10px] rounded-full bg-slate-100 dark:bg-white/[0.07] p-[1px] flex gap-0.5 overflow-hidden">
+                            {/* Clean Proportional Multi-Pair Bar */}
+                            <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-white/[0.07] overflow-hidden flex gap-[2px]">
                               {lotTelemetry.instr.pairBreakdown.length > 0 ? (
-                                lotTelemetry.instr.pairBreakdown.map((seg) => (
+                                lotTelemetry.instr.pairBreakdown.map((seg, idx) => (
                                   <div
                                     key={seg.symbol}
-                                    style={{ width: `${Math.max(8, seg.pct)}%` }}
+                                    style={{ flexGrow: Math.max(1, seg.count), flexBasis: 0 }}
                                     title={`${seg.symbol}: ${seg.count} trades (${seg.pct}%)`}
-                                    className={`h-full rounded-full transition-all duration-500 ${
+                                    className={`h-full transition-all duration-500 ${
+                                      idx === 0 ? "rounded-l-full" : ""
+                                    } ${
+                                      idx === lotTelemetry.instr.pairBreakdown.length - 1
+                                        ? "rounded-r-full"
+                                        : ""
+                                    } ${
                                       seg.isAllowed
-                                        ? "bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]"
-                                        : "bg-rose-500/85"
+                                        ? "bg-[#2563EB] dark:bg-blue-500"
+                                        : oneInstrumentMode
+                                        ? "bg-amber-400/80 dark:bg-amber-400/75"
+                                        : "bg-slate-300 dark:bg-white/25"
                                     }`}
                                   />
                                 ))
                               ) : (
-                                <div className="w-full h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]" />
+                                <div className="w-full h-full rounded-full bg-[#2563EB] dark:bg-blue-500" />
                               )}
                             </div>
 
-                            {/* Pair Chips Breakdown */}
+                            {/* Pair Chips */}
                             <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                               {lotTelemetry.instr.pairBreakdown.map((seg) => (
                                 <span
                                   key={seg.symbol}
-                                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold tabular-nums ${
+                                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold tabular-nums border ${
                                     seg.isAllowed
-                                      ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300"
-                                      : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+                                      ? "bg-blue-50/80 text-[#2563EB] border-blue-200/70 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30"
+                                      : oneInstrumentMode
+                                      ? "bg-amber-50/70 text-amber-700 border-amber-200/60 dark:bg-amber-500/10 dark:text-amber-300 dark:border-amber-500/25"
+                                      : "bg-slate-50 text-slate-600 border-slate-200/70 dark:bg-white/[0.04] dark:text-neutral-300 dark:border-white/[0.08]"
                                   }`}
                                 >
                                   <span
                                     className={`w-1.5 h-1.5 rounded-full ${
-                                      seg.isAllowed ? "bg-[#2563EB]" : "bg-rose-500"
+                                      seg.isAllowed
+                                        ? "bg-[#2563EB]"
+                                        : oneInstrumentMode
+                                        ? "bg-amber-500"
+                                        : "bg-slate-400"
                                     }`}
                                   />
                                   <span>
                                     {seg.symbol} {seg.pct}%
-                                    {!seg.isAllowed ? " (Blocked)" : ""}
                                   </span>
+                                  {oneInstrumentMode && seg.isAllowed && (
+                                    <span className="text-[8.5px] uppercase font-bold opacity-80">
+                                      Active
+                                    </span>
+                                  )}
+                                  {oneInstrumentMode && !seg.isAllowed && (
+                                    <span className="text-[8.5px] uppercase font-bold opacity-75">
+                                      Paused
+                                    </span>
+                                  )}
                                 </span>
                               ))}
                             </div>
                           </div>
 
                           {/* Searchable Symbol Picker + Add Custom Pair */}
-                          <Popover
-                            open={tickerPickerOpen}
-                            onOpenChange={setTickerPickerOpen}
-                          >
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className={`${FIELD_LABEL} mb-0`}>
+                                Allowed Pair (When ON)
+                              </label>
+                              <span className="text-[9.5px] font-medium text-slate-400 dark:text-neutral-500">
+                                Can&apos;t find yours? Type to add
+                              </span>
+                            </div>
+                            <Popover
+                              open={tickerPickerOpen}
+                              onOpenChange={setTickerPickerOpen}
+                            >
                             <PopoverTrigger asChild>
                               <button
                                 type="button"
@@ -2110,7 +2149,8 @@ export default function RiskGuard() {
                                 })()}
                               </div>
                             </PopoverContent>
-                          </Popover>
+                            </Popover>
+                          </div>
                         </div>
                       </RiskGuardCard>
                     </motion.div>
