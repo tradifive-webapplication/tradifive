@@ -593,9 +593,9 @@ ${JSON.stringify(contextData)}`;
               Starting at ₹499/month · Cancel anytime
             </p>
           </div>
-        ) : (
+        ) : (<>
 
-        /* Message Feed */
+        {/* Message Feed */}
         <div
           ref={chatContainerRef}
           className="flex-1 overflow-y-auto px-4 py-4 space-y-3.5 amazing-scrollbar bg-[#F7F8FA]/55 dark:bg-[#131316]/60"
@@ -786,7 +786,7 @@ ${JSON.stringify(contextData)}`;
             AI can make mistakes. Not financial advice.
           </p>
         </div>
-        )} {/* end isStarterPlan else */}
+        </> )} {/* end isStarterPlan else */}
       </motion.div>
     </AnimatePresence>
   );
