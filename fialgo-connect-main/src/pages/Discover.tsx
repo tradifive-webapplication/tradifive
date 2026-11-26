@@ -171,7 +171,9 @@ export default function Discover() {
             const next = prev.includes(traderId) ? prev.filter(id => id !== traderId) : [...prev, traderId];
             try {
                 localStorage.setItem("tradifive_saved_traders", JSON.stringify(next));
-            } catch { }
+            } catch {
+                // Ignore storage quota errors
+            }
             if (next.includes(traderId)) {
                 toast.success("Trader saved to bookmarks");
             } else {
@@ -368,7 +370,9 @@ export default function Discover() {
                 localStorage.setItem("tradifive_purchased_algos", JSON.stringify(updated));
                 localStorage.setItem(`tradifive_license_${product.id}`, key);
                 localStorage.setItem(`tradifive_license_utr_${product.id}`, utrNumber.trim());
-            } catch (e) {}
+            } catch {
+                // Ignore storage errors
+            }
             return updated;
         });
 
@@ -408,7 +412,9 @@ export default function Discover() {
                 const { data: publicData } = supabase.storage.from('creator_assets').getPublicUrl(fileName);
                 fileUrl = publicData.publicUrl;
             }
-        } catch(e) {}
+        } catch {
+            // Proof upload fallback when storage bucket unavailable
+        }
         
         const { error } = await supabase.from('creator_orders').insert({
             product_id: purchaseModalProduct.id,
@@ -958,10 +964,10 @@ export default function Discover() {
                             ) : (
                                 <div className="w-full max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 relative z-10">
                                     <h1 className="capitalize text-[32px] md:text-[48px] text-[#060607] dark:text-[#F2F3F5] leading-[1.05] mb-4 tracking-[-0.03em]" style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 900 }}>
-                                        Find your community <br />on Tradifive
+                                        Find your trading circle <br />on TradiFive
                                     </h1>
                                     <p className="text-base md:text-[17px] text-[#4E5058] dark:text-[#B5BAC1] max-w-xl leading-relaxed font-medium">
-                                        From gaming, to music, to learning, there's a place for you. Discover top trading circles, share alpha, and level up together.
+                                        From forex, commodities, and index scalping to verified MQL5 systems — explore active traders, trusted channels, and expert mentors across TradiFive.
                                     </p>
                                 </div>
                             )}
@@ -1084,23 +1090,23 @@ export default function Discover() {
                     {/* People */}
                     {!isColdLoading && (activeTab === "All" || activeTab === "People") && !searchQuery && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <div>
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                                         People
                                     </h2>
                                     <p className="text-xs text-slate-500 dark:text-zinc-400">
-                                        Active traders and community members across Tradifive
+                                        Active traders and community members across TradiFive
                                     </p>
                                 </div>
                                 {activeTab === "All" && (
                                     <button
                                         type="button"
                                         onClick={() => handleTabChange("People")}
-                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                     >
                                         <span>View all people</span>
-                                        <ArrowRight size={13} strokeWidth={2.2} />
+                                        <ArrowRight size={13} strokeWidth={2.2} className="shrink-0" />
                                     </button>
                                 )}
                             </div>
@@ -1367,7 +1373,7 @@ export default function Discover() {
                     {(activeTab === "All" || activeTab === "Mentors") && !searchQuery && finalMentors.length > 0 && (
                         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-4 pt-4">
                             <div className="flex items-center justify-between">
-                                <div>
+                                <div className="min-w-0">
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                                         Featured Mentors
                                     </h2>
@@ -1379,10 +1385,10 @@ export default function Discover() {
                                     <button
                                         type="button"
                                         onClick={() => handleTabChange("Mentors")}
-                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer"
+                                        className="h-8 px-3.5 rounded-full tactile-white-pill text-xs font-semibold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
                                     >
                                         <span>View all mentors</span>
-                                        <ArrowRight size={13} strokeWidth={2.2} />
+                                        <ArrowRight size={13} strokeWidth={2.2} className="shrink-0" />
                                     </button>
                                 )}
                             </div>
