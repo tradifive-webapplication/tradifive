@@ -12,7 +12,6 @@ import ProfileTab, { TactileBoxButton, ProfileAccountPreferencesCard } from '@/c
 import HelpTab from '@/components/settings/HelpTab';
 import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
-import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
 import { supabase } from '@/lib/supabase';
 import { usePlan } from '@/hooks/usePlan';
 import { performAppLogout } from '@/utils/logout';
@@ -50,7 +49,6 @@ const TAB_TITLES: Record<string, string> = {
    privacy: "Privacy & Community",
    appearance: "Theme & Display",
    notifications: "Notifications",
-   trading_preferences: "Trading & Risk Config",
    ai: "AI Coach",
    trading: "Accounts & Brokers",
    subscription: "Subscription",
@@ -67,7 +65,6 @@ const TAB_SUBTITLES: Record<string, string> = {
    security: "Protect your account with password and session controls",
    privacy: "Control profile visibility and community privacy",
    notifications: "Choose which trade alerts and activity pings you receive",
-   trading_preferences: "Break-even range, risk circuit breaker and symbol preferences",
    trading: "Connect MetaTrader 5 and Indian broker accounts",
    ai: "Customize your TradiFive AI Coach persona and guardrails",
    subscription: "Manage your active plan, perks and billing history",
@@ -183,15 +180,14 @@ export default function Settings() {
    const navigate = useNavigate();
    const [searchParams] = useSearchParams();
    const { activeMarket } = useMarket();
-   const { isStarter, brokerAccountLimit } = usePlan();
+   const { isStarter, isElite, brokerAccountLimit } = usePlan();
    const isBrokerLocked = isStarter || brokerAccountLimit <= 0;
 
    const normalizeTab = (rawTab: string | null) => {
       if (!rawTab) return 'profile';
       if (rawTab === 'plan') return 'subscription';
       if (rawTab === 'profiles') return 'profile';
-      if (rawTab === 'File Setup') return 'trading';
-      if (rawTab === 'risk' || rawTab === 'preferences' || rawTab === 'trading-preferences') return 'trading_preferences';
+      if (rawTab === 'File Setup' || rawTab === 'risk' || rawTab === 'preferences' || rawTab === 'trading-preferences') return 'trading';
       return rawTab;
    };
 
@@ -325,6 +321,10 @@ export default function Settings() {
    const [isSavingPhone, setIsSavingPhone] = useState(false);
    const [isConnectingBroker, setIsConnectingBroker] = useState(false);
    const [selectedBrokerToConnect, setSelectedBrokerToConnect] = useState('');
+   const [mt5SettingsForm, setMt5SettingsForm] = useState({ server: '', login: '', password: '' });
+   const [showMt5SettingsPass, setShowMt5SettingsPass] = useState(false);
+   const [isConnectingMt5Settings, setIsConnectingMt5Settings] = useState(false);
+   const [mt5ConnectedServer, setMt5ConnectedServer] = useState('');
    
    // Profile State (pre-hydrated from cache to avoid opening flash)
    const [profile, setProfile] = useState<any>(() => {
@@ -806,7 +806,7 @@ export default function Settings() {
                setLoadingBilling(false);
             }
 
-            // Fetch broker connections
+            // Fetch broker & MT5 connections
             try {
                const { data: brokerData } = await supabase
                   .from('broker_connections')
@@ -816,6 +816,18 @@ export default function Settings() {
                   setConnectedBroker(brokerData[0].broker_name);
                   setBrokerClientId(brokerData[0].client_id || '');
                   setBrokerApiKey(brokerData[0].api_key ? '••••••••••••••••' : '');
+               } else {
+                  const { data: mt5Row } = await supabase
+                     .from('mt5_accounts')
+                     .select('account_number, broker_server, broker, is_connected')
+                     .eq('user_id', user.id)
+                     .eq('is_connected', true)
+                     .maybeSingle();
+                  if (mt5Row?.account_number) {
+                     setConnectedBroker('mt5');
+                     setBrokerClientId(mt5Row.account_number);
+                     setMt5ConnectedServer(mt5Row.broker_server || '');
+                  }
                }
             } catch (err) {
                console.error("Error fetching broker connections:", err);
@@ -826,6 +838,14 @@ export default function Settings() {
    }, []);
 
    const handleToggle = (category: string, id: string, type: 'app' | 'push' | 'email') => {
+      if (globalOff) {
+         setGlobalOff(false);
+         try { localStorage.setItem('tradifive_notif_global_off', 'false'); } catch { /* ignore */ }
+      }
+      if (type !== 'email' && globalEmailOnly) {
+         setGlobalEmailOnly(false);
+         try { localStorage.setItem('tradifive_notif_email_only', 'false'); } catch { /* ignore */ }
+      }
       setNotifications(prev => {
          const next = {
             ...prev,
@@ -836,8 +856,8 @@ export default function Settings() {
          try {
             localStorage.setItem('tradifive_user_notifications', JSON.stringify(next));
          } catch {
-         // Ignore malformed saved notifications
-      }
+            // Ignore malformed saved notifications
+         }
          return next;
       });
       triggerHaptic('selection');
@@ -921,6 +941,27 @@ export default function Settings() {
          // Ignore malformed saved notifications
       }
       toast(next ? 'Sound chimes enabled' : 'Sound chimes muted');
+   };
+
+   const emailStatementsEnabled = !globalOff && Boolean(notifications?.ai_coach?.find((n: any) => n.id === 'weekly_report')?.email);
+   const handleToggleEmailStatements = () => {
+      const nextVal = !emailStatementsEnabled;
+      if (nextVal && globalOff) {
+         setGlobalOff(false);
+         try { localStorage.setItem('tradifive_notif_global_off', 'false'); } catch { /* ignore */ }
+      }
+      setNotifications((prev: any) => {
+         const next = {
+            ...prev,
+            ai_coach: (prev.ai_coach || []).map((n: any) =>
+               n.id === 'weekly_report' ? { ...n, email: nextVal } : n
+            ),
+         };
+         try { localStorage.setItem('tradifive_user_notifications', JSON.stringify(next)); } catch { /* ignore */ }
+         return next;
+      });
+      triggerHaptic('selection');
+      toast.success(nextVal ? 'Email audit statements enabled' : 'Email audit statements muted');
    };
 
    const handleUpdateProfile = async (e?: React.FormEvent) => {
@@ -1069,7 +1110,7 @@ export default function Settings() {
    const handleConnectBrokerSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       
-      const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(selectedBrokerToConnect);
+      const isGlobal = activeMarket !== 'indian' || ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(selectedBrokerToConnect);
       
       if (isGlobal) {
          if (isBrokerLocked) {
@@ -1082,9 +1123,100 @@ export default function Settings() {
             });
             return;
          }
-         setConnectedBroker(selectedBrokerToConnect);
-         setIsConnectingBroker(false);
-         toast.success(`Successfully connected to ${selectedBrokerToConnect.toUpperCase()}!`);
+         const cleanAccount = mt5SettingsForm.login.trim();
+         const cleanPassword = mt5SettingsForm.password.trim();
+         const cleanServer = mt5SettingsForm.server.trim();
+         if (!cleanAccount || !cleanPassword || !cleanServer) {
+            toast.error('Please enter MT5 Server Name, Account Number, and Password.');
+            return;
+         }
+
+         setIsConnectingMt5Settings(true);
+         const toastId = toast.loading('Connecting MT5 account...', {
+            description: `Authenticating with ${cleanServer}...`,
+         });
+
+         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            let deployed = false;
+            let deployData: any = null;
+            let errMsg = '';
+
+            try {
+               const res = await fetch('/api/deploy-metaapi', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                     accountNumber: cleanAccount,
+                     masterPassword: cleanPassword,
+                     brokerServer: cleanServer,
+                     purpose: 'risk_journal',
+                     userId: user?.id,
+                  }),
+               });
+               if (res.ok) {
+                  deployData = await res.json();
+                  deployed = true;
+               } else if (res.status !== 404) {
+                  const errBody = await res.json().catch(() => ({}));
+                  errMsg = errBody.error || errBody.message || 'Unable to verify MT5 credentials.';
+               }
+            } catch {
+               // Fallback to Supabase Edge Function below
+            }
+
+            if (!deployed && !errMsg) {
+               const { data, error } = await supabase.functions.invoke('deploy-metaapi-account', {
+                  body: {
+                     accountNumber: cleanAccount,
+                     masterPassword: cleanPassword,
+                     brokerServer: cleanServer,
+                     purpose: 'risk_journal',
+                     userId: user?.id,
+                  },
+               });
+               if (error) {
+                  errMsg = error.message || 'Unable to connect to MT5 bridge. Please verify your server, account number, and password.';
+               } else {
+                  deployed = true;
+                  deployData = data;
+               }
+            }
+
+            toast.dismiss(toastId);
+
+            if (!deployed && errMsg) {
+               toast.error('MT5 Connection Failed', { description: errMsg });
+               return;
+            }
+
+            if (user) {
+               await supabase.from('mt5_accounts').upsert({
+                  user_id: user.id,
+                  account_number: cleanAccount,
+                  broker_server: cleanServer,
+                  server: cleanServer,
+                  broker: cleanServer.split('-')[0] || 'MT5',
+                  connection_status: 'deployed',
+                  is_connected: true,
+                  metaapi_account_id: deployData?.accountId || deployData?.id || `mt5-${cleanAccount}`,
+                  updated_at: new Date().toISOString(),
+               }, { onConflict: 'user_id, account_number' }).then(() => undefined, () => undefined);
+            }
+
+            setConnectedBroker('mt5');
+            setBrokerClientId(cleanAccount);
+            setMt5ConnectedServer(cleanServer);
+            setMt5SettingsForm({ server: '', login: '', password: '' });
+            setIsConnectingBroker(false);
+            setSelectedBrokerToConnect('');
+            toast.success('MT5 account connected!');
+         } catch (err: any) {
+            toast.dismiss(toastId);
+            toast.error('MT5 Connection Failed', { description: err?.message || 'Unexpected error connecting account.' });
+         } finally {
+            setIsConnectingMt5Settings(false);
+         }
          return;
       }
 
@@ -1171,8 +1303,22 @@ export default function Settings() {
        const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(connectedBroker);
        
        if (isGlobal) {
+          try {
+             const { data: { user } } = await supabase.auth.getUser();
+             if (user) {
+                await supabase
+                   .from('mt5_accounts')
+                   .update({ is_connected: false, updated_at: new Date().toISOString() })
+                   .eq('user_id', user.id)
+                   .eq('is_connected', true);
+             }
+          } catch (err) {
+             console.error("Error disconnecting MT5:", err);
+          }
           setConnectedBroker('');
-          toast.success('Disconnected broker account');
+          setBrokerClientId('');
+          setMt5ConnectedServer('');
+          toast.success('Disconnected MT5 account');
           return;
        }
        
@@ -1235,7 +1381,6 @@ export default function Settings() {
       {
          title: "Trading",
          items: [
-            { id: "trading_preferences", label: "Trading & Risk Config", icon: Sliders },
             { id: "trading", label: "Accounts & Brokers", icon: Wallet },
             { id: "ai", label: "AI Coach", icon: Sparkles }
          ]
@@ -1592,28 +1737,12 @@ export default function Settings() {
                       )}
 
                       {/* Section: TRADING */}
-                      {(!searchQuery || "trading break-even risk accounts circuit breaker symbol pricing".includes(searchQuery.toLowerCase())) && (
+                      {(!searchQuery || "trading accounts brokers".includes(searchQuery.toLowerCase())) && (
                          <div>
                             <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
                                TRADING
                             </h3>
                             <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                               {(!searchQuery || "break-even range risk".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Setting set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Break-even Range & Risk</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
                                {(!searchQuery || "accounts brokers".includes(searchQuery.toLowerCase())) && (
                                   <button
                                      type="button"
@@ -1625,38 +1754,6 @@ export default function Settings() {
                                            <Wallet set="curved" stroke="bold" primaryColor="currentColor" size={17} />
                                         </div>
                                         <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Accounts & Brokers</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "risk circuit breaker".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Risk Circuit Breaker</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "symbol pricing market".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading_preferences'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Swap set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Symbol Pricing</span>
                                      </div>
                                      <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
                                   </button>
@@ -2540,177 +2637,176 @@ export default function Settings() {
                      )}
 
 
-                     {/* TAB 6: NOTIFICATIONS (Clean, Modern, Tactile) */}
+                     {/* TAB 6: NOTIFICATIONS (Consistent Settings Cards, Switches & Pills) */}
                      {activeTab === 'notifications' && (
                         <motion.div
                            key="notifications"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[800px] mx-auto"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[820px]"
                         >
-                           {/* Header & Quick Action Pills */}
-                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-white/10">
-                              <div>
-                                 <h2 className="text-[22px] font-bold tracking-tight text-slate-900 dark:text-white">
-                                    Notifications
-                                 </h2>
-                                 <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">
-                                    Configure trade execution alerts, risk guard limits, AI Coach digests, and messaging.
-                                 </p>
+                           {/* Delivery Overview & Quick Actions Card */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <div>
+                                    <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                       Delivery Controls
+                                    </h3>
+                                    <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                       Pause alerts, restrict to email digests, or reset to default routing.
+                                    </p>
+                                 </div>
+
+                                 <div className="flex items-center gap-2 flex-wrap shrink-0">
+                                    <button
+                                       type="button"
+                                       onClick={handleGlobalOff}
+                                       className={`h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                          globalOff
+                                             ? 'bg-rose-600 text-white border border-rose-600 shadow-xs'
+                                             : 'tactile-white-pill text-slate-700 dark:text-neutral-200'
+                                       }`}
+                                    >
+                                       <Power size={12.5} strokeWidth={2.2} />
+                                       <span>{globalOff ? 'Muted (DND)' : 'Pause All'}</span>
+                                    </button>
+                                    <button
+                                       type="button"
+                                       onClick={handleEmailOnly}
+                                       className={`h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                          globalEmailOnly
+                                             ? 'bg-[#2563EB] text-white border border-[#2563EB] shadow-xs'
+                                             : 'tactile-white-pill text-slate-700 dark:text-neutral-200'
+                                       }`}
+                                    >
+                                       <Mail size={12.5} strokeWidth={2.2} />
+                                       <span>Email Only</span>
+                                    </button>
+                                    <button
+                                       type="button"
+                                       onClick={handleResetNotificationDefaults}
+                                       className="tactile-white-pill h-8 px-3 rounded-full text-[12px] font-semibold flex items-center gap-1.5 text-slate-600 hover:text-slate-900 dark:text-neutral-300 dark:hover:text-white cursor-pointer select-none active:scale-95"
+                                       title="Reset to defaults"
+                                    >
+                                       <RefreshCw size={12.5} strokeWidth={2.2} />
+                                       <span>Reset</span>
+                                    </button>
+                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2 flex-wrap shrink-0">
-                                 <button
-                                    type="button"
-                                    onClick={handleGlobalOff}
-                                    className={`h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
-                                       globalOff
-                                          ? 'bg-rose-500 text-white shadow-xs'
-                                          : 'tactile-white-pill text-slate-700 dark:text-slate-200'
-                                    }`}
-                                 >
-                                    <Power size={13} strokeWidth={2.4} />
-                                    <span>{globalOff ? 'Muted (DND)' : 'Pause All'}</span>
-                                 </button>
-                                 <button
-                                    type="button"
-                                    onClick={handleEmailOnly}
-                                    className={`h-[34px] px-3.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
-                                       globalEmailOnly
-                                          ? 'bg-indigo-600 text-white shadow-xs'
-                                          : 'tactile-white-pill text-slate-700 dark:text-slate-200'
-                                    }`}
-                                 >
-                                    <Mail size={13} strokeWidth={2.4} />
-                                    <span>Email Only</span>
-                                 </button>
-                                 <button
-                                    type="button"
-                                    onClick={handleResetNotificationDefaults}
-                                    className="tactile-white-pill w-[34px] h-[34px] rounded-full flex items-center justify-center text-slate-500 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white cursor-pointer select-none active:scale-95"
-                                    title="Reset to defaults"
-                                 >
-                                    <RefreshCw size={13} strokeWidth={2.4} />
-                                 </button>
+                              {/* 3 Master Delivery Channels */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                 {/* Push alerts */}
+                                 <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] px-3.5 py-3 flex items-center justify-between gap-2.5">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                       <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                          <Smartphone size={15} />
+                                       </div>
+                                       <div className="min-w-0">
+                                          <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">Push Alerts</h4>
+                                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">{globalOff ? 'Paused' : 'Active on device'}</p>
+                                       </div>
+                                    </div>
+                                    <SettingsToggle checked={!globalOff} onChange={handleGlobalOff} />
+                                 </div>
+
+                                 {/* Sound Chimes */}
+                                 <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] px-3.5 py-3 flex items-center justify-between gap-2.5">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                       <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                          <Volume2 size={15} />
+                                       </div>
+                                       <div className="min-w-0">
+                                          <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">Audio Chimes</h4>
+                                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">{soundAlertsEnabled ? 'Fills & warnings' : 'Muted'}</p>
+                                       </div>
+                                    </div>
+                                    <SettingsToggle checked={soundAlertsEnabled} onChange={handleToggleSound} />
+                                 </div>
+
+                                 {/* Email Digests */}
+                                 <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] px-3.5 py-3 flex items-center justify-between gap-2.5">
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                       <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                          <Mail size={15} />
+                                       </div>
+                                       <div className="min-w-0">
+                                          <h4 className="text-[12.5px] font-bold text-slate-900 dark:text-white truncate">Email Statements</h4>
+                                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 truncate">{emailStatementsEnabled ? 'Monday audits' : 'Paused'}</p>
+                                       </div>
+                                    </div>
+                                    <SettingsToggle checked={emailStatementsEnabled} onChange={handleToggleEmailStatements} />
+                                 </div>
                               </div>
                            </div>
 
-                           {/* 3 Master Delivery Channels */}
-                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                              {/* Push alerts */}
-                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
-                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                                       <Smartphone size={17} />
-                                    </div>
-                                    <div>
-                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Push Alerts</h4>
-                                       <p className="text-[11px] text-slate-400">{globalOff ? 'Paused' : 'Active on device'}</p>
-                                    </div>
-                                 </div>
-                                 <SettingsToggle checked={!globalOff} onChange={handleGlobalOff} />
-                              </div>
-
-                              {/* Sound Chimes */}
-                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
-                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-                                       <Volume2 size={17} />
-                                    </div>
-                                    <div>
-                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Audio Chimes</h4>
-                                       <p className="text-[11px] text-slate-400">{soundAlertsEnabled ? 'Fills & warnings' : 'Muted'}</p>
-                                    </div>
-                                 </div>
-                                 <SettingsToggle checked={soundAlertsEnabled} onChange={handleToggleSound} />
-                              </div>
-
-                              {/* Email Digests */}
-                              <div className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-4 shadow-xs flex items-center justify-between">
-                                 <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                                       <Mail size={17} />
-                                    </div>
-                                    <div>
-                                       <h4 className="text-xs font-bold text-slate-900 dark:text-white">Email Statements</h4>
-                                       <p className="text-[11px] text-slate-400">Monday audits</p>
-                                    </div>
-                                 </div>
-                                 <SettingsToggle checked={!globalOff || globalEmailOnly} onChange={handleEmailOnly} />
-                              </div>
-                           </div>
-
-                           {/* Notification Category Sections */}
+                           {/* Notification Category Cards */}
                            {[
                               {
                                  key: 'alerts',
                                  title: 'Trading & Execution Alerts',
                                  desc: 'Real-time fills, stop loss hits, and critical drawdown alarms.',
                                  icon: AlertTriangle,
-                                 color: 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
                               },
                               {
                                  key: 'ai_coach',
                                  title: 'AI Coach & Daily Routine',
                                  desc: 'Psychology detection, Monday audit statements, and morning directives.',
                                  icon: Brain,
-                                 color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10'
                               },
                               {
                                  key: 'messages',
                                  title: 'Community & Discussions',
                                  desc: 'Direct messages from mentors, @mentions, and channel announcements.',
                                  icon: MessageSquare,
-                                 color: 'text-blue-600 dark:text-blue-400 bg-blue-500/10'
                               },
                               {
                                  key: 'text',
                                  title: 'Security & Payouts',
-                                 desc: '2FA security alerts, new login logins, and weekly profit settlements.',
+                                 desc: '2FA security alerts, new device logins, and weekly profit settlements.',
                                  icon: ShieldCheck,
-                                 color: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
                               }
                            ].map((section) => (
                               <div
                                  key={section.key}
-                                 className="bg-white dark:bg-[#18181B] border border-slate-200/90 dark:border-white/[0.08] rounded-2xl p-5 shadow-xs space-y-4"
+                                 className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-3"
                               >
                                  {/* Section Header */}
-                                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/5">
-                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${section.color}`}>
-                                       <section.icon size={17} />
+                                 <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
+                                    <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <section.icon size={16} />
                                     </div>
                                     <div>
-                                       <h3 className="text-[15px] font-bold text-slate-900 dark:text-white">
+                                       <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
                                           {section.title}
                                        </h3>
-                                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
                                           {section.desc}
                                        </p>
                                     </div>
                                  </div>
 
                                  {/* Notification Items */}
-                                 <div className="divide-y divide-slate-100 dark:divide-white/5">
+                                 <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
                                     {((notifications as any)[section.key] || []).map((notif: any) => (
                                        <div
                                           key={notif.id}
-                                          className="py-3.5 first:pt-1 last:pb-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                                          className="py-3 first:pt-1 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
                                        >
-                                          <div className="pr-2">
-                                             <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                                          <div className="min-w-0 pr-2">
+                                             <h4 className="text-[13px] font-semibold text-slate-800 dark:text-neutral-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
                                                 {notif.label}
                                              </h4>
                                              {notif.desc && (
-                                                <p className="text-[11.5px] text-slate-400 dark:text-slate-500 mt-0.5 leading-relaxed">
+                                                <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 leading-relaxed">
                                                    {notif.desc}
                                                 </p>
                                              )}
                                           </div>
 
-                                          {/* Tactile Channel Pills (Push / App / Email) */}
+                                          {/* Consistent Settings Channel Pills (Push / In-App / Email) */}
                                           <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
                                              {(['push', 'app', 'email'] as const).map((channel) => {
                                                 const isActive = !!notif[channel];
@@ -2720,10 +2816,10 @@ export default function Settings() {
                                                       key={channel}
                                                       type="button"
                                                       onClick={() => handleToggle(section.key, notif.id, channel)}
-                                                      className={`px-2.5 py-1 rounded-full text-[10.5px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                                                      className={`h-7 px-3 rounded-full text-[11px] font-semibold transition-all cursor-pointer select-none active:scale-95 ${
                                                          isActive
-                                                            ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-2xs'
-                                                            : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-neutral-500 hover:text-slate-700 dark:hover:text-neutral-300'
+                                                            ? 'bg-[#2563EB] text-white border border-[#2563EB] shadow-[0_2px_6px_rgba(37,99,235,0.24)]'
+                                                            : 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-neutral-400 border border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-800 dark:hover:text-white'
                                                       }`}
                                                       title={`Toggle ${label} alert`}
                                                    >
@@ -2799,364 +2895,401 @@ export default function Settings() {
                               </motion.div>
                            )}
 
-                           {/* TAB 8: BROKER & INTEGRATIONS */}
-                           
-                     {/* TAB: TRADING & RISK PREFERENCES */}
-                     {activeTab === 'trading_preferences' && (
-                        <motion.div
-                           key="trading_preferences"
-                           initial={{ opacity: 0, y: 10 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[840px] mx-auto"
-                        >
-                           <TradingPreferencesTab />
-                        </motion.div>
-                     )}
-
+                           {/* TAB 8: ACCOUNTS & BROKERS */}
                      {activeTab === 'trading' && (
-                              <motion.div
-                                 key="trading"
-                                 initial={{ opacity: 0, y: 10 }}
-                                 animate={{ opacity: 1, y: 0 }}
-                                 exit={{ opacity: 0, y: -10 }}
-                                 transition={{ duration: 0.2 }}
-                                 className="space-y-6 w-full max-w-[1100px] mx-auto"
-                              >
-                                       <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                                    Broker & Integrations
-                                 </h2>
-                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Manage your connected trading accounts and third-party integrations.</p>
+                        <motion.div
+                           key="trading"
+                           initial={{ opacity: 0, y: 6 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[820px]"
+                        >
+                           {/* Card 1: MT5 Connection (Forex / Global) or Indian Broker Connector */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-5">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/15 border border-blue-100 dark:border-blue-500/25 flex items-center justify-center shrink-0 overflow-hidden">
+                                       {activeMarket === 'indian' ? (
+                                          <Wallet size={18} primaryColor="#2563EB" />
+                                       ) : (
+                                          <img src="/Mt5 logo.png" alt="MT5" className="w-6 h-6 object-contain" />
+                                       )}
+                                    </div>
+                                    <div>
+                                       <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          {activeMarket === 'indian' ? 'Indian Broker Accounts' : 'MetaTrader 5 (MT5) Connection'}
+                                       </h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          {activeMarket === 'indian'
+                                             ? 'Link your Zerodha, Dhan, or Upstox account for live execution sync.'
+                                             : 'Connect via MT5 from any broker worldwide — Vantage, Exness, XM, IC Markets, or prop firms.'}
+                                       </p>
+                                    </div>
+                                 </div>
 
-                                 {/* Connected Brokers Box */}
-                                 <div className={isConnectingBroker || selectedBrokerToConnect ? "w-full" : "bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8"}>
-                                    {!(isConnectingBroker || selectedBrokerToConnect) && (
-                                       <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white mb-6 tracking-tight">Connected Brokers</h3>
-                                    )}
-                                    
-                                    {isConnectingBroker || selectedBrokerToConnect ? (
-                                       <div className="bg-white dark:bg-[#111112] border border-slate-200/80 dark:border-white/5 rounded-[36px] shadow-[0_8px_40px_rgb(0,0,0,0.03)] w-full overflow-hidden p-6 md:p-10 relative">
-                                          <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-white/5 pb-5">
-                                             <h3 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
-                                                {!selectedBrokerToConnect ? 'Select A Broker' : `Connect ${selectedBrokerToConnect}`}
-                                             </h3>
-                                             <button type="button" onClick={() => {
-                                                if (selectedBrokerToConnect) {
-                                                   setSelectedBrokerToConnect('');
-                                                } else {
-                                                   setIsConnectingBroker(false);
-                                                }
-                                             }} className="group flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-slate-50 hover:bg-slate-100 dark:bg-white/5 dark:hover:bg-white/10 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-all text-[13px] font-bold border border-slate-200/60 dark:border-white/5 active:scale-95 shadow-sm">
-                                                <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                                                Back
-                                             </button>
-                                          </div>
-                                          
-                                          {!selectedBrokerToConnect ? (
-                                             <div className="space-y-8">
-                                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                  <p className="text-[15px] text-slate-500 dark:text-[#949ba4] font-medium leading-relaxed max-w-2xl">
-                                                     Select your trading platform or broker to sync your live accounts and start tracking your performance.
-                                                  </p>
-                                                </div>
-                                                
-                                                <div className="flex flex-wrap gap-5 md:gap-6">
-                                                   {['zerodha', 'dhan', 'upstox', 'mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].filter(broker => { const isGlobal = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker); return activeMarket === 'indian' ? !isGlobal : isGlobal; }).map(broker => {
-                                                      const isGlobalBroker = ['mt5', 'mt4', 'icmarkets', 'vantage', 'exness', 'xm'].includes(broker);
-                                                      const brokerItemLocked = isGlobalBroker && isBrokerLocked;
-                                                      return (
-                                                      <button
-                                                         key={broker}
-                                                         type="button"
-                                                         onClick={() => {
-                                                            if (brokerItemLocked) {
-                                                               toast.info('Pro & Elite Feature · Live MT5 Sync', {
-                                                                  description: 'Upgrade to Pro or Elite to connect live MetaTrader accounts.',
-                                                                  action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
-                                                               });
-                                                               return;
-                                                            }
-                                                            setSelectedBrokerToConnect(broker);
-                                                         }}
-                                                         className={`group w-[150px] md:w-[160px] relative flex flex-col items-center justify-center p-6 bg-gradient-to-b from-white to-slate-50/80 dark:from-[#1A1A24] dark:to-[#121215] border border-slate-200/80 dark:border-white/10 hover:border-${broker === 'zerodha' ? 'blue' : broker === 'dhan' ? 'yellow' : broker === 'upstox' ? 'purple' : 'indigo'}-500/50 rounded-[32px] transition-all duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] hover:-translate-y-1 active:translate-y-0 active:scale-95 overflow-hidden`}
-                                                      >
-                                                         {brokerItemLocked && (
-                                                            <span className="absolute top-3.5 right-3.5 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 border border-blue-200/70 dark:border-blue-500/25 text-[10px] font-bold">
-                                                               <Lock size={10} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" />
-                                                               <span className="btn-shine">Pro</span>
-                                                            </span>
-                                                         )}
-                                                         {/* Background Glow on Hover tailored to broker */}
-                                                         <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${broker === 'zerodha' ? 'bg-blue-500/5' : broker === 'dhan' ? 'bg-yellow-500/5' : broker === 'upstox' ? 'bg-purple-500/5' : 'bg-indigo-500/5'}`} />
-                                                         <div className={`absolute -top-10 -right-10 w-24 h-24 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${broker === 'zerodha' ? 'bg-blue-400/20' : broker === 'dhan' ? 'bg-yellow-400/20' : broker === 'upstox' ? 'bg-purple-400/20' : 'bg-indigo-400/20'}`} />
-                                                         
-                                                         <div className={`relative w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white dark:bg-black/50 border border-slate-100 dark:border-white/5 rounded-[24px] shadow-sm mb-4 group-hover:scale-105 group-hover:shadow-md transition-all duration-300 z-10 overflow-hidden`}>
-                                                            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 dark:to-transparent pointer-events-none" />
-                                                            {broker === 'mt5' || broker === 'mt4' ? (
-                                                               <img src="/Mt5 logo.png" alt="MT" className="w-10 h-10 md:w-12 md:h-12 object-contain drop-shadow-lg" />
-                                                            ) : (
-                                                               <BrokerIcon name={broker} size={48} />
-                                                            )}
-                                                         </div>
-                                                         
-                                                         <span className={`relative z-10 text-[13px] md:text-[14px] font-black text-slate-800 dark:text-white capitalize text-center tracking-tight transition-colors duration-300 ${broker === 'zerodha' ? 'group-hover:text-blue-600 dark:group-hover:text-blue-400' : broker === 'dhan' ? 'group-hover:text-yellow-600 dark:group-hover:text-yellow-400' : broker === 'upstox' ? 'group-hover:text-purple-600 dark:group-hover:text-purple-400' : 'group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}`}>
-                                                            {broker === 'mt5' ? 'MetaTrader 5' : broker === 'mt4' ? 'MetaTrader 4' : broker === 'icmarkets' ? 'IC Markets' : broker}
-                                                         </span>
-                                                      </button>
-                                                      );
-                                                   })}
-                                                </div>
+                                 {connectedBroker ? (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200/80 dark:border-emerald-500/25 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold shrink-0 self-start sm:self-center">
+                                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                       Active Sync
+                                    </span>
+                                 ) : isBrokerLocked && activeMarket !== 'indian' ? (
+                                    <button
+                                       type="button"
+                                       onClick={() => navigate('/upgrade')}
+                                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold shadow-xs transition-all cursor-pointer shrink-0 self-start sm:self-center active:scale-95"
+                                    >
+                                       <Lock size={12} strokeWidth={2.3} />
+                                       <span>Upgrade</span>
+                                    </button>
+                                 ) : null}
+                              </div>
 
-                                                {activeMarket !== 'indian' && (
-                                                <div className="mt-10 bg-gradient-to-r from-[#EEF2FF] to-[#F8FAFC] dark:from-[#16161D] dark:to-[#111113] border border-indigo-100 dark:border-[#2A2A35] rounded-[24px] p-6 md:p-8 relative overflow-hidden group hover:border-indigo-500/30 transition-colors">
-                                                   <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 dark:bg-indigo-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-indigo-500/20 transition-colors duration-500"></div>
-                                                   <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5 md:gap-6">
-                                                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-[18px] bg-indigo-500 dark:bg-indigo-500/20 shadow-[0_4px_20px_rgba(99,102,241,0.4)] dark:shadow-none border border-indigo-400 dark:border-indigo-500/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                                                         <Sparkles size={28} className="text-white dark:text-indigo-400" />
-                                                      </div>
-                                                      <div className="flex-1">
-                                                         <h4 className="text-[17px] md:text-[18px] font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">Don't have an account?</h4>
-                                                         <p className="text-[13.5px] text-slate-600 dark:text-[#949BA4] mb-5 sm:mb-0 leading-relaxed max-w-xl">
-                                                            Sign up with our partners like <span className="font-bold text-indigo-600 dark:text-indigo-400">Vantage</span>, <span className="font-bold text-indigo-600 dark:text-indigo-400">Exness</span>, or <span className="font-bold text-indigo-600 dark:text-indigo-400">XM</span> to instantly get <span className="font-black text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded uppercase text-[11px] tracking-wider ml-1">+500 XP</span> and exclusive platform benefits!
-                                                         </p>
-                                                      </div>
-                                                      <button className="px-6 py-3 md:py-3.5 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-[13px] md:text-[14px] font-bold rounded-[14px] shadow-lg hover:shadow-xl transition-all active:scale-95 shrink-0 whitespace-nowrap">
-                                                         View Partner Offers
-                                                      </button>
-                                                   </div>
-                                                </div>
-                                                )}
-                                             </div>
+                              {/* Connected Account Summary */}
+                              {connectedBroker && !isConnectingBroker && (
+                                 <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-center gap-3.5 min-w-0">
+                                       <div className="w-11 h-11 rounded-xl bg-white dark:bg-[#232329] border border-slate-200/70 dark:border-white/10 flex items-center justify-center shrink-0">
+                                          {['mt5', 'mt4', 'vantage', 'exness', 'xm', 'icmarkets'].includes(connectedBroker) ? (
+                                             <img src="/Mt5 logo.png" alt="MT5" className="w-6 h-6 object-contain" />
                                           ) : (
-                                             <>
-                                                <p className="text-xs text-slate-505 mb-6 font-sans">
-                                                   {selectedBrokerToConnect === 'dhan' 
-                                                      ? "Link your Dhan account. Enter your Client ID to securely redirect and authorize TradiFive." 
-                                                      : "Link your live trading account. Enter your secure API key or login credentials to pull transaction histories."}
-                                                </p>
-                                                
-                                                <form onSubmit={handleConnectBrokerSubmit} className="space-y-4 max-w-md">
-                                                   {selectedBrokerToConnect === 'icmarkets' || selectedBrokerToConnect === 'vantage' || selectedBrokerToConnect === 'exness' || selectedBrokerToConnect === 'xm' || selectedBrokerToConnect === 'mt5' || selectedBrokerToConnect === 'mt4' ? (
-                                                      <>
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Login ID</label>
-                                                            <AnimatedInput type="text" required placeholder="e.g. 98310842" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
-                                                         </div>
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">MT5 Investor Password</label>
-                                                            <AnimatedInput type="password" required className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
-                                                         </div>
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Server</label>
-                                                            <AnimatedInput type="text" required placeholder="e.g. Vantage-Live-1" className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" />
-                                                         </div>
-                                                      </>
-                                                   ) : (
-                                                      <>
-                                                         {selectedBrokerToConnect !== 'dhan' && (
-                                                            <div>
-                                                               <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">API Key Token</label>
-                                                               <AnimatedInput 
-                                                                  type="text" 
-                                                                  required 
-                                                                  value={brokerApiKey}
-                                                                  onChange={(e) => setBrokerApiKey(e.target.value)}
-                                                                  placeholder="KITE-XXXXX or UPSTOX-XXXXX" 
-                                                                  className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" 
-                                                               />
-                                                            </div>
-                                                         )}
-                                                         <div>
-                                                            <label className="text-xs font-bold text-slate-555 uppercase tracking-wide block mb-1">Client ID</label>
-                                                            <AnimatedInput 
-                                                               type="text" 
-                                                               required 
-                                                               value={brokerClientId}
-                                                               onChange={(e) => setBrokerClientId(e.target.value)}
-                                                               placeholder={selectedBrokerToConnect === 'dhan' ? "e.g. 1000000000" : "User unique ID"} 
-                                                               className="w-full bg-white dark:bg-[#202020] border border-slate-300 dark:border-white/10 shadow-sm rounded-xl px-4 py-3 text-sm text-slate-800 dark:text-slate-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500/50 transition-all" 
-                                                            />
-                                                         </div>
-                                                      </>
-                                                   )}
-                                                   <div className="flex justify-start gap-3 pt-6 mt-4">
-                                                      <button type="submit" className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-md transition-colors flex items-center gap-2">
-                                                         <Link2 size={18} />
-                                                         Connect Account
-                                                      </button>
-                                                   </div>
-                                                </form>
-                                             </>
+                                             <BrokerIcon name={connectedBroker} size={26} />
                                           )}
                                        </div>
-                                    ) : connectedBroker ? (
-                                       <>
-                                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 md:p-6 rounded-[24px] bg-gradient-to-r from-[#FFFFFF] to-[#F8F9FA] dark:from-[#1C1C1E] dark:to-[#121214] border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] transition-shadow mb-4">
-                                          <div className="flex items-center gap-4">
-                                             <div className="w-14 h-14 flex items-center justify-center bg-white dark:bg-black/40 border border-slate-100 dark:border-white/10 rounded-[14px] shadow-[inset_0_2px_10px_rgba(0,0,0,0.02)] dark:shadow-[inset_0_2px_10px_rgba(255,255,255,0.02)] shrink-0">
-                                                {connectedBroker === 'mt5' || connectedBroker === 'mt4' ? (
-                                                   <img src="/Mt5 logo.png" alt="MT" className="w-9 h-9 object-contain drop-shadow-md" />
-                                                ) : (
-                                                   <BrokerIcon name={connectedBroker} size={36} />
-                                                )}
+                                       <div className="min-w-0">
+                                          <p className="text-[13.5px] font-bold text-slate-900 dark:text-white truncate capitalize">
+                                             {connectedBroker === 'mt5' ? 'MetaTrader 5' : connectedBroker}
+                                          </p>
+                                          <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate tabular-nums">
+                                             {brokerClientId ? `Account #${brokerClientId}` : 'Live Account Connected'}
+                                             {mt5ConnectedServer ? ` · ${mt5ConnectedServer}` : ''}
+                                          </p>
+                                       </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                                       <button
+                                          type="button"
+                                          onClick={() => {
+                                             if (!isElite && activeMarket !== 'indian') {
+                                                toast.info('Elite Feature · Multiple Accounts', {
+                                                   description: 'Upgrade to Elite to connect multiple MT5 accounts simultaneously.',
+                                                   action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
+                                                });
+                                                return;
+                                             }
+                                             setIsConnectingBroker(true);
+                                             setSelectedBrokerToConnect(activeMarket === 'indian' ? '' : 'mt5');
+                                          }}
+                                          className="tactile-white-pill h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 text-slate-700 dark:text-neutral-200 cursor-pointer"
+                                       >
+                                          <Plus size={13} />
+                                          <span>Add Account</span>
+                                       </button>
+                                       <button
+                                          type="button"
+                                          onClick={handleDisconnectBroker}
+                                          className="h-8 px-3.5 rounded-full text-[12px] font-semibold bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-200/70 dark:border-rose-500/25 transition-colors cursor-pointer"
+                                       >
+                                          Disconnect
+                                       </button>
+                                    </div>
+                                 </div>
+                              )}
+
+                              {/* MT5 Only Direct Connect Form (Global / Forex) */}
+                              {activeMarket !== 'indian' && (!connectedBroker || isConnectingBroker) && (
+                                 <form onSubmit={handleConnectBrokerSubmit} className="space-y-4">
+                                    {isBrokerLocked && (
+                                       <div className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] p-3.5 flex items-center justify-between gap-3">
+                                          <div className="flex items-center gap-2.5 min-w-0">
+                                             <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                                <Lock size={14} strokeWidth={2.4} />
                                              </div>
-                                             <div>
-                                                <div className="flex items-center gap-3">
-                                                   <h4 className="text-[15px] md:text-[16px] font-extrabold text-slate-900 dark:text-white capitalize tracking-tight">
-                                                      {connectedBroker === 'mt5' ? 'MetaTrader 5' : connectedBroker === 'mt4' ? 'MetaTrader 4' : connectedBroker}
-                                                   </h4>
-                                                   <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest">
-                                                      Active Sync
-                                                   </span>
-                                                </div>
-                                                <p className="text-[13px] text-slate-500 dark:text-[#949ba4] mt-1 font-medium">
-                                                   {brokerClientId ? `Client ID • ${brokerClientId}` : 'Live Account • 892314902'}
+                                             <div className="min-w-0">
+                                                <span className="btn-shine text-[12.5px] font-bold block leading-tight">
+                                                   Live MT5 Auto-Sync
+                                                </span>
+                                                <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                                                   Pro &amp; Elite · Auto-sync live MT5 trades &amp; Risk Guard
                                                 </p>
                                              </div>
                                           </div>
-                                          
-                                          <div className="flex items-center gap-3 w-full md:w-auto mt-2 md:mt-0">
-                                             <button 
-                                                onClick={() => {
-                                                   if (connectedBroker === 'dhan') {
-                                                      window.open('https://hq.dhan.co/', '_blank');
-                                                   } else if (connectedBroker === 'zerodha') {
-                                                      window.open('https://kite.trade/', '_blank');
-                                                   } else {
-                                                      toast.info("Manage settings for this broker in their developer console.");
-                                                   }
-                                                }}
-                                                className="flex-1 md:flex-none px-5 py-2.5 bg-slate-100 dark:bg-[#242428] hover:bg-slate-200 dark:hover:bg-[#2A2A2F] border border-slate-200 dark:border-transparent text-slate-800 dark:text-white text-[13px] font-bold rounded-[12px] transition-all active:scale-95 shadow-sm"
-                                             >
-                                                Manage
-                                             </button>
-                                             <button 
-                                                onClick={handleDisconnectBroker}
-                                                className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[13px] font-bold rounded-[12px] transition-all active:scale-95"
-                                             >
-                                                Disconnect
-                                             </button>
-                                          </div>
-                                       </div>
-                                       <button 
-                                          onClick={() => setIsConnectingBroker(true)}
-                                          className="w-full py-6 border-2 border-dashed border-slate-200 dark:border-white/10 rounded-[24px] flex flex-col items-center justify-center text-slate-500 dark:text-[#949ba4] hover:bg-slate-50 dark:hover:bg-white/[0.02] hover:border-indigo-300/50 dark:hover:border-indigo-500/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all group"
-                                       >
-                                          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-3 group-hover:scale-110 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-500/20 transition-all text-slate-400 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                                             <Plus size={22} />
-                                          </div>
-                                          <span className="text-[14px] font-extrabold tracking-tight">Connect Another Broker</span>
-                                       </button>
-                                       </>
-                                    ) : (
-                                       
-                                          <div className="relative overflow-hidden flex flex-col items-center justify-center py-10 px-6 border border-slate-200/60 dark:border-white/5 rounded-[28px] bg-gradient-to-b from-white to-slate-50/50 dark:from-[#111112] dark:to-[#0A0A0B] text-slate-500 dark:text-slate-400 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-                                          {/* Glowing Background Orbs */}
-                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] bg-indigo-500/10 dark:bg-indigo-500/5 blur-[60px] rounded-full pointer-events-none" />
-                                          
-                                          <div className="relative mb-6">
-                                             <div className="absolute inset-0 bg-indigo-500/20 dark:bg-indigo-500/20 blur-lg rounded-full" />
-                                             <div className="relative w-16 h-16 rounded-[20px] bg-gradient-to-br from-indigo-50 to-white dark:from-[#1A1A24] dark:to-[#121215] border border-indigo-100 dark:border-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shadow-[0_4px_12px_rgba(99,102,241,0.12)] rotate-[-5deg] hover:rotate-0 transition-transform duration-500">
-                                                <Link2 size={24} strokeWidth={2.5} />
-                                             </div>
-                                          </div>
-                                          
-                                          <h4 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight z-10">No Broker Connected</h4>
-                                          <p className="text-[14px] mb-8 max-w-md text-center text-slate-500 dark:text-[#8B92A0] leading-relaxed font-medium z-10">
-                                             Link your trading account to unlock real-time performance tracking, automated journaling, and advanced AI risk management.
-                                          </p>
-                                          
-                                          <button 
-                                             onClick={() => setIsConnectingBroker(true)}
-                                             className="relative group px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[16px] text-[14px] font-bold transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_12px_rgba(255,255,255,0.1)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.15)] dark:hover:shadow-[0_8px_20px_rgba(255,255,255,0.15)] hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2 overflow-hidden z-10"
-                                          >
-                                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                             <span className="relative flex items-center gap-2 group-hover:text-white transition-colors duration-300">
-                                                <Plus size={18} strokeWidth={3} />
-                                                Connect Your Broker
-                                             </span>
-                                          </button>
-                                          
-                                          <div className="mt-8 flex items-center gap-5 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500 z-10 bg-slate-100/50 dark:bg-black/20 px-5 py-2.5 rounded-full border border-slate-200 dark:border-white/5">
-                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Zerodha</span></div>
-                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Dhan</span></div>
-                                             <div className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700" />
-                                             <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"/><span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-300">Upstox</span></div>
-                                          </div>
-                                       </div>
-                                    )}
-                                 </div>
-                              
-                                 {/* TradingView Webhook Integration Hub */}
-                                 <div className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[32px] shadow-sm w-full overflow-hidden p-6 md:p-8 space-y-5 mt-6">
-                                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 dark:border-white/5 pb-4">
-                                       <div className="flex items-center gap-3">
-                                          <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 font-extrabold text-sm">
-                                             TV
-                                          </div>
-                                          <div>
-                                             <h3 className="text-base md:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                                TradingView Webhook Integration
-                                                <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20 uppercase">Active</span>
-                                             </h3>
-                                             <p className="text-xs text-slate-500 dark:text-[#949ba4]">Dispatch automated orders and signals directly from TradingView pine-script alerts.</p>
-                                          </div>
-                                       </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                       <div className="space-y-1.5">
-                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Your Personal Webhook Endpoint</label>
-                                          <div className="flex gap-2">
-                                             <input 
-                                                readOnly
-                                                type="text"
-                                                value={`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`}
-                                                className="w-full px-4 py-2.5 rounded-xl text-xs font-mono bg-slate-50 dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 select-all"
-                                             />
-                                             <button
-                                                type="button"
-                                                onClick={() => {
-                                                   navigator.clipboard.writeText(`https://tradifive.in/api/webhooks/v1/user-${globalUserId ? globalUserId.slice(0, 8) : 'account'}`);
-                                                   toast.success('Webhook URL copied to clipboard!');
-                                                }}
-                                                className="shrink-0 px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-white hover:bg-slate-200 dark:hover:bg-white/20 transition-all flex items-center gap-1.5"
-                                             >
-                                                <Copy size={13} /> Copy
-                                             </button>
-                                          </div>
-                                          <p className="text-[11px] text-slate-500">Paste this into the 'Webhook URL' field when creating an alert in TradingView.</p>
-                                       </div>
-
-                                       <div className="space-y-1.5">
-                                          <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Alert Message Template (JSON)</label>
-                                          <pre className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 text-[11px] font-mono text-slate-700 dark:text-slate-300 overflow-x-auto leading-relaxed">
-{`{
-  "ticker": "{{ticker}}",
-  "action": "{{strategy.order.action}}",
-  "contracts": "{{strategy.order.contracts}}",
-  "price": "{{close}}",
-  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"
-}`}
-                                          </pre>
                                           <button
                                              type="button"
-                                             onClick={() => {
-                                                navigator.clipboard.writeText(`{\n  "ticker": "{{ticker}}",\n  "action": "{{strategy.order.action}}",\n  "contracts": "{{strategy.order.contracts}}",\n  "price": "{{close}}",\n  "auth_key": "tradi_sec_${globalUserId ? globalUserId.slice(0, 12) : 'demo'}"\n}`);
-                                                toast.success('Alert JSON template copied!');
-                                             }}
-                                             className="text-xs text-blue-500 hover:text-blue-600 font-semibold flex items-center gap-1"
+                                             onClick={() => navigate('/upgrade')}
+                                             className="px-3.5 py-1.5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[11.5px] font-semibold shrink-0 shadow-xs cursor-pointer active:scale-95 transition-all"
                                           >
-                                             <Copy size={12} /> Copy JSON Template
+                                             Upgrade
                                           </button>
                                        </div>
+                                    )}
+
+                                    <div className="space-y-3.5">
+                                       <div>
+                                          <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+                                             MT5 Server Name
+                                          </label>
+                                          <input
+                                             type="text"
+                                             value={mt5SettingsForm.server}
+                                             onChange={(e) => setMt5SettingsForm((p) => ({ ...p, server: e.target.value }))}
+                                             placeholder="e.g. VantageInternational-Live, Exness-MT5Real9"
+                                             className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
+                                          />
+                                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 px-1">
+                                             Enter the exact MetaTrader 5 server name provided by your broker.
+                                          </p>
+                                       </div>
+
+                                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                                          <div>
+                                             <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+                                                MT5 Account Number
+                                             </label>
+                                             <input
+                                                type="text"
+                                                value={mt5SettingsForm.login}
+                                                onChange={(e) => setMt5SettingsForm((p) => ({ ...p, login: e.target.value }))}
+                                                placeholder="e.g. 98310842"
+                                                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors tabular-nums"
+                                             />
+                                          </div>
+                                          <div>
+                                             <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+                                                Password
+                                             </label>
+                                             <div className="relative">
+                                                <input
+                                                   type={showMt5SettingsPass ? 'text' : 'password'}
+                                                   value={mt5SettingsForm.password}
+                                                   onChange={(e) => setMt5SettingsForm((p) => ({ ...p, password: e.target.value }))}
+                                                   placeholder="Enter MT5 password"
+                                                   className="w-full h-10 pl-3.5 pr-9 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
+                                                />
+                                                <button
+                                                   type="button"
+                                                   onClick={() => setShowMt5SettingsPass((v) => !v)}
+                                                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
+                                                   aria-label={showMt5SettingsPass ? 'Hide password' : 'Show password'}
+                                                >
+                                                   {showMt5SettingsPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                                                </button>
+                                             </div>
+                                          </div>
+                                       </div>
                                     </div>
+
+                                    <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-white/[0.06]">
+                                       {isConnectingBroker && (
+                                          <TactileBoxButton
+                                             onClick={() => {
+                                                setIsConnectingBroker(false);
+                                                setSelectedBrokerToConnect('');
+                                             }}
+                                             className="h-9 px-4 text-[12.5px]"
+                                          >
+                                             Cancel
+                                          </TactileBoxButton>
+                                       )}
+                                       {isBrokerLocked ? (
+                                          <button
+                                             type="button"
+                                             onClick={() => navigate('/upgrade')}
+                                             className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+                                          >
+                                             <Lock size={13} strokeWidth={2.4} />
+                                             <span>Connect MT5 Account</span>
+                                          </button>
+                                       ) : (
+                                          <button
+                                             type="submit"
+                                             disabled={isConnectingMt5Settings}
+                                             className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 disabled:opacity-50 text-white text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+                                          >
+                                             <Link2 size={14} />
+                                             <span>{isConnectingMt5Settings ? 'Connecting...' : 'Connect MT5 Account'}</span>
+                                          </button>
+                                       )}
+                                    </div>
+                                 </form>
+                              )}
+
+                              {/* Indian Broker Picker & Form (Indian Market) */}
+                              {activeMarket === 'indian' && (!connectedBroker || isConnectingBroker) && (
+                                 <div className="space-y-4">
+                                    {!selectedBrokerToConnect ? (
+                                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                          {(['zerodha', 'dhan', 'upstox'] as const).map((broker) => (
+                                             <button
+                                                key={broker}
+                                                type="button"
+                                                onClick={() => setSelectedBrokerToConnect(broker)}
+                                                className="rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] hover:bg-blue-50/60 dark:hover:bg-blue-500/10 border border-slate-200/80 dark:border-white/[0.08] hover:border-blue-300 dark:hover:border-blue-500/30 p-4 flex items-center gap-3 transition-all cursor-pointer text-left"
+                                             >
+                                                <BrokerIcon name={broker} size={32} />
+                                                <div>
+                                                   <p className="text-[13.5px] font-bold text-slate-900 dark:text-white capitalize">{broker}</p>
+                                                   <p className="text-[11px] text-slate-400 dark:text-neutral-500">API Integration</p>
+                                                </div>
+                                             </button>
+                                          ))}
+                                       </div>
+                                    ) : (
+                                       <form onSubmit={handleConnectBrokerSubmit} className="space-y-3.5 max-w-md">
+                                          {selectedBrokerToConnect !== 'dhan' && (
+                                             <div>
+                                                <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+                                                   API Key Token
+                                                </label>
+                                                <input
+                                                   type="text"
+                                                   required
+                                                   value={brokerApiKey}
+                                                   onChange={(e) => setBrokerApiKey(e.target.value)}
+                                                   placeholder="KITE-XXXXX or UPSTOX-XXXXX"
+                                                   className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#2563EB]"
+                                                />
+                                             </div>
+                                          )}
+                                          <div>
+                                             <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+                                                Client ID
+                                             </label>
+                                             <input
+                                                type="text"
+                                                required
+                                                value={brokerClientId}
+                                                onChange={(e) => setBrokerClientId(e.target.value)}
+                                                placeholder={selectedBrokerToConnect === 'dhan' ? 'e.g. 1000000000' : 'User unique ID'}
+                                                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-900 dark:text-white outline-none focus:border-[#2563EB]"
+                                             />
+                                          </div>
+                                          <div className="flex items-center gap-2.5 pt-2">
+                                             <TactileBoxButton
+                                                onClick={() => setSelectedBrokerToConnect('')}
+                                                className="h-9 px-4 text-[12.5px]"
+                                             >
+                                                Back
+                                             </TactileBoxButton>
+                                             <button
+                                                type="submit"
+                                                className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12.5px] font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                                             >
+                                                <Link2 size={14} />
+                                                <span>Connect {selectedBrokerToConnect.toUpperCase()}</span>
+                                             </button>
+                                          </div>
+                                       </form>
+                                    )}
+                                 </div>
+                              )}
+                           </div>
+
+                           {/* Card 2: Partner Forex Brokers (Promoting Vantage + top MT5-compatible brokers) */}
+                           {activeMarket !== 'indian' && (
+                              <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
+                                 <div className="pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+                                    <div className="flex items-center gap-2">
+                                       <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          Open a Partner Forex Account
+                                       </h3>
+                                       <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-500/15 border border-amber-200/70 dark:border-amber-500/25 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
+                                          +500 XP
+                                       </span>
+                                    </div>
+                                    <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                       Don't have an MT5 account yet? Open directly with Vantage (featured partner) or any MT5-compatible broker below.
+                                    </p>
                                  </div>
 
-                              </motion.div>
+                                 <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                                    {[
+                                       {
+                                          id: 'vantage',
+                                          name: 'Vantage Markets',
+                                          badge: 'Featured Partner',
+                                          featured: true,
+                                          desc: 'Raw ECN spreads · Fast execution · MT5 compatible',
+                                          url: 'https://www.vantagemarkets.com/',
+                                       },
+                                       {
+                                          id: 'exness',
+                                          name: 'Exness',
+                                          badge: null,
+                                          featured: false,
+                                          desc: 'Instant withdrawals · Zero swap options · MT5 compatible',
+                                          url: 'https://www.exness.com/',
+                                       },
+                                       {
+                                          id: 'xm',
+                                          name: 'XM Global',
+                                          badge: null,
+                                          featured: false,
+                                          desc: 'Ultra low spreads · Instant order routing · MT5 compatible',
+                                          url: 'https://www.xm.com/',
+                                       },
+                                       {
+                                          id: 'icmarkets',
+                                          name: 'IC Markets',
+                                          badge: null,
+                                          featured: false,
+                                          desc: 'True ECN pricing · Deep liquidity · MT5 compatible',
+                                          url: 'https://www.icmarkets.com/',
+                                       },
+                                       {
+                                          id: 'pepperstone',
+                                          name: 'Pepperstone',
+                                          badge: null,
+                                          featured: false,
+                                          desc: 'Institutional execution · Raw spreads · MT5 compatible',
+                                          url: 'https://www.pepperstone.com/',
+                                       },
+                                    ].map((partner) => (
+                                       <div
+                                          key={partner.id}
+                                          className="py-3 first:pt-1 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                                       >
+                                          <div className="flex items-center gap-3 min-w-0">
+                                             <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[#232329] border border-slate-200/70 dark:border-white/[0.08] flex items-center justify-center shrink-0">
+                                                <BrokerIcon name={partner.id} size={24} />
+                                             </div>
+                                             <div className="min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                   <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                      {partner.name}
+                                                   </h4>
+                                                   {partner.badge && (
+                                                      <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 text-[10px] font-bold">
+                                                         {partner.badge}
+                                                      </span>
+                                                   )}
+                                                </div>
+                                                <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
+                                                   {partner.desc}
+                                                </p>
+                                             </div>
+                                          </div>
+
+                                          <button
+                                             type="button"
+                                             onClick={() => window.open(partner.url, '_blank', 'noopener,noreferrer')}
+                                             className={
+                                                partner.featured
+                                                   ? 'h-8 px-4 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold inline-flex items-center gap-1.5 shadow-xs shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all'
+                                                   : 'tactile-white-pill h-8 px-3.5 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 text-slate-800 dark:text-white shrink-0 self-start sm:self-center cursor-pointer'
+                                             }
+                                          >
+                                             <span>{partner.featured ? 'Open Vantage' : 'Open Account'}</span>
+                                             <ArrowUpRight size={13} />
+                                          </button>
+                                       </div>
+                                    ))}
+                                 </div>
+                              </div>
                            )}
+                        </motion.div>
+                     )}
 
 
 
@@ -3198,26 +3331,20 @@ export default function Settings() {
       return (
          <motion.div
             key="subscription"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="space-y-4 w-full max-w-[760px] mx-auto pb-16"
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
+            className="space-y-5 w-full max-w-[820px] pb-12"
          >
-            {/* Page Title */}
-            <div className="mb-6">
-               <h2 className="text-[26px] font-bold text-slate-900 dark:text-white tracking-tight">Subscription</h2>
-               <p className="text-[13px] text-slate-500 dark:text-slate-400 mt-0.5">Manage your current plan</p>
-            </div>
-
             {/* Card 1: Active Subscription Overview */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3.5">
+            <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] border border-slate-200/80 dark:border-white/[0.08] p-5 sm:p-6 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none space-y-3.5">
                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-900 dark:text-white">
-                     {currentTier === 'starter' ? 'Free Plan' : currentTier === 'pro' ? 'Pro Plan' : 'Elite Plan'}
+                  <span className="text-[14px] font-bold text-slate-900 dark:text-white">
+                     {currentTier === 'starter' ? 'Standard Plan' : currentTier === 'pro' ? 'Pro Plan' : 'Elite Plan'}
                   </span>
                   <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
-                     {currentTier === 'starter' ? 'Free tier active' : `${currentTier.toUpperCase()} active`}
+                     {currentTier === 'starter' ? 'Standard active' : `${currentTier.toUpperCase()} active`}
                   </span>
                </div>
 
@@ -3289,7 +3416,7 @@ export default function Settings() {
             </div>
 
             {/* Card 2: Billing Summary */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] space-y-3">
+            <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] border border-slate-200/80 dark:border-white/[0.08] p-5 sm:p-6 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none space-y-3">
                <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-900 dark:text-white">Billing</span>
                   <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-white/5 px-2.5 py-0.5 rounded-full border border-slate-200/50 dark:border-white/10">
@@ -3329,7 +3456,7 @@ export default function Settings() {
             </div>
 
             {/* Card 3: Payments / Invoices */}
-            <div className="bg-white dark:bg-[#161618] rounded-2xl border border-slate-200/80 dark:border-white/10 p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+            <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] border border-slate-200/80 dark:border-white/[0.08] p-5 sm:p-6 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none">
                <div className="text-xs font-bold text-slate-900 dark:text-white mb-3">Payments</div>
                {billingHistory && billingHistory.length > 0 ? (
                   <div className="space-y-2">
