@@ -839,21 +839,21 @@ export default function ProfileTab({
                   <div className="space-y-0.5">
                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Blue check</h4>
                      <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 leading-relaxed">
-                        A paying subscriber. A real account with an active Pro or Elite subscription behind it, not a throwaway.
+                        Included with every active Pro subscription — confirms a verified paying Pro trader, not a throwaway account.
                      </p>
                   </div>
                </div>
 
-               {/* Emerald check */}
+               {/* Green check */}
                <div className="flex items-start gap-2.5">
                   <CheckCircle2 size={18} className="text-[#059669] shrink-0 mt-0.5 fill-[#059669] text-white" />
                   <div className="space-y-0.5">
-                     <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Emerald check</h4>
+                     <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Green check</h4>
                      <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 leading-relaxed">
-                        This trader sent TradiFive a screen recording of their funded prop firm accounts, the firm's original emails and proof a payout reached them in their name, and a person checked them against their account.
+                        Reserved exclusively for Elite members (not available on Pro). Awarded after submitting screen recording proof of funded prop firm accounts, original firm emails, and verified payouts in their name.
                      </p>
                      <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 leading-relaxed">
-                        Reserved exclusively for Elite members (not available on Pro). Request review in Settings → Account.
+                        Elite members can request verification in Settings → Account.
                      </p>
                   </div>
                </div>
