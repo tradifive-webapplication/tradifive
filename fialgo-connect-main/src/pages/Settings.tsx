@@ -8,7 +8,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import logoOnly from '@/assets/Logo_only.png';
 import defaultAvatar from '@/assets/default-avatar.svg';
 import AccountTab from '@/components/settings/AccountTab';
-import ProfileTab, { TactileBoxButton } from '@/components/settings/ProfileTab';
+import ProfileTab, { TactileBoxButton, ProfileAccountPreferencesCard } from '@/components/settings/ProfileTab';
 import HelpTab from '@/components/settings/HelpTab';
 import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
@@ -2036,6 +2036,19 @@ export default function Settings() {
                                        </div>
                                     </div>
                                  </div>
+
+                                 {/* Card 2: Email, Password, Timezone, Time/Date Format & Language */}
+                                 <ProfileAccountPreferencesCard
+                                    profile={profile}
+                                    onManageEmail={() => {
+                                       setActiveTab('account');
+                                       setActiveSubTab('email-management');
+                                    }}
+                                    onSetPassword={() => {
+                                       setActiveTab('account');
+                                       setActiveSubTab('password-security');
+                                    }}
+                                 />
                               </div>
                            )}
 

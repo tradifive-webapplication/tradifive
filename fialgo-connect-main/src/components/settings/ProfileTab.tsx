@@ -176,6 +176,204 @@ const SearchableCombobox = ({ value, onChange, items, placeholder, disabled }: a
    );
 };
 
+export function ProfileAccountPreferencesCard({
+   profile,
+   onManageEmail,
+   onSetPassword,
+}: {
+   profile: any;
+   onManageEmail?: () => void;
+   onSetPassword?: () => void;
+}) {
+   const [timeFormat, setTimeFormat] = useState(() => localStorage.getItem('tradifive_time_format') || '24h');
+   const [dateFormat, setDateFormat] = useState(() => localStorage.getItem('tradifive_date_format') || 'Automatic');
+   const [selectedLanguage, setSelectedLanguage] = useState(() => localStorage.getItem('tradifive_language') || 'English');
+
+   const timezoneSummary = useMemo(() => {
+      try {
+         const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Calcutta';
+         const city = tzName.split('/').pop()?.replace(/_/g, ' ') || 'Calcutta';
+         const now = new Date();
+         const offsetMin = -now.getTimezoneOffset();
+         const sign = offsetMin >= 0 ? '+' : '-';
+         const absMin = Math.abs(offsetMin);
+         const hrs = Math.floor(absMin / 60);
+         const mins = absMin % 60;
+         const utcLabel = mins === 0 ? `UTC${sign}${hrs}` : `UTC${sign}${hrs}:${String(mins).padStart(2, '0')}`;
+         const timeLabel = now.toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: timeFormat === '12h',
+         });
+         return { city, right: `${utcLabel} · ${timeLabel}` };
+      } catch {
+         return { city: 'Calcutta', right: 'UTC+5:30 · 18:24' };
+      }
+   }, [timeFormat]);
+
+   const handleSetTimeFormat = (fmt: string) => {
+      setTimeFormat(fmt);
+      localStorage.setItem('tradifive_time_format', fmt);
+   };
+
+   const handleSetDateFormat = (fmt: string) => {
+      setDateFormat(fmt);
+      localStorage.setItem('tradifive_date_format', fmt);
+   };
+
+   const handleSetLanguage = (lang: string) => {
+      setSelectedLanguage(lang);
+      localStorage.setItem('tradifive_language', lang);
+   };
+
+   return (
+      <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-5">
+         {/* EMAIL */}
+         <div>
+            <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+               EMAIL
+            </label>
+            <div className="flex items-center gap-2">
+               <input
+                  type="email"
+                  readOnly
+                  value={profile?.email || "nikhilharake369@gmail.com"}
+                  className="flex-1 min-w-0 bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-2.5 text-[13px] text-slate-800 dark:text-white font-medium outline-none border border-transparent truncate"
+               />
+               <TactileBoxButton
+                  onClick={() => {
+                     if (onManageEmail) {
+                        onManageEmail();
+                     } else {
+                        toast.info("Open Account & Security to update your email.");
+                     }
+                  }}
+                  className="h-10 px-4 text-[13px] shrink-0"
+               >
+                  Change
+               </TactileBoxButton>
+            </div>
+            <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
+               You sign in with this email, and every TradiFive email and receipt goes here.
+            </p>
+         </div>
+
+         {/* PASSWORD */}
+         <div>
+            <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+               PASSWORD
+            </label>
+            <p className="text-[12px] text-slate-500 dark:text-neutral-400 mb-2.5 px-1 leading-normal">
+               You sign in with Google or Apple. Add a password to also sign in with your email or @username.
+            </p>
+            <TactileBoxButton
+               onClick={() => {
+                  if (onSetPassword) {
+                     onSetPassword();
+                  } else {
+                     toast.info("Open Account & Security to set or update your password.");
+                  }
+               }}
+               className="h-10 px-4 text-[13px]"
+            >
+               Set a password
+            </TactileBoxButton>
+         </div>
+
+         {/* TIMEZONE */}
+         <div>
+            <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+               TIMEZONE
+            </label>
+            <div className="w-full bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-3 flex items-center justify-between text-[13px] font-medium text-slate-800 dark:text-white border border-transparent">
+               <span>This device · {timezoneSummary.city}</span>
+               <span className="text-slate-400 dark:text-neutral-500 flex items-center gap-1 tabular-nums">
+                  {timezoneSummary.right}
+                  <ChevronDown size={14} />
+               </span>
+            </div>
+            <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
+               New trades are logged in this timezone. You can still change it on a single trade.
+            </p>
+         </div>
+
+         {/* TIME FORMAT */}
+         <div>
+            <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+               TIME FORMAT
+            </label>
+            <div className="inline-flex p-1 bg-[#EAECEF] dark:bg-[#202024] rounded-xl gap-1">
+               <TactileSegmentButton
+                  active={timeFormat === '12h'}
+                  onClick={() => handleSetTimeFormat('12h')}
+                  className="px-4 py-1.5"
+               >
+                  AM / PM
+               </TactileSegmentButton>
+               <TactileSegmentButton
+                  active={timeFormat === '24h'}
+                  onClick={() => handleSetTimeFormat('24h')}
+                  className="px-4 py-1.5"
+               >
+                  24h
+               </TactileSegmentButton>
+            </div>
+            <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
+               Changes every time in TradiFive right away, for example 09:30 and 14:15.
+            </p>
+         </div>
+
+         {/* DATE FORMAT */}
+         <div>
+            <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+               DATE FORMAT
+            </label>
+            <div className="inline-flex p-1 bg-[#EAECEF] dark:bg-[#202024] rounded-xl gap-1">
+               {['Automatic', '07.10', '10/07'].map((fmt) => (
+                  <TactileSegmentButton
+                     key={fmt}
+                     active={dateFormat === fmt}
+                     onClick={() => handleSetDateFormat(fmt)}
+                     className="px-3.5 py-1.5"
+                  >
+                     {fmt}
+                  </TactileSegmentButton>
+               ))}
+            </div>
+            <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
+               How a date is written with numbers, for example 7 October: 10/07. Imported CSV files that do not say use this order too.
+            </p>
+         </div>
+
+         {/* LANGUAGE */}
+         <div>
+            <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+               LANGUAGE
+            </label>
+            <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-[#EAECEF] dark:bg-[#202024] rounded-2xl">
+               {[
+                  'English', 'Español', 'Deutsch',
+                  'Français', 'Português', 'Русский',
+                  '日本語', '简体中文', 'Tiếng Việt'
+               ].map((lang) => (
+                  <TactileSegmentButton
+                     key={lang}
+                     active={selectedLanguage === lang}
+                     onClick={() => handleSetLanguage(lang)}
+                     className="py-2.5 px-1 text-center"
+                  >
+                     {lang}
+                  </TactileSegmentButton>
+               ))}
+            </div>
+            <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
+               Every screen in TradiFive, and the AI. Your own notes stay as you wrote them.
+            </p>
+         </div>
+      </div>
+   );
+}
+
 export default function ProfileTab({
    profile,
    setProfile,
@@ -342,25 +540,6 @@ export default function ProfileTab({
       })();
       return () => { mounted = false; };
    }, [profile?.id]);
-
-   // Mobile Time, Date, Language preferences
-   const [timeFormat, setTimeFormat] = useState(() => localStorage.getItem('tradifive_time_format') || '24h');
-   const handleSetTimeFormat = (fmt: string) => {
-      setTimeFormat(fmt);
-      localStorage.setItem('tradifive_time_format', fmt);
-   };
-
-   const [dateFormat, setDateFormat] = useState(() => localStorage.getItem('tradifive_date_format') || 'Automatic');
-   const handleSetDateFormat = (fmt: string) => {
-      setDateFormat(fmt);
-      localStorage.setItem('tradifive_date_format', fmt);
-   };
-
-   const [selectedLanguage, setSelectedLanguage] = useState(() => localStorage.getItem('tradifive_language') || 'English');
-   const handleSetLanguage = (lang: string) => {
-      setSelectedLanguage(lang);
-      localStorage.setItem('tradifive_language', lang);
-   };
 
    const handleAddTag = () => {
       if (newTag.trim() && tags.length < 3) {
@@ -863,135 +1042,12 @@ export default function ProfileTab({
                </p>
             </div>
 
-            {/* 5. EMAIL */}
-            <div>
-               <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
-                  EMAIL
-               </label>
-               <div className="flex items-center gap-2">
-                  <input
-                     type="email"
-                     readOnly
-                     value={profile.email || "nikhilharake369@gmail.com"}
-                     className="flex-1 min-w-0 bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-2.5 text-[13px] text-slate-800 dark:text-white font-medium outline-none border border-transparent truncate"
-                  />
-                  <TactileBoxButton
-                     onClick={() => toast.info("To change your email, check your inbox for verification link.")}
-                     className="h-10 px-4 text-[13px] shrink-0"
-                  >
-                     Change
-                  </TactileBoxButton>
-               </div>
-               <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
-                  You sign in with this email, and every TradiFive email and receipt goes here.
-               </p>
-            </div>
-
-            {/* 6. PASSWORD */}
-            <div>
-               <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
-                  PASSWORD
-               </label>
-               <p className="text-[12px] text-slate-500 dark:text-neutral-400 mb-2.5 px-1 leading-normal">
-                  You sign in with Google or Apple. Add a password to also sign in with your email or @username.
-               </p>
-               <TactileBoxButton
-                  onClick={() => toast.info("Password reset link has been dispatched to your email.")}
-                  className="h-10 px-4 text-[13px]"
-               >
-                  Set a password
-               </TactileBoxButton>
-            </div>
-
-            {/* 7. TIMEZONE */}
-            <div>
-               <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
-                  TIMEZONE
-               </label>
-               <div className="w-full bg-[#F2F4F7] dark:bg-[#202024] rounded-xl px-4 py-3 flex items-center justify-between text-[13px] font-medium text-slate-800 dark:text-white border border-transparent cursor-pointer">
-                  <span>This device Â· Calcutta</span>
-                  <span className="text-slate-400 dark:text-neutral-500 flex items-center gap-1">
-                     UTC+5:30 Â· 18:24
-                     <ChevronDown size={14} />
-                  </span>
-               </div>
-               <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
-                  New trades are logged in this timezone. You can still change it on a single trade.
-               </p>
-            </div>
-
-            {/* 8. TIME FORMAT */}
-            <div>
-               <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
-                  TIME FORMAT
-               </label>
-               <div className="inline-flex p-1 bg-[#EAECEF] dark:bg-[#202024] rounded-xl gap-1">
-                  <TactileSegmentButton
-                     active={timeFormat === '12h'}
-                     onClick={() => handleSetTimeFormat('12h')}
-                     className="px-4 py-1.5"
-                  >
-                     AM / PM
-                  </TactileSegmentButton>
-                  <TactileSegmentButton
-                     active={timeFormat === '24h'}
-                     onClick={() => handleSetTimeFormat('24h')}
-                     className="px-4 py-1.5"
-                  >
-                     24h
-                  </TactileSegmentButton>
-               </div>
-               <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
-                  Changes every time in TradiFive right away, for example 09:30 and 14:15.
-               </p>
-            </div>
-
-            {/* 9. DATE FORMAT */}
-            <div>
-               <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
-                  DATE FORMAT
-               </label>
-               <div className="inline-flex p-1 bg-[#EAECEF] dark:bg-[#202024] rounded-xl gap-1">
-                  {['Automatic', '07.10', '10/07'].map((fmt) => (
-                     <TactileSegmentButton
-                        key={fmt}
-                        active={dateFormat === fmt}
-                        onClick={() => handleSetDateFormat(fmt)}
-                        className="px-3.5 py-1.5"
-                     >
-                        {fmt}
-                     </TactileSegmentButton>
-                  ))}
-               </div>
-               <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
-                  How a date is written with numbers, for example 7 October: 10/07. Imported CSV files that do not say use this order too.
-               </p>
-            </div>
-
-            {/* 10. LANGUAGE */}
-            <div>
-               <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
-                  LANGUAGE
-               </label>
-               <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-[#EAECEF] dark:bg-[#202024] rounded-2xl">
-                  {[
-                     'English', 'EspaÃ±ol', 'Deutsch',
-                     'FranÃ§ais', 'PortuguÃªs', 'Ð ÑƒÑÑÐºÐ¸Ð¹',
-                     'æ—¥æœ¬èªž', 'ç®€ä½“ä¸­æ–‡', 'Tiáº¿ng Viá»‡t'
-                  ].map((lang) => (
-                     <TactileSegmentButton
-                        key={lang}
-                        active={selectedLanguage === lang}
-                        onClick={() => handleSetLanguage(lang)}
-                        className="py-2.5 px-1 text-center"
-                     >
-                        {lang}
-                     </TactileSegmentButton>
-                  ))}
-               </div>
-               <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1">
-                  Every screen in TradiFive, and the AI. Your own notes stay as you wrote them.
-               </p>
+            <div className="md:hidden">
+               <ProfileAccountPreferencesCard
+                  profile={profile}
+                  onManageEmail={() => setActiveTab && setActiveTab('account')}
+                  onSetPassword={() => setActiveTab && setActiveTab('account')}
+               />
             </div>
 
             {/* 11. Save Profile Button */}
