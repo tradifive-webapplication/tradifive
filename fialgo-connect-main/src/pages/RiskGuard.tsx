@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import DashboardLayout from "@/components/DashboardLayout";
-import { RiskScoreCard } from "@/components/RiskScoreCard";
 import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { Gauge } from "@/components/ui/charts";
 import {
@@ -13,12 +12,9 @@ import {
   ShieldCheck,
   Clock,
   Calendar,
-  Brain,
   Trophy,
   Star,
-  Sparkles,
   ShieldAlert,
-  Settings,
   Pencil,
   FlaskConical,
   Minus,
@@ -28,9 +24,6 @@ import {
   Eye,
   EyeOff,
   Crown,
-  HeartPulse,
-  CheckSquare,
-  Volume2,
   Moon,
   Sunrise,
   TrendingUp,
@@ -316,10 +309,8 @@ export default function RiskGuard() {
   const [allowedTicker, setAllowedTicker] = useState("XAUUSD");
   const [defaultStopLoss, setDefaultStopLoss] = useState(15);
   const [weekendCloseTime, setWeekendCloseTime] = useState("20:00");
-  const [emotionSensitivity, setEmotionSensitivity] = useState(80);
   const [newsImpactLevel, setNewsImpactLevel] = useState("high");
   const [sleepTimeStart, setSleepTimeStart] = useState("23:00");
-  const [voiceVolume, setVoiceVolume] = useState(80);
 
   // B. AI Bot Engine States
   const [autoTrading, setAutoTrading] = useState(() => {
@@ -355,10 +346,7 @@ export default function RiskGuard() {
     recentTrades,
     lastClosedTrade,
     tradesToday,
-    todayProfit,
     accountMetrics,
-    avgDisciplineScore,
-    lastImportTime,
   } = useDashboardData();
 
   // Custom Tickers & Searchable Pair Picker (Card #4: One Instrument Mode)
@@ -648,23 +636,11 @@ export default function RiskGuard() {
   const [winStreakAction, setWinStreakAction] = useState<"pause" | "confirm">("pause");
   const [stopAfterWin, setStopAfterWin] = useState(false);
   const [lossCooldownTrigger, setLossCooldownTrigger] = useState<"every" | "consecutive">("every");
-  const [emotionalTradingDetector, setEmotionalTradingDetector] =
-    useState(false);
   const [newsFilter, setNewsFilter] = useState(false);
   const [newsBeforeMins, setNewsBeforeMins] = useState(30);
   const [newsAfterMins, setNewsAfterMins] = useState(15);
   const [sleepProtection, setSleepProtection] = useState(false);
   const [sleepTimeEnd, setSleepTimeEnd] = useState("06:00");
-  const [preTradeChecklist, setPreTradeChecklist] = useState(false);
-  const [checklistPreset, setChecklistPreset] = useState<"basic" | "standard" | "strict">("standard");
-  const [psychologyCheck, setPsychologyCheck] = useState(false);
-  const [psychologyFreq, setPsychologyFreq] = useState<"first" | "loss" | "every" | "daily">("first");
-  const [aiWeeklyReview, setAiWeeklyReview] = useState(false);
-  const [aiReviewDay, setAiReviewDay] = useState<"friday" | "saturday" | "sunday">("friday");
-  const [aiReviewTime, setAiReviewTime] = useState("17:00");
-  const [aiReviewSend, setAiReviewSend] = useState<"in_app" | "email">("in_app");
-  const [aiVoiceWarning, setAiVoiceWarning] = useState(false);
-  const [voiceTrigger, setVoiceTrigger] = useState<"all" | "critical" | "drawdown">("critical");
   const [noTradingAfterTime, setNoTradingAfterTime] = useState("20:00");
   const [noTradeAfterAction, setNoTradeAfterAction] = useState<"block" | "close">("block");
   const [noTradingAfterTimeActive, setNoTradingAfterTimeActive] =
@@ -819,10 +795,6 @@ export default function RiskGuard() {
       if (config.winStreakAction) setWinStreakAction(config.winStreakAction);
       if (config.stopAfterWin !== undefined)
         setStopAfterWin(config.stopAfterWin);
-      if (config.emotionalTradingDetector !== undefined)
-        setEmotionalTradingDetector(config.emotionalTradingDetector);
-      if (config.emotionSensitivity !== undefined)
-        setEmotionSensitivity(config.emotionSensitivity);
       if (config.newsFilter !== undefined) setNewsFilter(config.newsFilter);
       if (config.newsImpactLevel) setNewsImpactLevel(config.newsImpactLevel);
       if (config.newsBeforeMins !== undefined) setNewsBeforeMins(config.newsBeforeMins);
@@ -831,21 +803,6 @@ export default function RiskGuard() {
         setSleepProtection(config.sleepProtection);
       if (config.sleepTimeStart) setSleepTimeStart(config.sleepTimeStart);
       if (config.sleepTimeEnd) setSleepTimeEnd(config.sleepTimeEnd);
-      if (config.preTradeChecklist !== undefined)
-        setPreTradeChecklist(config.preTradeChecklist);
-      if (config.checklistPreset) setChecklistPreset(config.checklistPreset);
-      if (config.psychologyCheck !== undefined)
-        setPsychologyCheck(config.psychologyCheck);
-      if (config.psychologyFreq) setPsychologyFreq(config.psychologyFreq);
-      if (config.aiWeeklyReview !== undefined)
-        setAiWeeklyReview(config.aiWeeklyReview);
-      if (config.aiReviewDay) setAiReviewDay(config.aiReviewDay);
-      if (config.aiReviewTime) setAiReviewTime(config.aiReviewTime);
-      if (config.aiReviewSend) setAiReviewSend(config.aiReviewSend);
-      if (config.aiVoiceWarning !== undefined)
-        setAiVoiceWarning(config.aiVoiceWarning);
-      if (config.voiceVolume !== undefined) setVoiceVolume(config.voiceVolume);
-      if (config.voiceTrigger) setVoiceTrigger(config.voiceTrigger);
       if (config.noTradingAfterTime) setNoTradingAfterTime(config.noTradingAfterTime);
       if (config.noTradeAfterAction) setNoTradeAfterAction(config.noTradeAfterAction);
       if (config.noTradingAfterTimeActive !== undefined)
@@ -909,8 +866,6 @@ export default function RiskGuard() {
     winStreakAction,
     stopAfterWin,
     lossCooldownTrigger,
-    emotionalTradingDetector,
-    emotionSensitivity,
     newsFilter,
     newsImpactLevel,
     newsBeforeMins,
@@ -918,17 +873,6 @@ export default function RiskGuard() {
     sleepProtection,
     sleepTimeStart,
     sleepTimeEnd,
-    preTradeChecklist,
-    checklistPreset,
-    psychologyCheck,
-    psychologyFreq,
-    aiWeeklyReview,
-    aiReviewDay,
-    aiReviewTime,
-    aiReviewSend,
-    aiVoiceWarning,
-    voiceVolume,
-    voiceTrigger,
     noTradingAfterTime,
     noTradeAfterAction,
     noTradingAfterTimeActive,
@@ -978,6 +922,7 @@ export default function RiskGuard() {
             sleep_end: sleepTimeEnd,
             session_active: sessionActive,
             selected_sessions: selectedSessions,
+            session_times: sessionTimes,
             updated_at: new Date().toISOString(),
           },
           updated_at: new Date().toISOString(),
@@ -1087,8 +1032,6 @@ export default function RiskGuard() {
     winStreakAction,
     stopAfterWin,
     lossCooldownTrigger,
-    emotionalTradingDetector,
-    emotionSensitivity,
     newsFilter,
     newsImpactLevel,
     newsBeforeMins,
@@ -1096,17 +1039,6 @@ export default function RiskGuard() {
     sleepProtection,
     sleepTimeStart,
     sleepTimeEnd,
-    preTradeChecklist,
-    checklistPreset,
-    psychologyCheck,
-    psychologyFreq,
-    aiWeeklyReview,
-    aiReviewDay,
-    aiReviewTime,
-    aiReviewSend,
-    aiVoiceWarning,
-    voiceVolume,
-    voiceTrigger,
     noTradingAfterTime,
     noTradeAfterAction,
     noTradingAfterTimeActive,
@@ -1141,13 +1073,8 @@ export default function RiskGuard() {
       sessionActive,
       stopAfterWin,
       noTradingAfterTimeActive,
-      activeMarket !== "indian" && emotionalTradingDetector,
       newsFilter,
       sleepProtection,
-      activeMarket !== "indian" && preTradeChecklist,
-      activeMarket !== "indian" && psychologyCheck,
-      activeMarket !== "indian" && aiWeeklyReview,
-      activeMarket !== "indian" && aiVoiceWarning,
       pinActive,
       hardStopActive,
     ].filter(Boolean).length;
@@ -1181,13 +1108,8 @@ export default function RiskGuard() {
     sessionActive,
     stopAfterWin,
     noTradingAfterTimeActive,
-    emotionalTradingDetector,
     newsFilter,
     sleepProtection,
-    preTradeChecklist,
-    psychologyCheck,
-    aiWeeklyReview,
-    aiVoiceWarning,
     pinActive,
     hardStopActive,
   ]);
@@ -1638,19 +1560,6 @@ export default function RiskGuard() {
     const cutoffProgressPct = Math.min(100, Math.max(5, Math.round((nowMins / Math.max(1, cutMins)) * 100)));
     const isPastCutoff = nowMins >= cutMins;
 
-    // Tilt / Calm Trendline (7-point recent discipline series)
-    const recentClosed7 = allTrades.filter((t) => t.closed_at).slice(0, 7).reverse();
-    const tiltSeries = useDemoData
-      ? [92, 88, 90, 76, 84, 89, 94]
-      : recentClosed7.length >= 2
-      ? recentClosed7.map((t) =>
-          Number(t.discipline_score ?? (Number(t.profit || 0) >= 0 ? 88 : 66))
-        )
-      : [85, 87, 84, 89, 90, 88, 92];
-    const calmScore = Math.round(
-      tiltSeries.reduce((a, b) => a + b, 0) / Math.max(1, tiltSeries.length)
-    );
-
     // Sleep window duration
     const [slpSH, slpSM] = (sleepTimeStart || "23:00").split(":").map(Number);
     const [slpEH, slpEM] = (sleepTimeEnd || "06:00").split(":").map(Number);
@@ -1734,8 +1643,6 @@ export default function RiskGuard() {
         tradesGrad,
         cutoffProgressPct,
         isPastCutoff,
-        tiltSeries,
-        calmScore,
         sleepHoursLabel,
       },
     };
@@ -1964,9 +1871,9 @@ export default function RiskGuard() {
               </motion.div>
             )}
 
-            {/* Main 2-Column Layout: Left Controls + Right Sticky Telemetry */}
-            <div className="flex flex-col xl:flex-row gap-5 items-start">
-              <div className="flex-1 w-full min-w-0 space-y-4">
+            {/* Full-Width Cards Layout */}
+            <div className="w-full space-y-4">
+              <div className="w-full min-w-0 space-y-4">
                 {/* 1. Primary Compact Protocol Architecture Bar */}
                 <motion.section
                   variants={sectionVariants}
@@ -4029,72 +3936,205 @@ export default function RiskGuard() {
                         </div>
                       </RiskGuardCard>
 
-                      <RiskGuardCard
-                        icon={Clock}
-                        title="Session Sentinel"
-                        description="Allow trades only inside your selected market hours"
-                        value={`${selectedSessions.length} active`}
-                        active={sessionActive}
-                        onToggle={setSessionActive}
-                        intent="discipline"
-                        hasDashboardWidget={pinnedWidgets.includes("session")}
-                      >
-                        <div className="space-y-2.5">
-                          {/* Visual Market Session Allocation Strip */}
-                          <div className="space-y-1">
-                            <div className="flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
-                              <span>Allowed Sessions</span>
-                              <span className="text-[#2563EB] dark:text-blue-400">
-                                {selectedSessions.length} of {sessionButtons.length} selected
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-4 gap-1">
-                              {sessionButtons.map((s) => {
-                                const on = selectedSessions.includes(s.id);
-                                return (
-                                  <div
-                                    key={`bar-${s.id}`}
-                                    className={`h-2 rounded-full transition-colors ${
-                                      on
-                                        ? "bg-[#2563EB] dark:bg-blue-500"
-                                        : "bg-slate-200 dark:bg-white/10"
-                                    }`}
-                                    title={`${s.label}: ${on ? "Active" : "Blocked"}`}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
+                      {(() => {
+                        const activeMarketSessions = sessionButtons.filter((s) =>
+                          selectedSessions.includes(s.id)
+                        );
+                        const nowDt = new Date();
+                        const nowM = nowDt.getHours() * 60 + nowDt.getMinutes();
+                        const isInSessionWindow = (id: string) => {
+                          const win = sessionTimes[id];
+                          if (!win) return false;
+                          const [sh, sm] = win.start.split(":").map(Number);
+                          const [eh, em] = win.end.split(":").map(Number);
+                          const sM = (Number.isFinite(sh) ? sh : 0) * 60 + (Number.isFinite(sm) ? sm : 0);
+                          const eM = (Number.isFinite(eh) ? eh : 0) * 60 + (Number.isFinite(em) ? em : 0);
+                          return eM >= sM ? nowM >= sM && nowM < eM : nowM >= sM || nowM < eM;
+                        };
+                        const liveOpenSessions = activeMarketSessions.filter((s) =>
+                          isInSessionWindow(s.id)
+                        );
 
-                          <div className="flex flex-wrap gap-1.5">
-                            {sessionButtons.map((session) => {
-                              const isSelected = selectedSessions.includes(
-                                session.id
-                              );
-                              const times = sessionTimes[session.id];
-                              return (
-                                <button
-                                  key={session.id}
-                                  type="button"
-                                  onClick={() => toggleSession(session.id)}
-                                  className={`px-2.5 h-[28px] rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
-                                    isSelected
-                                      ? "bg-blue-50 text-[#2563EB] border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30"
-                                      : "bg-slate-50 text-slate-500 border-slate-200 dark:bg-white/[0.04] dark:text-neutral-300 dark:border-white/10"
-                                  }`}
-                                >
-                                  <span>{session.label}</span>
-                                  {times && (
-                                    <span className="text-[9px] opacity-70 font-medium">
-                                      {formatTime12h(times.start).replace(":00", "")}
+                        return (
+                          <RiskGuardCard
+                            icon={Clock}
+                            title="Session Sentinel"
+                            description="Trade ONLY inside selected hours · blocked outside"
+                            value={`${activeMarketSessions.length} Allowed`}
+                            active={sessionActive}
+                            onToggle={setSessionActive}
+                            intent="discipline"
+                            hasDashboardWidget={pinnedWidgets.includes("session")}
+                          >
+                            <div className="space-y-2.5">
+                              {/* Top Status + Allocation Strip */}
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[10.5px]">
+                                  <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                    <span
+                                      className={`w-1.5 h-1.5 rounded-full ${
+                                        liveOpenSessions.length > 0
+                                          ? "bg-emerald-500"
+                                          : "bg-amber-500"
+                                      }`}
+                                    />
+                                    <span>
+                                      {liveOpenSessions.length > 0
+                                        ? `Trading Allowed (${liveOpenSessions.map((s) => s.label).join(" + ")})`
+                                        : "Outside Hours · Trading Paused"}
                                     </span>
-                                  )}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </RiskGuardCard>
+                                  </span>
+                                  <span className="text-[#2563EB] dark:text-blue-400 font-semibold tabular-nums">
+                                    {activeMarketSessions.length} of {sessionButtons.length} allowed
+                                  </span>
+                                </div>
+
+                                <div className="grid grid-cols-4 gap-1">
+                                  {sessionButtons.map((s) => {
+                                    const on = selectedSessions.includes(s.id);
+                                    const live = on && isInSessionWindow(s.id);
+                                    return (
+                                      <div
+                                        key={`bar-${s.id}`}
+                                        className={`h-2 rounded-full transition-colors ${
+                                          live
+                                            ? "bg-emerald-500"
+                                            : on
+                                            ? "bg-[#2563EB] dark:bg-blue-500"
+                                            : "bg-slate-200 dark:bg-white/10"
+                                        }`}
+                                        title={`${s.label}: ${on ? "Trading Allowed" : "Paused"}`}
+                                      />
+                                    );
+                                  })}
+                                </div>
+                              </div>
+
+                              {/* 2x2 Session Window Cards with Opening -> Closing Times */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {sessionButtons.map((session) => {
+                                  const isSelected = selectedSessions.includes(session.id);
+                                  const times = sessionTimes[session.id] || {
+                                    start: "09:00",
+                                    end: "17:00",
+                                  };
+                                  const liveNow = isSelected && isInSessionWindow(session.id);
+
+                                  return (
+                                    <div
+                                      key={session.id}
+                                      className={`rounded-xl p-2.5 border transition-all ${
+                                        isSelected
+                                          ? "bg-blue-50/70 border-blue-200/80 dark:bg-blue-500/12 dark:border-blue-500/30"
+                                          : "bg-slate-50/80 border-slate-200/70 dark:bg-white/[0.03] dark:border-white/[0.08]"
+                                      }`}
+                                    >
+                                      <div className="flex items-center justify-between gap-1.5 mb-1">
+                                        <button
+                                          type="button"
+                                          onClick={() => toggleSession(session.id)}
+                                          className="flex items-center gap-1.5 text-left min-w-0 flex-1 cursor-pointer"
+                                        >
+                                          <span
+                                            className={`w-2 h-2 rounded-full shrink-0 ${
+                                              liveNow
+                                                ? "bg-emerald-500"
+                                                : isSelected
+                                                ? "bg-[#2563EB] dark:bg-blue-400"
+                                                : "bg-slate-300 dark:bg-white/20"
+                                            }`}
+                                          />
+                                          <span
+                                            className={`text-[11.5px] font-bold truncate ${
+                                              isSelected
+                                                ? "text-[#2563EB] dark:text-blue-300"
+                                                : "text-slate-600 dark:text-neutral-300"
+                                            }`}
+                                          >
+                                            {session.label}
+                                          </span>
+                                          {liveNow && (
+                                            <span className="px-1 py-[0.5px] rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300 shrink-0">
+                                              Open Now
+                                            </span>
+                                          )}
+                                        </button>
+
+                                        <Popover>
+                                          <PopoverTrigger asChild>
+                                            <button
+                                              type="button"
+                                              className="px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold text-slate-500 hover:text-slate-800 hover:bg-white dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                                              title={`Edit ${session.label} opening & closing hours`}
+                                            >
+                                              Edit
+                                            </button>
+                                          </PopoverTrigger>
+                                          <PopoverContent
+                                            align="end"
+                                            className="w-[240px] p-3 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] shadow-xl z-50 space-y-2.5"
+                                          >
+                                            <p className="text-[11.5px] font-bold text-slate-800 dark:text-white">
+                                              {session.label} Window
+                                            </p>
+                                            <div className="space-y-2">
+                                              <div>
+                                                <label className={FIELD_LABEL}>Opening Time</label>
+                                                <TimePickerPopover
+                                                  value={times.start}
+                                                  onChange={(val) =>
+                                                    setSessionTimes((prev) => ({
+                                                      ...prev,
+                                                      [session.id]: { ...times, start: val },
+                                                    }))
+                                                  }
+                                                  subtitle={activeMarket === "indian" ? "IST" : "Broker"}
+                                                />
+                                              </div>
+                                              <div>
+                                                <label className={FIELD_LABEL}>Closing Time</label>
+                                                <TimePickerPopover
+                                                  value={times.end}
+                                                  onChange={(val) =>
+                                                    setSessionTimes((prev) => ({
+                                                      ...prev,
+                                                      [session.id]: { ...times, end: val },
+                                                    }))
+                                                  }
+                                                  subtitle={activeMarket === "indian" ? "IST" : "Broker"}
+                                                />
+                                              </div>
+                                            </div>
+                                          </PopoverContent>
+                                        </Popover>
+                                      </div>
+
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleSession(session.id)}
+                                        className="w-full flex items-center justify-between gap-2 text-[10px] font-semibold tabular-nums cursor-pointer"
+                                      >
+                                        <span className="text-slate-500 dark:text-neutral-400">
+                                          {formatTime12h(times.start)} – {formatTime12h(times.end)}
+                                        </span>
+                                        <span
+                                          className={`text-[9px] font-bold uppercase ${
+                                            isSelected
+                                              ? "text-[#2563EB] dark:text-blue-400"
+                                              : "text-slate-400 dark:text-neutral-500"
+                                          }`}
+                                        >
+                                          {isSelected ? "✓ Can Trade" : "Paused"}
+                                        </span>
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </RiskGuardCard>
+                        );
+                      })()}
 
                       <RiskGuardCard
                         icon={Trophy}
@@ -4265,122 +4305,6 @@ export default function RiskGuard() {
                         </div>
                       </RiskGuardCard>
 
-                      {activeMarket !== "indian" && (
-                        <RiskGuardCard
-                          icon={HeartPulse}
-                          title="Behavioural Risk Detector"
-                          description="Spots emotional tilt & revenge overtrading early"
-                          value={`${emotionSensitivity}%`}
-                          active={emotionalTradingDetector}
-                          onToggle={setEmotionalTradingDetector}
-                          intent="discipline"
-                          hasDashboardWidget={pinnedWidgets.includes("tilt_score")}
-                        >
-                          <div className="space-y-2.5">
-                            {/* Smooth Calm / Tilt Trendline */}
-                            <div className="space-y-1">
-                              <div className="flex items-center justify-between text-[10.5px]">
-                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
-                                  <span>
-                                    Calm Score: {lotTelemetry.behaviour.calmScore}%
-                                  </span>
-                                  <span
-                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
-                                      useDemoData
-                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
-                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
-                                    }`}
-                                  >
-                                    {useDemoData ? "Demo" : "Live"}
-                                  </span>
-                                </span>
-                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                                  {lotTelemetry.behaviour.calmScore >= 75
-                                    ? "Steady mindset"
-                                    : "Watch tilt risk"}
-                                </span>
-                              </div>
-                              <div className="w-full h-9 rounded-xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] px-2 py-1 overflow-hidden">
-                                <svg
-                                  viewBox="0 0 220 32"
-                                  preserveAspectRatio="none"
-                                  className="w-full h-full overflow-visible"
-                                >
-                                  <defs>
-                                    <linearGradient
-                                      id="tiltTrendFill"
-                                      x1="0"
-                                      y1="0"
-                                      x2="0"
-                                      y2="1"
-                                    >
-                                      <stop
-                                        offset="0%"
-                                        stopColor="#2563EB"
-                                        stopOpacity="0.22"
-                                      />
-                                      <stop
-                                        offset="100%"
-                                        stopColor="#2563EB"
-                                        stopOpacity="0"
-                                      />
-                                    </linearGradient>
-                                  </defs>
-                                  {(() => {
-                                    const pts = lotTelemetry.behaviour.tiltSeries;
-                                    const coords = pts.map((v, idx) => {
-                                      const x =
-                                        (idx / Math.max(1, pts.length - 1)) * 220;
-                                      const y =
-                                        28 -
-                                        ((Math.max(40, Math.min(100, v)) - 40) /
-                                          60) *
-                                          24;
-                                      return `${x.toFixed(1)},${y.toFixed(1)}`;
-                                    });
-                                    const linePath = `M ${coords.join(" L ")}`;
-                                    const areaPath = `${linePath} L 220,32 L 0,32 Z`;
-                                    return (
-                                      <>
-                                        <path d={areaPath} fill="url(#tiltTrendFill)" />
-                                        <path
-                                          d={linePath}
-                                          fill="none"
-                                          stroke="#2563EB"
-                                          strokeWidth="2"
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                        />
-                                      </>
-                                    );
-                                  })()}
-                                </svg>
-                              </div>
-                            </div>
-
-                            <div className="flex items-center gap-2.5 h-[26px]">
-                              <span className="text-[10px] font-medium text-slate-400">
-                                Relaxed
-                              </span>
-                              <input
-                                type="range"
-                                min="10"
-                                max="100"
-                                step="10"
-                                value={emotionSensitivity}
-                                onChange={(e) =>
-                                  setEmotionSensitivity(Number(e.target.value))
-                                }
-                                className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                              />
-                              <span className="text-[10px] font-medium text-slate-400">
-                                Strict
-                              </span>
-                            </div>
-                          </div>
-                        </RiskGuardCard>
-                      )}
-
                       <RiskGuardCard
                         icon={AlertTriangle}
                         title="News Filter"
@@ -4499,291 +4423,6 @@ export default function RiskGuard() {
                           </div>
                         </div>
                       </RiskGuardCard>
-
-                      {activeMarket !== "indian" && (
-                        <RiskGuardCard
-                          icon={CheckSquare}
-                          title="Pre-Trade Checklist"
-                          description="Quick discipline check before placing an order"
-                          value={
-                            checklistPreset === "basic"
-                              ? "3 Checks"
-                              : checklistPreset === "strict"
-                              ? "8 Checks"
-                              : "5 Checks"
-                          }
-                          active={preTradeChecklist}
-                          onToggle={setPreTradeChecklist}
-                          intent="discipline"
-                        >
-                          <div className="space-y-2.5">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {(checklistPreset === "basic"
-                                ? ["SL Set", "Trend Aligned", "Lot Safe"]
-                                : checklistPreset === "strict"
-                                ? ["SL Set", "Min 1:2 R:R", "No News", "Trend OK", "+4 more"]
-                                : ["SL Set", "Lot Safe", "In Session", "+2 more"]
-                              ).map((tag) => (
-                                <span
-                                  key={tag}
-                                  className="px-2 py-0.5 rounded-md bg-blue-50/70 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-300 text-[9.5px] font-semibold"
-                                >
-                                  ✓ {tag}
-                                </span>
-                              ))}
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div>
-                                <label className={FIELD_LABEL}>Preset</label>
-                                <Select
-                                  value={checklistPreset}
-                                  onValueChange={(v) =>
-                                    setChecklistPreset(
-                                      v as "basic" | "standard" | "strict"
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className={SELECT_TRIGGER}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="basic">
-                                      Basic (3)
-                                    </SelectItem>
-                                    <SelectItem value="standard">
-                                      Standard (5)
-                                    </SelectItem>
-                                    <SelectItem value="strict">
-                                      Strict (8)
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className={FIELD_LABEL}>Items</label>
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    toast.info(
-                                      `Active checklist preset: ${checklistPreset.toUpperCase()}`
-                                    )
-                                  }
-                                  className="tactile-white-pill w-full h-[32px] rounded-[9px] text-[11px] font-semibold inline-flex items-center justify-center gap-1 cursor-pointer"
-                                >
-                                  <Settings size={11} />
-                                  <span>Edit Items</span>
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </RiskGuardCard>
-                      )}
-
-                      {activeMarket !== "indian" && (
-                        <RiskGuardCard
-                          icon={Brain}
-                          title="Psychology Check"
-                          description="10-second calm mindset check-in before trading"
-                          value={
-                            psychologyFreq === "every"
-                              ? "Every Trade"
-                              : psychologyFreq === "loss"
-                              ? "After Loss"
-                              : psychologyFreq === "daily"
-                              ? "Once Daily"
-                              : "1st Trade"
-                          }
-                          active={psychologyCheck}
-                          onToggle={setPsychologyCheck}
-                          intent="discipline"
-                        >
-                          <div className="space-y-2.5">
-                            <div className="flex items-center gap-1.5">
-                              {["Calm", "Focused", "Patient"].map((mood) => (
-                                <span
-                                  key={mood}
-                                  className="flex-1 text-center py-1 rounded-lg bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.07] text-[10px] font-semibold text-slate-600 dark:text-neutral-300"
-                                >
-                                  {mood}
-                                </span>
-                              ))}
-                            </div>
-                            <Select
-                              value={psychologyFreq}
-                              onValueChange={(v) =>
-                                setPsychologyFreq(
-                                  v as "first" | "loss" | "every" | "daily"
-                                )
-                              }
-                            >
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="first">
-                                  Before first trade
-                                </SelectItem>
-                                <SelectItem value="loss">
-                                  After a losing trade
-                                </SelectItem>
-                                <SelectItem value="every">
-                                  Before every trade
-                                </SelectItem>
-                                <SelectItem value="daily">Once daily</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </RiskGuardCard>
-                      )}
-
-                      {activeMarket !== "indian" && (
-                        <RiskGuardCard
-                          icon={Sparkles}
-                          title="AI Weekly Review"
-                          description="Automatic weekend report on habits & leaks"
-                          value={formatTime12h(aiReviewTime)}
-                          active={aiWeeklyReview}
-                          onToggle={setAiWeeklyReview}
-                          intent="discipline"
-                        >
-                          <div className="space-y-2.5">
-                            <div className="px-2.5 py-1.5 rounded-xl bg-blue-50/60 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-[10px] font-semibold text-[#2563EB] dark:text-blue-300">
-                              Delivers win-rate, rule breaks &amp; best setups every week
-                            </div>
-                            <div className="grid grid-cols-[0.75fr_1.35fr_0.9fr] gap-2">
-                              <div>
-                                <label className={FIELD_LABEL}>Day</label>
-                                <Select
-                                  value={aiReviewDay}
-                                  onValueChange={(v) =>
-                                    setAiReviewDay(
-                                      v as "friday" | "saturday" | "sunday"
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className={SELECT_TRIGGER}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="friday">Fri</SelectItem>
-                                    <SelectItem value="saturday">Sat</SelectItem>
-                                    <SelectItem value="sunday">Sun</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className={FIELD_LABEL}>Time</label>
-                                <TimePickerPopover
-                                  value={aiReviewTime}
-                                  onChange={setAiReviewTime}
-                                  subtitle=""
-                                />
-                              </div>
-                              <div>
-                                <label className={FIELD_LABEL}>Send</label>
-                                <Select
-                                  value={aiReviewSend}
-                                  onValueChange={(v) =>
-                                    setAiReviewSend(v as "in_app" | "email")
-                                  }
-                                >
-                                  <SelectTrigger className={SELECT_TRIGGER}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="in_app">In-app</SelectItem>
-                                    <SelectItem value="email">Email</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-                        </RiskGuardCard>
-                      )}
-
-                      {activeMarket !== "indian" && (
-                        <RiskGuardCard
-                          icon={Volume2}
-                          title="AI Voice Warning"
-                          description="Spoken alert before you break a limit"
-                          value={`${voiceVolume}%`}
-                          active={aiVoiceWarning}
-                          onToggle={setAiVoiceWarning}
-                          intent="warning"
-                        >
-                          <div className="space-y-2.5">
-                            <Gauge
-                              orientation="linear"
-                              ariaLabel="Voice Alert Output Level"
-                              value={voiceVolume}
-                              totalNotches={36}
-                              linearHeight={9}
-                              spacing={2}
-                              notchCornerRadius={3}
-                              inactiveFillOpacity={0.3}
-                              useGradient
-                              gradientColors={["#FBBF24", "#F59E0B", "#D97706"]}
-                            />
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div>
-                                <label className={FIELD_LABEL}>Volume</label>
-                                <div className="flex items-center gap-1.5 h-[32px]">
-                                  <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    step="10"
-                                    value={voiceVolume}
-                                    onChange={(e) =>
-                                      setVoiceVolume(Number(e.target.value))
-                                    }
-                                    className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      toast.info(
-                                        `Voice alert preview: ${voiceVolume}%`
-                                      )
-                                    }
-                                    className="tactile-white-pill w-[30px] h-[30px] rounded-[8px] flex items-center justify-center cursor-pointer shrink-0"
-                                    title="Test audio alert"
-                                  >
-                                    <Volume2 size={12} />
-                                  </button>
-                                </div>
-                              </div>
-                              <div>
-                                <label className={FIELD_LABEL}>Triggers</label>
-                                <Select
-                                  value={voiceTrigger}
-                                  onValueChange={(v) =>
-                                    setVoiceTrigger(
-                                      v as "all" | "critical" | "drawdown"
-                                    )
-                                  }
-                                >
-                                  <SelectTrigger className={SELECT_TRIGGER}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="all">
-                                      All warnings
-                                    </SelectItem>
-                                    <SelectItem value="critical">
-                                      Critical only
-                                    </SelectItem>
-                                    <SelectItem value="drawdown">
-                                      Drawdown only
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-                        </RiskGuardCard>
-                      )}
 
                       <RiskGuardCard
                         icon={Key}
@@ -4946,17 +4585,6 @@ export default function RiskGuard() {
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* ── Right Column: Sticky Risk Score Telemetry ── */}
-              <motion.aside
-                variants={sectionVariants}
-                className="w-full xl:w-[320px] shrink-0 space-y-4 xl:sticky xl:top-2 self-start"
-              >
-                <RiskScoreCard
-                  score={avgDisciplineScore ?? 0}
-                  activeGuardsCount={tabCounts.total}
-                />
-              </motion.aside>
             </div>
           </motion.div>
         </div>

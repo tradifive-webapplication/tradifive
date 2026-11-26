@@ -4,7 +4,6 @@ import {
   AlertTriangle,
   Clock,
   Crosshair,
-  HeartPulse,
   Layers,
   LayoutGrid,
   ShieldAlert,
@@ -30,8 +29,7 @@ export type RiskWidgetId =
   | "equity_floor"
   | "trade_limit"
   | "loss_cooldown"
-  | "session"
-  | "tilt_score";
+  | "session";
 
 const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
   "max_lot",
@@ -44,7 +42,6 @@ const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
   "trade_limit",
   "loss_cooldown",
   "session",
-  "tilt_score",
 ]);
 
 export const RISK_WIDGET_CATALOG: {
@@ -111,13 +108,7 @@ export const RISK_WIDGET_CATALOG: {
     id: "session",
     group: "Behaviour & Discipline",
     title: "Session Sentinel",
-    subtitle: "Active trading sessions strip",
-  },
-  {
-    id: "tilt_score",
-    group: "Behaviour & Discipline",
-    title: "Calm & Tilt Trend",
-    subtitle: "Smooth trendline: mindset stability score",
+    subtitle: "Opening & closing windows strip",
   },
 ];
 
@@ -456,7 +447,7 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
     const floatPnl =
       Number(accountMetrics?.equity || 0) > 0 && Number(accountMetrics?.balance || 0) > 0
         ? Number(accountMetrics.equity) - Number(accountMetrics.balance)
-        : liveOpen.reduce((s: number, p: any) => s + Number(p.profit ?? 0), 0);
+        : livePositions.reduce((s: number, p: any) => s + Number(p.profit ?? 0), 0);
     let runPnl = 0;
     let worstPnl = Math.min(0, periodRealized + floatPnl, floatPnl);
     periodClosed.forEach((t) => {
@@ -545,21 +536,45 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
 
     // 10. Session Sentinel
     const sessionOn = Boolean(savedCfg?.sessionActive);
-    const activeSessionsList: string[] = Array.isArray(savedCfg?.selectedSessions)
+    const validMarketKeys = isIndian
+      ? ["PreMarket", "Morning", "Afternoon", "PostMarket"]
+      : ["London", "Sydney", "NY", "Asian"];
+    const defaultSessionTimes: Record<string, { start: string; end: string }> = {
+      London: { start: "13:30", end: "22:00" },
+      Sydney: { start: "03:30", end: "12:00" },
+      NY: { start: "17:30", end: "02:00" },
+      Asian: { start: "05:30", end: "14:30" },
+      PreMarket: { start: "09:00", end: "09:15" },
+      Morning: { start: "09:15", end: "12:00" },
+      Afternoon: { start: "12:00", end: "15:30" },
+      PostMarket: { start: "15:40", end: "16:00" },
+    };
+    const savedSessionTimes: Record<string, { start: string; end: string }> = {
+      ...defaultSessionTimes,
+      ...(savedCfg?.sessionTimes || {}),
+    };
+    const rawSessions: string[] = Array.isArray(savedCfg?.selectedSessions)
       ? savedCfg.selectedSessions
       : isIndian
       ? ["Morning", "Afternoon"]
       : ["London", "NY"];
-
-    // 11. Tilt / Calm Trend
-    const tiltOn = Boolean(savedCfg?.emotionalTradingDetector);
-    const recent7 = allTrades.filter((t) => t.closed_at).slice(0, 7).reverse();
-    const tiltSeries = useDemo
-      ? [92, 88, 90, 76, 84, 89, 94]
-      : recent7.length >= 2
-      ? recent7.map((t) => Number(t.discipline_score ?? (Number(t.profit || 0) >= 0 ? 88 : 66)))
-      : [85, 87, 84, 89, 90, 88, 92];
-    const calmScore = Math.round(tiltSeries.reduce((a, b) => a + b, 0) / Math.max(1, tiltSeries.length));
+    const activeSessionsList = rawSessions
+      .filter((id) => validMarketKeys.includes(id))
+      .map((id) => {
+        const fmt = (hhmm: string) => {
+          const [hStr = "09", mStr = "00"] = hhmm.split(":");
+          const h24 = Number(hStr) || 0;
+          const period = h24 >= 12 ? "PM" : "AM";
+          const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+          return `${h12}:${mStr.padStart(2, "0")} ${period}`;
+        };
+        const t = savedSessionTimes[id] || { start: "09:00", end: "17:00" };
+        return {
+          id,
+          label: id === "NY" ? "New York" : id,
+          window: `${fmt(t.start)} – ${fmt(t.end)}`,
+        };
+      });
 
     return {
       isIndian,
@@ -640,11 +655,6 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
       session: {
         active: sessionOn,
         list: activeSessionsList,
-      },
-      tilt: {
-        active: tiltOn,
-        calmScore,
-        series: tiltSeries,
       },
     };
   }, [activeMarket, isConnected, demoMode, riskConfig, recentTrades, accountMetrics]);
@@ -1193,52 +1203,24 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
             }
             badgeTone={widgetData.session.active ? "emerald" : "neutral"}
           />
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="grid grid-cols-1 gap-1">
             {widgetData.session.list.map((s) => (
-              <span
-                key={s}
-                className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300"
+              <div
+                key={s.id}
+                className="flex items-center justify-between px-2 py-1 rounded-lg bg-blue-50/75 dark:bg-blue-500/15 text-[10px]"
               >
-                {s === "NY" ? "New York" : s}
-              </span>
+                <span className="font-bold text-[#2563EB] dark:text-blue-300">
+                  {s.label}
+                </span>
+                <span className="font-semibold text-slate-600 dark:text-neutral-300 tabular-nums">
+                  {s.window}
+                </span>
+              </div>
             ))}
           </div>
         </div>
       )}
 
-      {pinned.includes("tilt_score") && (
-        <div className={`${cardClass} p-3.5`}>
-          <WidgetHeader
-            id="tilt_score"
-            icon={HeartPulse}
-            title="Calm & Tilt Trend"
-            badge={`${widgetData.tilt.calmScore}% calm`}
-            badgeTone={widgetData.tilt.calmScore >= 75 ? "emerald" : "amber"}
-          />
-          <div className="w-full h-9 rounded-xl bg-slate-50 dark:bg-white/[0.04] px-2 py-1">
-            <svg viewBox="0 0 200 28" preserveAspectRatio="none" className="w-full h-full">
-              {(() => {
-                const pts = widgetData.tilt.series;
-                const coords = pts.map((v, idx) => {
-                  const x = (idx / Math.max(1, pts.length - 1)) * 200;
-                  const y = 24 - ((Math.max(40, Math.min(100, v)) - 40) / 60) * 20;
-                  return `${x.toFixed(1)},${y.toFixed(1)}`;
-                });
-                return (
-                  <path
-                    d={`M ${coords.join(" L ")}`}
-                    fill="none"
-                    stroke="#2563EB"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                );
-              })()}
-            </svg>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

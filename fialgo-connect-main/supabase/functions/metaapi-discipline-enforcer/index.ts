@@ -119,6 +119,9 @@ serve(async (req) => {
     const sleepProtectionEnabled = Boolean(rules.sleep_protection);
     const sleepStart = String(rules.sleep_start || '23:00');
     const sleepEnd = String(rules.sleep_end || '06:00');
+    const sessionActive = Boolean(rules.session_active);
+    const selectedSessions = Array.isArray(rules.selected_sessions) ? rules.selected_sessions : [];
+    const sessionTimes = (rules.session_times && typeof rules.session_times === 'object' ? rules.session_times : {}) as Record<string, { start: string; end: string }>;
 
     // Extract trade volume & symbol from MetaApi/Custom webhook payload
     let tradeVolume = payload.volume || payload.lot_size || payload.position?.volume || null;
@@ -158,6 +161,7 @@ serve(async (req) => {
         weekendLockEnabled ||
         noTradeAfterActive ||
         sleepProtectionEnabled ||
+        (sessionActive && selectedSessions.length > 0) ||
         (equityFloorActive && equityFloor > 0) ||
         noAvgEnabled ||
         martingaleEnabled ||
@@ -387,6 +391,24 @@ serve(async (req) => {
                 violationReason = 'SLEEP_PROTECTION_ACTIVE';
               }
             }
+
+            // Check Session Sentinel (allow trades only inside selected opening-closing windows)
+            if (!violationReason && sessionActive && selectedSessions.length > 0) {
+              const nowDt = new Date();
+              const utcMins = nowDt.getUTCHours() * 60 + nowDt.getUTCMinutes();
+              const inAnyWindow = selectedSessions.some((id: string) => {
+                const win = sessionTimes[id];
+                if (!win || !win.start || !win.end) return false;
+                const [sh, sm] = win.start.split(':').map(Number);
+                const [eh, em] = win.end.split(':').map(Number);
+                const sMin = (Number.isFinite(sh) ? sh : 0) * 60 + (Number.isFinite(sm) ? sm : 0);
+                const eMin = (Number.isFinite(eh) ? eh : 0) * 60 + (Number.isFinite(em) ? em : 0);
+                return eMin >= sMin ? (utcMins >= sMin && utcMins < eMin) : (utcMins >= sMin || utcMins < eMin);
+              });
+              if (!inAnyWindow) {
+                violationReason = 'OUTSIDE_ALLOWED_SESSION';
+              }
+            }
           }
         }
 
@@ -435,6 +457,7 @@ serve(async (req) => {
           if (violationReason === 'WEEKEND_LOCK_ACTIVE') friendlyReason = `Weekend Lock active after ${weekendCloseTime}`;
           if (violationReason === 'NO_TRADING_AFTER_CUTOFF') friendlyReason = `Trading disabled after ${noTradeAfterTime}`;
           if (violationReason === 'SLEEP_PROTECTION_ACTIVE') friendlyReason = `Sleep Protection active (${sleepStart} - ${sleepEnd})`;
+          if (violationReason === 'OUTSIDE_ALLOWED_SESSION') friendlyReason = 'Trade opened outside allowed session hours';
 
           return new Response(
             JSON.stringify({ 
