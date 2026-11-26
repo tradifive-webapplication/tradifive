@@ -36,9 +36,9 @@ export function RiskGuardCard({
   const handleGuardedToggle = (val: boolean) => {
     if (isStarter) {
       toast.info("Pro & Elite Feature · Risk Guard", {
-        description: "Subscribe to Pro or Elite to enable live MT5 Risk Guard automation.",
+        description: "Upgrade to Pro or Elite to unlock live Risk Guard protection.",
         action: {
-          label: "Subscribe",
+          label: "Upgrade",
           onClick: () => navigate("/upgrade"),
         },
       });

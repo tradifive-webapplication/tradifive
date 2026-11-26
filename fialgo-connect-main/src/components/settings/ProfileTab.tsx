@@ -1,6 +1,6 @@
 ﻿import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
-   Camera, ExternalLink, Check, ChevronDown, CheckCircle2, Circle, Copy,
+   Camera, ExternalLink, Check, ChevronDown, CheckCircle2, Circle,
    ArrowRight, ChevronsUpDown, User, Crown, Briefcase, Lock, Link2, 
    Instagram, Youtube, MessageSquare, TrendingUp, X, BarChart2, Target, Flame 
 } from 'lucide-react';
@@ -362,12 +362,6 @@ export default function ProfileTab({
       localStorage.setItem('tradifive_language', lang);
    };
 
-   const [alwaysTranslate, setAlwaysTranslate] = useState(() => localStorage.getItem('tradifive_always_translate') === 'true');
-   const handleSetAlwaysTranslate = (val: boolean) => {
-      setAlwaysTranslate(val);
-      localStorage.setItem('tradifive_always_translate', String(val));
-   };
-
    const handleAddTag = () => {
       if (newTag.trim() && tags.length < 3) {
          setProfile({ ...profile, tags: [...tags, newTag.trim()] });
@@ -416,16 +410,21 @@ export default function ProfileTab({
             {/* 1. Hero Profile Card with crisp cover banner (or gradient), cover camera button, avatar with camera overlay, name, username, Cancel & Save tactile buttons */}
             <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] overflow-hidden border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none relative">
                {/* Banner Image with clean gradient fallback */}
-               <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
-                  {profile.bannerUrl && (
+               <div className="relative h-40 w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+                  {profile.bannerUrl ? (
                      <img
                         src={profile.bannerUrl}
                         alt="Cover"
                         className="w-full h-full object-cover object-center"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                      />
+                  ) : (
+                     <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                     />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/40 pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/35 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/40 pointer-events-none" />
                   
                   {/* Cover camera button */}
                   <button
@@ -613,89 +612,6 @@ export default function ProfileTab({
                      >
                         {loading ? 'Saving...' : 'Save'}
                      </TactileBoxButton>
-                  </div>
-               </div>
-            </div>
-
-            {/* 1.5 Profile Details Summary inside Edit Profile */}
-            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 space-y-3">
-               <div>
-                  <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-                     Profile Details
-                  </h3>
-                  <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                     Public identity, contact email, and workspace plan linked to your account.
-                  </p>
-               </div>
-
-               <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
-                  <div className="py-2.5 flex items-center justify-between gap-4">
-                     <div className="min-w-0">
-                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Email</p>
-                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-                           {profile.email || "Not set"}
-                        </p>
-                     </div>
-                     <button
-                        type="button"
-                        onClick={() => setActiveTab && setActiveTab('account')}
-                        className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                     >
-                        Manage
-                     </button>
-                  </div>
-
-                  <div className="py-2.5 flex items-center justify-between gap-4">
-                     <div className="min-w-0">
-                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Public Link</p>
-                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-                           tradifive.in/{profile.username || "trader"}
-                        </p>
-                     </div>
-                     <button
-                        type="button"
-                        onClick={() => {
-                           const url = `https://www.tradifive.in/${profile.username || "trader"}`;
-                           navigator.clipboard?.writeText(url);
-                           toast.success("Public profile link copied!");
-                        }}
-                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                     >
-                        <Copy size={12} />
-                        <span>Copy</span>
-                     </button>
-                  </div>
-
-                  <div className="py-2.5 flex items-center justify-between gap-4">
-                     <div className="min-w-0">
-                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Bio</p>
-                        <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
-                           {profile.bio?.trim() || "No bio added yet."}
-                        </p>
-                     </div>
-                     <button
-                        type="button"
-                        onClick={() => bioInputRef.current?.focus()}
-                        className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                     >
-                        Edit
-                     </button>
-                  </div>
-
-                  <div className="pt-2.5 flex items-center justify-between gap-4">
-                     <div>
-                        <p className="text-[12px] font-semibold text-slate-800 dark:text-neutral-200">Workspace Plan</p>
-                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5 capitalize">
-                           {activePlan} Plan · {privacySettings?.is_private || profile.isPrivate ? "Private profile" : "Public profile"}
-                        </p>
-                     </div>
-                     <button
-                        type="button"
-                        onClick={() => setActiveTab && setActiveTab('subscription')}
-                        className="text-[12px] font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer shrink-0"
-                     >
-                        View plan
-                     </button>
                   </div>
                </div>
             </div>
@@ -923,7 +839,7 @@ export default function ProfileTab({
                   <div className="space-y-0.5">
                      <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Blue check</h4>
                      <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 leading-relaxed">
-                        A paying subscriber. A real account with money behind it, not a throwaway. Included with every Prestige and Apex subscription.
+                        A paying subscriber. A real account with an active Pro or Elite subscription behind it, not a throwaway.
                      </p>
                   </div>
                </div>
@@ -937,7 +853,7 @@ export default function ProfileTab({
                         This trader sent TradiFive a screen recording of their funded prop firm accounts, the firm's original emails and proof a payout reached them in their name, and a person checked them against their account.
                      </p>
                      <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 leading-relaxed">
-                        Ask in Settings â†’ Green check. You get a guide by email, and a real person reviews your proof. Free, on any plan.
+                        Reserved exclusively for Elite members (not available on Pro). Request review in Settings → Account.
                      </p>
                   </div>
                </div>
@@ -1078,20 +994,7 @@ export default function ProfileTab({
                </p>
             </div>
 
-            {/* 11. Always translate toggle */}
-            <div className="pt-1">
-               <div className="flex items-center justify-between gap-3 px-1">
-                  <span className="text-[13px] font-bold text-slate-900 dark:text-white leading-tight">
-                     Always translate Community and Mailbox into English
-                  </span>
-                  <ProfileToggle checked={alwaysTranslate} onChange={handleSetAlwaysTranslate} />
-               </div>
-               <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1.5 px-1 leading-normal">
-                  Posts, replies and messages in another language show translated as you scroll. Off: a Translate link under each one. The AI translates them; messages are never kept.
-               </p>
-            </div>
-
-            {/* 12. Save Profile Button */}
+            {/* 11. Save Profile Button */}
             <div className="pt-2 pb-1 px-1">
                <TactileBoxButton
                   onClick={onSave}

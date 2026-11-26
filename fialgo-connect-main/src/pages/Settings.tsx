@@ -1330,17 +1330,22 @@ export default function Settings() {
             
             {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
             <div className="hidden md:block relative shrink-0 select-none">
-               <div className="relative h-[116px] w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
-                  {profile.bannerUrl && (
+               <div className="relative h-[116px] w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+                  {profile.bannerUrl ? (
                      <img
                         src={profile.bannerUrl}
                         alt="Profile banner"
                         className="w-full h-full object-cover object-center"
                         onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                      />
+                  ) : (
+                     <div
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                     />
                   )}
-                  {/* Smooth fade melting cover cleanly into white/dark surface */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent dark:from-[#141417] dark:via-[#141417]/50" />
+                  {/* Smooth fade melting bottom edge cleanly into white/dark surface */}
+                  <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/45 to-transparent dark:from-[#141417] dark:via-[#141417]/45 pointer-events-none" />
 
                   {/* Top-Right Translucent Close Circle */}
                   <button
@@ -1374,7 +1379,7 @@ export default function Settings() {
                         {displayName}
                      </h2>
                      <p className="text-[12.5px] text-slate-400 dark:text-neutral-500 mt-0.5 truncate">
-                        @{profile.username || "trader"} · <span className="capitalize">{activePlan}</span>
+                        @{profile.username || "trader"} · {['elite', 'institutional'].includes(String(activePlan || '').toLowerCase()) ? 'Elite' : ['pro', 'advanced'].includes(String(activePlan || '').toLowerCase()) ? 'Pro' : 'Standard'}
                      </p>
                   </div>
                </div>
@@ -1401,16 +1406,21 @@ export default function Settings() {
                    {/* 1. Hero Profile Card with cover banner, overlapping avatar, Name, Username and Edit button */}
                    <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl overflow-hidden border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] relative">
                       {/* Banner Image with clean gradient fallback */}
-                      <div className="relative h-32 w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
-                         {profile.bannerUrl && (
+                      <div className="relative h-32 w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+                         {profile.bannerUrl ? (
                             <img
                                src={profile.bannerUrl}
                                alt="Cover"
                                className="w-full h-full object-cover object-center"
                                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                             />
+                         ) : (
+                            <div
+                               aria-hidden="true"
+                               className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                            />
                          )}
-                         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40" />
+                         <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40 pointer-events-none" />
                       </div>
 
                       {/* Overlapping Avatar */}
@@ -1451,19 +1461,22 @@ export default function Settings() {
                    </div>
 
                    {/* 2. Search Settings Box */}
-                   <div className="relative">
-                      <Search set="curved" stroke="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={15} />
-                      <AnimatedInput
+                   <div className="flex items-center gap-2 bg-[#F3F4F6] dark:bg-[#1E1E22] rounded-xl px-3.5 py-2.5 border border-slate-200/90 dark:border-white/[0.08] focus-within:border-blue-500 focus-within:bg-white dark:focus-within:bg-[#232329] transition-colors">
+                      <span className="text-slate-400 dark:text-neutral-500 shrink-0 flex items-center">
+                         <Search set="curved" stroke="bold" primaryColor="currentColor" size={15} />
+                      </span>
+                      <input
                          type="text"
                          placeholder="Search settings"
                          value={searchQuery}
                          onChange={(e) => setSearchQuery(e.target.value)}
-                         className="w-full bg-[#EAECEF] dark:bg-[#1E1E22] rounded-xl pl-9 pr-8 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-neutral-500 border border-transparent focus:outline-none focus:border-blue-500 transition-colors"
+                         className="w-full min-w-0 bg-transparent text-xs text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 outline-none"
                       />
                       {searchQuery && (
                          <button
+                            type="button"
                             onClick={() => setSearchQuery('')}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                            className="text-[11px] font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 shrink-0 cursor-pointer"
                          >
                             Clear
                          </button>
@@ -1747,20 +1760,22 @@ export default function Settings() {
 
                <div className="pt-1 pb-5 px-5 flex flex-col gap-4 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
                   {/* Search Settings Pill */}
-                  <div className="relative">
-                     <Search stroke="bold" set="curved" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-neutral-500" size={14} />
-                     <AnimatedInput
+                  <div className="flex items-center gap-2 px-3 py-2 rounded-[11px] bg-[#F4F5F8] dark:bg-white/[0.06] border border-slate-200/90 dark:border-white/[0.1] focus-within:border-[#2563EB] focus-within:bg-white dark:focus-within:bg-[#1C1C21] shadow-2xs transition-all">
+                     <span className="text-slate-400 dark:text-neutral-500 shrink-0 flex items-center">
+                        <Search stroke="bold" set="curved" primaryColor="currentColor" size={14} />
+                     </span>
+                     <input
                         type="text"
                         placeholder="Search settings"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-9 pr-8 py-2 rounded-[11px] bg-[#F2F3F6] dark:bg-white/[0.06] border border-transparent focus:border-slate-300 dark:focus:border-white/15 focus:bg-white dark:focus:bg-[#1C1C21] text-[12.5px] placeholder:text-slate-400 text-slate-800 dark:text-slate-100 outline-none transition-all"
+                        className="w-full min-w-0 bg-transparent text-[12.5px] placeholder:text-slate-400 dark:placeholder:text-neutral-500 text-slate-800 dark:text-slate-100 outline-none"
                      />
                      {searchQuery && (
                         <button
                            type="button"
                            onClick={() => setSearchQuery('')}
-                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                           className="text-[10.5px] font-medium text-slate-400 hover:text-slate-700 dark:hover:text-white shrink-0 cursor-pointer"
                         >
                            Clear
                         </button>
@@ -1965,16 +1980,21 @@ export default function Settings() {
                               <div className="hidden md:block space-y-5">
                                  {/* Card 1: Profile Showcase Card (Clean Banner + Fade + Avatar + Name + Bio preview + Edit Profile) */}
                                  <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
-                                    <div className="relative h-[170px] w-full overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/70 to-indigo-100/70 dark:from-[#1B1D24] dark:via-[#191C26] dark:to-[#16171B]">
-                                       {profile.bannerUrl && (
+                                    <div className="relative h-[170px] w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+                                       {profile.bannerUrl ? (
                                           <img
                                              src={profile.bannerUrl}
                                              alt="Profile cover"
                                              className="w-full h-full object-cover object-center"
                                              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
                                           />
+                                       ) : (
+                                          <div
+                                             aria-hidden="true"
+                                             className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
+                                          />
                                        )}
-                                       <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-white via-white/60 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/60" />
+                                       <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/35 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/40 pointer-events-none" />
                                     </div>
 
                                     <div className="px-6 pb-6">

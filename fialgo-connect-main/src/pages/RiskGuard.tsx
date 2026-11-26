@@ -452,9 +452,9 @@ export default function RiskGuard() {
   const maxAllowedDailyTrades = isElite ? 5 : 10;
   const promptRiskGuardUpgrade = (feature = "Risk Guard") => {
     toast.info(`Pro & Elite Feature · ${feature}`, {
-      description: "Your edge deserves real protection — unlock Pro or Elite before one impulsive session wipes your gains.",
+      description: "Upgrade to Pro or Elite to unlock live Risk Guard protection.",
       action: {
-        label: "Subscribe",
+        label: "Upgrade",
         onClick: () => navigate("/upgrade"),
       },
     });
@@ -2078,13 +2078,13 @@ export default function RiskGuard() {
                 className={`${SURFACE_CARD} px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5`}
               >
                 <p className="text-[12.5px] text-slate-600 dark:text-neutral-300">
-                  Your profits look too good to lose to one reckless click —{" "}
+                  One bad trade can cost everything.{" "}
                   <button
                     type="button"
                     onClick={() => navigate("/upgrade")}
                     className="font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
                   >
-                    Unlock PRO Risk Guard before the market tests your self-control →
+                    Unlock protection →
                   </button>
                 </p>
               </motion.div>
