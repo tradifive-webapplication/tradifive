@@ -630,11 +630,11 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     try {
 
-      return localStorage.getItem("fialgo_bg_fade_style") || "purple";
+      return localStorage.getItem("fialgo_bg_fade_style") || "gray";
 
     } catch (e) {
 
-      return "purple";
+      return "gray";
 
     }
 
@@ -1194,7 +1194,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
     const handleBgChange = () => {
 
-      setBgFadeStyle(localStorage.getItem("fialgo_bg_fade_style") || "purple");
+      setBgFadeStyle(localStorage.getItem("fialgo_bg_fade_style") || "gray");
 
     };
 
@@ -1712,15 +1712,15 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
 
-  let mobileBgClass = "bg-[#e9ecef]";
+  let mobileBgClass = "bg-[#F2F4F8]";
 
-  if (bgFadeStyle === 'purple') mobileBgClass = "bg-[#edf2fb]";
+  if (bgFadeStyle === 'purple') mobileBgClass = "bg-[#F3EFFE]";
 
-  else if (bgFadeStyle === 'black') mobileBgClass = "bg-[#d7dadd]";
+  else if (bgFadeStyle === 'black') mobileBgClass = "bg-[#E2E4EA]";
 
-  else if (bgFadeStyle === 'blue') mobileBgClass = "bg-[#e0f2fe]";
+  else if (bgFadeStyle === 'blue') mobileBgClass = "bg-[#EDF2F7]";
 
-  else if (bgFadeStyle === 'rose') mobileBgClass = "bg-[#ffe4e6]";
+  else if (bgFadeStyle === 'rose') mobileBgClass = "bg-[#FFF1F2]";
 
 
 
@@ -1732,7 +1732,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
         className={`${!isFullScreen ? 'dark-sidebar' : ''} ${isMobile
 
-          ? 'flex h-full flex-col bg-[#f4f7fb] dark:bg-[#121214] w-full text-slate-900 dark:text-slate-100'
+          ? `flex h-full flex-col ${mobileBgClass} dark:bg-[#121214] w-full text-slate-900 dark:text-slate-100 transition-colors duration-300`
 
           : `fixed left-0 top-0 z-40 flex h-screen flex-row bg-transparent dark:bg-transparent ${isMounted ? "transition-[width] duration-300" : ""
 

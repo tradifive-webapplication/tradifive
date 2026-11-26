@@ -13,7 +13,6 @@ import ProfileTab, { TactileBoxButton, ProfileAccountPreferencesCard } from '@/c
 import HelpTab from '@/components/settings/HelpTab';
 import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
-import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
 import TermsTab from '@/components/settings/TermsTab';
 import { supabase } from '@/lib/supabase';
 import { usePlan } from '@/hooks/usePlan';
@@ -56,7 +55,6 @@ const TAB_TITLES: Record<string, string> = {
    notifications: "Notifications",
    ai: "AI Coach",
    trading: "Accounts & Brokers",
-   'trading-preferences': "Trading & Risk",
    subscription: "Subscription",
    creator: "Creator Account",
    help: "Help Center",
@@ -73,7 +71,6 @@ const TAB_SUBTITLES: Record<string, string> = {
    'delete-history': "Wipe your trades, Daily and Weekly entries",
    notifications: "Choose which trade alerts and activity pings you receive",
    trading: "Connect MetaTrader 5 and Indian broker accounts",
-   'trading-preferences': "Configure capital risk guardrails, order defaults, currency, and audio signals",
    ai: "Track your daily AI Coach quota and credit allowance",
    subscription: "Manage your active plan, perks and billing history",
    appearance: "Switch light or dark theme and display preferences",
@@ -198,8 +195,7 @@ export default function Settings() {
       if (rawTab === 'privacy' || rawTab === 'data' || rawTab === 'data-privacy') return 'data-privacy';
       if (rawTab === 'delete-history' || rawTab === 'history') return 'delete-history';
       if (rawTab === 'channel') return 'profile';
-      if (rawTab === 'File Setup') return 'trading';
-      if (rawTab === 'risk' || rawTab === 'trading-preferences') return 'trading-preferences';
+      if (rawTab === 'File Setup' || rawTab === 'risk' || rawTab === 'trading-preferences') return 'trading';
       if (rawTab === 'preferences' || rawTab === 'display' || rawTab === 'theme') return 'appearance';
       if (rawTab === 'legal' || rawTab === 'policies' || rawTab === 'terms') return 'terms';
       return rawTab;
@@ -745,7 +741,6 @@ export default function Settings() {
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
    const [layoutDensity, setLayoutDensity] = useState('comfortable');
    const [terminalLogging, setTerminalLogging] = useState(false);
-   const [fullScreenLayout, setFullScreenLayout] = useState(() => localStorage.getItem('fialgo_full_screen') === 'true');
    const { themeId: pnlTheme, changeTheme: changePnlTheme, THEMES: PNL_THEMES } = useTradingTheme();
    const [cursorStyle, setCursorStyle] = useState<"3d" | "dot" | "system">(() => {
      if (typeof window === "undefined") return "3d";
@@ -1733,12 +1728,6 @@ export default function Settings() {
       }
    };
 
-   const handleFullScreenChange = (checked: boolean) => {
-      setFullScreenLayout(checked);
-      localStorage.setItem('fialgo_full_screen', String(checked));
-      window.dispatchEvent(new Event('fialgo_full_screen_changed'));
-   };
-
    const handleThemeChange = (newTheme: string) => {
       setTheme(newTheme);
       applyThemeWithTransition(newTheme as 'light' | 'dark', () => {
@@ -2045,7 +2034,6 @@ export default function Settings() {
          title: "Trading",
          items: [
             { id: "trading", label: "Accounts & Brokers", icon: Wallet, keywords: "mt5 zerodha dhan upstox vantage sync" },
-            { id: "trading-preferences", label: "Trading & Risk", icon: Sliders, keywords: "risk guard drawdown breakeven order slippage currency sound" },
             { id: "ai", label: "AI Coach", icon: Sparkles, keywords: "credits quota tradifive ai" }
          ]
       },
@@ -2986,14 +2974,13 @@ export default function Settings() {
                                           Workspace Appearance
                                        </h3>
                                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Configure lighting mode, full-screen layout, and ambient surface finish.
+                                          Configure lighting mode and ambient surface finish.
                                        </p>
                                     </div>
                                  </div>
                                  <TactileBoxButton
                                     onClick={() => {
                                        handleThemeChange('light');
-                                       if (fullScreenLayout) handleFullScreenChange(false);
                                        setBgFadeStyle('gray');
                                        localStorage.setItem('fialgo_bg_fade_style', 'gray');
                                        window.dispatchEvent(new Event('fialgo_bg_style_changed'));
@@ -3050,22 +3037,6 @@ export default function Settings() {
                                     </div>
                                  </div>
 
-                                 {/* Immersive Full Screen */}
-                                 <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                                          <Monitor size={16} />
-                                       </div>
-                                       <div className="min-w-0">
-                                          <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Immersive Full Screen</h3>
-                                          <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                             Stretch workspace views edge-to-edge without outer margins.
-                                          </p>
-                                       </div>
-                                    </div>
-                                    <SettingsToggle checked={fullScreenLayout} onChange={handleFullScreenChange} />
-                                 </div>
-
                                  {/* Background Fade Style (Light Mode) */}
                                  <div className={`py-4 flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
                                     <div className="flex items-start sm:items-center gap-3 min-w-0">
@@ -3079,13 +3050,21 @@ export default function Settings() {
                                           </p>
                                        </div>
                                     </div>
-                                    <div className="w-[160px] shrink-0">
+                                    <div className="w-[172px] shrink-0">
                                        <Select
                                           value={bgFadeStyle}
                                           onValueChange={(value) => {
                                              setBgFadeStyle(value);
                                              localStorage.setItem("fialgo_bg_fade_style", value);
                                              window.dispatchEvent(new Event("fialgo_bg_style_changed"));
+                                             const labels: Record<string, string> = {
+                                                gray: 'Gray Fade',
+                                                black: 'Black Fade',
+                                                purple: 'Muted Violet',
+                                                blue: 'Cool Slate',
+                                                rose: 'Warm Rose',
+                                             };
+                                             toast.success(`Background set to ${labels[value] || value}`);
                                           }}
                                        >
                                           <SelectTrigger className="w-full bg-[#F4F5F8] border border-slate-200/80 text-slate-800 text-[12.5px] font-semibold rounded-xl h-9 focus:ring-2 focus:ring-slate-900/15">
@@ -3974,20 +3953,6 @@ export default function Settings() {
                                  </div>
                               </div>
                            )}
-                        </motion.div>
-                     )}
-
-                     {/* TAB 9B: TRADING & RISK PREFERENCES */}
-                     {activeTab === 'trading-preferences' && (
-                        <motion.div
-                           key="trading-preferences"
-                           initial={{ opacity: 0, y: 6 }}
-                           animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -6 }}
-                           transition={{ duration: 0.16, ease: "easeOut" }}
-                           className="w-full max-w-[820px]"
-                        >
-                           <TradingPreferencesTab />
                         </motion.div>
                      )}
 

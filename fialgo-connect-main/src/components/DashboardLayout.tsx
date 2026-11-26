@@ -246,9 +246,9 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
 
   const [bgFadeStyle, setBgFadeStyle] = useState(() => {
     try {
-      return localStorage.getItem("fialgo_bg_fade_style") || "purple";
+      return localStorage.getItem("fialgo_bg_fade_style") || "gray";
     } catch (e) {
-      return "purple";
+      return "gray";
     }
   });
 
@@ -257,7 +257,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
       setIsFullScreen(localStorage.getItem("fialgo_full_screen") === "true");
     };
     const handleBgChange = () => {
-      setBgFadeStyle(localStorage.getItem("fialgo_bg_fade_style") || "purple");
+      setBgFadeStyle(localStorage.getItem("fialgo_bg_fade_style") || "gray");
     };
 
     window.addEventListener('fialgo_full_screen_changed', handleLayoutChange);
@@ -551,19 +551,25 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
   useTrading();
   const { activeMarket } = useMarket();
 
-  let gradientClass = "from-[#e9ecef] via-[#f1f3f5] to-[#f4f6f8]"; // default gray
-  if (bgFadeStyle === 'purple') {
-    gradientClass = "from-[#edf2fb] via-[#f4f7fd] to-[#f8faff]";
-  } else if (bgFadeStyle === 'black') {
-    gradientClass = "from-[#d7dadd] via-[#e2e5e8] to-[#f1f3f5]"; // A darker gray/black fade for light mode
-  } else if (bgFadeStyle === 'blue') {
-    gradientClass = "from-[#e0f2fe] via-[#f0f9ff] to-[#f4faff]";
-  } else if (bgFadeStyle === 'rose') {
-    gradientClass = "from-[#ffe4e6] via-[#fff1f2] to-[#fff5f6]";
-  }
+  const outerFadeMap: Record<string, string> = {
+    gray: "bg-gradient-to-br from-[#EBEEF3] via-[#F2F4F8] to-[#F7F8FA]",
+    black: "bg-gradient-to-br from-[#D4D7DF] via-[#E1E4EB] to-[#ECEEF2]",
+    purple: "bg-gradient-to-br from-[#EDE9FE] via-[#F4F1FF] to-[#FAF9FF]",
+    blue: "bg-gradient-to-br from-[#E2E8F0] via-[#ECF2F8] to-[#F6F9FC]",
+    rose: "bg-gradient-to-br from-[#FFE4E6] via-[#FFF0F2] to-[#FFF7F8]",
+  };
+  const mainFadeMap: Record<string, string> = {
+    gray: "bg-gradient-to-b from-[#F4F6F9] via-white to-white",
+    black: "bg-gradient-to-b from-[#E7E9EE] via-[#F7F8FA] to-white",
+    purple: "bg-gradient-to-b from-[#F3EFFE] via-white to-white",
+    blue: "bg-gradient-to-b from-[#EDF2F7] via-white to-white",
+    rose: "bg-gradient-to-b from-[#FFF1F2] via-white to-white",
+  };
+  const outerFadeClass = outerFadeMap[bgFadeStyle] || outerFadeMap.gray;
+  const mainFadeClass = mainFadeMap[bgFadeStyle] || mainFadeMap.gray;
 
   return (
-    <div ref={constraintsRef} className="min-h-screen bg-[#F1F3F6] dark:bg-[#09090B] flex relative overflow-hidden">
+    <div ref={constraintsRef} className={`min-h-screen ${outerFadeClass} dark:bg-none dark:bg-[#09090B] flex relative overflow-hidden transition-colors duration-300`}>
 
       {!isMobile && (
         <div className="hidden md:block">
@@ -778,7 +784,7 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               isEffectiveFullScreen
                 ? "rounded-none shadow-none"
                 : "rounded-[14px] md:rounded-[18px] shadow-[0_2px_18px_rgba(15,23,42,0.055)] dark:shadow-none"
-            } bg-white dark:bg-[#121212] font-sans`}
+            } ${mainFadeClass} dark:bg-none dark:bg-[#121212] font-sans transition-colors duration-300`}
           >
 
             {/* Premium Global Emergency Halt Banner - Crimson red warning card with physics-based gravity drop & free drag */}

@@ -159,8 +159,8 @@ export default function CommunityShell() {
           style={{ WebkitOverflowScrolling: "touch", willChange: "scroll-position" }}
           className={
             isFixedHeightRoute
-              ? "w-full h-full flex flex-col min-h-0 overflow-hidden bg-white dark:bg-[#121212]"
-              : "w-full h-full overflow-y-auto overflow-x-hidden overscroll-y-contain amazing-scrollbar bg-white dark:bg-[#121212]"
+              ? "w-full h-full flex flex-col min-h-0 overflow-hidden bg-transparent dark:bg-[#121212]"
+              : "w-full h-full overflow-y-auto overflow-x-hidden overscroll-y-contain amazing-scrollbar bg-transparent dark:bg-[#121212]"
           }
         >
           {/* Persistent Community Header — stays stationary on tab switch, scrolls up smoothly with content */}
