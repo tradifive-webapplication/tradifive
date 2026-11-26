@@ -1801,159 +1801,133 @@ export default function RiskGuard() {
           transition={{ duration: 0.36, ease: EXPO_OUT }}
           className="shrink-0 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md z-30"
         >
-          <div className="max-w-[1380px] mx-auto px-3.5 sm:px-6 pt-3 sm:pt-3.5 pb-2.5">
-            {/* Upgraded Single-Row Header: Brand Emblem + Safety Score (Left) | Mode, Sync & Kill Switch (Right) */}
-            <div className="flex items-center justify-between gap-2.5 flex-wrap">
-              <div className="min-w-0 flex items-center gap-2.5 flex-wrap">
-                <div className="w-8 h-8 rounded-[10px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white flex items-center justify-center shadow-[0_3px_10px_rgba(37,99,235,0.28)] shrink-0">
-                  <ShieldCheck size={16} strokeWidth={2.3} />
-                </div>
-                <div className="min-w-0 flex items-center gap-2 flex-wrap">
-                  <h1 className="text-[18px] sm:text-[20px] font-bold text-slate-900 dark:text-white tracking-tight leading-none whitespace-nowrap">
-                    Risk Guard
-                  </h1>
-                  <span
-                    className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10.5px] font-semibold tabular-nums whitespace-nowrap border ${
-                      tabCounts.total >= 7
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200/80 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/25"
-                        : tabCounts.total >= 3
-                        ? "bg-blue-50 text-[#2563EB] border-blue-200/80 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/25"
-                        : "bg-amber-50 text-amber-700 border-amber-200/80 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/25"
-                    }`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        tabCounts.total >= 7
-                          ? "bg-emerald-500"
-                          : tabCounts.total >= 3
-                          ? "bg-[#2563EB]"
-                          : "bg-amber-500"
-                      }`}
-                    />
-                    {tabCounts.total} {tabCounts.total === 1 ? "Guard" : "Guards"} Active
+          <div className="max-w-[1380px] mx-auto px-3.5 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2.5">
+            {/* Title + Clean Subtitle (matches Dashboard & Journal) */}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5">
+                <h1 className="text-[19px] sm:text-[21px] font-bold text-slate-900 dark:text-white tracking-tight leading-none">
+                  Risk Guard
+                </h1>
+                {cooldownActive && cooldownSeconds > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400 tabular-nums whitespace-nowrap">
+                    {formatCountdown(cooldownSeconds)}
                   </span>
-                  <span
-                    className={`hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap border ${
-                      !useDemoData && balance > 0
-                        ? "bg-emerald-50/70 text-emerald-700 border-emerald-200/70 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
-                        : "bg-slate-100 text-slate-500 border-slate-200/80 dark:bg-white/[0.06] dark:text-neutral-400 dark:border-white/10"
-                    }`}
-                  >
-                    {!useDemoData && balance > 0 ? "MT5 Synced" : useDemoData ? "Demo Preview" : "MT5 Not Linked"}
-                  </span>
-                  {cooldownActive && cooldownSeconds > 0 && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400 tabular-nums whitespace-nowrap">
-                      {formatCountdown(cooldownSeconds)}
-                    </span>
-                  )}
-                </div>
+                )}
               </div>
+              <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-1 tabular-nums truncate">
+                {tabCounts.total} {tabCounts.total === 1 ? "guard" : "guards"} active ·{" "}
+                {!useDemoData && balance > 0
+                  ? "MT5 synced"
+                  : useDemoData
+                  ? "Demo preview"
+                  : "MT5 not linked"}
+              </p>
+            </div>
 
-              <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
-                {/* Clean Segmented Demo / Live Switch */}
-                <div
-                  className="inline-flex items-center p-0.5 rounded-[11px] bg-slate-100 dark:bg-white/[0.07] border border-slate-200/80 dark:border-white/10 shrink-0"
-                  title={
-                    useDemoData
-                      ? "Showing simulated Demo preview (click Live to read MT5 broker data)"
-                      : "Showing live MT5 broker data (click Demo to preview safely)"
-                  }
-                >
-                  <button
-                    type="button"
-                    onClick={() => setDemoDataOverride(true)}
-                    className={`inline-flex items-center gap-1 h-[27px] sm:h-[29px] px-2.5 rounded-[9px] text-[11px] font-semibold transition-all cursor-pointer ${
-                      useDemoData
-                        ? "bg-white dark:bg-[#26262B] text-amber-600 dark:text-amber-300 shadow-[0_1px_4px_rgba(15,23,42,0.08)]"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <FlaskConical size={11} />
-                    <span>Demo</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDemoDataOverride(false)}
-                    className={`inline-flex items-center gap-1 h-[27px] sm:h-[29px] px-2.5 rounded-[9px] text-[11px] font-semibold transition-all cursor-pointer ${
-                      !useDemoData
-                        ? "bg-white dark:bg-[#26262B] text-emerald-600 dark:text-emerald-400 shadow-[0_1px_4px_rgba(15,23,42,0.08)]"
-                        : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                    }`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        !useDemoData ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
-                      }`}
-                    />
-                    <span>Live</span>
-                  </button>
-                </div>
-
-                <motion.button
-                  whileTap={{ scale: 0.96 }}
+            <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0">
+              {/* Clean Segmented Demo / Live Switch */}
+              <div
+                className="inline-flex items-center p-0.5 rounded-full bg-slate-100 dark:bg-white/[0.07] border border-slate-200/80 dark:border-white/10 shrink-0"
+                title={
+                  useDemoData
+                    ? "Showing simulated Demo preview (click Live to read MT5 broker data)"
+                    : "Showing live MT5 broker data (click Demo to preview safely)"
+                }
+              >
+                <button
                   type="button"
-                  onClick={handleSave}
-                  className="tactile-white-pill inline-flex items-center gap-1.5 h-[32px] sm:h-[34px] px-2.5 sm:px-3 rounded-[11px] text-[11px] sm:text-[11.5px] font-semibold cursor-pointer shrink-0"
-                  title="Save and sync Risk Guard rules"
-                >
-                  <RefreshCw size={12} />
-                  <span>Sync</span>
-                </motion.button>
-
-                {/* Kill Switch Pill (always accessible on right) */}
-                <div
-                  className={`inline-flex items-center gap-2 sm:gap-2.5 h-[32px] sm:h-[34px] pl-2 pr-1.5 sm:pl-2.5 sm:pr-2 rounded-[11px] border transition-all shrink-0 ${
-                    killSwitchActive
-                      ? "bg-rose-50 dark:bg-rose-500/15 border-rose-300 dark:border-rose-500/40 shadow-[0_2px_10px_rgba(244,63,94,0.18)]"
-                      : "bg-white dark:bg-[#17171A] border-slate-200/80 dark:border-white/10 shadow-[0_1px_3px_rgba(15,23,42,0.05)]"
+                  onClick={() => setDemoDataOverride(true)}
+                  className={`inline-flex items-center gap-1 h-[28px] px-2.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                    useDemoData
+                      ? "bg-white dark:bg-[#26262B] text-amber-600 dark:text-amber-300 shadow-[0_1px_4px_rgba(15,23,42,0.08)]"
+                      : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
                   }`}
                 >
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-colors ${
-                        killSwitchActive
-                          ? "bg-rose-600 text-white"
-                          : "bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400"
-                      }`}
-                    >
-                      <Power size={11} strokeWidth={2.5} />
-                    </span>
-                    <span
-                      className={`text-[11px] sm:text-[11.5px] font-semibold whitespace-nowrap ${
-                        killSwitchActive
-                          ? "text-rose-600 dark:text-rose-400"
-                          : "text-slate-800 dark:text-white"
-                      }`}
-                    >
-                      Kill Switch
-                    </span>
-                  </div>
-                  <Switch
-                    size="sm"
-                    checked={killSwitchActive}
-                    onChange={(val) => {
-                      if (val) {
-                        if (
-                          window.confirm(
-                            "KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?"
-                          )
-                        ) {
-                          setKillSwitchActive(true);
-                          toast.error("KILL SWITCH ACTIVATED", {
-                            description:
-                              "All positions closing. Trading halted immediately.",
-                            duration: 6000,
-                          });
-                        }
-                      } else {
-                        setKillSwitchActive(false);
-                        toast.success(
-                          "Kill switch deactivated. Trading resumed."
-                        );
-                      }
-                    }}
+                  <FlaskConical size={11} />
+                  <span>Demo</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDemoDataOverride(false)}
+                  className={`inline-flex items-center gap-1 h-[28px] px-2.5 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
+                    !useDemoData
+                      ? "bg-white dark:bg-[#26262B] text-emerald-600 dark:text-emerald-400 shadow-[0_1px_4px_rgba(15,23,42,0.08)]"
+                      : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      !useDemoData ? "bg-emerald-500 animate-pulse" : "bg-slate-400"
+                    }`}
                   />
+                  <span>Live</span>
+                </button>
+              </div>
+
+              <motion.button
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={handleSave}
+                className="tactile-white-pill inline-flex items-center gap-1.5 h-[32px] sm:h-[34px] px-3 rounded-full text-[11px] sm:text-[11.5px] font-semibold cursor-pointer shrink-0"
+                title="Save and sync Risk Guard rules"
+              >
+                <RefreshCw size={12} />
+                <span>Sync</span>
+              </motion.button>
+
+              {/* Kill Switch Pill (always accessible on right) */}
+              <div
+                className={`inline-flex items-center gap-2 sm:gap-2.5 h-[32px] sm:h-[34px] pl-2.5 pr-1.5 rounded-full border transition-all shrink-0 ${
+                  killSwitchActive
+                    ? "bg-rose-50 dark:bg-rose-500/15 border-rose-300 dark:border-rose-500/40 shadow-[0_2px_10px_rgba(244,63,94,0.18)]"
+                    : "bg-white dark:bg-[#17171A] border-slate-200/80 dark:border-white/10 shadow-[0_1px_3px_rgba(15,23,42,0.05)]"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                      killSwitchActive
+                        ? "bg-rose-600 text-white"
+                        : "bg-rose-50 dark:bg-rose-500/10 text-rose-500 dark:text-rose-400"
+                    }`}
+                  >
+                    <Power size={11} strokeWidth={2.5} />
+                  </span>
+                  <span
+                    className={`text-[11px] sm:text-[11.5px] font-semibold whitespace-nowrap ${
+                      killSwitchActive
+                        ? "text-rose-600 dark:text-rose-400"
+                        : "text-slate-800 dark:text-white"
+                    }`}
+                  >
+                    Kill Switch
+                  </span>
                 </div>
+                <Switch
+                  size="sm"
+                  checked={killSwitchActive}
+                  onChange={(val) => {
+                    if (val) {
+                      if (
+                        window.confirm(
+                          "KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?"
+                        )
+                      ) {
+                        setKillSwitchActive(true);
+                        toast.error("KILL SWITCH ACTIVATED", {
+                          description:
+                            "All positions closing. Trading halted immediately.",
+                          duration: 6000,
+                        });
+                      }
+                    } else {
+                      setKillSwitchActive(false);
+                      toast.success(
+                        "Kill switch deactivated. Trading resumed."
+                      );
+                    }
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -2270,73 +2244,72 @@ export default function RiskGuard() {
               </div>
             </motion.section>
 
+            {/* 2. Pinned Category Tabs (never scrolls horizontally or out of view) */}
+            <div className="sticky top-0 z-20 -mx-1 px-1 py-1.5 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md">
+              <div className="grid grid-cols-3 p-1 rounded-[13px] bg-slate-200/70 dark:bg-white/[0.06]">
+                {(
+                  [
+                    {
+                      id: "trading_control" as const,
+                      label: "Trading Control",
+                      count: tabCounts.trading_control,
+                    },
+                    {
+                      id: "risk_management" as const,
+                      label: "Risk Management",
+                      count: tabCounts.risk_management,
+                    },
+                    {
+                      id: "behaviour" as const,
+                      label: "Behaviour & Discipline",
+                      count: tabCounts.behaviour,
+                    },
+                  ] as const
+                ).map((tab) => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`relative min-w-0 px-2 sm:px-3 py-2 rounded-[10px] text-[11.5px] sm:text-[12.5px] font-semibold transition-colors whitespace-nowrap inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                        active
+                          ? "text-slate-900 dark:text-white"
+                          : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                      }`}
+                    >
+                      {active && (
+                        <motion.span
+                          layoutId="riskguard-tab-pill"
+                          transition={{
+                            type: "spring",
+                            stiffness: 460,
+                            damping: 34,
+                          }}
+                          className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[10px] shadow-[0_1px_5px_rgba(15,23,42,0.09)]"
+                        />
+                      )}
+                      <span className="relative z-10 truncate">{tab.label}</span>
+                      {tab.count > 0 && (
+                        <span
+                          className={`relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums shrink-0 ${
+                            active
+                              ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/20 dark:text-blue-400"
+                              : "bg-slate-300/60 dark:bg-white/10 text-slate-600 dark:text-neutral-300"
+                          }`}
+                        >
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Main 2-Column Workspace: Rules (Left) + Account Protection Shield (Right) */}
             <div className="flex flex-col xl:flex-row gap-5 items-start">
               <div className="flex-1 w-full min-w-0 space-y-4">
-
-                {/* 2. Category Tabs Directly Above Rules Grid */}
-                <motion.div
-                  variants={sectionVariants}
-                  className="flex items-center p-1 rounded-[13px] bg-slate-200/70 dark:bg-white/[0.06] overflow-x-auto no-scrollbar"
-                >
-                  {(
-                    [
-                      {
-                        id: "trading_control" as const,
-                        label: "Trading Control",
-                        count: tabCounts.trading_control,
-                      },
-                      {
-                        id: "risk_management" as const,
-                        label: "Risk Management",
-                        count: tabCounts.risk_management,
-                      },
-                      {
-                        id: "behaviour" as const,
-                        label: "Behaviour & Discipline",
-                        count: tabCounts.behaviour,
-                      },
-                    ] as const
-                  ).map((tab) => {
-                    const active = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`relative flex-1 min-w-[130px] px-3 py-2 rounded-[10px] text-[12.5px] font-semibold transition-colors whitespace-nowrap inline-flex items-center justify-center gap-1.5 cursor-pointer ${
-                          active
-                            ? "text-slate-900 dark:text-white"
-                            : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                        }`}
-                      >
-                        {active && (
-                          <motion.span
-                            layoutId="riskguard-tab-pill"
-                            transition={{
-                              type: "spring",
-                              stiffness: 460,
-                              damping: 34,
-                            }}
-                            className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[10px] shadow-[0_1px_5px_rgba(15,23,42,0.09)]"
-                          />
-                        )}
-                        <span className="relative z-10">{tab.label}</span>
-                        {tab.count > 0 && (
-                          <span
-                            className={`relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums ${
-                              active
-                                ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/20 dark:text-blue-400"
-                                : "bg-slate-300/60 dark:bg-white/10 text-slate-600 dark:text-neutral-300"
-                            }`}
-                          >
-                            {tab.count}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </motion.div>
 
                 {/* Tab Content */}
                 <AnimatePresence mode="wait">
@@ -4848,7 +4821,7 @@ export default function RiskGuard() {
               {/* Right Column: Live Account Protection Shield Panel */}
               <motion.aside
                 variants={sectionVariants}
-                className="w-full xl:w-[300px] shrink-0 xl:sticky xl:top-20 space-y-3"
+                className="w-full xl:w-[300px] shrink-0 xl:sticky xl:top-16 space-y-3"
               >
                 {(() => {
                   const tcMax = activeMarket === "indian" ? 2 : 4;
