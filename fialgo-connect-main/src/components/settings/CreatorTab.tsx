@@ -234,8 +234,9 @@ export default function CreatorTab({
             {/* CTA */}
             <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <button
+                type="button"
                 onClick={() => navigate('/upgrade?plan=elite')}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-[13px] font-bold shadow-md shadow-purple-500/20 transition-all active:scale-95"
+                className="tactile-blue-pill h-9 px-5 rounded-full text-[12.5px] font-bold inline-flex items-center gap-1.5 cursor-pointer"
               >
                 <Zap size={14} /> Upgrade to Elite
               </button>

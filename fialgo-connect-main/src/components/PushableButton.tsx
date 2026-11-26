@@ -8,7 +8,7 @@ export const PushableButton: React.FC<PushableButtonProps> = ({ children, classN
   if (variant === 'secondary') {
     return (
       <button 
-        className={`bg-slate-100 dark:bg-[#2B2B2B] hover:bg-slate-200 dark:hover:bg-[#383838] text-slate-800 dark:text-white border border-slate-200 dark:border-[#383838] rounded-full px-5 py-2.5 text-xs font-bold transition-all duration-150 active:scale-[0.985] inline-flex items-center justify-center gap-2 cursor-pointer outline-none ${className}`} 
+        className={`tactile-white-pill rounded-full px-5 py-2.5 text-xs font-bold inline-flex items-center justify-center gap-2 cursor-pointer outline-none ${className}`} 
         {...props}
       >
         {children}
@@ -16,10 +16,10 @@ export const PushableButton: React.FC<PushableButtonProps> = ({ children, classN
     );
   }
 
-  // High-contrast clean blue primary action for web user app with tactile micro-scale
+  // High-contrast clean blue primary action for web user app with tactile bevel
   return (
     <button
-      className={`bg-blue-600 hover:bg-blue-500 text-white shadow-[0_2px_8px_-2px_rgba(59,130,246,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] border border-blue-500 rounded-full px-6 py-2.5 text-xs font-bold tracking-wide transition-all duration-150 active:scale-[0.985] inline-flex items-center justify-center gap-2 cursor-pointer outline-none ${className}`}
+      className={`tactile-blue-pill rounded-full px-6 py-2.5 text-xs font-bold tracking-wide inline-flex items-center justify-center gap-2 cursor-pointer outline-none disabled:opacity-50 disabled:pointer-events-none ${className}`}
       {...props}
     >
       {children}

@@ -136,7 +136,7 @@ export default function ResetPassword() {
                       navigate('/login');
                     }, 1500);
                   }}
-                  className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm py-3.5 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+                  className="w-full tactile-blue-pill inline-flex items-center justify-center gap-2 rounded-full font-bold text-sm py-3.5 cursor-pointer"
                 >
                   <Smartphone size={18} />
                   Open TradiFive Mobile App
@@ -145,7 +145,7 @@ export default function ResetPassword() {
                 <button
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="w-full inline-flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm py-3 transition-colors"
+                  className="w-full tactile-white-pill inline-flex items-center justify-center rounded-full font-semibold text-sm py-3 cursor-pointer"
                 >
                   Continue to Web Sign In
                 </button>
@@ -219,7 +219,7 @@ export default function ResetPassword() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full relative rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold tracking-wide uppercase text-xs py-3.5 shadow-md shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full tactile-blue-pill rounded-full font-bold tracking-wide uppercase text-xs py-3.5 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isLoading ? (
                     <span>UPDATING...</span>

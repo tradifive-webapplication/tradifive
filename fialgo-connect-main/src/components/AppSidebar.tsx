@@ -3444,7 +3444,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                               onClick={(e) => { e.stopPropagation(); React.startTransition(() => navigate("/upgrade")); setIsSwitchOpen(false); }}
 
-                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3.5 rounded-full text-[11.5px] flex items-center gap-1 transition-all shadow-sm active:scale-[0.98] font-sans cursor-pointer"
+                              className="tactile-blue-pill font-bold py-1.5 px-3.5 rounded-full text-[11.5px] flex items-center gap-1 font-sans cursor-pointer"
 
                             >
 

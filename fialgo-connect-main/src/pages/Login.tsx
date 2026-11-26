@@ -684,13 +684,11 @@ export default function Login() {
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-5 lg:mb-8" style={{ perspective: '800px' }}>
+                <div className="grid grid-cols-2 gap-3 lg:gap-4 mb-5 lg:mb-8">
                   <button
+                    type="button"
                     onClick={handleGoogleLogin}
-                    className="flex items-center justify-center gap-2 bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] hover:bg-slate-50 dark:hover:bg-[#141414] hover:border-slate-300 dark:hover:border-[#444444] py-2.5 lg:py-3 rounded-full text-[11px] lg:text-[12px] font-bold uppercase text-slate-700 dark:text-slate-200 transition-all shadow-sm"
-                    style={{ transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)', transformStyle: 'preserve-3d' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px) rotateX(4deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = ''; }}
+                    className="tactile-white-pill flex items-center justify-center gap-2 py-2.5 lg:py-3 rounded-full text-[11px] lg:text-[12px] font-bold uppercase cursor-pointer"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24">
                       <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -701,11 +699,9 @@ export default function Login() {
                     Google
                   </button>
                   <button
+                    type="button"
                     onClick={handleAppleLogin}
-                    className="flex items-center justify-center gap-2 bg-white dark:bg-[#1E1E1E] border border-slate-200/60 dark:border-[#333333] hover:bg-slate-50 dark:hover:bg-[#141414] hover:border-slate-300 dark:hover:border-[#444444] py-2.5 lg:py-3 rounded-full text-[11px] lg:text-[12px] font-bold uppercase text-slate-700 dark:text-slate-200 transition-all shadow-sm"
-                    style={{ transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)', transformStyle: 'preserve-3d' }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px) rotateX(4deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = ''; }}
+                    className="tactile-white-pill flex items-center justify-center gap-2 py-2.5 lg:py-3 rounded-full text-[11px] lg:text-[12px] font-bold uppercase cursor-pointer"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -745,8 +741,8 @@ export default function Login() {
                               type="text"
                               value={firstName}
                               onChange={(e) => setFirstName(e.target.value)}
-                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                              placeholder="Alex"
+                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                              placeholder="First name"
                               required={!isLogin}
                             />
                           </div>
@@ -761,8 +757,8 @@ export default function Login() {
                               type="text"
                               value={lastName}
                               onChange={(e) => setLastName(e.target.value)}
-                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                              placeholder="Morgan"
+                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                              placeholder="Last name"
                               required={!isLogin}
                             />
                           </div>
@@ -781,8 +777,8 @@ export default function Login() {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                        placeholder="name@example.com"
+                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                        placeholder="Enter your email"
                         required
                         autoComplete="off"
                       />
@@ -810,8 +806,8 @@ export default function Login() {
                         type={showPw ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-10 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                        placeholder="••••••••"
+                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                        placeholder={isLogin ? "Enter your password" : "Create a password"}
                         required
                         autoComplete="new-password"
                       />
@@ -842,8 +838,8 @@ export default function Login() {
                             type={showPw ? "text" : "password"}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                            placeholder="••••••••"
+                            className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                            placeholder="Confirm your password"
                             required={!isLogin}
                             autoComplete="new-password"
                           />
@@ -852,20 +848,11 @@ export default function Login() {
                     )}
                   </AnimatePresence>
 
-                  <div className="pt-4 lg:pt-6" style={{ perspective: '600px' }}>
+                  <div className="pt-4 lg:pt-6">
                     <button
                       type="submit"
                       disabled={isLoading}
-                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
-                      style={{
-                        background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                        boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                        transformStyle: 'preserve-3d' }}
-                      onMouseEnter={e => { if (!isLoading) { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; } }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
-                      onMouseDown={e => { e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}
-                      onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; }}
+                      className="w-full tactile-blue-pill font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                     >
                       {isLoading ? "Processing..." : (
                         <>
@@ -915,8 +902,8 @@ export default function Login() {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 lg:placeholder:text-slate-300 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
-                          placeholder="name@example.com"
+                          className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                          placeholder="Enter your email"
                           required
                         />
                       </div>
@@ -926,11 +913,7 @@ export default function Login() {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
-                        style={{
-                          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                          boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                        className="w-full tactile-blue-pill font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                       >
                         {isLoading ? "Processing..." : (
                           <>
@@ -966,10 +949,7 @@ export default function Login() {
                         setIsResetSent(false);
                         setStep('auth');
                       }}
-                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
-                      style={{
-                        background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                        boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)' }}
+                      className="w-full tactile-blue-pill font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center cursor-pointer"
                     >
                       Back to Login
                     </button>
@@ -1021,18 +1001,11 @@ export default function Login() {
                     </InputOTPGroup>
                   </InputOTP>
 
-                  <div className="w-full space-y-3 pt-2" style={{ perspective: '600px' }}>
+                  <div className="w-full space-y-3 pt-2">
                     <button
                       type="submit"
                       disabled={isLoading || otpCode.length !== 6}
-                      className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center shadow-lg transition-all disabled:opacity-50 cursor-pointer"
-                      style={{
-                        background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                        boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                        transformStyle: 'preserve-3d' }}
-                      onMouseEnter={e => { if (otpCode.length === 6) { e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; } }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; }}
+                      className="w-full tactile-blue-pill font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                     >
                       {isLoading ? "Verifying OTP..." : "Verify OTP & Continue"}
                       <IconlyArrowRight set="curved" primaryColor="currentColor" size={18} stroke="bold" strokeWidth={2} className="ml-2" />
@@ -1112,20 +1085,11 @@ export default function Login() {
                   </InputOTP>
 
                   <div className="w-full space-y-3 lg:space-y-4">
-                    <div className="pt-2" style={{ perspective: '600px' }}>
+                    <div className="pt-2">
                       <button
                         type="submit"
                         disabled={isLoading || otpCode.length !== 6}
-                        className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50"
-                        style={{
-                          background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                          boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                          transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                          transformStyle: 'preserve-3d' }}
-                        onMouseEnter={e => { if (!isLoading && otpCode.length === 6) { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; } }}
-                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
-                        onMouseDown={e => { if (!isLoading && otpCode.length === 6) e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}
-                        onMouseUp={e => { if (!isLoading && otpCode.length === 6) e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; }}
+                        className="w-full tactile-blue-pill font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
                       >
                         {isLoading ? "Verifying..." : (
                           <>

@@ -123,20 +123,11 @@ export default function VerifyEmail() {
               />
             </div>
 
-            <div style={{ perspective: '600px' }}>
+            <div>
               <button
                 type="submit"
                 disabled={code.length < 6 || isLoading}
-                className="w-full text-white font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-xl flex items-center justify-center disabled:opacity-50"
-                style={{
-                  background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #3b82f6 100%)',
-                  boxShadow: '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)',
-                  transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
-                  transformStyle: 'preserve-3d' }}
-                onMouseEnter={e => { if (!(code.length < 6 || isLoading)) { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; e.currentTarget.style.boxShadow = '0 12px 30px rgba(37,99,235,0.4), 0 4px 10px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.25)'; } }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0) rotateX(0deg) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(37,99,235,0.35), 0 1px 3px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.2)'; }}
-                onMouseDown={e => { e.currentTarget.style.transform = 'translateY(-1px) rotateX(2deg) scale(0.98)'; }}
-                onMouseUp={e => { e.currentTarget.style.transform = 'translateY(-4px) rotateX(6deg) scale(1.02)'; }}
+                className="w-full tactile-blue-pill font-bold uppercase tracking-wide text-xs lg:text-sm py-3 lg:py-3.5 rounded-full flex items-center justify-center disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
               >
                 {isLoading ? "Verifying..." : (
                   <>

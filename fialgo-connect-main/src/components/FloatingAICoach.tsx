@@ -663,7 +663,7 @@ ${JSON.stringify(contextData)}`;
                             <button
                               type="button"
                               onClick={() => navigate("/settings?tab=ai")}
-                              className="mt-0.5 flex items-center justify-center gap-1.5 w-full px-3.5 py-2 bg-[#2563EB] hover:bg-blue-700 text-white rounded-[12px] font-semibold text-[12px] transition-colors cursor-pointer"
+                              className="mt-0.5 tactile-blue-pill h-8 px-4 rounded-full font-bold text-[12px] inline-flex items-center justify-center gap-1.5 w-full cursor-pointer"
                             >
                               <Crown className="w-3.5 h-3.5" />
                               <span>Upgrade Plan</span>

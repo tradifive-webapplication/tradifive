@@ -1217,7 +1217,7 @@ ${JSON.stringify(contextData)}`;
             <>
               <div className="flex items-center justify-between gap-3 px-0.5">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
                     <Lock size={14} strokeWidth={2.4} />
                   </div>
                   <div className="min-w-0">
@@ -1232,7 +1232,7 @@ ${JSON.stringify(contextData)}`;
                 <button
                   type="button"
                   onClick={() => navigate('/upgrade')}
-                  className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11.5px] font-bold transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                  className="tactile-blue-pill h-8 px-4 rounded-full text-[11.5px] font-bold inline-flex items-center justify-center shrink-0 cursor-pointer"
                 >
                   Upgrade
                 </button>
@@ -1270,7 +1270,7 @@ ${JSON.stringify(contextData)}`;
                   <button
                     type="button"
                     onClick={() => navigate('/upgrade')}
-                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[11.5px] font-bold transition-all shadow-sm active:scale-95 shrink-0 cursor-pointer"
+                    className="tactile-blue-pill h-7 px-3.5 rounded-full text-[11.5px] font-bold inline-flex items-center justify-center shrink-0 cursor-pointer"
                   >
                     Upgrade
                   </button>
@@ -1806,7 +1806,7 @@ ${JSON.stringify(contextData)}`;
                                 <button
                                   type="button"
                                   onClick={() => navigate("/upgrade")}
-                                  className="mt-1 flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-[13px] shadow-sm transition-all active:scale-[0.98] cursor-pointer"
+                                  className="mt-1 tactile-blue-pill h-9 px-5 rounded-full font-bold text-[12.5px] inline-flex items-center justify-center gap-2 w-full sm:w-auto cursor-pointer"
                                 >
                                   <Crown className="w-4 h-4" />
                                   <span>Upgrade Plan</span>

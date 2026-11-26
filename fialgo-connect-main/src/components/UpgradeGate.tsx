@@ -1,5 +1,5 @@
 import React from 'react';
-import { Lock, Sparkles } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { usePlan, PlanTier } from '@/hooks/usePlan';
 
@@ -18,11 +18,6 @@ const PLAN_LABEL: Record<PlanTier, string> = {
   starter: 'Starter',
   pro: 'Pro',
   elite: 'Elite',
-};
-
-const PLAN_GRADIENT: Record<'pro' | 'elite', string> = {
-  pro: 'from-amber-500 to-orange-500',
-  elite: 'from-purple-600 to-indigo-600',
 };
 
 const PLAN_TEXT: Record<'pro' | 'elite', string> = {
@@ -78,8 +73,8 @@ export function UpgradeGate({
 
       {/* Overlay */}
       <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-4 bg-white/60 dark:bg-[#111]/60 backdrop-blur-[2px] rounded-xl">
-        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${PLAN_GRADIENT[requiredPlan]} flex items-center justify-center mb-3 shadow-lg`}>
-          <Lock size={18} className="text-white" />
+        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center mb-3">
+          <Lock size={17} strokeWidth={2.2} />
         </div>
         {feature && (
           <p className="text-[13px] font-bold text-slate-800 dark:text-white text-center mb-1">
@@ -90,10 +85,10 @@ export function UpgradeGate({
           {PLAN_LABEL[requiredPlan]} plan required
         </p>
         <button
+          type="button"
           onClick={() => navigate(`/upgrade?plan=${requiredPlan}`)}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[11px] font-black uppercase tracking-wide text-white shadow-md transition-all hover:brightness-110 active:scale-95 bg-gradient-to-r ${PLAN_GRADIENT[requiredPlan]}`}
+          className="tactile-blue-pill h-9 px-5 rounded-full text-[12px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          <Sparkles size={12} />
           Upgrade to {PLAN_LABEL[requiredPlan]}
         </button>
       </div>

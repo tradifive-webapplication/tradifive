@@ -3522,7 +3522,7 @@ export default function Settings() {
                                  <button
                                     type="button"
                                     onClick={() => setActiveTab('subscription')}
-                                    className="tactile-black-pill h-9 px-4 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer"
+                                    className={`${isStarter ? 'tactile-blue-pill' : 'tactile-black-pill'} h-9 px-4 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer`}
                                  >
                                     <span>{isStarter ? 'Upgrade' : 'View Plans'}</span>
                                     <ArrowRight size={13} />
@@ -3574,7 +3574,7 @@ export default function Settings() {
                                     <button
                                        type="button"
                                        onClick={() => setActiveTab('subscription')}
-                                       className="tactile-black-pill inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-bold cursor-pointer shrink-0 self-start sm:self-center"
+                                       className="tactile-blue-pill inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-bold cursor-pointer shrink-0 self-start sm:self-center"
                                     >
                                        <Lock size={12} strokeWidth={2.3} />
                                        <span>Upgrade</span>
@@ -3656,12 +3656,13 @@ export default function Settings() {
                                                 </p>
                                              </div>
                                           </div>
-                                          <TactileBoxButton
+                                          <button
+                                             type="button"
                                              onClick={() => setActiveTab('subscription')}
-                                             className="h-8 px-3.5 rounded-full text-[11.5px] font-semibold shrink-0"
+                                             className="tactile-blue-pill h-8 px-4 rounded-full text-[11.5px] font-bold inline-flex items-center justify-center shrink-0 cursor-pointer"
                                           >
                                              Upgrade
-                                          </TactileBoxButton>
+                                          </button>
                                        </div>
                                     )}
 

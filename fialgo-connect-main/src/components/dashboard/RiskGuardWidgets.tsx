@@ -298,8 +298,8 @@ export const DashboardWidgetsPicker: React.FC<DashboardWidgetsPickerProps> = ({
             {/* Unified Pro & Elite Lock Banner (matches TradiFive Score / Economic Calendar) */}
             <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-3 py-2.5 rounded-2xl shadow-sm flex items-center justify-between gap-2.5">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                  <Lock size={14} strokeWidth={2.4} />
+                <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.08] border border-slate-200/70 dark:border-white/10 text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
+                  <Lock size={14} strokeWidth={2.3} />
                 </div>
                 <div className="min-w-0 flex flex-col justify-center">
                   <span className="btn-shine text-[13px] font-bold leading-tight">
@@ -313,7 +313,7 @@ export const DashboardWidgetsPicker: React.FC<DashboardWidgetsPickerProps> = ({
               <Link
                 to="/upgrade"
                 onClick={() => setOpen(false)}
-                className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm transition-colors"
+                className="tactile-blue-pill h-8 px-4 rounded-full text-[11.5px] font-bold shrink-0 inline-flex items-center justify-center cursor-pointer"
               >
                 Upgrade
               </Link>

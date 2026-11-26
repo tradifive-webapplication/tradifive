@@ -886,12 +886,13 @@ export default function ProfileTab({
                         <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 leading-tight">
                            Showcase a custom link directly on your public profile card with Pro or Elite.
                         </p>
-                        <TactileBoxButton
+                        <button
+                           type="button"
                            onClick={() => setActiveTab && setActiveTab('subscription')}
-                           className="h-8 px-4 shrink-0 text-[12px] font-semibold"
+                           className="tactile-blue-pill h-8 px-4 shrink-0 rounded-full text-[11.5px] font-bold inline-flex items-center justify-center cursor-pointer"
                         >
                            Upgrade
-                        </TactileBoxButton>
+                        </button>
                      </div>
                   )}
                </div>

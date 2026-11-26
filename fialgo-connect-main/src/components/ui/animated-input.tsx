@@ -242,7 +242,8 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
           onScroll={handleInputScroll}
           onClick={updateCursorPosition}
           onKeyUp={updateCursorPosition}
-          placeholder={placeholder}
+          placeholder=""
+          aria-placeholder={placeholder}
           disabled={disabled}
           autoFocus={autoFocus}
           style={{
@@ -300,7 +301,14 @@ export const AnimatedInput = forwardRef<HTMLInputElement, AnimatedInputProps>(
               {safeCursorIndex >= chars.length && isFocused && renderCaret()}
             </div>
           ) : (
-            isFocused && renderCaret()
+            <div className="inline-flex items-center whitespace-pre leading-normal min-w-0 overflow-hidden">
+              {isFocused && renderCaret()}
+              {placeholder && (
+                <span className="text-slate-400 dark:text-neutral-500 font-normal select-none truncate">
+                  {placeholder}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>
