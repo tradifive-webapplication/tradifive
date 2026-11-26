@@ -5,6 +5,7 @@ import {
   Crosshair,
   Layers,
   LayoutGrid,
+  ShieldAlert,
   TrendingDown,
   X,
 } from "lucide-react";
@@ -16,13 +17,15 @@ export type RiskWidgetId =
   | "max_lot"
   | "no_avg"
   | "martingale"
-  | "one_instrument";
+  | "one_instrument"
+  | "drawdown";
 
 const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
   "max_lot",
   "no_avg",
   "martingale",
   "one_instrument",
+  "drawdown",
 ]);
 
 export const RISK_WIDGET_CATALOG: {
@@ -48,7 +51,12 @@ export const RISK_WIDGET_CATALOG: {
   {
     id: "one_instrument",
     title: "One Instrument Focus",
-    subtitle: "Pair split bar: locked vs off-pair trades",
+    subtitle: "Pair split bar: active vs other pairs",
+  },
+  {
+    id: "drawdown",
+    title: "Drawdown Guard",
+    subtitle: "72-notch dial: worst daily drawdown vs cap",
   },
 ];
 
@@ -332,6 +340,74 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
       .sort((a, b) => Number(b.isAllowed) - Number(a.isAllowed))
       .slice(0, 3);
 
+    // 5. Drawdown Guard (Daily / Weekly / Monthly)
+    const drawdownActive = Boolean(savedCfg?.drawdownGuardActive);
+    const activePeriod: "daily" | "weekly" | "monthly" =
+      savedCfg?.ddPeriod === "weekly" || savedCfg?.ddPeriod === "monthly"
+        ? savedCfg.ddPeriod
+        : "daily";
+    const ddCapPct =
+      activePeriod === "weekly"
+        ? Math.max(0.5, Number(savedCfg?.weeklyDrawdown ?? 10))
+        : activePeriod === "monthly"
+        ? Math.max(0.5, Number(savedCfg?.monthlyDrawdown ?? 20))
+        : Math.max(0.5, Number(riskConfig?.max_daily_loss_percent || savedCfg?.maxDrawdown || 5));
+
+    let demoDd = activePeriod === "weekly" ? 6.2 : activePeriod === "monthly" ? 11.4 : 2.8;
+    try {
+      const savedPeriods = JSON.parse(localStorage.getItem("fialgo_demo_dd_periods") || "null");
+      if (savedPeriods && Number.isFinite(Number(savedPeriods[activePeriod]))) {
+        demoDd = Number(savedPeriods[activePeriod]);
+      } else {
+        const savedDd = Number(localStorage.getItem("fialgo_demo_drawdown_pct"));
+        if (activePeriod === "daily" && Number.isFinite(savedDd) && savedDd >= 0) demoDd = savedDd;
+      }
+    } catch {
+      /* ignore */
+    }
+    const nowDt = new Date();
+    const startToday = new Date(nowDt.getFullYear(), nowDt.getMonth(), nowDt.getDate());
+    const dow = (nowDt.getDay() + 6) % 7;
+    const startWeek = new Date(nowDt.getFullYear(), nowDt.getMonth(), nowDt.getDate() - dow);
+    const startMonth = new Date(nowDt.getFullYear(), nowDt.getMonth(), 1);
+    const periodStart =
+      activePeriod === "weekly" ? startWeek : activePeriod === "monthly" ? startMonth : startToday;
+
+    const periodClosed = allTrades
+      .filter((t) => t.closed_at && new Date(t.closed_at) >= periodStart)
+      .sort(
+        (a, b) =>
+          new Date(a.closed_at || a.created_at).getTime() -
+          new Date(b.closed_at || b.created_at).getTime()
+      );
+    const periodRealized = periodClosed.reduce((s, t) => s + Number(t.profit ?? 0), 0);
+    const floatPnl =
+      Number(accountMetrics?.equity || 0) > 0 && Number(accountMetrics?.balance || 0) > 0
+        ? Number(accountMetrics.equity) - Number(accountMetrics.balance)
+        : liveOpen.reduce((s: number, p: any) => s + Number(p.profit ?? 0), 0);
+    let runPnl = 0;
+    let worstPnl = Math.min(0, periodRealized + floatPnl, floatPnl);
+    periodClosed.forEach((t) => {
+      runPnl += Number(t.profit ?? 0);
+      if (runPnl < worstPnl) worstPnl = runPnl;
+    });
+    const baseCap = useDemo
+      ? isIndian
+        ? 100000
+        : 10000
+      : Math.max(100, Number(accountMetrics?.balance || 10000) - periodRealized);
+    const ddPeakPct = useDemo
+      ? Number(demoDd.toFixed(1))
+      : Number(((Math.max(0, -worstPnl) / baseCap) * 100).toFixed(2));
+    const ddGaugePct = Math.min(100, Math.round((ddPeakPct / ddCapPct) * 100));
+    const ddBreached = ddPeakPct >= ddCapPct;
+    const ddGrad =
+      ddBreached || ddGaugePct >= 95
+        ? ["#FB7185", "#E11D48", "#BE123C"]
+        : ddGaugePct >= 70
+        ? ["#FBBF24", "#F59E0B", "#D97706"]
+        : ["#60A5FA", "#2563EB", "#0031F2"];
+
     return {
       isIndian,
       unit,
@@ -369,6 +445,16 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
         offTickerCount,
         pct: instrPct,
         pairSegments,
+      },
+      drawdown: {
+        active: drawdownActive,
+        periodLabel: activePeriod === "weekly" ? "Weekly" : activePeriod === "monthly" ? "Monthly" : "Daily",
+        capPct: ddCapPct,
+        peakPct: ddPeakPct,
+        leftPct: Math.max(0, Number((ddCapPct - ddPeakPct).toFixed(1))),
+        pct: ddGaugePct,
+        breached: ddBreached,
+        grad: ddGrad,
       },
     };
   }, [activeMarket, isConnected, demoMode, riskConfig, recentTrades, accountMetrics]);
@@ -661,6 +747,83 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
                   {seg.symbol} {seg.pct}%
                 </span>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {pinned.includes("drawdown") && (
+        <div className={`${cardClass} p-3.5`}>
+          <WidgetHeader
+            id="drawdown"
+            icon={ShieldAlert}
+            title={widgetData.isIndian ? `Loss (${widgetData.drawdown.periodLabel})` : `${widgetData.drawdown.periodLabel} Drawdown`}
+            badge={
+              widgetData.drawdown.breached
+                ? "Breached"
+                : widgetData.drawdown.active
+                ? "Locked"
+                : "Off"
+            }
+            badgeTone={
+              widgetData.drawdown.breached
+                ? "rose"
+                : widgetData.drawdown.active
+                ? "emerald"
+                : "neutral"
+            }
+          />
+          <div className="flex items-center gap-2.5">
+            <div className="w-[126px] shrink-0 flex justify-center">
+              <Gauge
+                compact
+                ariaLabel="Dashboard Drawdown Depth Gauge"
+                value={widgetData.drawdown.pct}
+                centerValue={widgetData.drawdown.pct}
+                defaultLabel={`${widgetData.drawdown.peakPct}% / ${widgetData.drawdown.capPct.toFixed(1)}%`}
+                suffix="%"
+                needle="line"
+                ruler
+                totalNotches={72}
+                spacing={40}
+                notchLengthPercent={34}
+                notchCornerRadius={2}
+                startAngle={148}
+                endAngle={392}
+                enterTransition={{ type: "spring", visualDuration: 1.4, bounce: 0 }}
+                enterStaggerScale={2}
+                inactiveFillOpacity={0.4}
+                useGradient
+                gradientColors={widgetData.drawdown.grad}
+              />
+            </div>
+            <div className="flex-1 min-w-0 space-y-1.5">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Limit</span>
+                <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                  {widgetData.drawdown.capPct.toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Worst</span>
+                <span className="font-bold text-slate-900 dark:text-white tabular-nums">
+                  -{widgetData.drawdown.peakPct}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-slate-400">Buffer</span>
+                <span
+                  className={`font-bold tabular-nums ${
+                    widgetData.drawdown.breached
+                      ? "text-rose-600"
+                      : "text-emerald-600 dark:text-emerald-400"
+                  }`}
+                >
+                  {widgetData.drawdown.breached
+                    ? "Exceeded"
+                    : `${widgetData.drawdown.leftPct}% left`}
+                </span>
+              </div>
             </div>
           </div>
         </div>

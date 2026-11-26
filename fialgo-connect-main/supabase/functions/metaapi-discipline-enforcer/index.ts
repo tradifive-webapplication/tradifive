@@ -90,6 +90,16 @@ serve(async (req) => {
       riskCfg && riskCfg.max_open_trades !== null && riskCfg.max_open_trades !== undefined && Number(riskCfg.max_open_trades) > 0
         ? Number(riskCfg.max_open_trades)
         : Number(profile.max_daily_trades || 0);
+    const activeMaxDailyLossPct =
+      riskCfg && riskCfg.max_daily_loss_percent !== null && riskCfg.max_daily_loss_percent !== undefined
+        ? Number(riskCfg.max_daily_loss_percent)
+        : 0;
+    const ddGuardOn = rules.drawdown_guard_active !== false;
+    const dailyDdPctLimit = ddGuardOn ? Math.max(activeMaxDailyLossPct, Number(rules.daily_dd_pct || 0)) : 0;
+    const weeklyDdPctLimit = ddGuardOn ? Number(rules.weekly_dd_pct || 0) : 0;
+    const monthlyDdPctLimit = ddGuardOn ? Number(rules.monthly_dd_pct || 0) : 0;
+    const hasAnyDdLimit = dailyDdPctLimit > 0 || weeklyDdPctLimit > 0 || monthlyDdPctLimit > 0;
+    const drawdownBasis = rules.drawdown_basis === 'equity' ? 'equity' : 'balance';
 
     // Extract trade volume & symbol from MetaApi/Custom webhook payload
     let tradeVolume = payload.volume || payload.lot_size || payload.position?.volume || null;
@@ -118,10 +128,11 @@ serve(async (req) => {
       violationReason = 'OFF_INSTRUMENT_BLOCKED';
     }
 
-    // Need RPC inspection if volume is missing or if we need open positions / last closed trade for No Avg Down / Martingale / One Instrument
+    // Need RPC inspection if volume is missing or if we need open positions / last closed trade / drawdown check
     const needsRpcCheck =
       !violationReason &&
       ((activeMaxLot > 0 && tradeVolume === null) ||
+        hasAnyDdLimit ||
         noAvgEnabled ||
         martingaleEnabled ||
         (oneInstrumentEnabled && Boolean(allowedTicker) && !tradeSymbol));
@@ -190,6 +201,53 @@ serve(async (req) => {
                 }
               }
             }
+
+            // Check Daily / Weekly / Monthly Drawdown Guard
+            if (!violationReason && hasAnyDdLimit) {
+              const acctInfo = await connection.getAccountInformation().catch(() => null);
+              if (acctInfo && Number(acctInfo.balance || 0) > 0) {
+                const nowDt = new Date();
+                const startMonth = new Date(Date.UTC(nowDt.getUTCFullYear(), nowDt.getUTCMonth(), 1));
+                const dow = (nowDt.getUTCDay() + 6) % 7;
+                const startWeek = new Date(Date.UTC(nowDt.getUTCFullYear(), nowDt.getUTCMonth(), nowDt.getUTCDate() - dow));
+                const startToday = new Date(Date.UTC(nowDt.getUTCFullYear(), nowDt.getUTCMonth(), nowDt.getUTCDate()));
+
+                const { data: monthTrades } = await supabaseAdmin
+                  .from('trades')
+                  .select('profit, closed_at')
+                  .eq('user_id', userId)
+                  .gte('closed_at', startMonth.toISOString());
+
+                const floatPnl = Number(acctInfo.equity || 0) - Number(acctInfo.balance || 0);
+                const checkWindow = (startDt: Date, limitPct: number) => {
+                  if (limitPct <= 0) return false;
+                  const realized = (monthTrades || [])
+                    .filter((t: any) => t.closed_at && new Date(t.closed_at) >= startDt)
+                    .reduce((sum: number, t: any) => sum + Number(t.profit || 0), 0);
+                  const refCap = drawdownBasis === 'equity'
+                    ? Number(acctInfo.equity || acctInfo.balance) - realized
+                    : Number(acctInfo.balance) - realized;
+                  const netPnl = realized + floatPnl;
+                  const lossPct = refCap > 0 && netPnl < 0 ? (Math.abs(netPnl) / refCap) * 100 : 0;
+                  return lossPct >= limitPct;
+                };
+
+                if (checkWindow(startToday, dailyDdPctLimit)) {
+                  violationReason = 'DAILY_DRAWDOWN_EXCEEDED';
+                } else if (checkWindow(startWeek, weeklyDdPctLimit)) {
+                  violationReason = 'WEEKLY_DRAWDOWN_EXCEEDED';
+                } else if (checkWindow(startMonth, monthlyDdPctLimit)) {
+                  violationReason = 'MONTHLY_DRAWDOWN_EXCEEDED';
+                }
+
+                if (violationReason) {
+                  await supabaseAdmin
+                    .from('profiles')
+                    .update({ is_locked_for_today: true })
+                    .eq('id', userId);
+                }
+              }
+            }
           }
         }
 
@@ -228,6 +286,9 @@ serve(async (req) => {
           if (violationReason === 'OFF_INSTRUMENT_BLOCKED') friendlyReason = `Instrument ${tradeSymbol} is outside allowed ticker ${allowedTicker}`;
           if (violationReason === 'AVERAGING_DOWN_BLOCKED') friendlyReason = `Averaging down blocked on losing ${tradeSymbol} position`;
           if (violationReason === 'MARTINGALE_LOT_EXCEEDED') friendlyReason = `Post-loss lot limit (${martingaleMult}x) exceeded`;
+          if (violationReason === 'DAILY_DRAWDOWN_EXCEEDED') friendlyReason = `Daily drawdown limit (${dailyDdPctLimit}%) exceeded`;
+          if (violationReason === 'WEEKLY_DRAWDOWN_EXCEEDED') friendlyReason = `Weekly drawdown limit (${weeklyDdPctLimit}%) exceeded`;
+          if (violationReason === 'MONTHLY_DRAWDOWN_EXCEEDED') friendlyReason = `Monthly drawdown limit (${monthlyDdPctLimit}%) exceeded`;
 
           return new Response(
             JSON.stringify({ 

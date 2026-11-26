@@ -226,9 +226,11 @@ export default function RiskGuard() {
   // A. Risk Framework States
   const [maxLotActive, setMaxLotActive] = useState(false);
   const [drawdownGuardActive, setDrawdownGuardActive] = useState(false);
+  const [ddPeriod, setDdPeriod] = useState<"daily" | "weekly" | "monthly">("daily");
   const [maxDrawdown, setMaxDrawdown] = useState(5);
-  const [weeklyDrawdown, setWeeklyDrawdown] = useState(20);
-  const [monthlyDrawdown, setMonthlyDrawdown] = useState(25);
+  const [drawdownBasis, setDrawdownBasis] = useState<"balance" | "equity">("balance");
+  const [weeklyDrawdown, setWeeklyDrawdown] = useState(10);
+  const [monthlyDrawdown, setMonthlyDrawdown] = useState(20);
   const [stopAfterLoss, setStopAfterLoss] = useState(false);
   const [martingaleMultiplier, setMartingaleMultiplier] = useState(1.5);
   const [allowedTicker, setAllowedTicker] = useState("XAUUSD");
@@ -322,6 +324,30 @@ export default function RiskGuard() {
       return 0.65;
     }
   });
+  const [demoDdByPeriod, setDemoDdByPeriod] = useState<{
+    daily: number;
+    weekly: number;
+    monthly: number;
+  }>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("fialgo_demo_dd_periods") || "null");
+      if (saved && typeof saved === "object") {
+        return {
+          daily: Number.isFinite(Number(saved.daily)) ? Number(saved.daily) : 2.8,
+          weekly: Number.isFinite(Number(saved.weekly)) ? Number(saved.weekly) : 6.2,
+          monthly: Number.isFinite(Number(saved.monthly)) ? Number(saved.monthly) : 11.4,
+        };
+      }
+      const legacy = Number(localStorage.getItem("fialgo_demo_drawdown_pct"));
+      return {
+        daily: Number.isFinite(legacy) && legacy >= 0 ? legacy : 2.8,
+        weekly: 6.2,
+        monthly: 11.4,
+      };
+    } catch {
+      return { daily: 2.8, weekly: 6.2, monthly: 11.4 };
+    }
+  });
   const [pinnedWidgets, setPinnedWidgets] = useState<RiskWidgetId[]>(() =>
     getPinnedRiskWidgets()
   );
@@ -334,6 +360,16 @@ export default function RiskGuard() {
       /* ignore */
     }
   }, [demoOpenLots]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("fialgo_demo_dd_periods", JSON.stringify(demoDdByPeriod));
+      localStorage.setItem("fialgo_demo_drawdown_pct", String(demoDdByPeriod.daily));
+      window.dispatchEvent(new Event("fialgo_config_changed"));
+    } catch {
+      /* ignore */
+    }
+  }, [demoDdByPeriod]);
 
   useEffect(() => {
     const syncWidgets = () => setPinnedWidgets(getPinnedRiskWidgets());
@@ -569,7 +605,7 @@ export default function RiskGuard() {
       }
       if (dbConfig.target_capital !== null)
         setTargetCapital(dbConfig.target_capital);
-      if (dbConfig.max_daily_loss_percent !== null)
+      if (dbConfig.max_daily_loss_percent !== null && dbConfig.max_daily_loss_percent > 0)
         setMaxDrawdown(dbConfig.max_daily_loss_percent);
       if (dbConfig.max_open_trades !== null)
         setTradeLimit(dbConfig.max_open_trades);
@@ -589,7 +625,11 @@ export default function RiskGuard() {
         setDisciplineActive(config.disciplineActive);
       if (config.sessionActive !== undefined)
         setSessionActive(config.sessionActive);
-      if (config.maxDrawdown) setMaxDrawdown(config.maxDrawdown);
+      if (config.maxDrawdown !== undefined) setMaxDrawdown(config.maxDrawdown);
+      if (config.ddPeriod === "daily" || config.ddPeriod === "weekly" || config.ddPeriod === "monthly")
+        setDdPeriod(config.ddPeriod);
+      if (config.drawdownBasis === "balance" || config.drawdownBasis === "equity")
+        setDrawdownBasis(config.drawdownBasis);
       if (config.weeklyDrawdown !== undefined)
         setWeeklyDrawdown(config.weeklyDrawdown);
       if (config.monthlyDrawdown !== undefined)
@@ -672,7 +712,9 @@ export default function RiskGuard() {
     drawdownGuardActive,
     disciplineActive,
     sessionActive,
+    ddPeriod,
     maxDrawdown,
+    drawdownBasis,
     weeklyDrawdown,
     monthlyDrawdown,
     stopAfterLoss,
@@ -729,6 +771,11 @@ export default function RiskGuard() {
             martingale_multiplier: martingaleMultiplier,
             one_instrument_mode: oneInstrumentMode,
             allowed_ticker: allowedTicker,
+            drawdown_guard_active: drawdownGuardActive,
+            daily_dd_pct: maxDrawdown,
+            weekly_dd_pct: weeklyDrawdown,
+            monthly_dd_pct: monthlyDrawdown,
+            drawdown_basis: drawdownBasis,
             updated_at: new Date().toISOString(),
           },
           updated_at: new Date().toISOString(),
@@ -797,7 +844,9 @@ export default function RiskGuard() {
     drawdownGuardActive,
     disciplineActive,
     sessionActive,
+    ddPeriod,
     maxDrawdown,
+    drawdownBasis,
     weeklyDrawdown,
     monthlyDrawdown,
     stopAfterLoss,
@@ -1119,6 +1168,145 @@ export default function RiskGuard() {
     });
     const tickerOptions = Array.from(mergedMap.values());
 
+    // Tab 2 Card #1 (Drawdown Guard) — Daily / Weekly / Monthly Peak Drawdown ("till when drawdown it went")
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const liveFloatPnl =
+      equity > 0 && balance > 0
+        ? equity - balance
+        : livePositions.reduce((sum: number, p: any) => sum + Number(p.profit ?? 0), 0);
+
+    const computeDdPeriod = (
+      key: "daily" | "weekly" | "monthly",
+      label: string,
+      worstLabel: string,
+      startDate: Date,
+      configuredPct: number,
+      demoPeakPct: number
+    ) => {
+      const capPct = Math.max(0, Number(configuredPct) || 0);
+      const isOff = capPct <= 0;
+
+      const periodClosed = allTrades
+        .filter((t) => {
+          const dt = t.closed_at ? new Date(t.closed_at) : null;
+          return dt && dt >= startDate;
+        })
+        .sort(
+          (a, b) =>
+            new Date(a.closed_at || a.created_at).getTime() -
+            new Date(b.closed_at || b.created_at).getTime()
+        );
+
+      const realizedPnl = periodClosed.reduce(
+        (sum, t) => sum + Number(t.profit ?? 0),
+        0
+      );
+      const currentPnl = realizedPnl + liveFloatPnl;
+
+      let running = 0;
+      let worstRunning = Math.min(0, currentPnl, liveFloatPnl);
+      periodClosed.forEach((t) => {
+        running += Number(t.profit ?? 0);
+        if (running < worstRunning) worstRunning = running;
+      });
+
+      const baseCap = useDemoData
+        ? isIndian
+          ? 100000
+          : 10000
+        : Math.max(
+            100,
+            (drawdownBasis === "equity" ? equity || balance : balance) > 0
+              ? (drawdownBasis === "equity" ? equity || balance : balance) - realizedPnl
+              : startingCapital || 10000
+          );
+
+      const capAmt = isIndian
+        ? Math.round(capPct * 1000)
+        : Number(((baseCap * capPct) / 100).toFixed(2));
+
+      const peakPct = useDemoData
+        ? Number(Math.max(0, demoPeakPct).toFixed(1))
+        : isIndian
+        ? Math.max(0, Math.round(-worstRunning))
+        : Number(((Math.max(0, -worstRunning) / baseCap) * 100).toFixed(2));
+
+      const peakAmt = useDemoData
+        ? isIndian
+          ? Math.round(demoPeakPct * 1000)
+          : Number(((baseCap * Math.max(0, demoPeakPct)) / 100).toFixed(2))
+        : Number(Math.max(0, -worstRunning).toFixed(isIndian ? 0 : 2));
+
+      const gaugePct = isOff
+        ? 0
+        : isIndian
+        ? capAmt > 0
+          ? Math.min(100, Math.round((peakAmt / capAmt) * 100))
+          : 0
+        : Math.min(100, Math.round((peakPct / capPct) * 100));
+
+      const breached = !isOff && (isIndian ? peakAmt >= capAmt : peakPct >= capPct);
+      const warning = !isOff && !breached && gaugePct >= 70;
+      const grad =
+        breached || gaugePct >= 95
+          ? ["#FB7185", "#E11D48", "#BE123C"]
+          : warning
+          ? ["#FBBF24", "#F59E0B", "#D97706"]
+          : ["#60A5FA", "#2563EB", "#0031F2"];
+
+      return {
+        key,
+        label,
+        worstLabel,
+        isOff,
+        capPct,
+        capAmt,
+        peakPct,
+        peakAmt,
+        gaugePct,
+        breached,
+        warning,
+        grad,
+        remainingPct: Math.max(0, Number((capPct - peakPct).toFixed(1))),
+        remainingAmt: Math.max(0, Number((capAmt - peakAmt).toFixed(isIndian ? 0 : 2))),
+        exceededPct: Math.max(0, Number((peakPct - capPct).toFixed(1))),
+        exceededAmt: Math.max(0, Number((peakAmt - capAmt).toFixed(isIndian ? 0 : 2))),
+      };
+    };
+
+    const ddDaily = computeDdPeriod(
+      "daily",
+      "Daily",
+      "Worst Today",
+      startOfToday,
+      maxDrawdown,
+      demoDdByPeriod.daily
+    );
+    const ddWeekly = computeDdPeriod(
+      "weekly",
+      "Weekly",
+      "Worst Week",
+      startOfWeek,
+      weeklyDrawdown,
+      demoDdByPeriod.weekly
+    );
+    const ddMonthly = computeDdPeriod(
+      "monthly",
+      "Monthly",
+      "Worst Month",
+      startOfMonth,
+      monthlyDrawdown,
+      demoDdByPeriod.monthly
+    );
+    const ddPeriods = { daily: ddDaily, weekly: ddWeekly, monthly: ddMonthly };
+    const ddActiveView = ddPeriods[ddPeriod];
+    const activeDdCount = [ddDaily, ddWeekly, ddMonthly].filter((p) => !p.isOff).length;
+
     return {
       unit,
       safeCap,
@@ -1150,6 +1338,11 @@ export default function RiskGuard() {
         pairBreakdown,
         tickerOptions,
       },
+      drawdown: {
+        periods: ddPeriods,
+        active: ddActiveView,
+        activeCount: activeDdCount,
+      },
     };
   }, [
     activeMarket,
@@ -1158,9 +1351,18 @@ export default function RiskGuard() {
     recentTrades,
     useDemoData,
     demoOpenLots,
+    demoDdByPeriod,
     martingaleMultiplier,
     allowedTicker,
     customTickers,
+    ddPeriod,
+    maxDrawdown,
+    weeklyDrawdown,
+    monthlyDrawdown,
+    drawdownBasis,
+    balance,
+    equity,
+    startingCapital,
   ]);
 
   if (!authChecked) {
@@ -2170,27 +2372,218 @@ export default function RiskGuard() {
                         icon={ShieldAlert}
                         title={
                           activeMarket === "indian"
-                            ? "Max Daily Loss"
+                            ? "Max Loss Guard"
                             : "Drawdown Guard"
                         }
-                        description="Max daily drawdown limits"
+                        description="Set Daily, Weekly or Monthly loss caps — any hit locks trading"
                         value={
-                          activeMarket === "indian"
-                            ? `${sym}${maxDrawdown * 1000}`
-                            : `${maxDrawdown.toFixed(1)}%`
+                          lotTelemetry.drawdown.active.isOff
+                            ? `${lotTelemetry.drawdown.active.label}: Off`
+                            : activeMarket === "indian"
+                            ? `${sym}${lotTelemetry.drawdown.active.capAmt.toLocaleString()}`
+                            : `${lotTelemetry.drawdown.active.capPct.toFixed(1)}% ${lotTelemetry.drawdown.active.label}`
                         }
                         active={drawdownGuardActive}
                         onToggle={setDrawdownGuardActive}
                         intent="emergency"
+                        hasDashboardWidget={pinnedWidgets.includes("drawdown")}
                       >
                         <div className="space-y-2.5">
+                          {/* Daily / Weekly / Monthly Selector Pills */}
+                          <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100/80 dark:bg-white/[0.05]">
+                            {(["daily", "weekly", "monthly"] as const).map((pKey) => {
+                              const pData = lotTelemetry.drawdown.periods[pKey];
+                              const selected = ddPeriod === pKey;
+                              return (
+                                <button
+                                  key={pKey}
+                                  type="button"
+                                  onClick={() => setDdPeriod(pKey)}
+                                  className={`py-1 px-2 rounded-lg text-[10.5px] font-semibold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                                    selected
+                                      ? "bg-white dark:bg-[#1E1E24] text-slate-900 dark:text-white shadow-sm"
+                                      : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-neutral-200"
+                                  }`}
+                                >
+                                  <span>{pData.label}</span>
+                                  <span
+                                    className={`text-[9.5px] font-bold tabular-nums ${
+                                      pData.isOff
+                                        ? "text-slate-400"
+                                        : pData.breached
+                                        ? "text-rose-500"
+                                        : selected
+                                        ? "text-[#2563EB] dark:text-blue-400"
+                                        : "text-slate-400"
+                                    }`}
+                                  >
+                                    {pData.isOff
+                                      ? "Off"
+                                      : activeMarket === "indian"
+                                      ? `${sym}${Math.round(pData.capAmt / 1000)}k`
+                                      : `${pData.capPct}%`}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {/* 72-Notch Drawdown Depth Gauge */}
+                            <div className="w-[134px] shrink-0 flex flex-col items-center">
+                              <Gauge
+                                compact
+                                ariaLabel="Period Drawdown Depth Gauge"
+                                value={lotTelemetry.drawdown.active.gaugePct}
+                                centerValue={lotTelemetry.drawdown.active.gaugePct}
+                                defaultLabel={
+                                  lotTelemetry.drawdown.active.isOff
+                                    ? `${lotTelemetry.drawdown.active.label} Cap Off`
+                                    : activeMarket === "indian"
+                                    ? `${sym}${lotTelemetry.drawdown.active.peakAmt.toLocaleString()} / ${sym}${lotTelemetry.drawdown.active.capAmt.toLocaleString()}`
+                                    : `${lotTelemetry.drawdown.active.peakPct}% / ${lotTelemetry.drawdown.active.capPct.toFixed(1)}%`
+                                }
+                                suffix="%"
+                                needle="line"
+                                ruler
+                                totalNotches={72}
+                                spacing={40}
+                                notchLengthPercent={34}
+                                notchCornerRadius={2}
+                                startAngle={148}
+                                endAngle={392}
+                                enterTransition={{
+                                  type: "spring",
+                                  visualDuration: 1.4,
+                                  bounce: 0,
+                                }}
+                                enterStaggerScale={2}
+                                inactiveFillOpacity={0.4}
+                                useGradient
+                                gradientColors={lotTelemetry.drawdown.active.grad}
+                              />
+                            </div>
+
+                            {/* Peak Drawdown Telemetry Rows */}
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                  {lotTelemetry.drawdown.active.label} Cap
+                                </span>
+                                <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                                  {lotTelemetry.drawdown.active.isOff
+                                    ? "Off (Skipped)"
+                                    : activeMarket === "indian"
+                                    ? `${sym}${lotTelemetry.drawdown.active.capAmt.toLocaleString()}`
+                                    : `${lotTelemetry.drawdown.active.capPct.toFixed(1)}% (${sym}${Math.round(lotTelemetry.drawdown.active.capAmt).toLocaleString()})`}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium inline-flex items-center gap-1">
+                                  <span>{lotTelemetry.drawdown.active.worstLabel}</span>
+                                  <span
+                                    className={`px-1 py-[1px] rounded text-[8.5px] font-bold uppercase tracking-wide ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  {useDemoData && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDemoDdByPeriod((prev) => ({
+                                          ...prev,
+                                          [ddPeriod]: Math.max(
+                                            0,
+                                            Number((prev[ddPeriod] - 0.5).toFixed(1))
+                                          ),
+                                        }))
+                                      }
+                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Decrease demo drawdown"
+                                    >
+                                      <Minus size={9} />
+                                    </button>
+                                  )}
+                                  <span
+                                    className={`font-bold tabular-nums ${
+                                      lotTelemetry.drawdown.active.breached
+                                        ? "text-rose-600 dark:text-rose-400"
+                                        : lotTelemetry.drawdown.active.peakPct > 0
+                                        ? "text-slate-900 dark:text-white"
+                                        : "text-emerald-600 dark:text-emerald-400"
+                                    }`}
+                                  >
+                                    {activeMarket === "indian"
+                                      ? `-${sym}${lotTelemetry.drawdown.active.peakAmt.toLocaleString()}`
+                                      : `-${lotTelemetry.drawdown.active.peakPct}%`}
+                                  </span>
+                                  {useDemoData && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDemoDdByPeriod((prev) => ({
+                                          ...prev,
+                                          [ddPeriod]: Number(
+                                            (prev[ddPeriod] + 0.5).toFixed(1)
+                                          ),
+                                        }))
+                                      }
+                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Increase demo drawdown"
+                                    >
+                                      <Plus size={9} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                  {lotTelemetry.drawdown.active.isOff
+                                    ? "Enforced Caps"
+                                    : lotTelemetry.drawdown.active.breached
+                                    ? "Limit Reached"
+                                    : "Buffer Left"}
+                                </span>
+                                <span
+                                  className={`font-bold tabular-nums ${
+                                    lotTelemetry.drawdown.active.isOff
+                                      ? "text-slate-500"
+                                      : lotTelemetry.drawdown.active.breached
+                                      ? "text-rose-600 dark:text-rose-400"
+                                      : lotTelemetry.drawdown.active.warning
+                                      ? "text-amber-600 dark:text-amber-400"
+                                      : "text-emerald-600 dark:text-emerald-400"
+                                  }`}
+                                >
+                                  {lotTelemetry.drawdown.active.isOff
+                                    ? `${lotTelemetry.drawdown.activeCount} active`
+                                    : lotTelemetry.drawdown.active.breached
+                                    ? activeMarket === "indian"
+                                      ? `+${sym}${lotTelemetry.drawdown.active.exceededAmt.toLocaleString()} over`
+                                      : `+${lotTelemetry.drawdown.active.exceededPct}% over`
+                                    : activeMarket === "indian"
+                                    ? `${sym}${lotTelemetry.drawdown.active.remainingAmt.toLocaleString()} left`
+                                    : `${lotTelemetry.drawdown.active.remainingPct}% (${sym}${Math.round(lotTelemetry.drawdown.active.remainingAmt).toLocaleString()})`}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
                           <div className="grid grid-cols-[105px_1fr] gap-2.5">
                             <div>
                               <label className={FIELD_LABEL}>
-                                {activeMarket === "indian" ? "Limit (₹)" : "Limit"}
+                                {lotTelemetry.drawdown.active.label} Limit (0 = Off)
                               </label>
                               <div
-                                className={`flex items-center h-[32px] overflow-hidden ${INPUT_BASE}`}
+                                className={`flex items-center h-[30px] overflow-hidden ${INPUT_BASE}`}
                               >
                                 {activeMarket === "indian" ? (
                                   <>
@@ -2201,12 +2594,13 @@ export default function RiskGuard() {
                                       type="number"
                                       min="0"
                                       step="500"
-                                      value={maxDrawdown * 1000}
-                                      onChange={(e) =>
-                                        setMaxDrawdown(
-                                          Number(e.target.value) / 1000
-                                        )
-                                      }
+                                      value={Math.round(lotTelemetry.drawdown.active.capAmt)}
+                                      onChange={(e) => {
+                                        const val = Math.max(0, Number(e.target.value) / 1000);
+                                        if (ddPeriod === "daily") setMaxDrawdown(val);
+                                        else if (ddPeriod === "weekly") setWeeklyDrawdown(val);
+                                        else setMonthlyDrawdown(val);
+                                      }}
                                       className="w-full bg-transparent outline-none pr-2"
                                     />
                                   </>
@@ -2214,49 +2608,59 @@ export default function RiskGuard() {
                                   <>
                                     <input
                                       type="number"
-                                      min="0.5"
-                                      max="20.0"
+                                      min="0"
+                                      max={ddPeriod === "daily" ? "20.0" : ddPeriod === "weekly" ? "35.0" : "50.0"}
                                       step={0.5}
-                                      value={maxDrawdown}
-                                      onChange={(e) =>
-                                        setMaxDrawdown(Number(e.target.value))
-                                      }
+                                      value={lotTelemetry.drawdown.active.capPct}
+                                      onChange={(e) => {
+                                        const val = Math.max(0, Number(e.target.value) || 0);
+                                        if (ddPeriod === "daily") setMaxDrawdown(val);
+                                        else if (ddPeriod === "weekly") setWeeklyDrawdown(val);
+                                        else setMonthlyDrawdown(val);
+                                      }}
                                       className="w-full bg-transparent outline-none pl-2.5 text-center"
                                     />
-                                    <span className="pr-2.5 text-slate-400">
-                                      %
-                                    </span>
+                                    <span className="pr-2.5 text-slate-400">%</span>
                                   </>
                                 )}
                               </div>
                             </div>
                             <div>
-                              <label className={FIELD_LABEL}>Basis</label>
-                              <Select defaultValue="balance">
+                              <label className={FIELD_LABEL}>Calculated From</label>
+                              <Select
+                                value={drawdownBasis}
+                                onValueChange={(v) =>
+                                  setDrawdownBasis(v as "balance" | "equity")
+                                }
+                              >
                                 <SelectTrigger className={SELECT_TRIGGER}>
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="balance">
-                                    Start-of-day balance
+                                    Start-of-{ddPeriod === "daily" ? "day" : ddPeriod === "weekly" ? "week" : "month"} balance
                                   </SelectItem>
                                   <SelectItem value="equity">
-                                    Start-of-day equity
+                                    Current Equity Basis
                                   </SelectItem>
                                 </SelectContent>
                               </Select>
                             </div>
                           </div>
+
                           {activeMarket !== "indian" && (
                             <input
                               type="range"
-                              min="0.5"
-                              max="20.0"
+                              min="0"
+                              max={ddPeriod === "daily" ? "20.0" : ddPeriod === "weekly" ? "35.0" : "50.0"}
                               step="0.5"
-                              value={maxDrawdown}
-                              onChange={(e) =>
-                                setMaxDrawdown(Number(e.target.value))
-                              }
+                              value={lotTelemetry.drawdown.active.capPct}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                if (ddPeriod === "daily") setMaxDrawdown(val);
+                                else if (ddPeriod === "weekly") setWeeklyDrawdown(val);
+                                else setMonthlyDrawdown(val);
+                              }}
                               className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
                             />
                           )}
