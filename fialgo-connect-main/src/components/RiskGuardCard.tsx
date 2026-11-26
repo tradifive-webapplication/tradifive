@@ -134,9 +134,6 @@ export function RiskGuardCard({
               {valueStr}
             </span>
           )}
-          {isStarter && (
-            <Lock size={11.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
-          )}
           <Switch size="sm" checked={effectiveActive} onChange={handleGuardedToggle} />
         </div>
       </div>

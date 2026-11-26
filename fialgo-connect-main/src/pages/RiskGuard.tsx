@@ -452,12 +452,60 @@ export default function RiskGuard() {
   const maxAllowedDailyTrades = isElite ? 5 : 10;
   const promptRiskGuardUpgrade = (feature = "Risk Guard") => {
     toast.info(`Pro & Elite Feature · ${feature}`, {
-      description: "Subscribe to Pro or Elite to activate automated MT5 Risk Guard controls.",
+      description: "Your edge deserves real protection — unlock Pro or Elite before one impulsive session wipes your gains.",
       action: {
         label: "Subscribe",
         onClick: () => navigate("/upgrade"),
       },
     });
+  };
+  const riskGuardAreaRef = useRef<HTMLDivElement | null>(null);
+  const spotlightTimerRef = useRef<number | null>(null);
+  const [spotlightPos, setSpotlightPos] = useState<{ x: number; y: number } | null>(null);
+  const [spotlightActive, setSpotlightActive] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (spotlightTimerRef.current !== null) {
+        window.clearTimeout(spotlightTimerRef.current);
+      }
+    };
+  }, []);
+
+  const updateRiskSpotlight = (clientX: number, clientY: number) => {
+    const el = riskGuardAreaRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setSpotlightPos({
+      x: Math.max(0, Math.min(rect.width, clientX - rect.left)),
+      y: Math.max(0, Math.min(rect.height, clientY - rect.top)),
+    });
+    setSpotlightActive(true);
+    if (spotlightTimerRef.current !== null) {
+      window.clearTimeout(spotlightTimerRef.current);
+    }
+    spotlightTimerRef.current = window.setTimeout(() => {
+      setSpotlightActive(false);
+    }, 1400);
+  };
+
+  const handleRiskSpotlightMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    updateRiskSpotlight(e.clientX, e.clientY);
+  };
+
+  const handleRiskSpotlightTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    const touch = e.touches[0];
+    if (touch) {
+      updateRiskSpotlight(touch.clientX, touch.clientY);
+    }
+  };
+
+  const handleRiskSpotlightLeave = () => {
+    if (spotlightTimerRef.current !== null) {
+      window.clearTimeout(spotlightTimerRef.current);
+      spotlightTimerRef.current = null;
+    }
+    setSpotlightActive(false);
   };
   const [disciplineActive, setDisciplineActive] = useState(false);
   const { activeMarket } = useMarket();
@@ -2006,13 +2054,13 @@ export default function RiskGuard() {
                 className={`${SURFACE_CARD} px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5`}
               >
                 <p className="text-[12.5px] text-slate-600 dark:text-neutral-300">
-                  Want automated MetaAPI Risk Guard protection?{" "}
+                  Your profits look too good to lose to one reckless click —{" "}
                   <button
                     type="button"
                     onClick={() => navigate("/upgrade")}
                     className="font-semibold text-[#2563EB] dark:text-blue-400 hover:underline cursor-pointer"
                   >
-                    Activate PRO to unlock Risk Guard protections &amp; live kill switch →
+                    Unlock PRO Risk Guard before the market tests your self-control →
                   </button>
                 </p>
               </motion.div>
@@ -2089,11 +2137,18 @@ export default function RiskGuard() {
               </motion.div>
             )}
 
-            {/* 1. Simple Horizontal Capital Goal & XP Star Track */}
-            <motion.section
-              variants={sectionVariants}
-              className={`${SURFACE_CARD} px-4 py-3 sm:px-5 sm:py-3.5 border-blue-200/60 dark:border-blue-500/20`}
+            <div
+              ref={riskGuardAreaRef}
+              onMouseMove={isStarter ? handleRiskSpotlightMove : undefined}
+              onTouchMove={isStarter ? handleRiskSpotlightTouchMove : undefined}
+              onMouseLeave={isStarter ? handleRiskSpotlightLeave : undefined}
+              className="relative flex flex-col gap-5 rounded-[20px]"
             >
+              {/* 1. Simple Horizontal Capital Goal & XP Star Track */}
+              <motion.section
+                variants={sectionVariants}
+                className={`${SURFACE_CARD} px-4 py-3 sm:px-5 sm:py-3.5 border-blue-200/60 dark:border-blue-500/20`}
+              >
               {/* Clean Top Line: Title + Level | MT5 Balance -> Target | XP | Pencil */}
               <div className="flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2 min-w-0">
@@ -4995,6 +5050,97 @@ export default function RiskGuard() {
                   );
                 })()}
               </motion.aside>
+            </div>
+
+              {isStarter && (
+                <>
+                  {/* Edge-feathered frosted blur wrapper so corners & sides dissolve seamlessly with no hard box edge */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      WebkitMaskImage:
+                        "linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%)",
+                      maskImage:
+                        "linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%)",
+                      WebkitMaskComposite: "source-in",
+                      maskComposite: "intersect",
+                    }}
+                    className="pointer-events-none absolute -inset-3 z-[35]"
+                  >
+                    {/* Interactive cursor spotlight frost blur layer */}
+                    <div
+                      style={
+                        spotlightPos
+                          ? {
+                              WebkitMaskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, transparent 0%, transparent 46%, rgba(0,0,0,0.75) 78%, #000 100%)`,
+                              maskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, transparent 0%, transparent 46%, rgba(0,0,0,0.75) 78%, #000 100%)`,
+                            }
+                          : undefined
+                      }
+                      className="absolute inset-0 backdrop-blur-[5.5px] bg-[#F7F8FA]/20 dark:bg-[#141416]/30"
+                    />
+
+                    {/* Smooth fade-back blur inside the spotlight hole after pointer stops or leaves */}
+                    {spotlightPos && (
+                      <div
+                        style={{
+                          WebkitMaskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, #000 0%, #000 46%, rgba(0,0,0,0.25) 78%, transparent 100%)`,
+                          maskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, #000 0%, #000 46%, rgba(0,0,0,0.25) 78%, transparent 100%)`,
+                        }}
+                        className={`absolute inset-0 backdrop-blur-[5.5px] bg-[#F7F8FA]/20 dark:bg-[#141416]/30 transition-opacity duration-500 ease-out ${
+                          spotlightActive ? "opacity-0" : "opacity-100"
+                        }`}
+                      />
+                    )}
+                  </div>
+
+                  {/* Interaction blocker over the Risk Guard workspace for Starter users */}
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Upgrade to Pro or Elite to unlock Risk Guard"
+                    onClick={() => promptRiskGuardUpgrade("Risk Guard")}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        promptRiskGuardUpgrade("Risk Guard");
+                      }
+                    }}
+                    className="absolute inset-0 z-[36] cursor-pointer"
+                  />
+
+                  {/* Sticky Centered Pro & Elite Animated Upgrade Card */}
+                  <div className="pointer-events-none absolute inset-0 z-[40]">
+                    <div className="sticky top-[44%] flex justify-center px-4 py-6">
+                      <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between gap-3.5 max-w-[360px] w-full pointer-events-auto">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
+                            <Lock size={14} strokeWidth={2.4} />
+                          </div>
+                          <div className="min-w-0 flex flex-col justify-center">
+                            <span className="btn-shine text-[13px] font-bold leading-tight">
+                              Risk Guard Protection
+                            </span>
+                            <p className="text-[10.5px] font-semibold text-slate-400 dark:text-neutral-400 mt-0.5">
+                              Pro &amp; Elite
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/upgrade");
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-bold shrink-0 shadow-sm cursor-pointer active:scale-95 transition-all"
+                        >
+                          Upgrade
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </motion.div>
         </div>
