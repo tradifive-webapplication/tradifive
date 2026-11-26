@@ -474,9 +474,10 @@ export default function Settings() {
 
    // New Tab States
    const [language, setLanguage] = useState('en');
-   const [aiTone, setAiTone] = useState('strict');
+   const [aiTone, setAiTone] = useState(() => localStorage.getItem('tradifive_ai_persona') || 'Analytical Quant');
    const [aiVoice, setAiVoice] = useState('female');
-   const [aiFrequency, setAiFrequency] = useState('medium');
+   const [aiFrequency, setAiFrequency] = useState(() => localStorage.getItem('tradifive_ai_frequency') || 'Every Trade');
+   const [aiAutoReview, setAiAutoReview] = useState(() => localStorage.getItem('tradifive_ai_auto_review') !== 'false');
    const [connectedBroker, setConnectedBroker] = useState<string>('');
    const [brokerApiKey, setBrokerApiKey] = useState('');
    const [brokerClientId, setBrokerClientId] = useState('');
@@ -2330,69 +2331,64 @@ export default function Settings() {
                         </motion.div>
                      )}
 
-                     {/* TAB 4: APPEARANCE */}
+                     {/* TAB 4: PREFERENCES / THEME & DISPLAY */}
                      {activeTab === 'appearance' && (
                         <motion.div
                            key="appearance"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[820px]"
                         >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              Theme
-                           </h2>
-                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-4">
-                              Customize how the app looks and feels across all your devices. Tweak lighting, colors, and layout density to create your perfect workspace.
-                           </p>
-
-                           {/* Color Theme Box */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-slate-200/60 dark:bg-[#202022] flex items-center justify-center shrink-0 text-slate-600 dark:text-slate-300">
-                                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Global Color Theme</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Toggles the full lighting environment across the entire application interface. Changes are applied instantly.
-                                    </p>
-                                 </div>
-                              </div>
-                              <ThemeSwitch checked={theme === 'dark'} onChange={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')} />
-                           </div>
-
-                           {/* Full Screen Layout Box */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-slate-200/60 dark:bg-[#202022] flex items-center justify-center shrink-0 text-slate-600 dark:text-slate-300">
-                                    <Monitor size={18} />
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Immersive Full Screen</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Removes the rounded curves and margin padding, stretching the content to fill the entire screen for a more immersive experience.
-                                    </p>
-                                 </div>
-                              </div>
-                              <SettingsToggle checked={fullScreenLayout} onChange={handleFullScreenChange} />
-                           </div>
-                           
-                           {/* Background Fade Theme Box */}
-                           <div className={`bg-slate-50 p-5 rounded-2xl border border-slate-200 shadow-sm flex-col md:flex-row md:items-center justify-between gap-6 mt-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
-                                 <div className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-slate-200/60 flex items-center justify-center shrink-0 text-slate-600">
-                                       <Palette size={18} />
+                           {/* Card 1: Workspace Display & Appearance Controls */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 divide-y divide-slate-100 dark:divide-white/[0.06]">
+                              {/* Global Color Theme */}
+                              <div className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
                                     </div>
-                                    <div className="space-y-1">
-                                       <h3 className="text-[16px] font-bold text-slate-900 mb-1">Background Fade Style</h3>
-                                       <p className="text-[13px] text-slate-500 max-w-md">
-                                          Customize the background gradient color. Choose from various subtle fades to suit your preference in light mode.
+                                    <div className="min-w-0">
+                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Global Color Theme</h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          Switch light or dark workspace lighting across all pages.
                                        </p>
                                     </div>
                                  </div>
-                                 <div className="relative w-[140px]">
+                                 <ThemeSwitch checked={theme === 'dark'} onChange={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')} />
+                              </div>
+
+                              {/* Immersive Full Screen */}
+                              <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <Monitor size={16} />
+                                    </div>
+                                    <div className="min-w-0">
+                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Immersive Full Screen</h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          Stretch workspace views edge-to-edge without outer margins.
+                                       </p>
+                                    </div>
+                                 </div>
+                                 <SettingsToggle checked={fullScreenLayout} onChange={handleFullScreenChange} />
+                              </div>
+
+                              {/* Background Fade Style (Light Mode) */}
+                              <div className={`py-4 flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
+                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
+                                       <Palette size={16} />
+                                    </div>
+                                    <div className="min-w-0">
+                                       <h3 className="text-[13.5px] font-bold text-slate-900">Background Fade Style</h3>
+                                       <p className="text-[12px] text-slate-400 mt-0.5">
+                                          Subtle ambient tint in light mode pages.
+                                       </p>
+                                    </div>
+                                 </div>
+                                 <div className="w-[155px] shrink-0">
                                     <Select
                                        value={bgFadeStyle}
                                        onValueChange={(value) => {
@@ -2401,84 +2397,82 @@ export default function Settings() {
                                           window.dispatchEvent(new Event("fialgo_bg_style_changed"));
                                        }}
                                     >
-                                       <SelectTrigger className="w-full bg-white border border-slate-200 text-slate-700 text-[13px] font-bold rounded-xl h-10 shadow-sm focus:ring-2 focus:ring-indigo-500/50">
+                                       <SelectTrigger className="w-full bg-[#F4F5F8] border border-slate-200/80 text-slate-800 text-[12.5px] font-semibold rounded-xl h-9 focus:ring-2 focus:ring-[#2563EB]/25">
                                           <SelectValue placeholder="Select Fade" />
                                        </SelectTrigger>
                                        <SelectContent className="bg-white border-slate-200 rounded-xl shadow-lg z-[9999]">
-                                          <SelectItem value="purple" className="text-[13px] font-semibold cursor-pointer">Purple Fade</SelectItem>
-                                          <SelectItem value="gray" className="text-[13px] font-semibold cursor-pointer">Gray Fade</SelectItem>
-                                          <SelectItem value="black" className="text-[13px] font-semibold cursor-pointer">Black Fade</SelectItem>
-                                          <SelectItem value="blue" className="text-[13px] font-semibold cursor-pointer">Blue Fade</SelectItem>
-                                          <SelectItem value="rose" className="text-[13px] font-semibold cursor-pointer">Rose Fade</SelectItem>
+                                          <SelectItem value="purple" className="text-[12.5px] font-semibold cursor-pointer">Purple Fade</SelectItem>
+                                          <SelectItem value="gray" className="text-[12.5px] font-semibold cursor-pointer">Gray Fade</SelectItem>
+                                          <SelectItem value="black" className="text-[12.5px] font-semibold cursor-pointer">Black Fade</SelectItem>
+                                          <SelectItem value="blue" className="text-[12.5px] font-semibold cursor-pointer">Blue Fade</SelectItem>
+                                          <SelectItem value="rose" className="text-[12.5px] font-semibold cursor-pointer">Rose Fade</SelectItem>
                                        </SelectContent>
                                     </Select>
                                  </div>
-                           </div>
-
-                        
-                           {/* Accent Color Palette */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6 mt-4">
-                              <div className="flex gap-4">
-                                 <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 text-blue-500">
-                                    <Sparkles size={18} />
-                                 </div>
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Interface Accent Tint</h3>
-                                    <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-md">
-                                       Customize primary button glows, active tabs, and highlights across TradiFive.
-                                    </p>
-                                 </div>
                               </div>
-                              <div className="flex items-center gap-2.5">
-                                 {[
-                                    { id: 'blue', color: 'bg-blue-500', name: 'Electric Blue' },
-                                    { id: 'emerald', color: 'bg-emerald-500', name: 'Emerald' },
-                                    { id: 'purple', color: 'bg-purple-500', name: 'Royal Violet' },
-                                    { id: 'amber', color: 'bg-amber-500', name: 'Cyber Amber' },
-                                    { id: 'rose', color: 'bg-rose-500', name: 'Rose Red' },
-                                 ].map((tint) => (
-                                    <button
-                                       key={tint.id}
-                                       type="button"
-                                       title={tint.name}
-                                       onClick={() => {
-                                          setAccentColor(tint.id);
-                                          localStorage.setItem('tradifive_accent_color', tint.id);
-                                          toast.success(tint.name + ' accent selected');
-                                       }}
-                                       className={'w-7 h-7 rounded-full ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : 'opacity-70 hover:opacity-100')}
-                                    >
-                                       {accentColor === tint.id && <Check size={14} className="text-white" strokeWidth={3} />}
-                                    </button>
-                                 ))}
-                              </div>
-                           </div>
 
-                           {/* Trading & P&L Colors Palette */}
-                           <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                 <div className="flex gap-4">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 flex items-center justify-center shrink-0 text-emerald-600 dark:text-emerald-400">
-                                       <TrendingUp size={18} />
+                              {/* Interface Accent Tint */}
+                              <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <Sparkles size={16} />
                                     </div>
-                                    <div className="space-y-1">
-                                       <div className="flex items-center gap-2">
-                                          <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
-                                             Trading &amp; P&amp;L Colors
-                                          </h3>
-                                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                             Dashboard &amp; Journal
-                                          </span>
-                                       </div>
-                                       <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
-                                          Choose how profit, loss, equity curves, win rate rings, and trade logs are colored. Classic Green &amp; Red is the primary recommended preset.
+                                    <div className="min-w-0">
+                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Interface Accent Tint</h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          Choose your highlight color across active tabs and controls.
                                        </p>
                                     </div>
+                                 </div>
+                                 <div className="flex items-center gap-2 shrink-0">
+                                    {[
+                                       { id: 'blue', color: 'bg-[#2563EB]', name: 'TradiFive Blue' },
+                                       { id: 'emerald', color: 'bg-emerald-500', name: 'Emerald' },
+                                       { id: 'purple', color: 'bg-purple-500', name: 'Royal Violet' },
+                                       { id: 'amber', color: 'bg-amber-500', name: 'Amber' },
+                                       { id: 'rose', color: 'bg-rose-500', name: 'Rose' },
+                                    ].map((tint) => (
+                                       <button
+                                          key={tint.id}
+                                          type="button"
+                                          title={tint.name}
+                                          onClick={() => {
+                                             setAccentColor(tint.id);
+                                             localStorage.setItem('tradifive_accent_color', tint.id);
+                                             toast.success(tint.name + ' accent selected');
+                                          }}
+                                          className={'w-7 h-7 rounded-full cursor-pointer ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-[#2563EB] dark:ring-offset-[#1B1B20] scale-105' : 'opacity-75 hover:opacity-100')}
+                                       >
+                                          {accentColor === tint.id && <Check size={13} className="text-white" strokeWidth={3} />}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                           </div>
+
+                           {/* Card 2: Trading & P&L Colors Palette */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
+                              <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <TrendingUp size={16} />
+                                 </div>
+                                 <div className="min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                       <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          Trading &amp; P&amp;L Colors
+                                       </h3>
+                                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400">
+                                          Dashboard &amp; Journal
+                                       </span>
+                                    </div>
+                                    <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                       Choose how profit, loss, equity curves, and trade logs are colored.
+                                    </p>
                                  </div>
                               </div>
 
                               {/* 3 Selectable Theme Cards */}
-                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                  {(Object.keys(PNL_THEMES) as TradingThemeId[]).map((id) => {
                                     const t = PNL_THEMES[id];
                                     const isSelected = pnlTheme === id;
@@ -2491,10 +2485,10 @@ export default function Settings() {
                                              localStorage.setItem('tradifive_chart_theme', id === 'monochrome' ? 'classic' : id);
                                              toast.success(`Applied ${t.label} palette across Dashboard & Journal`);
                                           }}
-                                          className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                          className={`text-left p-4 rounded-2xl border transition-all relative flex flex-col justify-between cursor-pointer ${
                                              isSelected
-                                                ? "border-emerald-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(16,185,129,0.12)] ring-2 ring-emerald-500/25"
-                                                : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
+                                                ? "border-[#2563EB] bg-blue-50/35 dark:bg-blue-500/10 ring-1 ring-[#2563EB]/30"
+                                                : "border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20"
                                           }`}
                                        >
                                           <div>
@@ -2502,13 +2496,13 @@ export default function Settings() {
                                                 <span className="text-[13px] font-bold text-slate-900 dark:text-white">
                                                    {t.label}
                                                 </span>
-                                                {t.badge ? (
-                                                   <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                                                      {t.badge}
-                                                   </span>
-                                                ) : isSelected ? (
-                                                   <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0">
+                                                {isSelected ? (
+                                                   <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0">
                                                       <Check size={10} strokeWidth={3} />
+                                                   </span>
+                                                ) : t.badge ? (
+                                                   <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/70 dark:bg-white/10 text-slate-600 dark:text-neutral-300">
+                                                      {t.badge}
                                                    </span>
                                                 ) : null}
                                              </div>
@@ -2532,108 +2526,98 @@ export default function Settings() {
                               </div>
                            </div>
 
-                        
-                            {/* Mouse Pointer & Cursor Selection */}
-                            <div className="bg-slate-50 dark:bg-[#151515] p-5 rounded-2xl border border-slate-200 dark:border-[#2a2a2a] shadow-sm mt-4">
-                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                  <div className="flex gap-4">
-                                     <div className="w-10 h-10 rounded-full bg-blue-500/10 dark:bg-blue-500/15 flex items-center justify-center shrink-0 text-blue-600 dark:text-blue-400">
-                                        <MousePointer size={18} />
-                                     </div>
-                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-2">
-                                           <h3 className="text-[16px] font-bold text-slate-900 dark:text-white">
-                                              Mouse Pointer &amp; Cursor
-                                           </h3>
-                                           <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                                              Tactile Feedback
-                                           </span>
-                                        </div>
-                                        <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] max-w-xl">
-                                           Choose your desktop mouse pointer style. Includes tactile spring physics and luxury expanding click circles.
-                                        </p>
-                                     </div>
-                                  </div>
-                               </div>
+                           {/* Card 3: Mouse Pointer & Cursor Selection */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
+                              <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                    <MousePointer size={16} />
+                                 </div>
+                                 <div className="min-w-0">
+                                    <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                       Mouse Pointer &amp; Cursor
+                                    </h3>
+                                    <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                       Choose your desktop mouse pointer style and click feedback.
+                                    </p>
+                                 </div>
+                              </div>
 
-                               {/* 3 Selectable Cursor Cards */}
-                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                                  {[
-                                     {
-                                        id: '3d' as const,
-                                        title: '3D Glossy Arrow',
-                                        badge: 'Recommended',
-                                        desc: 'Sleek beveled black arrow with specular reflection, softer shadow & click circles.',
-                                        preview: (
-                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
-                                              <div className="absolute w-8 h-8 rounded-full border border-slate-900/30 dark:border-white/50 bg-slate-900/[0.04] dark:bg-white/[0.08] animate-ping" />
-                                              <img src="/custom-cursor.png" alt="3D Arrow" className="w-6 h-6 object-contain drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.20)] relative z-10" />
-                                           </div>
-                                        ),
-                                     },
-                                     {
-                                        id: 'dot' as const,
-                                        title: 'Precision Dot',
-                                        badge: 'Modern',
-                                        desc: 'Minimalist circle dot with active dynamic hover expansion and click ripple.',
-                                        preview: (
-                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
-                                              <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-blue-500/20" />
-                                           </div>
-                                        ),
-                                     },
-                                     {
-                                        id: 'system' as const,
-                                        title: 'System Default',
-                                        badge: 'Classic',
-                                        desc: 'Standard native operating system cursor with normal OS mouse behavior.',
-                                        preview: (
-                                           <div className="w-full h-14 rounded-lg bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
-                                              <MousePointer size={20} className="text-slate-700 dark:text-neutral-300" />
-                                           </div>
-                                        ),
-                                     },
-                                  ].map((opt) => {
-                                     const isSelected = cursorStyle === opt.id;
-                                     return (
-                                        <button
-                                           key={opt.id}
-                                           type="button"
-                                           onClick={() => handleCursorStyleChange(opt.id)}
-                                           className={`text-left p-4 rounded-xl border transition-all relative flex flex-col justify-between cursor-pointer ${
-                                              isSelected
-                                                 ? "border-blue-500/80 bg-white dark:bg-[#1E1E22] shadow-[0_4px_16px_rgba(59,130,246,0.12)] ring-2 ring-blue-500/25"
-                                                 : "border-slate-200 dark:border-[#262626] bg-white/70 dark:bg-[#18181A] hover:border-slate-300 dark:hover:border-neutral-700 hover:bg-white dark:hover:bg-[#1E1E22]"
-                                           }`}
-                                        >
-                                           <div>
-                                              <div className="flex items-center justify-between gap-1 mb-1.5">
-                                                 <span className="text-[13px] font-bold text-slate-900 dark:text-white">
-                                                    {opt.title}
-                                                 </span>
-                                                 {isSelected ? (
-                                                    <span className="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0">
-                                                       <Check size={10} strokeWidth={3} />
-                                                    </span>
-                                                 ) : (
-                                                    <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-neutral-400">
-                                                       {opt.badge}
-                                                    </span>
-                                                 )}
-                                              </div>
-                                              <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed mb-3">
-                                                 {opt.desc}
-                                              </p>
-                                           </div>
+                              {/* 3 Selectable Cursor Cards */}
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                 {[
+                                    {
+                                       id: '3d' as const,
+                                       title: '3D Glossy Arrow',
+                                       badge: 'Recommended',
+                                       desc: 'Sleek beveled arrow with crisp contrast & click feedback.',
+                                       preview: (
+                                          <div className="w-full h-12 rounded-xl bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                             <img src="/custom-cursor.png" alt="3D Arrow" className="w-5 h-5 object-contain drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.20)]" />
+                                          </div>
+                                       ),
+                                    },
+                                    {
+                                       id: 'dot' as const,
+                                       title: 'Precision Dot',
+                                       badge: 'Modern',
+                                       desc: 'Minimalist dot cursor with subtle dynamic hover ring.',
+                                       preview: (
+                                          <div className="w-full h-12 rounded-xl bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                             <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-[#2563EB]/20" />
+                                          </div>
+                                       ),
+                                    },
+                                    {
+                                       id: 'system' as const,
+                                       title: 'System Default',
+                                       badge: 'Classic',
+                                       desc: 'Standard native OS pointer across all panels.',
+                                       preview: (
+                                          <div className="w-full h-12 rounded-xl bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                             <MousePointer size={18} className="text-slate-700 dark:text-neutral-300" />
+                                          </div>
+                                       ),
+                                    },
+                                 ].map((opt) => {
+                                    const isSelected = cursorStyle === opt.id;
+                                    return (
+                                       <button
+                                          key={opt.id}
+                                          type="button"
+                                          onClick={() => handleCursorStyleChange(opt.id)}
+                                          className={`text-left p-4 rounded-2xl border transition-all relative flex flex-col justify-between cursor-pointer ${
+                                             isSelected
+                                                ? "border-[#2563EB] bg-blue-50/35 dark:bg-blue-500/10 ring-1 ring-[#2563EB]/30"
+                                                : "border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20"
+                                          }`}
+                                       >
+                                          <div>
+                                             <div className="flex items-center justify-between gap-1 mb-1.5">
+                                                <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                   {opt.title}
+                                                </span>
+                                                {isSelected ? (
+                                                   <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0">
+                                                      <Check size={10} strokeWidth={3} />
+                                                   </span>
+                                                ) : (
+                                                   <span className="text-[9.5px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-slate-200/60 dark:bg-white/10 text-slate-600 dark:text-neutral-400">
+                                                      {opt.badge}
+                                                   </span>
+                                                )}
+                                             </div>
+                                             <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-relaxed mb-3">
+                                                {opt.desc}
+                                             </p>
+                                          </div>
 
-                                           {opt.preview}
-                                        </button>
-                                     );
-                                  })}
-                               </div>
-                            </div>
-
-</motion.div>
+                                          {opt.preview}
+                                       </button>
+                                    );
+                                 })}
+                              </div>
+                           </div>
+                        </motion.div>
                      )}
 
 
@@ -2836,64 +2820,217 @@ export default function Settings() {
                         </motion.div>
                      )}
 
-                     {/* TAB 7: AI ASSISTANT */}
+                     {/* TAB 7: AI COACH */}
                      {activeTab === 'ai' && (
                         <motion.div
                            key="ai"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-6 w-full max-w-[740px] mx-auto"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[820px]"
                         >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              AI Assistant
-                           </h2>
-                           <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-8">Configure your AI Coach's tone, voice, and analysis frequency.</p>
+                           {/* Card 1: AI Coach Access & Daily Credits */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
+                                       <Sparkles size={16} />
+                                    </div>
+                                    <div className="min-w-0">
+                                       <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          AI Usage &amp; Daily Quota
+                                       </h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          {isStarter
+                                             ? 'TradiFive AI Coach is available on Pro & Elite subscriptions.'
+                                             : `Your ${activePlan === 'elite' ? 'Elite' : 'Pro'} plan includes live trade analysis and coaching bandwidth.`}
+                                       </p>
+                                    </div>
+                                 </div>
 
-                           {/* AI Credits Card */}
-                           <div className="p-6 rounded-xl border-2 border-indigo-500/20 bg-indigo-50/50 dark:bg-indigo-500/10 shadow-sm flex flex-col gap-4">
-                              <div className="flex items-center justify-between">
-                                 <div className="space-y-1">
-                                    <h3 className="text-[16px] font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                       <Sparkles size={16} className="text-indigo-600" /> AI Usage & Credits
-                                    </h3>
-                                    <p className="text-[13px] text-slate-600 dark:text-slate-400 max-w-md">
-                                       Your {activePlan.charAt(0).toUpperCase() + activePlan.slice(1)} plan includes high-tier AI inference bandwidth. Each prompt consumes 1 credit.
+                                 {!isStarter ? (
+                                    <div className="text-left sm:text-right shrink-0">
+                                       <p className="text-[22px] font-bold text-[#2563EB] dark:text-blue-400 tracking-tight tabular-nums leading-none">
+                                          {aiCredits} <span className="text-[12.5px] font-semibold text-slate-400 dark:text-neutral-500">/ {activeMaxCredits}</span>
+                                       </p>
+                                       <p className="text-[10px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mt-1">
+                                          Credits Left
+                                       </p>
+                                    </div>
+                                 ) : (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-500/15 border border-blue-200/70 dark:border-blue-500/25 text-[11px] font-bold shrink-0 self-start sm:self-center">
+                                       <Lock size={11} strokeWidth={2.5} className="text-[#2563EB] dark:text-blue-400" />
+                                       <span className="btn-shine">Pro &amp; Elite</span>
+                                    </span>
+                                 )}
+                              </div>
+
+                              {!isStarter && (
+                                 <div className="w-full bg-slate-100 dark:bg-white/[0.06] rounded-full h-2 overflow-hidden">
+                                    <div
+                                       className="bg-[#2563EB] h-2 rounded-full transition-all duration-300"
+                                       style={{ width: `${Math.min(100, Math.max(0, (aiCredits / activeMaxCredits) * 100))}%` }}
+                                    />
+                                 </div>
+                              )}
+
+                              <div className="rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div className="min-w-0">
+                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                       {isStarter ? 'Unlock TradiFive AI Coach' : 'Need Higher Daily AI Quota?'}
+                                    </h4>
+                                    <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                       {isStarter
+                                          ? 'Upgrade to Pro or Elite to audit live setups, psychology patterns, and weekly trade reviews.'
+                                          : 'Upgrade to Elite for maximum daily prompts and priority model reasoning.'}
                                     </p>
                                  </div>
-                                 <div className="text-right">
-                                    <p className="text-3xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
-                                       {aiCredits} <span className="text-sm font-semibold text-slate-500">/ {activeMaxCredits}</span>
-                                    </p>
-                                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Credits Remaining</p>
+                                 <button
+                                    type="button"
+                                    onClick={() => navigate('/upgrade')}
+                                    className="h-9 px-4 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold shadow-xs inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all"
+                                 >
+                                    <span>{isStarter ? 'Upgrade' : 'View Plans'}</span>
+                                    <ArrowRight size={13} />
+                                 </button>
+                              </div>
+                           </div>
+
+                           {/* Card 2: AI Coach Persona & Guardrails */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-5">
+                              <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                    Coach Persona &amp; Guardrails
+                                 </h3>
+                                 <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                    Select the coaching style and feedback cadence inside TradiFive AI.
+                                 </p>
+                              </div>
+
+                              <div>
+                                 <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-2 px-1">
+                                    COACH PERSONA
+                                 </label>
+                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {[
+                                       {
+                                          id: 'Strict Guard',
+                                          desc: 'Direct, zero-excuse rule enforcement on risk and tilt.',
+                                       },
+                                       {
+                                          id: 'Analytical Quant',
+                                          desc: 'Data-first review focused on expectancy, R-multiple, and edge.',
+                                       },
+                                       {
+                                          id: 'Mindset Partner',
+                                          desc: 'Balanced psychological reflection to prevent emotional mistakes.',
+                                       },
+                                    ].map((persona) => {
+                                       const selected = aiTone === persona.id;
+                                       return (
+                                          <button
+                                             key={persona.id}
+                                             type="button"
+                                             onClick={() => {
+                                                if (isStarter) {
+                                                   toast.info('Pro & Elite Feature · AI Coach', {
+                                                      description: 'Upgrade to Pro or Elite to customize AI Coach personas.',
+                                                      action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
+                                                   });
+                                                   return;
+                                                }
+                                                setAiTone(persona.id);
+                                                localStorage.setItem('tradifive_ai_persona', persona.id);
+                                                if (globalUserId) localStorage.setItem(`tradifive_ai_persona_${globalUserId}`, persona.id);
+                                                toast.success(`AI persona set to ${persona.id}`);
+                                             }}
+                                             className={`text-left p-4 rounded-2xl border transition-all cursor-pointer ${
+                                                selected
+                                                   ? 'border-[#2563EB] bg-blue-50/40 dark:bg-blue-500/10 ring-1 ring-[#2563EB]/25'
+                                                   : 'border-slate-200/80 dark:border-white/[0.08] bg-slate-50/60 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20'
+                                             }`}
+                                          >
+                                             <div className="flex items-center justify-between gap-2 mb-1">
+                                                <span className="text-[13px] font-bold text-slate-900 dark:text-white">
+                                                   {persona.id}
+                                                </span>
+                                                {selected && (
+                                                   <span className="w-4 h-4 rounded-full bg-[#2563EB] text-white flex items-center justify-center shrink-0">
+                                                      <Check size={10} strokeWidth={3} />
+                                                   </span>
+                                                )}
+                                             </div>
+                                             <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 leading-relaxed">
+                                                {persona.desc}
+                                             </p>
+                                          </button>
+                                       );
+                                    })}
                                  </div>
                               </div>
-                                    <div className="w-full bg-indigo-200 dark:bg-indigo-950/50 rounded-full h-2 mt-2">
-                                       <div 
-                                          className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full" 
-                                          style={{ width: `${Math.min(100, Math.max(0, (aiCredits / activeMaxCredits) * 100))}%` }}
-                                       />
-                                    </div>
-                                    <div className="space-y-4">
-                                       <div className="mt-4 p-4 rounded-xl bg-white dark:bg-black/20 border border-slate-200/50 dark:border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left">
-                                          <div className="space-y-1">
-                                             <h4 className="text-sm font-black text-slate-800 dark:text-white">Need More Daily Credits?</h4>
-                                             <p className="text-[11px] text-slate-500 font-semibold">Your plan provides a strict daily credit quota. Upgrading your subscription plan increases your daily allowance immediately.</p>
-                                          </div>
-                                          <button 
-                                             onClick={() => navigate('/upgrade')}
-                                             className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition-all shadow-md active:scale-95 flex items-center gap-1 shrink-0"
-                                          >
-                                             View Plans <ArrowRight size={13} />
-                                          </button>
-                                       </div>
-                                    </div>
+
+                              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                 <div>
+                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Analysis Cadence</h4>
+                                    <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                       Choose when AI Coach highlights session feedback.
+                                    </p>
                                  </div>
+                                 <div className="inline-flex p-1 bg-[#EAECEF] dark:bg-[#232329] rounded-xl gap-1 shrink-0 self-start sm:self-center">
+                                    {['Every Trade', 'Session End', 'Tilt Only'].map((freq) => (
+                                       <button
+                                          key={freq}
+                                          type="button"
+                                          onClick={() => {
+                                             if (isStarter) {
+                                                toast.info('Pro & Elite Feature · AI Coach', {
+                                                   description: 'Upgrade to Pro or Elite to enable automated AI coaching.',
+                                                   action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
+                                                });
+                                                return;
+                                             }
+                                             setAiFrequency(freq);
+                                             localStorage.setItem('tradifive_ai_frequency', freq);
+                                             toast.success(`AI cadence set to ${freq}`);
+                                          }}
+                                          className={`px-3 py-1.5 rounded-[10px] text-[12px] font-semibold transition-all cursor-pointer ${
+                                             aiFrequency === freq
+                                                ? 'bg-white dark:bg-[#1B1B20] text-slate-900 dark:text-white shadow-xs'
+                                                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white'
+                                          }`}
+                                       >
+                                          {freq}
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
 
-
-                              </motion.div>
-                           )}
+                              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between gap-4">
+                                 <div>
+                                    <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Post-Trade Auto Reflection</h4>
+                                    <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                       Automatically check closed MT5 trades for early-exit or revenge bias.
+                                    </p>
+                                 </div>
+                                 <SettingsToggle
+                                    checked={!isStarter && aiAutoReview}
+                                    onChange={(v) => {
+                                       if (isStarter) {
+                                          toast.info('Pro & Elite Feature · AI Coach', {
+                                             description: 'Upgrade to Pro or Elite to enable automated trade reflections.',
+                                             action: { label: 'Upgrade', onClick: () => navigate('/upgrade') },
+                                          });
+                                          return;
+                                       }
+                                       setAiAutoReview(v);
+                                       localStorage.setItem('tradifive_ai_auto_review', String(v));
+                                    }}
+                                 />
+                              </div>
+                           </div>
+                        </motion.div>
+                     )}
 
                            {/* TAB 8: ACCOUNTS & BROKERS */}
                      {activeTab === 'trading' && (
@@ -3646,73 +3783,104 @@ export default function Settings() {
       );
    })()}
 
-   {/* TAB 11: CHANNEL SETTINGS */}
+                     {/* TAB 11: CHANNEL SETTINGS */}
                      {activeTab === 'channel' && (
                         <motion.div
                            key="channel"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="w-full max-w-[740px] mx-auto"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[820px]"
                         >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              Channel Settings
-                           </h2>
-
-                           <div className="space-y-8">
-                              {/* Channel Privacy Level (Discord Spam filter style) */}
-                              <div>
-                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-1">Channel Privacy Level</h3>
-                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mb-4">Determine who can search, view, and interact with posts in your channel.</p>
-                                 
-                                 <div className="space-y-4">
-                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('public'); toast.success('Visibility updated!'); }}>
-                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'public' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
-                                          {feedVisibility === 'public' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
-                                       </div>
-                                       <div>
-                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Public (Everyone)</div>
-                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Anyone can search and read posts.</div>
-                                       </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('request'); toast.success('Visibility updated!'); }}>
-                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'request' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
-                                          {feedVisibility === 'request' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
-                                       </div>
-                                       <div>
-                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Request-Only</div>
-                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Users must request access to join and read posts.</div>
-                                       </div>
-                                    </div>
-
-                                    <div className="flex items-start gap-3 cursor-pointer group" onClick={() => { setFeedVisibility('private'); toast.success('Visibility updated!'); }}>
-                                       <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${feedVisibility === 'private' ? 'border-[#5865F2]' : 'border-slate-300 dark:border-[#80848E] group-hover:border-slate-400 dark:group-hover:border-[#DBDEE1]'}`}>
-                                          {feedVisibility === 'private' && <div className="w-2.5 h-2.5 rounded-full bg-[#5865F2]"></div>}
-                                       </div>
-                                       <div>
-                                          <div className="text-[15px] font-medium text-slate-800 dark:text-[#DBDEE1]">Private (Paid subscription)</div>
-                                          <div className="text-[13px] text-slate-500 dark:text-[#B5BAC1]">Only paid subscribers have access to this channel.</div>
-                                       </div>
-                                    </div>
-                                 </div>
+                           {/* Card 1: Channel Privacy Level */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
+                              <div className="pb-3 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                    Channel Privacy Level
+                                 </h3>
+                                 <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                    Determine who can search, view, and interact with posts in your channel.
+                                 </p>
                               </div>
 
-                              {/* Divider */}
-                              <div className="h-[1px] w-full bg-slate-200 dark:bg-[#3f4147]"></div>
+                              <div className="space-y-2.5">
+                                 {[
+                                    {
+                                       id: 'public',
+                                       title: 'Public (Everyone)',
+                                       desc: 'Anyone on TradiFive can search and read your channel posts.',
+                                    },
+                                    {
+                                       id: 'request',
+                                       title: 'Request-Only',
+                                       desc: 'Traders must request approval before joining and reading posts.',
+                                    },
+                                    {
+                                       id: 'private',
+                                       title: 'Private (Paid Subscribers)',
+                                       desc: 'Only your approved or paid channel members have access.',
+                                    },
+                                 ].map((opt) => {
+                                    const active = feedVisibility === opt.id;
+                                    return (
+                                       <button
+                                          key={opt.id}
+                                          type="button"
+                                          onClick={() => {
+                                             setFeedVisibility(opt.id);
+                                             localStorage.setItem('tradifive_channel_visibility', opt.id);
+                                             toast.success('Channel visibility updated');
+                                          }}
+                                          className={`w-full text-left p-3.5 rounded-2xl border flex items-start gap-3 transition-all cursor-pointer ${
+                                             active
+                                                ? 'border-[#2563EB] bg-blue-50/35 dark:bg-blue-500/10'
+                                                : 'border-slate-200/70 dark:border-white/[0.07] bg-slate-50/60 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20'
+                                          }`}
+                                       >
+                                          <div className={`mt-0.5 w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${active ? 'border-[#2563EB]' : 'border-slate-300 dark:border-neutral-600'}`}>
+                                             {active && <div className="w-2 h-2 rounded-full bg-[#2563EB]" />}
+                                          </div>
+                                          <div>
+                                             <div className="text-[13.5px] font-semibold text-slate-900 dark:text-white">{opt.title}</div>
+                                             <div className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">{opt.desc}</div>
+                                          </div>
+                                       </button>
+                                    );
+                                 })}
+                              </div>
+                           </div>
 
-                              {/* Channel Guidelines */}
+                           {/* Card 2: Channel Guidelines */}
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
                               <div>
-                                 <h3 className="text-[16px] font-bold text-slate-900 dark:text-white mb-4">Channel Guidelines</h3>
-                                 <textarea
-                                    rows={4}
-                                    value={channelRules}
-                                    onChange={e => setChannelRules(e.target.value)}
-                                    className="w-full p-4 rounded-md bg-slate-50 dark:bg-[#1E1F22] border border-transparent text-[14px] text-slate-800 dark:text-[#DBDEE1] outline-none resize-none focus:ring-1 focus:ring-[#5865F2] placeholder-slate-400 dark:placeholder-[#80848E]"
-                                    placeholder="Set the rules and guidelines for your channel..."
-                                 />
-                                 <p className="text-[13px] text-slate-500 dark:text-[#B5BAC1] mt-2">These rules will be displayed to users before they join your channel.</p>
+                                 <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                    Channel Guidelines
+                                 </h3>
+                                 <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                    Displayed to traders before they join your channel.
+                                 </p>
+                              </div>
+
+                              <textarea
+                                 rows={4}
+                                 value={channelRules}
+                                 onChange={e => setChannelRules(e.target.value)}
+                                 className="w-full p-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] text-slate-800 dark:text-white outline-none resize-none focus:border-[#2563EB] focus:bg-white dark:focus:bg-[#1E1E24] placeholder:text-slate-400 transition-colors"
+                                 placeholder="Set the rules and guidelines for your channel..."
+                              />
+
+                              <div className="flex justify-end">
+                                 <button
+                                    type="button"
+                                    onClick={() => {
+                                       localStorage.setItem(`tradifive_channel_rules_${globalUserId || 'default'}`, channelRules);
+                                       toast.success('Channel guidelines saved!');
+                                    }}
+                                    className="h-9 px-5 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white text-[12.5px] font-semibold shadow-xs transition-all cursor-pointer active:scale-95"
+                                 >
+                                    Save Guidelines
+                                 </button>
                               </div>
                            </div>
                         </motion.div>
@@ -3722,16 +3890,12 @@ export default function Settings() {
                      {activeTab === 'creator' && (
                         <motion.div
                            key="creator"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="space-y-8 w-full max-w-[740px] mx-auto animate-in fade-in duration-300"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="space-y-5 w-full max-w-[820px]"
                         >
-                           <h2 className="text-[20px] font-bold text-slate-900 dark:text-white mb-6 border-b border-slate-200 dark:border-[#3f4147] pb-4">
-                              Creator Account
-                           </h2>
-
                            <CreatorTab 
                               privacySettings={privacySettings}
                               setPrivacySettings={setPrivacySettings}
@@ -3751,11 +3915,11 @@ export default function Settings() {
                      {activeTab === 'help' && (
                         <motion.div
                            key="help"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="w-full"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="w-full max-w-[820px]"
                         >
                            <HelpTab />
                         </motion.div>
@@ -3765,11 +3929,11 @@ export default function Settings() {
                      {activeTab === 'report' && (
                         <motion.div
                            key="report"
-                           initial={{ opacity: 0, y: 10 }}
+                           initial={{ opacity: 0, y: 6 }}
                            animate={{ opacity: 1, y: 0 }}
-                           exit={{ opacity: 0, y: -10 }}
-                           transition={{ duration: 0.2 }}
-                           className="w-full max-w-[740px] mx-auto"
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="w-full max-w-[820px]"
                         >
                            <ReportTab />
                         </motion.div>
