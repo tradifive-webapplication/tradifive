@@ -507,6 +507,30 @@ export default function RiskGuard() {
     }
     setSpotlightActive(false);
   };
+
+  const isRiskPreviewAllowedTarget = (target: EventTarget | null) => {
+    if (!(target instanceof Element)) return false;
+    return Boolean(target.closest('[data-risk-tab="true"], [data-risk-upgrade="true"]'));
+  };
+
+  const handleRiskWorkspacePointerDownCapture = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isStarter || isRiskPreviewAllowedTarget(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleRiskWorkspaceClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isStarter || isRiskPreviewAllowedTarget(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    promptRiskGuardUpgrade("Risk Guard");
+  };
+
+  const handleRiskWorkspaceChangeCapture = (e: React.FormEvent<HTMLDivElement>) => {
+    if (!isStarter || isRiskPreviewAllowedTarget(e.target)) return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
   const [disciplineActive, setDisciplineActive] = useState(false);
   const { activeMarket } = useMarket();
   const sym = activeMarket === "indian" ? "₹" : "$";
@@ -2142,6 +2166,9 @@ export default function RiskGuard() {
               onMouseMove={isStarter ? handleRiskSpotlightMove : undefined}
               onTouchMove={isStarter ? handleRiskSpotlightTouchMove : undefined}
               onMouseLeave={isStarter ? handleRiskSpotlightLeave : undefined}
+              onPointerDownCapture={isStarter ? handleRiskWorkspacePointerDownCapture : undefined}
+              onClickCapture={isStarter ? handleRiskWorkspaceClickCapture : undefined}
+              onChangeCapture={isStarter ? handleRiskWorkspaceChangeCapture : undefined}
               className="relative flex flex-col gap-5 rounded-[20px]"
             >
               {/* 1. Simple Horizontal Capital Goal & XP Star Track */}
@@ -2435,6 +2462,7 @@ export default function RiskGuard() {
                           <button
                             key={tab.id}
                             type="button"
+                            data-risk-tab="true"
                             onClick={() => setActiveTab(tab.id)}
                             className={`relative min-w-0 px-2 sm:px-3 py-2 rounded-[10px] text-[11.5px] sm:text-[12.5px] font-semibold transition-colors whitespace-nowrap inline-flex items-center justify-center gap-1.5 cursor-pointer ${
                               active
@@ -5054,65 +5082,45 @@ export default function RiskGuard() {
 
               {isStarter && (
                 <>
-                  {/* Edge-feathered frosted blur wrapper so corners & sides dissolve seamlessly with no hard box edge */}
+                  {/* Interactive cursor spotlight frost blur layer (edge-feathered on the same element so backdrop-filter stays active) */}
                   <div
                     aria-hidden="true"
                     style={{
-                      WebkitMaskImage:
-                        "linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%)",
-                      maskImage:
-                        "linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%)",
+                      WebkitMaskImage: spotlightPos
+                        ? `linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, transparent 0%, transparent 46%, rgba(0,0,0,0.75) 78%, #000 100%)`
+                        : "linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%)",
+                      maskImage: spotlightPos
+                        ? `linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, transparent 0%, transparent 46%, rgba(0,0,0,0.75) 78%, #000 100%)`
+                        : "linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%)",
                       WebkitMaskComposite: "source-in",
                       maskComposite: "intersect",
                     }}
-                    className="pointer-events-none absolute -inset-3 z-[35]"
-                  >
-                    {/* Interactive cursor spotlight frost blur layer */}
-                    <div
-                      style={
-                        spotlightPos
-                          ? {
-                              WebkitMaskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, transparent 0%, transparent 46%, rgba(0,0,0,0.75) 78%, #000 100%)`,
-                              maskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, transparent 0%, transparent 46%, rgba(0,0,0,0.75) 78%, #000 100%)`,
-                            }
-                          : undefined
-                      }
-                      className="absolute inset-0 backdrop-blur-[5.5px] bg-[#F7F8FA]/20 dark:bg-[#141416]/30"
-                    />
-
-                    {/* Smooth fade-back blur inside the spotlight hole after pointer stops or leaves */}
-                    {spotlightPos && (
-                      <div
-                        style={{
-                          WebkitMaskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, #000 0%, #000 46%, rgba(0,0,0,0.25) 78%, transparent 100%)`,
-                          maskImage: `radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, #000 0%, #000 46%, rgba(0,0,0,0.25) 78%, transparent 100%)`,
-                        }}
-                        className={`absolute inset-0 backdrop-blur-[5.5px] bg-[#F7F8FA]/20 dark:bg-[#141416]/30 transition-opacity duration-500 ease-out ${
-                          spotlightActive ? "opacity-0" : "opacity-100"
-                        }`}
-                      />
-                    )}
-                  </div>
-
-                  {/* Interaction blocker over the Risk Guard workspace for Starter users */}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Upgrade to Pro or Elite to unlock Risk Guard"
-                    onClick={() => promptRiskGuardUpgrade("Risk Guard")}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        promptRiskGuardUpgrade("Risk Guard");
-                      }
-                    }}
-                    className="absolute inset-0 z-[36] cursor-pointer"
+                    className="pointer-events-none absolute -inset-3 z-[35] backdrop-blur-[4.5px] bg-white/35 dark:bg-[#0D0D10]/45"
                   />
+
+                  {/* Smooth fade-back blur inside the spotlight hole after pointer stops or leaves */}
+                  {spotlightPos && (
+                    <div
+                      aria-hidden="true"
+                      style={{
+                        WebkitMaskImage: `linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, #000 0%, #000 46%, rgba(0,0,0,0.25) 78%, transparent 100%)`,
+                        maskImage: `linear-gradient(to right, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), linear-gradient(to bottom, transparent 0%, #000 28px, #000 calc(100% - 28px), transparent 100%), radial-gradient(circle 225px at ${spotlightPos.x + 12}px ${spotlightPos.y + 12}px, #000 0%, #000 46%, rgba(0,0,0,0.25) 78%, transparent 100%)`,
+                        WebkitMaskComposite: "source-in",
+                        maskComposite: "intersect",
+                      }}
+                      className={`pointer-events-none absolute -inset-3 z-[35] backdrop-blur-[4.5px] bg-white/35 dark:bg-[#0D0D10]/45 transition-opacity duration-500 ease-out ${
+                        spotlightActive ? "opacity-0" : "opacity-100"
+                      }`}
+                    />
+                  )}
 
                   {/* Sticky Centered Pro & Elite Animated Upgrade Card */}
                   <div className="pointer-events-none absolute inset-0 z-[40]">
                     <div className="sticky top-[44%] flex justify-center px-4 py-6">
-                      <div className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between gap-3.5 max-w-[360px] w-full pointer-events-auto">
+                      <div
+                        data-risk-upgrade="true"
+                        className="backdrop-blur-md bg-white/95 dark:bg-[#1A1A1E]/95 border border-slate-200/80 dark:border-white/15 px-4 py-3 rounded-2xl shadow-xl flex items-center justify-between gap-3.5 max-w-[360px] w-full pointer-events-auto"
+                      >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 shadow-xs">
                             <Lock size={14} strokeWidth={2.4} />
