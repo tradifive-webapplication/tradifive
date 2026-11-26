@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
-  CheckSquare,
   Crosshair,
   Layers,
   LayoutGrid,
@@ -17,8 +16,14 @@ export type RiskWidgetId =
   | "max_lot"
   | "no_avg"
   | "martingale"
-  | "one_instrument"
-  | "allowed_strategy";
+  | "one_instrument";
+
+const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
+  "max_lot",
+  "no_avg",
+  "martingale",
+  "one_instrument",
+]);
 
 export const RISK_WIDGET_CATALOG: {
   id: RiskWidgetId;
@@ -45,19 +50,7 @@ export const RISK_WIDGET_CATALOG: {
     title: "One Instrument Focus",
     subtitle: "Linear gauge: single-ticker focus score",
   },
-  {
-    id: "allowed_strategy",
-    title: "Allowed Strategy Only",
-    subtitle: "Linear gauge: authorized EA magic match",
-  },
 ];
-
-const STRATEGY_MAGIC_MAP: Record<string, string> = {
-  "Breakout Pro": "1024",
-  "Trend Follower": "2048",
-  "Mean Reversion": "4096",
-  "News Scalper": "8192",
-};
 
 const STORAGE_KEY = "tradifive_dashboard_risk_widgets";
 const EVENTS = ["tradifive:risk-widgets-changed", "fialgo_config_changed", "storage"] as const;
@@ -67,7 +60,9 @@ export function getPinnedRiskWidgets(): RiskWidgetId[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw === null) return ["max_lot"];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : ["max_lot"];
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is RiskWidgetId => VALID_WIDGET_IDS.has(id))
+      : ["max_lot"];
   } catch {
     return ["max_lot"];
   }
@@ -301,12 +296,6 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
       ? Math.round((onTickerCount / allTrades.length) * 100)
       : 100;
 
-    // 5. Allowed Strategy Only
-    const strategyActive = Boolean(savedCfg?.oneStrategyRule);
-    const strategyName = String(savedCfg?.strategyName || "Breakout Pro");
-    const magic = STRATEGY_MAGIC_MAP[strategyName] || "1024";
-    const strategyPct = 100;
-
     return {
       isIndian,
       unit,
@@ -343,12 +332,6 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
         onTickerCount,
         offTickerCount,
         pct: instrPct,
-      },
-      strategy: {
-        active: strategyActive,
-        strategyName,
-        magic,
-        pct: strategyPct,
       },
     };
   }, [activeMarket, isConnected, demoMode, riskConfig, recentTrades, accountMetrics]);
@@ -610,35 +593,6 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
             inactiveFillOpacity={0.35}
             useGradient
             gradientColors={["#60A5FA", "#2563EB", "#0031F2"]}
-          />
-        </div>
-      )}
-
-      {pinned.includes("allowed_strategy") && (
-        <div className={`${cardClass} p-3.5`}>
-          <WidgetHeader
-            id="allowed_strategy"
-            icon={CheckSquare}
-            title={widgetData.strategy.strategyName}
-            badge={widgetData.strategy.active ? `#${widgetData.strategy.magic}` : "Off"}
-            badgeTone={widgetData.strategy.active ? "emerald" : "neutral"}
-          />
-          <Gauge
-            orientation="linear"
-            ariaLabel="Allowed Strategy EA Match"
-            value={widgetData.strategy.pct}
-            centerValue={widgetData.strategy.pct}
-            defaultLabel={`Magic #${widgetData.strategy.magic} · 0 manual orders`}
-            suffix="% EA match"
-            labelPlacement="top"
-            labelAlign="start"
-            totalNotches={36}
-            linearHeight={14}
-            spacing={2}
-            notchCornerRadius={3}
-            inactiveFillOpacity={0.35}
-            useGradient
-            gradientColors={["#818CF8", "#4F46E5", "#2563EB"]}
           />
         </div>
       )}

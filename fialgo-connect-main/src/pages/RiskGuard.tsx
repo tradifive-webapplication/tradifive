@@ -229,7 +229,6 @@ export default function RiskGuard() {
   const [stopAfterLoss, setStopAfterLoss] = useState(false);
   const [martingaleMultiplier, setMartingaleMultiplier] = useState(1.5);
   const [allowedTicker, setAllowedTicker] = useState("XAUUSD");
-  const [strategyName, setStrategyName] = useState("Breakout Pro");
   const [defaultStopLoss, setDefaultStopLoss] = useState(15);
   const [weekendCloseTime, setWeekendCloseTime] = useState("20:00");
   const [emotionSensitivity, setEmotionSensitivity] = useState(80);
@@ -464,7 +463,6 @@ export default function RiskGuard() {
   const [noAvgScope, setNoAvgScope] = useState("symbol_dir");
   const [martingaleDetection, setMartingaleDetection] = useState(false);
   const [oneInstrumentMode, setOneInstrumentMode] = useState(false);
-  const [oneStrategyRule, setOneStrategyRule] = useState(false);
 
   const [stopLossRequired, setStopLossRequired] = useState(false);
   const [stopLossAction, setStopLossAction] = useState("block");
@@ -590,9 +588,6 @@ export default function RiskGuard() {
       if (config.oneInstrumentMode !== undefined)
         setOneInstrumentMode(config.oneInstrumentMode);
       if (config.allowedTicker) setAllowedTicker(config.allowedTicker);
-      if (config.oneStrategyRule !== undefined)
-        setOneStrategyRule(config.oneStrategyRule);
-      if (config.strategyName) setStrategyName(config.strategyName);
       if (config.stopLossRequired !== undefined)
         setStopLossRequired(config.stopLossRequired);
       if (config.minRiskReward !== undefined)
@@ -666,8 +661,6 @@ export default function RiskGuard() {
     martingaleMultiplier,
     oneInstrumentMode,
     allowedTicker,
-    oneStrategyRule,
-    strategyName,
     stopLossRequired,
     minRiskReward,
     minRiskRewardActive,
@@ -779,8 +772,6 @@ export default function RiskGuard() {
     martingaleMultiplier,
     oneInstrumentMode,
     allowedTicker,
-    oneStrategyRule,
-    strategyName,
     stopLossRequired,
     minRiskReward,
     minRiskRewardActive,
@@ -810,7 +801,6 @@ export default function RiskGuard() {
       activeMarket !== "indian" && noAveragingDown,
       activeMarket !== "indian" && martingaleDetection,
       oneInstrumentMode,
-      activeMarket !== "indian" && oneStrategyRule,
     ].filter(Boolean).length;
 
     const riskManagement = [
@@ -857,8 +847,6 @@ export default function RiskGuard() {
     martingaleMultiplier,
     oneInstrumentMode,
     allowedTicker,
-    oneStrategyRule,
-    strategyName,
     drawdownGuardActive,
     dailyProfitTargetActive,
     stopLossRequired,
@@ -990,15 +978,6 @@ export default function RiskGuard() {
       ? Math.round((onTickerTrades / allTrades.length) * 100)
       : 100;
 
-    // Card #5 (Allowed Strategy Only)
-    const magicMap: Record<string, string> = {
-      "Breakout Pro": "1024",
-      "Trend Follower": "2048",
-      "Mean Reversion": "4096",
-      "News Scalper": "8192",
-    };
-    const strategyMagic = magicMap[strategyName] || "1024";
-
     return {
       unit,
       safeCap,
@@ -1027,10 +1006,6 @@ export default function RiskGuard() {
         offTickerTrades,
         focusPct: instrFocusPct,
       },
-      strategy: {
-        magic: strategyMagic,
-        matchPct: 100,
-      },
     };
   }, [
     activeMarket,
@@ -1041,7 +1016,6 @@ export default function RiskGuard() {
     demoOpenLots,
     martingaleMultiplier,
     allowedTicker,
-    strategyName,
   ]);
 
   if (!authChecked) {
@@ -1878,76 +1852,6 @@ export default function RiskGuard() {
                           </Select>
                         </div>
                       </RiskGuardCard>
-
-                      {activeMarket !== "indian" && (
-                        <RiskGuardCard
-                          icon={CheckSquare}
-                          title="Allowed Strategy Only"
-                          description="Allow trades only from selected strategy"
-                          value={strategyName}
-                          active={oneStrategyRule}
-                          onToggle={setOneStrategyRule}
-                          intent="trading"
-                          hasDashboardWidget={pinnedWidgets.includes("allowed_strategy")}
-                        >
-                          <div className="space-y-2.5">
-                            <div className="space-y-1.5">
-                              <div className="flex items-center justify-between text-[10.5px]">
-                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
-                                  <span>Magic #{lotTelemetry.strategy.magic}</span>
-                                  <span
-                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
-                                      useDemoData
-                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
-                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
-                                    }`}
-                                  >
-                                    {useDemoData ? "Demo" : "Live"}
-                                  </span>
-                                </span>
-                                <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
-                                  {lotTelemetry.strategy.matchPct}% EA match · 0 manual
-                                </span>
-                              </div>
-                              <Gauge
-                                orientation="linear"
-                                ariaLabel="Allowed Strategy EA Match Bar"
-                                value={lotTelemetry.strategy.matchPct}
-                                totalNotches={42}
-                                linearHeight={14}
-                                spacing={2}
-                                notchCornerRadius={3}
-                                inactiveFillOpacity={0.35}
-                                useGradient
-                                gradientColors={["#818CF8", "#4F46E5", "#2563EB"]}
-                              />
-                            </div>
-
-                            <Select
-                              value={strategyName}
-                              onValueChange={setStrategyName}
-                            >
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue placeholder="Select a strategy..." />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Breakout Pro">
-                                  Breakout Pro — Magic #1024
-                                </SelectItem>
-                                <SelectItem value="Trend Follower">
-                                  Trend Follower — Magic #2048
-                                </SelectItem>
-                                <SelectItem value="Mean Reversion">
-                                  Mean Reversion — Magic #4096
-                                </SelectItem>
-                                <SelectItem value="News Scalper">
-                                  News Scalper — Magic #8192
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </RiskGuardCard>
-                      )}
                     </motion.div>
                   )}
 
