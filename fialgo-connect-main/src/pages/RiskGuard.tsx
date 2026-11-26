@@ -644,18 +644,48 @@ export default function RiskGuard() {
   }, [demoProfitToday]);
 
   const [consecutiveWins, setConsecutiveWins] = useState(3);
+  const [winStreakAction, setWinStreakAction] = useState<"pause" | "confirm">("pause");
   const [stopAfterWin, setStopAfterWin] = useState(false);
+  const [lossCooldownTrigger, setLossCooldownTrigger] = useState<"every" | "consecutive">("every");
   const [emotionalTradingDetector, setEmotionalTradingDetector] =
     useState(false);
   const [newsFilter, setNewsFilter] = useState(false);
+  const [newsBeforeMins, setNewsBeforeMins] = useState(30);
+  const [newsAfterMins, setNewsAfterMins] = useState(15);
   const [sleepProtection, setSleepProtection] = useState(false);
+  const [sleepTimeEnd, setSleepTimeEnd] = useState("06:00");
   const [preTradeChecklist, setPreTradeChecklist] = useState(false);
+  const [checklistPreset, setChecklistPreset] = useState<"basic" | "standard" | "strict">("standard");
   const [psychologyCheck, setPsychologyCheck] = useState(false);
+  const [psychologyFreq, setPsychologyFreq] = useState<"first" | "loss" | "every" | "daily">("first");
   const [aiWeeklyReview, setAiWeeklyReview] = useState(false);
+  const [aiReviewDay, setAiReviewDay] = useState<"friday" | "saturday" | "sunday">("friday");
+  const [aiReviewTime, setAiReviewTime] = useState("17:00");
+  const [aiReviewSend, setAiReviewSend] = useState<"in_app" | "email">("in_app");
   const [aiVoiceWarning, setAiVoiceWarning] = useState(false);
+  const [voiceTrigger, setVoiceTrigger] = useState<"all" | "critical" | "drawdown">("critical");
   const [noTradingAfterTime, setNoTradingAfterTime] = useState("20:00");
+  const [noTradeAfterAction, setNoTradeAfterAction] = useState<"block" | "close">("block");
   const [noTradingAfterTimeActive, setNoTradingAfterTimeActive] =
     useState(false);
+  const [hardStopTrigger, setHardStopTrigger] = useState<"drawdown" | "equity" | "rules">("drawdown");
+  const [demoTradesToday, setDemoTradesToday] = useState<number>(() => {
+    try {
+      const saved = Number(localStorage.getItem("fialgo_demo_trades_today"));
+      return Number.isFinite(saved) && saved >= 0 ? saved : 2;
+    } catch {
+      return 2;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("fialgo_demo_trades_today", String(demoTradesToday));
+      window.dispatchEvent(new Event("fialgo_config_changed"));
+    } catch {
+      /* ignore */
+    }
+  }, [demoTradesToday]);
 
   const [dayBasedKillActive, setDayBasedKillActive] = useState(false);
   const [dayBasedKillDays, setDayBasedKillDays] = useState<string[]>(["Thu"]);
@@ -705,7 +735,7 @@ export default function RiskGuard() {
         setTargetCapital(dbConfig.target_capital);
       if (dbConfig.max_daily_loss_percent !== null && dbConfig.max_daily_loss_percent > 0)
         setMaxDrawdown(dbConfig.max_daily_loss_percent);
-      if (dbConfig.max_open_trades !== null)
+      if (dbConfig.max_open_trades !== null && dbConfig.max_open_trades > 0)
         setTradeLimit(dbConfig.max_open_trades);
     }
   }, [dbConfig]);
@@ -740,8 +770,9 @@ export default function RiskGuard() {
         setAllowHedging(config.allowHedging);
       if (config.revengeGuard !== undefined)
         setRevengeGuard(config.revengeGuard);
-      if (config.tradeLimit) setTradeLimit(config.tradeLimit);
-      if (config.waitPeriod) setWaitPeriod(config.waitPeriod);
+      if (config.tradeLimit && config.tradeLimit > 0) setTradeLimit(config.tradeLimit);
+      if (config.waitPeriod && config.waitPeriod > 0) setWaitPeriod(config.waitPeriod);
+      if (config.lossCooldownTrigger) setLossCooldownTrigger(config.lossCooldownTrigger);
       if (config.selectedSessions)
         setSelectedSessions(config.selectedSessions);
       if (config.sessionTimes) setSessionTimes(config.sessionTimes);
@@ -784,23 +815,41 @@ export default function RiskGuard() {
         setDailyProfitTargetActive(config.dailyProfitTargetActive);
       if (config.consecutiveWins !== undefined)
         setConsecutiveWins(config.consecutiveWins);
+      if (config.winStreakAction) setWinStreakAction(config.winStreakAction);
       if (config.stopAfterWin !== undefined)
         setStopAfterWin(config.stopAfterWin);
       if (config.emotionalTradingDetector !== undefined)
         setEmotionalTradingDetector(config.emotionalTradingDetector);
+      if (config.emotionSensitivity !== undefined)
+        setEmotionSensitivity(config.emotionSensitivity);
       if (config.newsFilter !== undefined) setNewsFilter(config.newsFilter);
+      if (config.newsImpactLevel) setNewsImpactLevel(config.newsImpactLevel);
+      if (config.newsBeforeMins !== undefined) setNewsBeforeMins(config.newsBeforeMins);
+      if (config.newsAfterMins !== undefined) setNewsAfterMins(config.newsAfterMins);
       if (config.sleepProtection !== undefined)
         setSleepProtection(config.sleepProtection);
+      if (config.sleepTimeStart) setSleepTimeStart(config.sleepTimeStart);
+      if (config.sleepTimeEnd) setSleepTimeEnd(config.sleepTimeEnd);
       if (config.preTradeChecklist !== undefined)
         setPreTradeChecklist(config.preTradeChecklist);
+      if (config.checklistPreset) setChecklistPreset(config.checklistPreset);
       if (config.psychologyCheck !== undefined)
         setPsychologyCheck(config.psychologyCheck);
+      if (config.psychologyFreq) setPsychologyFreq(config.psychologyFreq);
       if (config.aiWeeklyReview !== undefined)
         setAiWeeklyReview(config.aiWeeklyReview);
+      if (config.aiReviewDay) setAiReviewDay(config.aiReviewDay);
+      if (config.aiReviewTime) setAiReviewTime(config.aiReviewTime);
+      if (config.aiReviewSend) setAiReviewSend(config.aiReviewSend);
       if (config.aiVoiceWarning !== undefined)
         setAiVoiceWarning(config.aiVoiceWarning);
+      if (config.voiceVolume !== undefined) setVoiceVolume(config.voiceVolume);
+      if (config.voiceTrigger) setVoiceTrigger(config.voiceTrigger);
+      if (config.noTradingAfterTime) setNoTradingAfterTime(config.noTradingAfterTime);
+      if (config.noTradeAfterAction) setNoTradeAfterAction(config.noTradeAfterAction);
       if (config.noTradingAfterTimeActive !== undefined)
         setNoTradingAfterTimeActive(config.noTradingAfterTimeActive);
+      if (config.hardStopTrigger) setHardStopTrigger(config.hardStopTrigger);
       if (config.pinActive !== undefined) setPinActive(config.pinActive);
     } catch {
       /* ignore */
@@ -856,15 +905,33 @@ export default function RiskGuard() {
     profitTargetCalc,
     dailyProfitTargetActive,
     consecutiveWins,
+    winStreakAction,
     stopAfterWin,
+    lossCooldownTrigger,
     emotionalTradingDetector,
+    emotionSensitivity,
     newsFilter,
+    newsImpactLevel,
+    newsBeforeMins,
+    newsAfterMins,
     sleepProtection,
+    sleepTimeStart,
+    sleepTimeEnd,
     preTradeChecklist,
+    checklistPreset,
     psychologyCheck,
+    psychologyFreq,
     aiWeeklyReview,
+    aiReviewDay,
+    aiReviewTime,
+    aiReviewSend,
     aiVoiceWarning,
+    voiceVolume,
+    voiceTrigger,
+    noTradingAfterTime,
+    noTradeAfterAction,
     noTradingAfterTimeActive,
+    hardStopTrigger,
     pinActive,
   });
 
@@ -902,6 +969,14 @@ export default function RiskGuard() {
             weekend_action: weekendAction,
             equity_hard_stop_active: equityHardStopActive,
             equity_hard_stop: equityHardStop,
+            no_trade_after_active: noTradingAfterTimeActive,
+            no_trade_after_time: noTradingAfterTime,
+            no_trade_after_action: noTradeAfterAction,
+            sleep_protection: sleepProtection,
+            sleep_start: sleepTimeStart,
+            sleep_end: sleepTimeEnd,
+            session_active: sessionActive,
+            selected_sessions: selectedSessions,
             updated_at: new Date().toISOString(),
           },
           updated_at: new Date().toISOString(),
@@ -1008,15 +1083,33 @@ export default function RiskGuard() {
     profitTargetCalc,
     dailyProfitTargetActive,
     consecutiveWins,
+    winStreakAction,
     stopAfterWin,
+    lossCooldownTrigger,
     emotionalTradingDetector,
+    emotionSensitivity,
     newsFilter,
+    newsImpactLevel,
+    newsBeforeMins,
+    newsAfterMins,
     sleepProtection,
+    sleepTimeStart,
+    sleepTimeEnd,
     preTradeChecklist,
+    checklistPreset,
     psychologyCheck,
+    psychologyFreq,
     aiWeeklyReview,
+    aiReviewDay,
+    aiReviewTime,
+    aiReviewSend,
     aiVoiceWarning,
+    voiceVolume,
+    voiceTrigger,
+    noTradingAfterTime,
+    noTradeAfterAction,
     noTradingAfterTimeActive,
+    hardStopTrigger,
     pinActive,
     user?.id,
   ]);
@@ -1527,6 +1620,44 @@ export default function RiskGuard() {
         ? Math.min(100, Math.max(0, Math.round(((liveEquityVal - safeFloor) / liveEquityVal) * 100)))
         : 100;
 
+    // Tab 3 Telemetry (Behaviour & Discipline)
+    const safeTradeCap = Math.max(1, !isProOrElite && tradeLimit > 5 ? 5 : Number(tradeLimit) || 3);
+    const usedTradesToday = useDemoData ? Math.max(0, demoTradesToday) : Math.max(0, Number(tradesToday || 0));
+    const tradesLeft = Math.max(0, safeTradeCap - usedTradesToday);
+    const tradesPct = Math.min(100, Math.round((usedTradesToday / safeTradeCap) * 100));
+    const tradesBreached = usedTradesToday >= safeTradeCap;
+    const tradesGrad = tradesBreached
+      ? ["#FB7185", "#E11D48", "#BE123C"]
+      : tradesPct >= 75
+      ? ["#FBBF24", "#F59E0B", "#D97706"]
+      : ["#60A5FA", "#2563EB", "#0031F2"];
+
+    const [cutH, cutM] = (noTradingAfterTime || "20:00").split(":").map(Number);
+    const cutMins = (Number.isFinite(cutH) ? cutH : 20) * 60 + (Number.isFinite(cutM) ? cutM : 0);
+    const cutoffProgressPct = Math.min(100, Math.max(5, Math.round((nowMins / Math.max(1, cutMins)) * 100)));
+    const isPastCutoff = nowMins >= cutMins;
+
+    // Tilt / Calm Trendline (7-point recent discipline series)
+    const recentClosed7 = allTrades.filter((t) => t.closed_at).slice(0, 7).reverse();
+    const tiltSeries = useDemoData
+      ? [92, 88, 90, 76, 84, 89, 94]
+      : recentClosed7.length >= 2
+      ? recentClosed7.map((t) =>
+          Number(t.discipline_score ?? (Number(t.profit || 0) >= 0 ? 88 : 66))
+        )
+      : [85, 87, 84, 89, 90, 88, 92];
+    const calmScore = Math.round(
+      tiltSeries.reduce((a, b) => a + b, 0) / Math.max(1, tiltSeries.length)
+    );
+
+    // Sleep window duration
+    const [slpSH, slpSM] = (sleepTimeStart || "23:00").split(":").map(Number);
+    const [slpEH, slpEM] = (sleepTimeEnd || "06:00").split(":").map(Number);
+    const sStartMin = (Number.isFinite(slpSH) ? slpSH : 23) * 60 + (Number.isFinite(slpSM) ? slpSM : 0);
+    const sEndMin = (Number.isFinite(slpEH) ? slpEH : 6) * 60 + (Number.isFinite(slpEM) ? slpEM : 0);
+    const sleepSpanMins = sEndMin >= sStartMin ? sEndMin - sStartMin : 1440 - sStartMin + sEndMin;
+    const sleepHoursLabel = `${Math.max(1, Math.round(sleepSpanMins / 60))}h rest lock`;
+
     return {
       unit,
       safeCap,
@@ -1593,6 +1724,19 @@ export default function RiskGuard() {
         breached: eqBreached,
         bufferPct: eqBufferPct,
       },
+      behaviour: {
+        tradeCap: safeTradeCap,
+        tradesUsed: usedTradesToday,
+        tradesLeft,
+        tradesPct,
+        tradesBreached,
+        tradesGrad,
+        cutoffProgressPct,
+        isPastCutoff,
+        tiltSeries,
+        calmScore,
+        sleepHoursLabel,
+      },
     };
   }, [
     activeMarket,
@@ -1603,6 +1747,10 @@ export default function RiskGuard() {
     demoOpenLots,
     demoDdByPeriod,
     demoProfitToday,
+    demoTradesToday,
+    tradesToday,
+    tradeLimit,
+    isProOrElite,
     martingaleMultiplier,
     allowedTicker,
     customTickers,
@@ -1615,6 +1763,9 @@ export default function RiskGuard() {
     profitTargetCalc,
     minRiskReward,
     weekendCloseTime,
+    noTradingAfterTime,
+    sleepTimeStart,
+    sleepTimeEnd,
     equityHardStop,
     balance,
     equity,
@@ -3646,51 +3797,123 @@ export default function RiskGuard() {
                         }
                         description={
                           activeMarket === "indian"
-                            ? "Kill after N orders"
-                            : "Maximum executions per day"
+                            ? "Lock trading after N orders today"
+                            : "Stop overtrading after max orders per day"
                         }
-                        value={`${tradeLimit}/day`}
+                        value={`${lotTelemetry.behaviour.tradeCap}/day`}
                         active={disciplineActive}
                         onToggle={setDisciplineActive}
                         intent="discipline"
+                        hasDashboardWidget={pinnedWidgets.includes("trade_limit")}
                       >
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-[11px] font-medium text-slate-400">
-                            {activeMarket === "indian"
-                              ? "Max orders/day"
-                              : "Daily limit"}
-                          </span>
-                          <div className="flex items-center gap-1.5 w-[132px]">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setTradeLimit((prev) => Math.max(1, prev - 1))
-                              }
-                              className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
-                            >
-                              -
-                            </button>
-                            <span
-                              className={`flex-1 h-[30px] flex items-center justify-center ${INPUT_BASE}`}
-                            >
-                              {!isProOrElite && tradeLimit > 5 ? 5 : tradeLimit}
+                        <div className="space-y-2.5">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                <span>
+                                  Today: {lotTelemetry.behaviour.tradesUsed} /{" "}
+                                  {lotTelemetry.behaviour.tradeCap}
+                                </span>
+                                <span
+                                  className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                    useDemoData
+                                      ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                  }`}
+                                >
+                                  {useDemoData ? "Demo" : "Live"}
+                                </span>
+                                {useDemoData && (
+                                  <span className="inline-flex items-center gap-0.5 ml-0.5">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDemoTradesToday((v) => Math.max(0, v - 1))
+                                      }
+                                      className="w-3.5 h-3.5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Decrease demo trade count"
+                                    >
+                                      <Minus size={8} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDemoTradesToday((v) => v + 1)
+                                      }
+                                      className="w-3.5 h-3.5 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Increase demo trade count"
+                                    >
+                                      <Plus size={8} />
+                                    </button>
+                                  </span>
+                                )}
+                              </span>
+                              <span
+                                className={`font-semibold tabular-nums ${
+                                  lotTelemetry.behaviour.tradesBreached
+                                    ? "text-rose-600 dark:text-rose-400"
+                                    : "text-emerald-600 dark:text-emerald-400"
+                                }`}
+                              >
+                                {lotTelemetry.behaviour.tradesBreached
+                                  ? "Limit reached"
+                                  : `${lotTelemetry.behaviour.tradesLeft} left today`}
+                              </span>
+                            </div>
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="Daily Trade Count Limit Bar"
+                              value={lotTelemetry.behaviour.tradesPct}
+                              totalNotches={42}
+                              linearHeight={12}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.35}
+                              useGradient
+                              gradientColors={lotTelemetry.behaviour.tradesGrad}
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-[11px] font-medium text-slate-500 dark:text-neutral-400">
+                              {activeMarket === "indian"
+                                ? "Max orders per day"
+                                : "Max trades per day"}
                             </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!isProOrElite && tradeLimit >= 5) {
-                                  toast.error("Pro Feature", {
-                                    description:
-                                      "Upgrade to Pro to increase daily execution limits above 5.",
-                                  });
-                                  return;
+                            <div className="flex items-center gap-1.5 w-[132px]">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setTradeLimit((prev) => Math.max(1, (prev || 1) - 1))
                                 }
-                                setTradeLimit((prev) => Math.min(20, prev + 1));
-                              }}
-                              className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
-                            >
-                              +
-                            </button>
+                                className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
+                              >
+                                -
+                              </button>
+                              <span
+                                className={`flex-1 h-[30px] flex items-center justify-center ${INPUT_BASE}`}
+                              >
+                                {lotTelemetry.behaviour.tradeCap}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (!isProOrElite && lotTelemetry.behaviour.tradeCap >= 5) {
+                                    toast.error("Pro Feature", {
+                                      description:
+                                        "Upgrade to Pro to increase daily execution limits above 5.",
+                                    });
+                                    return;
+                                  }
+                                  setTradeLimit((prev) =>
+                                    Math.min(20, (prev || 1) + 1)
+                                  );
+                                }}
+                                className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </RiskGuardCard>
@@ -3698,7 +3921,7 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={ShieldOff}
                         title="Loss Cooldown"
-                        description="Locks execution after losing trades"
+                        description="Take a mandatory break after losing trades"
                         value={!isProOrElite ? "Pro" : `${waitPeriod}m`}
                         active={!isProOrElite ? false : revengeGuard}
                         onToggle={(val) => {
@@ -3715,39 +3938,98 @@ export default function RiskGuard() {
                           setRevengeGuard(val);
                         }}
                         intent="discipline"
+                        hasDashboardWidget={pinnedWidgets.includes("loss_cooldown")}
                       >
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>
-                              Duration ({waitPeriod}m)
-                            </label>
-                            <div
-                              className={`flex items-center gap-2 px-2.5 h-[32px] ${INPUT_BASE}`}
-                            >
-                              <input
-                                type="range"
-                                min={5}
-                                max={120}
-                                step={5}
-                                value={waitPeriod}
-                                onChange={(e) => setWaitPeriod(+e.target.value)}
-                                className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#2563EB] bg-slate-200 dark:bg-white/10"
-                              />
+                        <div className="space-y-2.5">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    cooldownActive
+                                      ? "bg-rose-500 animate-pulse"
+                                      : "bg-emerald-500"
+                                  }`}
+                                />
+                                <span>
+                                  {cooldownActive
+                                    ? "Cooldown Running"
+                                    : `Wait ${waitPeriod}m to cool off`}
+                                </span>
+                              </span>
+                              <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                {cooldownActive
+                                  ? formatCountdown(cooldownSeconds)
+                                  : lossCooldownTrigger === "consecutive"
+                                  ? "After 2+ losses"
+                                  : "After every loss"}
+                              </span>
                             </div>
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="Loss Cooldown Wait Duration"
+                              value={
+                                cooldownActive && waitPeriod > 0
+                                  ? Math.min(
+                                      100,
+                                      Math.round(
+                                        (cooldownSeconds / (waitPeriod * 60)) * 100
+                                      )
+                                    )
+                                  : Math.min(100, Math.round((waitPeriod / 120) * 100))
+                              }
+                              totalNotches={42}
+                              linearHeight={10}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.35}
+                              useGradient
+                              gradientColors={
+                                cooldownActive
+                                  ? ["#FB7185", "#E11D48", "#BE123C"]
+                                  : ["#60A5FA", "#2563EB", "#0031F2"]
+                              }
+                            />
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Trigger</label>
-                            <Select defaultValue="every">
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="every">Every loss</SelectItem>
-                                <SelectItem value="consecutive">
-                                  Consecutive losses
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>
+                                Break ({waitPeriod}m)
+                              </label>
+                              <div
+                                className={`flex items-center gap-2 px-2.5 h-[30px] ${INPUT_BASE}`}
+                              >
+                                <input
+                                  type="range"
+                                  min={5}
+                                  max={120}
+                                  step={5}
+                                  value={waitPeriod}
+                                  onChange={(e) => setWaitPeriod(+e.target.value)}
+                                  className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#2563EB] bg-slate-200 dark:bg-white/10"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Trigger</label>
+                              <Select
+                                value={lossCooldownTrigger}
+                                onValueChange={(v) =>
+                                  setLossCooldownTrigger(v as "every" | "consecutive")
+                                }
+                              >
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="every">Every loss</SelectItem>
+                                  <SelectItem value="consecutive">
+                                    2+ losses in row
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </div>
                       </RiskGuardCard>
@@ -3755,101 +4037,151 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={Clock}
                         title="Session Sentinel"
-                        description="Custom hourly trading windows"
+                        description="Allow trades only inside your selected market hours"
                         value={`${selectedSessions.length} active`}
                         active={sessionActive}
                         onToggle={setSessionActive}
                         intent="discipline"
+                        hasDashboardWidget={pinnedWidgets.includes("session")}
                       >
-                        <div className="flex flex-wrap gap-1.5">
-                          {sessionButtons.map((session) => {
-                            const isSelected = selectedSessions.includes(
-                              session.id
-                            );
-                            return (
-                              <button
-                                key={session.id}
-                                type="button"
-                                onClick={() => toggleSession(session.id)}
-                                className={`px-2.5 h-[27px] rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer ${
-                                  isSelected
-                                    ? "bg-blue-50 text-[#2563EB] border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30"
-                                    : "bg-slate-50 text-slate-500 border-slate-200 dark:bg-white/[0.04] dark:text-neutral-300 dark:border-white/10"
-                                }`}
-                              >
-                                {session.label}
-                              </button>
-                            );
-                          })}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              toast.info(
-                                "Custom session windows sync with your broker clock."
-                              )
-                            }
-                            className="px-2.5 h-[27px] rounded-lg text-[11px] font-semibold border border-dashed border-slate-300 dark:border-white/15 text-slate-500 hover:text-slate-800 dark:hover:text-white cursor-pointer"
-                          >
-                            + Custom
-                          </button>
+                        <div className="space-y-2.5">
+                          {/* Visual Market Session Allocation Strip */}
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10px] font-semibold text-slate-500 dark:text-neutral-400">
+                              <span>Allowed Sessions</span>
+                              <span className="text-[#2563EB] dark:text-blue-400">
+                                {selectedSessions.length} of {sessionButtons.length} selected
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-4 gap-1">
+                              {sessionButtons.map((s) => {
+                                const on = selectedSessions.includes(s.id);
+                                return (
+                                  <div
+                                    key={`bar-${s.id}`}
+                                    className={`h-2 rounded-full transition-colors ${
+                                      on
+                                        ? "bg-[#2563EB] dark:bg-blue-500"
+                                        : "bg-slate-200 dark:bg-white/10"
+                                    }`}
+                                    title={`${s.label}: ${on ? "Active" : "Blocked"}`}
+                                  />
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            {sessionButtons.map((session) => {
+                              const isSelected = selectedSessions.includes(
+                                session.id
+                              );
+                              const times = sessionTimes[session.id];
+                              return (
+                                <button
+                                  key={session.id}
+                                  type="button"
+                                  onClick={() => toggleSession(session.id)}
+                                  className={`px-2.5 h-[28px] rounded-lg text-[11px] font-semibold border transition-colors cursor-pointer inline-flex items-center gap-1.5 ${
+                                    isSelected
+                                      ? "bg-blue-50 text-[#2563EB] border-blue-200 dark:bg-blue-500/15 dark:text-blue-400 dark:border-blue-500/30"
+                                      : "bg-slate-50 text-slate-500 border-slate-200 dark:bg-white/[0.04] dark:text-neutral-300 dark:border-white/10"
+                                  }`}
+                                >
+                                  <span>{session.label}</span>
+                                  {times && (
+                                    <span className="text-[9px] opacity-70 font-medium">
+                                      {formatTime12h(times.start).replace(":00", "")}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       </RiskGuardCard>
 
                       <RiskGuardCard
                         icon={Trophy}
                         title="Win Streak Cooldown"
-                        description="Lock trading after consecutive wins"
+                        description="Protect profits after a hot win streak"
                         value={`${consecutiveWins} Wins`}
                         active={stopAfterWin}
                         onToggle={setStopAfterWin}
-                        intent="discipline"
+                        intent="positive"
                       >
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>Max Wins</label>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setConsecutiveWins((prev) =>
-                                    Math.max(1, prev - 1)
-                                  )
-                                }
-                                className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
-                              >
-                                -
-                              </button>
-                              <span
-                                className={`flex-1 h-[32px] flex items-center justify-center ${INPUT_BASE}`}
-                              >
-                                {consecutiveWins}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setConsecutiveWins((prev) => prev + 1)
-                                }
-                                className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
-                              >
-                                +
-                              </button>
+                        <div className="space-y-2.5">
+                          {/* Visual Win Milestone Dots */}
+                          <div className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-emerald-50/75 dark:bg-emerald-500/10 border border-emerald-200/70 dark:border-emerald-500/20">
+                            <span className="text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-300">
+                              Lock gains after {consecutiveWins} green trades
+                            </span>
+                            <div className="flex items-center gap-1">
+                              {Array.from({ length: Math.min(6, consecutiveWins) }).map(
+                                (_, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs"
+                                  />
+                                )
+                              )}
                             </div>
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Action</label>
-                            <Select defaultValue="pause">
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="pause">
-                                  Pause trading
-                                </SelectItem>
-                                <SelectItem value="confirm">
-                                  Require confirm
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>Win Streak</label>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setConsecutiveWins((prev) =>
+                                      Math.max(1, prev - 1)
+                                    )
+                                  }
+                                  className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
+                                >
+                                  -
+                                </button>
+                                <span
+                                  className={`flex-1 h-[30px] flex items-center justify-center ${INPUT_BASE}`}
+                                >
+                                  {consecutiveWins}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setConsecutiveWins((prev) =>
+                                      Math.min(10, prev + 1)
+                                    )
+                                  }
+                                  className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold cursor-pointer"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Action</label>
+                              <Select
+                                value={winStreakAction}
+                                onValueChange={(v) =>
+                                  setWinStreakAction(v as "pause" | "confirm")
+                                }
+                              >
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pause">
+                                    Pause trading
+                                  </SelectItem>
+                                  <SelectItem value="confirm">
+                                    Warning prompt
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </div>
                       </RiskGuardCard>
@@ -3857,36 +4189,83 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={Sunrise}
                         title="No Trading After Time"
-                        description="Daily hard cutoff time"
+                        description="Daily hard cutoff time to avoid late fatigue"
                         value={formatTime12h(noTradingAfterTime)}
                         active={noTradingAfterTimeActive}
                         onToggle={setNoTradingAfterTimeActive}
                         intent="discipline"
                       >
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>Cutoff Time</label>
-                            <TimePickerPopover
-                              value={noTradingAfterTime}
-                              onChange={setNoTradingAfterTime}
-                              subtitle="Broker"
+                        <div className="space-y-2.5">
+                          <div className="space-y-1">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                <span
+                                  className={`w-1.5 h-1.5 rounded-full ${
+                                    lotTelemetry.behaviour.isPastCutoff
+                                      ? "bg-rose-500"
+                                      : "bg-emerald-500"
+                                  }`}
+                                />
+                                <span>
+                                  {lotTelemetry.behaviour.isPastCutoff
+                                    ? `Past ${formatTime12h(noTradingAfterTime)} cutoff`
+                                    : `Cutoff @ ${formatTime12h(noTradingAfterTime)}`}
+                                </span>
+                              </span>
+                              <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                {lotTelemetry.behaviour.cutoffProgressPct}% of day
+                              </span>
+                            </div>
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="Daily Cutoff Progress Bar"
+                              value={lotTelemetry.behaviour.cutoffProgressPct}
+                              totalNotches={42}
+                              linearHeight={10}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.35}
+                              useGradient
+                              gradientColors={
+                                lotTelemetry.behaviour.isPastCutoff
+                                  ? ["#FB7185", "#E11D48", "#BE123C"]
+                                  : ["#60A5FA", "#2563EB", "#0031F2"]
+                              }
                             />
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Action</label>
-                            <Select defaultValue="block">
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="block">
-                                  Block new trades
-                                </SelectItem>
-                                <SelectItem value="close">
-                                  Close &amp; block
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>Cutoff Time</label>
+                              <TimePickerPopover
+                                value={noTradingAfterTime}
+                                onChange={setNoTradingAfterTime}
+                                subtitle={
+                                  activeMarket === "indian" ? "IST" : "Broker"
+                                }
+                              />
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Action</label>
+                              <Select
+                                value={noTradeAfterAction}
+                                onValueChange={(v) =>
+                                  setNoTradeAfterAction(v as "block" | "close")
+                                }
+                              >
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="block">
+                                    Block new trades
+                                  </SelectItem>
+                                  <SelectItem value="close">
+                                    Close &amp; block
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </div>
                       </RiskGuardCard>
@@ -3895,30 +4274,114 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={HeartPulse}
                           title="Behavioural Risk Detector"
-                          description="AI overtrading & tilt detection"
+                          description="Spots emotional tilt & revenge overtrading early"
                           value={`${emotionSensitivity}%`}
                           active={emotionalTradingDetector}
                           onToggle={setEmotionalTradingDetector}
                           intent="discipline"
+                          hasDashboardWidget={pinnedWidgets.includes("tilt_score")}
                         >
-                          <div className="flex items-center gap-2.5 h-[30px]">
-                            <span className="text-[10px] font-medium text-slate-400">
-                              Low
-                            </span>
-                            <input
-                              type="range"
-                              min="0"
-                              max="100"
-                              step="10"
-                              value={emotionSensitivity}
-                              onChange={(e) =>
-                                setEmotionSensitivity(Number(e.target.value))
-                              }
-                              className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                            />
-                            <span className="text-[10px] font-medium text-slate-400">
-                              High
-                            </span>
+                          <div className="space-y-2.5">
+                            {/* Smooth Calm / Tilt Trendline */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10.5px]">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                  <span>
+                                    Calm Score: {lotTelemetry.behaviour.calmScore}%
+                                  </span>
+                                  <span
+                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                                  {lotTelemetry.behaviour.calmScore >= 75
+                                    ? "Steady mindset"
+                                    : "Watch tilt risk"}
+                                </span>
+                              </div>
+                              <div className="w-full h-9 rounded-xl bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] px-2 py-1 overflow-hidden">
+                                <svg
+                                  viewBox="0 0 220 32"
+                                  preserveAspectRatio="none"
+                                  className="w-full h-full overflow-visible"
+                                >
+                                  <defs>
+                                    <linearGradient
+                                      id="tiltTrendFill"
+                                      x1="0"
+                                      y1="0"
+                                      x2="0"
+                                      y2="1"
+                                    >
+                                      <stop
+                                        offset="0%"
+                                        stopColor="#2563EB"
+                                        stopOpacity="0.22"
+                                      />
+                                      <stop
+                                        offset="100%"
+                                        stopColor="#2563EB"
+                                        stopOpacity="0"
+                                      />
+                                    </linearGradient>
+                                  </defs>
+                                  {(() => {
+                                    const pts = lotTelemetry.behaviour.tiltSeries;
+                                    const coords = pts.map((v, idx) => {
+                                      const x =
+                                        (idx / Math.max(1, pts.length - 1)) * 220;
+                                      const y =
+                                        28 -
+                                        ((Math.max(40, Math.min(100, v)) - 40) /
+                                          60) *
+                                          24;
+                                      return `${x.toFixed(1)},${y.toFixed(1)}`;
+                                    });
+                                    const linePath = `M ${coords.join(" L ")}`;
+                                    const areaPath = `${linePath} L 220,32 L 0,32 Z`;
+                                    return (
+                                      <>
+                                        <path d={areaPath} fill="url(#tiltTrendFill)" />
+                                        <path
+                                          d={linePath}
+                                          fill="none"
+                                          stroke="#2563EB"
+                                          strokeWidth="2"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </>
+                                    );
+                                  })()}
+                                </svg>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2.5 h-[26px]">
+                              <span className="text-[10px] font-medium text-slate-400">
+                                Relaxed
+                              </span>
+                              <input
+                                type="range"
+                                min="10"
+                                max="100"
+                                step="10"
+                                value={emotionSensitivity}
+                                onChange={(e) =>
+                                  setEmotionSensitivity(Number(e.target.value))
+                                }
+                                className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                              />
+                              <span className="text-[10px] font-medium text-slate-400">
+                                Strict
+                              </span>
+                            </div>
                           </div>
                         </RiskGuardCard>
                       )}
@@ -3926,53 +4389,77 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={AlertTriangle}
                         title="News Filter"
-                        description="Block trading around major news"
+                        description="Pause trading before & after high-impact news spikes"
+                        value={`${newsBeforeMins + newsAfterMins}m buffer`}
                         active={newsFilter}
                         onToggle={setNewsFilter}
                         intent="warning"
                       >
-                        <div className="grid grid-cols-[1.2fr_0.65fr_0.65fr] gap-2">
-                          <div>
-                            <label className={FIELD_LABEL}>Impact</label>
-                            <Select
-                              value={newsImpactLevel}
-                              onValueChange={setNewsImpactLevel}
-                            >
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="high">High Only</SelectItem>
-                                <SelectItem value="medium_high">
-                                  Med &amp; High
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Before</label>
-                            <div
-                              className={`flex items-center h-[32px] px-1.5 ${INPUT_BASE}`}
-                            >
-                              <input
-                                type="number"
-                                defaultValue="30"
-                                className="w-full bg-transparent outline-none text-center"
-                              />
-                              <span className="text-[9px] text-slate-400">m</span>
+                        <div className="space-y-2.5">
+                          {/* Visual News Blackout Buffer Timeline */}
+                          <div className="flex items-center gap-1 text-[9.5px] font-semibold">
+                            <div className="flex-1 py-1 px-2 rounded-l-lg bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 text-center tabular-nums">
+                              -{newsBeforeMins}m Pause
+                            </div>
+                            <div className="py-1 px-2 rounded bg-rose-100 dark:bg-rose-500/25 text-rose-700 dark:text-rose-300 font-bold">
+                              News Spike
+                            </div>
+                            <div className="flex-1 py-1 px-2 rounded-r-lg bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 text-center tabular-nums">
+                              +{newsAfterMins}m Pause
                             </div>
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>After</label>
-                            <div
-                              className={`flex items-center h-[32px] px-1.5 ${INPUT_BASE}`}
-                            >
-                              <input
-                                type="number"
-                                defaultValue="15"
-                                className="w-full bg-transparent outline-none text-center"
-                              />
-                              <span className="text-[9px] text-slate-400">m</span>
+
+                          <div className="grid grid-cols-[1.2fr_0.65fr_0.65fr] gap-2">
+                            <div>
+                              <label className={FIELD_LABEL}>Impact</label>
+                              <Select
+                                value={newsImpactLevel}
+                                onValueChange={setNewsImpactLevel}
+                              >
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="high">High Only</SelectItem>
+                                  <SelectItem value="medium_high">
+                                    Med &amp; High
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Before</label>
+                              <div
+                                className={`flex items-center h-[32px] px-1.5 ${INPUT_BASE}`}
+                              >
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={newsBeforeMins}
+                                  onChange={(e) =>
+                                    setNewsBeforeMins(Math.max(0, Number(e.target.value)))
+                                  }
+                                  className="w-full bg-transparent outline-none text-center"
+                                />
+                                <span className="text-[9px] text-slate-400">m</span>
+                              </div>
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>After</label>
+                              <div
+                                className={`flex items-center h-[32px] px-1.5 ${INPUT_BASE}`}
+                              >
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={newsAfterMins}
+                                  onChange={(e) =>
+                                    setNewsAfterMins(Math.max(0, Number(e.target.value)))
+                                  }
+                                  className="w-full bg-transparent outline-none text-center"
+                                />
+                                <span className="text-[9px] text-slate-400">m</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -3981,30 +4468,39 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={Moon}
                         title="Sleep Protection"
-                        description="Disable late-night trading"
+                        description="Block late-night tired trading hours"
+                        value={lotTelemetry.behaviour.sleepHoursLabel}
                         active={sleepProtection}
                         onToggle={setSleepProtection}
                         intent="discipline"
                       >
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>Start</label>
-                            <input
-                              type="time"
-                              value={sleepTimeStart}
-                              onChange={(e) =>
-                                setSleepTimeStart(e.target.value)
-                              }
-                              className={`w-full px-2.5 h-[32px] ${INPUT_BASE}`}
-                            />
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.07] text-[10.5px]">
+                            <span className="font-semibold text-slate-600 dark:text-neutral-300">
+                              Rest Window
+                            </span>
+                            <span className="font-bold text-[#2563EB] dark:text-blue-400 tabular-nums">
+                              {formatTime12h(sleepTimeStart)} → {formatTime12h(sleepTimeEnd)}
+                            </span>
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>End</label>
-                            <input
-                              type="time"
-                              defaultValue="06:00"
-                              className={`w-full px-2.5 h-[32px] ${INPUT_BASE}`}
-                            />
+
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>Sleep Start</label>
+                              <TimePickerPopover
+                                value={sleepTimeStart}
+                                onChange={setSleepTimeStart}
+                                subtitle="Local"
+                              />
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Wake Up</label>
+                              <TimePickerPopover
+                                value={sleepTimeEnd}
+                                onChange={setSleepTimeEnd}
+                                subtitle="Local"
+                              />
+                            </div>
                           </div>
                         </div>
                       </RiskGuardCard>
@@ -4013,45 +4509,77 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={CheckSquare}
                           title="Pre-Trade Checklist"
-                          description="Mandatory popup before entry"
+                          description="Quick discipline check before placing an order"
+                          value={
+                            checklistPreset === "basic"
+                              ? "3 Checks"
+                              : checklistPreset === "strict"
+                              ? "8 Checks"
+                              : "5 Checks"
+                          }
                           active={preTradeChecklist}
                           onToggle={setPreTradeChecklist}
                           intent="discipline"
                         >
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <div>
-                              <label className={FIELD_LABEL}>Preset</label>
-                              <Select defaultValue="standard">
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="basic">
-                                    Basic (3)
-                                  </SelectItem>
-                                  <SelectItem value="standard">
-                                    Standard (5)
-                                  </SelectItem>
-                                  <SelectItem value="strict">
-                                    Strict (8)
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                          <div className="space-y-2.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {(checklistPreset === "basic"
+                                ? ["SL Set", "Trend Aligned", "Lot Safe"]
+                                : checklistPreset === "strict"
+                                ? ["SL Set", "Min 1:2 R:R", "No News", "Trend OK", "+4 more"]
+                                : ["SL Set", "Lot Safe", "In Session", "+2 more"]
+                              ).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="px-2 py-0.5 rounded-md bg-blue-50/70 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-300 text-[9.5px] font-semibold"
+                                >
+                                  ✓ {tag}
+                                </span>
+                              ))}
                             </div>
-                            <div>
-                              <label className={FIELD_LABEL}>Items</label>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  toast.info(
-                                    "Checklist editor saved with your active preset."
-                                  )
-                                }
-                                className="tactile-white-pill w-full h-[32px] rounded-[9px] text-[11px] font-semibold inline-flex items-center justify-center gap-1 cursor-pointer"
-                              >
-                                <Settings size={11} />
-                                <span>Edit Items</span>
-                              </button>
+
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label className={FIELD_LABEL}>Preset</label>
+                                <Select
+                                  value={checklistPreset}
+                                  onValueChange={(v) =>
+                                    setChecklistPreset(
+                                      v as "basic" | "standard" | "strict"
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className={SELECT_TRIGGER}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="basic">
+                                      Basic (3)
+                                    </SelectItem>
+                                    <SelectItem value="standard">
+                                      Standard (5)
+                                    </SelectItem>
+                                    <SelectItem value="strict">
+                                      Strict (8)
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className={FIELD_LABEL}>Items</label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    toast.info(
+                                      `Active checklist preset: ${checklistPreset.toUpperCase()}`
+                                    )
+                                  }
+                                  className="tactile-white-pill w-full h-[32px] rounded-[9px] text-[11px] font-semibold inline-flex items-center justify-center gap-1 cursor-pointer"
+                                >
+                                  <Settings size={11} />
+                                  <span>Edit Items</span>
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </RiskGuardCard>
@@ -4061,28 +4589,56 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={Brain}
                           title="Psychology Check"
-                          description="Mandatory mindset check-in"
+                          description="10-second calm mindset check-in before trading"
+                          value={
+                            psychologyFreq === "every"
+                              ? "Every Trade"
+                              : psychologyFreq === "loss"
+                              ? "After Loss"
+                              : psychologyFreq === "daily"
+                              ? "Once Daily"
+                              : "1st Trade"
+                          }
                           active={psychologyCheck}
                           onToggle={setPsychologyCheck}
                           intent="discipline"
                         >
-                          <Select defaultValue="first">
-                            <SelectTrigger className={SELECT_TRIGGER}>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="first">
-                                Before first trade
-                              </SelectItem>
-                              <SelectItem value="loss">
-                                After a losing trade
-                              </SelectItem>
-                              <SelectItem value="every">
-                                Before every trade
-                              </SelectItem>
-                              <SelectItem value="daily">Once daily</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="space-y-2.5">
+                            <div className="flex items-center gap-1.5">
+                              {["Calm", "Focused", "Patient"].map((mood) => (
+                                <span
+                                  key={mood}
+                                  className="flex-1 text-center py-1 rounded-lg bg-slate-50 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.07] text-[10px] font-semibold text-slate-600 dark:text-neutral-300"
+                                >
+                                  {mood}
+                                </span>
+                              ))}
+                            </div>
+                            <Select
+                              value={psychologyFreq}
+                              onValueChange={(v) =>
+                                setPsychologyFreq(
+                                  v as "first" | "loss" | "every" | "daily"
+                                )
+                              }
+                            >
+                              <SelectTrigger className={SELECT_TRIGGER}>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="first">
+                                  Before first trade
+                                </SelectItem>
+                                <SelectItem value="loss">
+                                  After a losing trade
+                                </SelectItem>
+                                <SelectItem value="every">
+                                  Before every trade
+                                </SelectItem>
+                                <SelectItem value="daily">Once daily</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </RiskGuardCard>
                       )}
 
@@ -4090,44 +4646,62 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={Sparkles}
                           title="AI Weekly Review"
-                          description="Automated weekly trade audit"
+                          description="Automatic weekend report on habits & leaks"
+                          value={formatTime12h(aiReviewTime)}
                           active={aiWeeklyReview}
                           onToggle={setAiWeeklyReview}
                           intent="discipline"
                         >
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className={FIELD_LABEL}>Day</label>
-                              <Select defaultValue="friday">
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="friday">Fri</SelectItem>
-                                  <SelectItem value="saturday">Sat</SelectItem>
-                                  <SelectItem value="sunday">Sun</SelectItem>
-                                </SelectContent>
-                              </Select>
+                          <div className="space-y-2.5">
+                            <div className="px-2.5 py-1.5 rounded-xl bg-blue-50/60 dark:bg-blue-500/10 border border-blue-200/60 dark:border-blue-500/20 text-[10px] font-semibold text-[#2563EB] dark:text-blue-300">
+                              Delivers win-rate, rule breaks &amp; best setups every week
                             </div>
-                            <div>
-                              <label className={FIELD_LABEL}>Time</label>
-                              <input
-                                type="time"
-                                defaultValue="17:00"
-                                className={`w-full px-1.5 h-[32px] ${INPUT_BASE}`}
-                              />
-                            </div>
-                            <div>
-                              <label className={FIELD_LABEL}>Send</label>
-                              <Select defaultValue="in_app">
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="in_app">In-app</SelectItem>
-                                  <SelectItem value="email">Email</SelectItem>
-                                </SelectContent>
-                              </Select>
+                            <div className="grid grid-cols-[0.75fr_1.35fr_0.9fr] gap-2">
+                              <div>
+                                <label className={FIELD_LABEL}>Day</label>
+                                <Select
+                                  value={aiReviewDay}
+                                  onValueChange={(v) =>
+                                    setAiReviewDay(
+                                      v as "friday" | "saturday" | "sunday"
+                                    )
+                                  }
+                                >
+                                  <SelectTrigger className={SELECT_TRIGGER}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="friday">Fri</SelectItem>
+                                    <SelectItem value="saturday">Sat</SelectItem>
+                                    <SelectItem value="sunday">Sun</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className={FIELD_LABEL}>Time</label>
+                                <TimePickerPopover
+                                  value={aiReviewTime}
+                                  onChange={setAiReviewTime}
+                                  subtitle=""
+                                />
+                              </div>
+                              <div>
+                                <label className={FIELD_LABEL}>Send</label>
+                                <Select
+                                  value={aiReviewSend}
+                                  onValueChange={(v) =>
+                                    setAiReviewSend(v as "in_app" | "email")
+                                  }
+                                >
+                                  <SelectTrigger className={SELECT_TRIGGER}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="in_app">In-app</SelectItem>
+                                    <SelectItem value="email">Email</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           </div>
                         </RiskGuardCard>
@@ -4137,59 +4711,80 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={Volume2}
                           title="AI Voice Warning"
-                          description="Audible limit alerts"
+                          description="Spoken alert before you break a limit"
                           value={`${voiceVolume}%`}
                           active={aiVoiceWarning}
                           onToggle={setAiVoiceWarning}
                           intent="warning"
                         >
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <div>
-                              <label className={FIELD_LABEL}>Volume</label>
-                              <div className="flex items-center gap-1.5 h-[32px]">
-                                <input
-                                  type="range"
-                                  min="0"
-                                  max="100"
-                                  step="10"
-                                  value={voiceVolume}
-                                  onChange={(e) =>
-                                    setVoiceVolume(Number(e.target.value))
-                                  }
-                                  className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    toast.info(
-                                      `Voice alert preview: ${voiceVolume}%`
+                          <div className="space-y-2.5">
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="Voice Alert Output Level"
+                              value={voiceVolume}
+                              totalNotches={36}
+                              linearHeight={9}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.3}
+                              useGradient
+                              gradientColors={["#FBBF24", "#F59E0B", "#D97706"]}
+                            />
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label className={FIELD_LABEL}>Volume</label>
+                                <div className="flex items-center gap-1.5 h-[32px]">
+                                  <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    step="10"
+                                    value={voiceVolume}
+                                    onChange={(e) =>
+                                      setVoiceVolume(Number(e.target.value))
+                                    }
+                                    className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      toast.info(
+                                        `Voice alert preview: ${voiceVolume}%`
+                                      )
+                                    }
+                                    className="tactile-white-pill w-[30px] h-[30px] rounded-[8px] flex items-center justify-center cursor-pointer shrink-0"
+                                    title="Test audio alert"
+                                  >
+                                    <Volume2 size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                              <div>
+                                <label className={FIELD_LABEL}>Triggers</label>
+                                <Select
+                                  value={voiceTrigger}
+                                  onValueChange={(v) =>
+                                    setVoiceTrigger(
+                                      v as "all" | "critical" | "drawdown"
                                     )
                                   }
-                                  className="tactile-white-pill w-[30px] h-[30px] rounded-[8px] flex items-center justify-center cursor-pointer shrink-0"
-                                  title="Test audio alert"
                                 >
-                                  <Volume2 size={12} />
-                                </button>
+                                  <SelectTrigger className={SELECT_TRIGGER}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="all">
+                                      All warnings
+                                    </SelectItem>
+                                    <SelectItem value="critical">
+                                      Critical only
+                                    </SelectItem>
+                                    <SelectItem value="drawdown">
+                                      Drawdown only
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
-                            </div>
-                            <div>
-                              <label className={FIELD_LABEL}>Triggers</label>
-                              <Select defaultValue="critical">
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="all">
-                                    All warnings
-                                  </SelectItem>
-                                  <SelectItem value="critical">
-                                    Critical only
-                                  </SelectItem>
-                                  <SelectItem value="drawdown">
-                                    Drawdown only
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
                             </div>
                           </div>
                         </RiskGuardCard>
@@ -4198,65 +4793,101 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={Key}
                         title="Guardian PIN"
-                        description="Require 4-digit PIN to override"
-                        value={pinActive ? "Locked" : undefined}
+                        description="Require 4-digit PIN before turning off any lock"
+                        value={
+                          guardianPin.length === 4 && guardianPin === confirmPin
+                            ? "PIN Set"
+                            : "Setup"
+                        }
                         active={pinActive}
-                        onToggle={setPinActive}
+                        onToggle={(val) => {
+                          if (
+                            val &&
+                            (guardianPin.length !== 4 || guardianPin !== confirmPin)
+                          ) {
+                            toast.error("Set Matching 4-Digit PIN First", {
+                              description:
+                                "Enter and confirm the same 4 digits before activating PIN lock.",
+                            });
+                            return;
+                          }
+                          setPinActive(val);
+                        }}
                         intent="emergency"
                       >
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>Enter PIN</label>
-                            <div className="relative flex items-center">
-                              <input
-                                type={showPin ? "text" : "password"}
-                                value={guardianPin}
-                                onChange={(e) =>
-                                  setGuardianPin(
-                                    e.target.value.replace(/\D/g, "").slice(0, 4)
-                                  )
-                                }
-                                placeholder="••••"
-                                className={`w-full pl-2.5 pr-7 h-[32px] tracking-widest ${INPUT_BASE}`}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPin(!showPin)}
-                                className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
-                              >
-                                {showPin ? (
-                                  <EyeOff size={12} />
-                                ) : (
-                                  <Eye size={12} />
-                                )}
-                              </button>
-                            </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-[10px] font-semibold">
+                            <span className="text-slate-400">PIN Status</span>
+                            <span
+                              className={
+                                guardianPin.length === 4 &&
+                                guardianPin === confirmPin
+                                  ? "text-emerald-600 dark:text-emerald-400"
+                                  : "text-amber-600 dark:text-amber-400"
+                              }
+                            >
+                              {guardianPin.length === 4 &&
+                              guardianPin === confirmPin
+                                ? "✓ 4-digit PIN ready"
+                                : guardianPin.length === 4
+                                ? "PINs do not match yet"
+                                : "Enter 4 digits below"}
+                            </span>
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Confirm PIN</label>
-                            <div className="relative flex items-center">
-                              <input
-                                type={showPin ? "text" : "password"}
-                                value={confirmPin}
-                                onChange={(e) =>
-                                  setConfirmPin(
-                                    e.target.value.replace(/\D/g, "").slice(0, 4)
-                                  )
-                                }
-                                placeholder="••••"
-                                className={`w-full pl-2.5 pr-7 h-[32px] tracking-widest ${INPUT_BASE}`}
-                              />
-                              <button
-                                type="button"
-                                onClick={() => setShowPin(!showPin)}
-                                className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
-                              >
-                                {showPin ? (
-                                  <EyeOff size={12} />
-                                ) : (
-                                  <Eye size={12} />
-                                )}
-                              </button>
+                          <div className="grid grid-cols-2 gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>Enter PIN</label>
+                              <div className="relative flex items-center">
+                                <input
+                                  type={showPin ? "text" : "password"}
+                                  value={guardianPin}
+                                  onChange={(e) =>
+                                    setGuardianPin(
+                                      e.target.value.replace(/\D/g, "").slice(0, 4)
+                                    )
+                                  }
+                                  placeholder="••••"
+                                  className={`w-full pl-2.5 pr-7 h-[30px] tracking-widest ${INPUT_BASE}`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPin(!showPin)}
+                                  className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                                >
+                                  {showPin ? (
+                                    <EyeOff size={12} />
+                                  ) : (
+                                    <Eye size={12} />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Confirm PIN</label>
+                              <div className="relative flex items-center">
+                                <input
+                                  type={showPin ? "text" : "password"}
+                                  value={confirmPin}
+                                  onChange={(e) =>
+                                    setConfirmPin(
+                                      e.target.value.replace(/\D/g, "").slice(0, 4)
+                                    )
+                                  }
+                                  placeholder="••••"
+                                  className={`w-full pl-2.5 pr-7 h-[30px] tracking-widest ${INPUT_BASE}`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPin(!showPin)}
+                                  className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                                >
+                                  {showPin ? (
+                                    <EyeOff size={12} />
+                                  ) : (
+                                    <Eye size={12} />
+                                  )}
+                                </button>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -4265,42 +4896,54 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={MonitorOff}
                         title="Terminal Hard Stop"
-                        description="Force lock terminal on limit breach"
-                        value={hardStopActive ? "Engaged" : undefined}
+                        description="Emergency lock: flattens open orders & blocks trading today"
+                        value={hardStopActive ? "Locked" : "Armed"}
                         active={hardStopActive}
                         onToggle={setHardStopActive}
                         intent="emergency"
                       >
-                        <div className="grid grid-cols-[1.35fr_0.65fr] gap-2.5">
-                          <div>
-                            <label className={FIELD_LABEL}>Trigger</label>
-                            <Select defaultValue="drawdown">
-                              <SelectTrigger className={SELECT_TRIGGER}>
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="drawdown">
-                                  Max Drawdown breach
-                                </SelectItem>
-                                <SelectItem value="equity">
-                                  Equity stop limit hit
-                                </SelectItem>
-                                <SelectItem value="rules">
-                                  Repeated rule violation
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
+                        <div className="space-y-2">
+                          <div className="px-2.5 py-1.5 rounded-xl bg-rose-50/75 dark:bg-rose-500/10 border border-rose-200/70 dark:border-rose-500/20 text-[10px] font-semibold text-rose-700 dark:text-rose-300">
+                            Flattens open orders &amp; blocks entries for rest of the day
                           </div>
-                          <div>
-                            <label className={FIELD_LABEL}>Preview</label>
-                            <button
-                              type="button"
-                              onClick={() => setHardStopActive(true)}
-                              className="w-full h-[32px] flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-500/15 border border-rose-200/80 dark:border-rose-500/30 rounded-[9px] text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors cursor-pointer"
-                            >
-                              <MonitorOff size={11} />
-                              <span>Test Lock</span>
-                            </button>
+                          <div className="grid grid-cols-[1.35fr_0.65fr] gap-2.5">
+                            <div>
+                              <label className={FIELD_LABEL}>Trigger On</label>
+                              <Select
+                                value={hardStopTrigger}
+                                onValueChange={(v) =>
+                                  setHardStopTrigger(
+                                    v as "drawdown" | "equity" | "rules"
+                                  )
+                                }
+                              >
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="drawdown">
+                                    Max Drawdown breach
+                                  </SelectItem>
+                                  <SelectItem value="equity">
+                                    Equity stop limit hit
+                                  </SelectItem>
+                                  <SelectItem value="rules">
+                                    Repeated rule violation
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Preview</label>
+                              <button
+                                type="button"
+                                onClick={() => setHardStopActive(true)}
+                                className="w-full h-[32px] flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-500/15 border border-rose-200/80 dark:border-rose-500/30 rounded-[9px] text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors cursor-pointer"
+                              >
+                                <MonitorOff size={11} />
+                                <span>Test Lock</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </RiskGuardCard>

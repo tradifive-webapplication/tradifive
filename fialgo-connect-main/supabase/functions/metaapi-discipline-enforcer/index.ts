@@ -111,8 +111,14 @@ serve(async (req) => {
     const minRrRatio = Number(rules.min_risk_reward || 1.5);
     const weekendLockEnabled = Boolean(rules.weekend_lock);
     const weekendCloseTime = String(rules.weekend_close_time || '20:00');
+    const weekendAction = rules.weekend_action === 'close' || rules.weekend_action === 'block' ? rules.weekend_action : 'both';
     const equityFloorActive = Boolean(rules.equity_hard_stop_active);
     const equityFloor = Number(rules.equity_hard_stop || 0);
+    const noTradeAfterActive = Boolean(rules.no_trade_after_active);
+    const noTradeAfterTime = String(rules.no_trade_after_time || '20:00');
+    const sleepProtectionEnabled = Boolean(rules.sleep_protection);
+    const sleepStart = String(rules.sleep_start || '23:00');
+    const sleepEnd = String(rules.sleep_end || '06:00');
 
     // Extract trade volume & symbol from MetaApi/Custom webhook payload
     let tradeVolume = payload.volume || payload.lot_size || payload.position?.volume || null;
@@ -150,6 +156,8 @@ serve(async (req) => {
         stopLossRequired ||
         minRrActive ||
         weekendLockEnabled ||
+        noTradeAfterActive ||
+        sleepProtectionEnabled ||
         (equityFloorActive && equityFloor > 0) ||
         noAvgEnabled ||
         martingaleEnabled ||
@@ -344,7 +352,7 @@ serve(async (req) => {
             }
 
             // Check Weekend Lock Window (UTC day/time fallback)
-            if (!violationReason && weekendLockEnabled) {
+            if (!violationReason && weekendLockEnabled && weekendAction !== 'close') {
               const nowDt = new Date();
               const utcDay = nowDt.getUTCDay();
               const [wh, wm] = weekendCloseTime.split(':').map(Number);
@@ -352,6 +360,31 @@ serve(async (req) => {
               const utcMins = nowDt.getUTCHours() * 60 + nowDt.getUTCMinutes();
               if (utcDay === 6 || utcDay === 0 || (utcDay === 5 && utcMins >= cutoffMins)) {
                 violationReason = 'WEEKEND_LOCK_ACTIVE';
+              }
+            }
+
+            // Check Daily Cutoff Time (No Trading After Time)
+            if (!violationReason && noTradeAfterActive) {
+              const nowDt = new Date();
+              const [ch, cm] = noTradeAfterTime.split(':').map(Number);
+              const cutMins = (Number.isFinite(ch) ? ch : 20) * 60 + (Number.isFinite(cm) ? cm : 0);
+              const utcMins = nowDt.getUTCHours() * 60 + nowDt.getUTCMinutes();
+              if (utcMins >= cutMins) {
+                violationReason = 'NO_TRADING_AFTER_CUTOFF';
+              }
+            }
+
+            // Check Sleep Protection Rest Window
+            if (!violationReason && sleepProtectionEnabled) {
+              const nowDt = new Date();
+              const [sh, sm] = sleepStart.split(':').map(Number);
+              const [eh, em] = sleepEnd.split(':').map(Number);
+              const sMin = (Number.isFinite(sh) ? sh : 23) * 60 + (Number.isFinite(sm) ? sm : 0);
+              const eMin = (Number.isFinite(eh) ? eh : 6) * 60 + (Number.isFinite(em) ? em : 0);
+              const utcMins = nowDt.getUTCHours() * 60 + nowDt.getUTCMinutes();
+              const inSleep = sMin > eMin ? (utcMins >= sMin || utcMins < eMin) : (utcMins >= sMin && utcMins < eMin);
+              if (inSleep) {
+                violationReason = 'SLEEP_PROTECTION_ACTIVE';
               }
             }
           }
@@ -400,6 +433,8 @@ serve(async (req) => {
           if (violationReason === 'STOP_LOSS_REQUIRED') friendlyReason = `Stop-Loss missing on ${tradeSymbol}`;
           if (violationReason === 'MIN_RR_NOT_MET') friendlyReason = `Trade R:R below minimum 1:${minRrRatio}`;
           if (violationReason === 'WEEKEND_LOCK_ACTIVE') friendlyReason = `Weekend Lock active after ${weekendCloseTime}`;
+          if (violationReason === 'NO_TRADING_AFTER_CUTOFF') friendlyReason = `Trading disabled after ${noTradeAfterTime}`;
+          if (violationReason === 'SLEEP_PROTECTION_ACTIVE') friendlyReason = `Sleep Protection active (${sleepStart} - ${sleepEnd})`;
 
           return new Response(
             JSON.stringify({ 

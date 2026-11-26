@@ -2,10 +2,14 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
+  Clock,
   Crosshair,
+  HeartPulse,
   Layers,
   LayoutGrid,
   ShieldAlert,
+  ShieldCheck,
+  ShieldOff,
   Target,
   TrendingDown,
   Wallet,
@@ -22,7 +26,11 @@ export type RiskWidgetId =
   | "one_instrument"
   | "drawdown"
   | "profit_target"
-  | "equity_floor";
+  | "equity_floor"
+  | "trade_limit"
+  | "loss_cooldown"
+  | "session"
+  | "tilt_score";
 
 const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
   "max_lot",
@@ -32,47 +40,83 @@ const VALID_WIDGET_IDS = new Set<RiskWidgetId>([
   "drawdown",
   "profit_target",
   "equity_floor",
+  "trade_limit",
+  "loss_cooldown",
+  "session",
+  "tilt_score",
 ]);
 
 export const RISK_WIDGET_CATALOG: {
   id: RiskWidgetId;
+  group: "Trading Control" | "Risk Management" | "Behaviour & Discipline";
   title: string;
   subtitle: string;
 }[] = [
   {
     id: "max_lot",
+    group: "Trading Control",
     title: "Max Lot Guard",
     subtitle: "72-notch dial: open vs locked lots",
   },
   {
     id: "no_avg",
+    group: "Trading Control",
     title: "No Averaging Down",
     subtitle: "Linear gauge: losing-position add guard",
   },
   {
     id: "martingale",
+    group: "Trading Control",
     title: "Post-Loss Lot Cap",
     subtitle: "Step flow + bar: limit size after a loss",
   },
   {
     id: "one_instrument",
+    group: "Trading Control",
     title: "One Instrument Focus",
     subtitle: "Pair split bar: active vs other pairs",
   },
   {
     id: "drawdown",
+    group: "Risk Management",
     title: "Drawdown Guard",
     subtitle: "72-notch dial: worst drawdown vs cap",
   },
   {
     id: "profit_target",
+    group: "Risk Management",
     title: "Daily Profit Goal",
     subtitle: "Emerald milestone bar: today's gain vs goal",
   },
   {
     id: "equity_floor",
+    group: "Risk Management",
     title: "Account Equity Floor",
     subtitle: "Safety buffer: live equity vs hard stop",
+  },
+  {
+    id: "trade_limit",
+    group: "Behaviour & Discipline",
+    title: "Daily Trade Limit",
+    subtitle: "Linear bar: executed orders vs daily cap",
+  },
+  {
+    id: "loss_cooldown",
+    group: "Behaviour & Discipline",
+    title: "Loss Cooldown Shield",
+    subtitle: "Recovery wait timer after losing trades",
+  },
+  {
+    id: "session",
+    group: "Behaviour & Discipline",
+    title: "Session Sentinel",
+    subtitle: "Active trading sessions strip",
+  },
+  {
+    id: "tilt_score",
+    group: "Behaviour & Discipline",
+    title: "Calm & Tilt Trend",
+    subtitle: "Smooth trendline: mindset stability score",
   },
 ];
 
@@ -149,33 +193,44 @@ export const DashboardWidgetsPicker: React.FC = () => {
           </Link>
         </div>
 
-        <div className="space-y-1.5 max-h-[280px] overflow-y-auto amazing-scrollbar pr-0.5">
-          {RISK_WIDGET_CATALOG.map((item) => {
-            const checked = pinned.includes(item.id);
-            return (
-              <div
-                key={item.id}
-                className="flex items-center justify-between gap-2.5 p-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.04]"
-              >
-                <div className="min-w-0">
-                  <p className="text-[11.5px] font-semibold text-slate-800 dark:text-white truncate">
-                    {item.title}
-                  </p>
-                  <p className="text-[10px] text-slate-400 dark:text-neutral-500 truncate">
-                    {item.subtitle}
-                  </p>
-                </div>
-                <Switch
-                  size="sm"
-                  checked={checked}
-                  onChange={() => {
-                    togglePinRiskWidget(item.id);
-                    setPinned(getPinnedRiskWidgets());
-                  }}
-                />
+        <div className="space-y-2.5 max-h-[340px] overflow-y-auto amazing-scrollbar pr-0.5">
+          {(["Trading Control", "Risk Management", "Behaviour & Discipline"] as const).map(
+            (groupName) => (
+              <div key={groupName} className="space-y-1">
+                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-1 pt-0.5">
+                  {groupName}
+                </p>
+                {RISK_WIDGET_CATALOG.filter((item) => item.group === groupName).map(
+                  (item) => {
+                    const checked = pinned.includes(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between gap-2.5 p-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.04]"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-[11.5px] font-semibold text-slate-800 dark:text-white truncate">
+                            {item.title}
+                          </p>
+                          <p className="text-[10px] text-slate-400 dark:text-neutral-500 truncate">
+                            {item.subtitle}
+                          </p>
+                        </div>
+                        <Switch
+                          size="sm"
+                          checked={checked}
+                          onChange={() => {
+                            togglePinRiskWidget(item.id);
+                            setPinned(getPinnedRiskWidgets());
+                          }}
+                        />
+                      </div>
+                    );
+                  }
+                )}
               </div>
-            );
-          })}
+            )
+          )}
         </div>
       </PopoverContent>
     </Popover>
@@ -461,6 +516,50 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
     const eqBufferPct =
       liveEq > 0 ? Math.min(100, Math.max(0, Math.round(((liveEq - eqFloor) / liveEq) * 100))) : 100;
 
+    // 8. Daily Trade Limit
+    const tradeLimitActive = Boolean(savedCfg?.disciplineActive);
+    const tradeCap = Math.max(1, Number(riskConfig?.max_open_trades || savedCfg?.tradeLimit || 3));
+    let demoTrades = 2;
+    try {
+      const savedT = Number(localStorage.getItem("fialgo_demo_trades_today"));
+      if (Number.isFinite(savedT) && savedT >= 0) demoTrades = savedT;
+    } catch {
+      /* ignore */
+    }
+    const todayTradesUsed = useDemo
+      ? demoTrades
+      : allTrades.filter((t) => new Date(t.closed_at || t.created_at) >= startToday).length;
+    const tradeLimitPct = Math.min(100, Math.round((todayTradesUsed / tradeCap) * 100));
+
+    // 9. Loss Cooldown
+    const cooldownOn = Boolean(savedCfg?.revengeGuard);
+    const cooldownMins = Math.max(5, Number(savedCfg?.waitPeriod || 15));
+    let cooldownRunning = false;
+    try {
+      const cd = JSON.parse(localStorage.getItem("fialgo_cooldown") || "null");
+      cooldownRunning = Boolean(cd?.active && cd?.endsAt > Date.now());
+    } catch {
+      /* ignore */
+    }
+
+    // 10. Session Sentinel
+    const sessionOn = Boolean(savedCfg?.sessionActive);
+    const activeSessionsList: string[] = Array.isArray(savedCfg?.selectedSessions)
+      ? savedCfg.selectedSessions
+      : isIndian
+      ? ["Morning", "Afternoon"]
+      : ["London", "NY"];
+
+    // 11. Tilt / Calm Trend
+    const tiltOn = Boolean(savedCfg?.emotionalTradingDetector);
+    const recent7 = allTrades.filter((t) => t.closed_at).slice(0, 7).reverse();
+    const tiltSeries = useDemo
+      ? [92, 88, 90, 76, 84, 89, 94]
+      : recent7.length >= 2
+      ? recent7.map((t) => Number(t.discipline_score ?? (Number(t.profit || 0) >= 0 ? 88 : 66)))
+      : [85, 87, 84, 89, 90, 88, 92];
+    const calmScore = Math.round(tiltSeries.reduce((a, b) => a + b, 0) / Math.max(1, tiltSeries.length));
+
     return {
       isIndian,
       sym,
@@ -524,6 +623,27 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
         cushion: Math.max(0, liveEq - eqFloor),
         breached: eqFloor > 0 && liveEq <= eqFloor,
         bufferPct: eqBufferPct,
+      },
+      tradeLimit: {
+        active: tradeLimitActive,
+        used: todayTradesUsed,
+        cap: tradeCap,
+        pct: tradeLimitPct,
+        breached: todayTradesUsed >= tradeCap,
+      },
+      cooldown: {
+        active: cooldownOn,
+        mins: cooldownMins,
+        running: cooldownRunning,
+      },
+      session: {
+        active: sessionOn,
+        list: activeSessionsList,
+      },
+      tilt: {
+        active: tiltOn,
+        calmScore,
+        series: tiltSeries,
       },
     };
   }, [activeMarket, isConnected, demoMode, riskConfig, recentTrades, accountMetrics]);
@@ -996,6 +1116,141 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
                   : ["#34D399", "#10B981", "#059669"]
               }
             />
+          </div>
+        </div>
+      )}
+
+      {pinned.includes("trade_limit") && (
+        <div className={`${cardClass} p-3.5`}>
+          <WidgetHeader
+            id="trade_limit"
+            icon={ShieldCheck}
+            title="Daily Trade Limit"
+            badge={
+              widgetData.tradeLimit.breached
+                ? "Max Hit"
+                : widgetData.tradeLimit.active
+                ? "Guarded"
+                : "Off"
+            }
+            badgeTone={
+              widgetData.tradeLimit.breached
+                ? "rose"
+                : widgetData.tradeLimit.active
+                ? "emerald"
+                : "neutral"
+            }
+          />
+          <Gauge
+            orientation="linear"
+            ariaLabel="Dashboard Daily Trade Count"
+            value={widgetData.tradeLimit.pct}
+            centerValue={widgetData.tradeLimit.used}
+            defaultLabel={`${widgetData.tradeLimit.used} of ${widgetData.tradeLimit.cap} trades today`}
+            suffix={`/${widgetData.tradeLimit.cap}`}
+            labelPlacement="top"
+            labelAlign="start"
+            totalNotches={36}
+            linearHeight={12}
+            spacing={2}
+            notchCornerRadius={3}
+            inactiveFillOpacity={0.35}
+            useGradient
+            gradientColors={
+              widgetData.tradeLimit.breached
+                ? ["#FB7185", "#E11D48", "#BE123C"]
+                : ["#60A5FA", "#2563EB", "#0031F2"]
+            }
+          />
+        </div>
+      )}
+
+      {pinned.includes("loss_cooldown") && (
+        <div className={`${cardClass} p-3.5`}>
+          <WidgetHeader
+            id="loss_cooldown"
+            icon={ShieldOff}
+            title="Loss Cooldown"
+            badge={
+              widgetData.cooldown.running
+                ? "Paused"
+                : widgetData.cooldown.active
+                ? `${widgetData.cooldown.mins}m`
+                : "Off"
+            }
+            badgeTone={
+              widgetData.cooldown.running
+                ? "rose"
+                : widgetData.cooldown.active
+                ? "emerald"
+                : "neutral"
+            }
+          />
+          <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-neutral-400">
+            <span>Wait duration after loss</span>
+            <span className="font-bold text-slate-900 dark:text-white tabular-nums">
+              {widgetData.cooldown.mins} mins
+            </span>
+          </div>
+        </div>
+      )}
+
+      {pinned.includes("session") && (
+        <div className={`${cardClass} p-3.5`}>
+          <WidgetHeader
+            id="session"
+            icon={Clock}
+            title="Session Sentinel"
+            badge={
+              widgetData.session.active
+                ? `${widgetData.session.list.length} active`
+                : "Off"
+            }
+            badgeTone={widgetData.session.active ? "emerald" : "neutral"}
+          />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {widgetData.session.list.map((s) => (
+              <span
+                key={s}
+                className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300"
+              >
+                {s === "NY" ? "New York" : s}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {pinned.includes("tilt_score") && (
+        <div className={`${cardClass} p-3.5`}>
+          <WidgetHeader
+            id="tilt_score"
+            icon={HeartPulse}
+            title="Calm & Tilt Trend"
+            badge={`${widgetData.tilt.calmScore}% calm`}
+            badgeTone={widgetData.tilt.calmScore >= 75 ? "emerald" : "amber"}
+          />
+          <div className="w-full h-9 rounded-xl bg-slate-50 dark:bg-white/[0.04] px-2 py-1">
+            <svg viewBox="0 0 200 28" preserveAspectRatio="none" className="w-full h-full">
+              {(() => {
+                const pts = widgetData.tilt.series;
+                const coords = pts.map((v, idx) => {
+                  const x = (idx / Math.max(1, pts.length - 1)) * 200;
+                  const y = 24 - ((Math.max(40, Math.min(100, v)) - 40) / 60) * 20;
+                  return `${x.toFixed(1)},${y.toFixed(1)}`;
+                });
+                return (
+                  <path
+                    d={`M ${coords.join(" L ")}`}
+                    fill="none"
+                    stroke="#2563EB"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                );
+              })()}
+            </svg>
           </div>
         </div>
       )}
