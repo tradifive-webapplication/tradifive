@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search,
@@ -1172,29 +1173,39 @@ export default function HelpTab() {
       )}
 
       {/* TICKET CONVERSATION SIDE PANEL */}
-      <AnimatePresence>
-        {showTicketPanel && selectedTicket && (
-          <motion.div
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 h-[100dvh] w-[500px] max-w-[100vw] bg-white dark:bg-[#141417] border-l border-slate-200 dark:border-white/10 shadow-2xl z-[100] flex flex-col font-sans"
-          >
+      {typeof document !== "undefined" &&
+        createPortal(
+          <AnimatePresence>
+            {showTicketPanel && selectedTicket && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowTicketPanel(false)}
+                  className="fixed inset-0 bg-slate-950/35 backdrop-blur-[2px] z-[9994]"
+                />
+                <motion.div
+                  initial={{ opacity: 0, x: "100%" }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: "100%" }}
+                  transition={{ type: "spring", damping: 28, stiffness: 260 }}
+                  className="fixed top-0 right-0 h-[100dvh] w-[500px] max-w-[100vw] bg-white dark:bg-[#141417] border-l border-slate-200 dark:border-white/10 shadow-2xl z-[9995] flex flex-col font-sans"
+                >
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between bg-white dark:bg-[#141417] z-10">
-              <div className="flex items-center gap-3.5">
-                <div className="relative">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-white/[0.06] flex items-center justify-between bg-white dark:bg-[#141417] z-10 shrink-0">
+              <div className="flex items-center gap-3.5 min-w-0">
+                <div className="relative shrink-0">
                   <div className="w-10 h-10 rounded-xl bg-slate-900 dark:bg-white flex items-center justify-center text-white dark:text-slate-900 font-bold text-base shadow-xs">
                     {String(selectedTicket.id || "T").charAt(0).toUpperCase()}
                   </div>
                   <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-[#141417] rounded-full" />
                 </div>
-                <div>
-                  <h2 className="text-[14px] font-bold text-slate-900 dark:text-white leading-none tracking-tight uppercase">
+                <div className="min-w-0">
+                  <h2 className="text-[14px] font-bold text-slate-900 dark:text-white leading-none tracking-tight uppercase truncate">
                     Ticket #{String(selectedTicket.id || "").split("-")[0]}
                   </h2>
-                  <div className="flex items-center gap-2 mt-1.5">
+                  <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     <span
                       className={`text-[9.5px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                         selectedTicket.status === "resolved"
@@ -1206,7 +1217,8 @@ export default function HelpTab() {
                     >
                       {selectedTicket.status}
                     </span>
-                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">
+                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                       Live Thread
                     </span>
                   </div>
@@ -1215,7 +1227,7 @@ export default function HelpTab() {
               <button
                 type="button"
                 onClick={() => setShowTicketPanel(false)}
-                className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                className="w-8 h-8 rounded-full hover:bg-slate-100 dark:hover:bg-white/10 flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer shrink-0"
                 aria-label="Close ticket panel"
               >
                 <X size={18} />
@@ -1260,9 +1272,20 @@ export default function HelpTab() {
 
               {/* Subject Card */}
               <div className={`${SETTINGS_CARD} p-4`}>
-                <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-bold uppercase tracking-wider mb-1.5">
-                  Primary Inquiry
-                </p>
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <p className="text-[10px] text-slate-400 dark:text-neutral-500 font-bold uppercase tracking-wider">
+                    Primary Inquiry
+                  </p>
+                  {selectedTicket.created_at && (
+                    <span className="text-[10.5px] font-medium text-slate-400 dark:text-neutral-500 tabular-nums">
+                      {new Date(selectedTicket.created_at).toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                      })}
+                    </span>
+                  )}
+                </div>
                 <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white leading-snug mb-1.5">
                   {selectedTicket.subject}
                 </h3>
@@ -1282,6 +1305,19 @@ export default function HelpTab() {
 
               {/* Messages Thread */}
               <div className="space-y-4">
+                {messages.length === 0 && (
+                  <div className="rounded-2xl bg-white dark:bg-[#1B1B20] border border-dashed border-slate-200/90 dark:border-white/10 p-5 text-center space-y-1.5">
+                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center mx-auto">
+                      <MessageSquare size={16} />
+                    </div>
+                    <p className="text-[12.5px] font-semibold text-slate-800 dark:text-white">
+                      Your ticket is open
+                    </p>
+                    <p className="text-[11.5px] text-slate-400 dark:text-neutral-500 max-w-[290px] mx-auto leading-relaxed">
+                      Send a follow-up note or attach screenshots below and a TradiFive specialist will reply here in real time.
+                    </p>
+                  </div>
+                )}
                 {messages.map((r, i) => {
                   const isUser = !r.admin_id;
                   const showDate =
@@ -1451,33 +1487,33 @@ export default function HelpTab() {
 
             {/* Message Input Bar */}
             {selectedTicket.status !== "resolved" && (
-              <div className="p-4 bg-white dark:bg-[#141417] border-t border-slate-100 dark:border-white/[0.06] space-y-2.5">
-                <div className="flex items-center gap-3 px-1">
+              <div className="p-4 bg-white dark:bg-[#141417] border-t border-slate-100 dark:border-white/[0.06] space-y-2.5 shrink-0">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     disabled={isUploading}
                     onClick={() => triggerFilePicker("image")}
-                    className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium cursor-pointer"
+                    className="h-7 px-2.5 rounded-full bg-slate-100 dark:bg-white/[0.05] border border-slate-200/70 dark:border-white/[0.08] flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-colors font-semibold cursor-pointer"
                   >
-                    <ImageIcon size={14} />
+                    <ImageIcon size={12.5} />
                     <span>Photo</span>
                   </button>
                   <button
                     type="button"
                     disabled={isUploading}
                     onClick={() => triggerFilePicker("video")}
-                    className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium cursor-pointer"
+                    className="h-7 px-2.5 rounded-full bg-slate-100 dark:bg-white/[0.05] border border-slate-200/70 dark:border-white/[0.08] flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-colors font-semibold cursor-pointer"
                   >
-                    <Video size={14} />
+                    <Video size={12.5} />
                     <span>Video</span>
                   </button>
                   <button
                     type="button"
                     disabled={isUploading}
                     onClick={() => triggerFilePicker("document")}
-                    className="flex items-center gap-1.5 text-[11.5px] text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors font-medium cursor-pointer"
+                    className="h-7 px-2.5 rounded-full bg-slate-100 dark:bg-white/[0.05] border border-slate-200/70 dark:border-white/[0.08] flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-neutral-300 hover:text-slate-900 dark:hover:text-white transition-colors font-semibold cursor-pointer"
                   >
-                    <FileText size={14} />
+                    <FileText size={12.5} />
                     <span>Document</span>
                   </button>
                 </div>
@@ -1504,16 +1540,19 @@ export default function HelpTab() {
                     type="button"
                     onClick={sendMessage}
                     disabled={!newMessage.trim() && stagedAttachments.length === 0}
-                    className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-40 text-white dark:text-slate-900 flex items-center justify-center transition-all cursor-pointer active:scale-95"
+                    className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-40 text-white dark:text-slate-900 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
                   >
                     <Send size={14} />
                   </button>
                 </div>
               </div>
             )}
-          </motion.div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body
         )}
-      </AnimatePresence>
 
       {/* Media Lightbox */}
       <AnimatePresence>

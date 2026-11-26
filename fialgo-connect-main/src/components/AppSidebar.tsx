@@ -47,6 +47,7 @@ import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TactileBoxButton } from "@/components/settings/ProfileTab";
 import { playSound } from "@/utils/soundEffects";
 import { performAppLogout } from "@/utils/logout";
 
@@ -3475,7 +3476,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                   <DropdownMenuItem
 
-                    onClick={() => React.startTransition(() => navigate("/settings"))}
+                    onClick={() => navigate("/settings")}
 
                     onMouseEnter={() => import("../pages/Settings")}
 
@@ -3704,50 +3705,43 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
 
       <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-
-        <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-2xl p-6">
-
+        <DialogContent className="sm:max-w-[420px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/10 shadow-2xl rounded-[22px] p-6 text-slate-900 dark:text-white gap-0">
           <DialogHeader>
-
-            <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-
-              <Logout set="bold" className="text-red-500" size={24} />
-
+            <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-500/15 border border-rose-200/70 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-2">
+              <LogOut size={20} strokeWidth={2.1} />
+            </div>
+            <DialogTitle className="text-[17px] font-bold tracking-[-0.015em] text-slate-900 dark:text-white">
               Confirm Logout
-
             </DialogTitle>
-
-            <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-
-              Are you sure you want to log out? You will need to log in again to access your account.
-
+            <DialogDescription className="text-[13px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
+              Are you sure you want to log out? You will need to sign in again to access your account.
             </DialogDescription>
-
           </DialogHeader>
-
-          <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
-            <button
-              type="button"
+          <DialogFooter className="mt-6 mx-0 mb-0 p-0 border-t-0 bg-transparent flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-end">
+            <TactileBoxButton
               onClick={() => setShowLogoutConfirm(false)}
-              className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#222226] text-slate-700 dark:text-slate-200 font-semibold text-[13.5px] hover:bg-slate-50 dark:hover:bg-[#2b2b30] transition-all duration-150 active:scale-[0.985] shadow-sm"
+              disabled={isLoggingOut}
+              className="h-9 px-5 rounded-full text-[12.5px] font-semibold"
             >
               Cancel
-            </button>
+            </TactileBoxButton>
             <button
               type="button"
+              disabled={isLoggingOut}
               onClick={handleLogout}
-              className="h-[38px] px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25 flex items-center justify-center min-w-[105px]"
+              className="h-9 px-5 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-semibold text-[12.5px] transition-all duration-150 active:scale-[0.98] shadow-xs flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
             >
               {isLoggingOut ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Logging out...
+                </>
               ) : (
                 "Log Out"
               )}
             </button>
           </DialogFooter>
-
         </DialogContent>
-
       </Dialog>
 
     </>

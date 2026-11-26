@@ -163,45 +163,47 @@ export default function TradingPreferencesTab() {
   return (
     <div className="space-y-6 pb-24 font-sans max-w-[840px] mx-auto">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-white/5 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 dark:border-white/[0.06] pb-4">
         <div>
-          <h2 className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            <Sliders className="w-6 h-6 text-blue-500" />
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
+              <Sliders className="w-4 h-4" />
+            </span>
             Trading & Risk Preferences
           </h2>
-          <p className="text-sm text-slate-500 dark:text-[#949ba4] mt-1">
+          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
             Configure automated risk guardrails, default order presets, regional currency, and audio triggers.
           </p>
         </div>
         <Button
           onClick={handleSavePreferences}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-full px-6 shadow-sm active:scale-95"
+          className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-semibold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
         >
           {loading ? 'Saving...' : saved ? '✓ Saved' : 'Save Preferences'}
         </Button>
       </div>
 
       {/* SECTION 1: RISK GUARD & CIRCUIT BREAKER */}
-      <section className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[28px] p-6 md:p-8 space-y-6 shadow-sm">
-        <div className="flex items-center justify-between">
+      <section className="bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] rounded-[22px] p-5 sm:p-6 space-y-5 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none">
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500">
-              <ShieldAlert className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shrink-0">
+              <ShieldAlert className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">Capital Risk Guard</h3>
-              <p className="text-xs text-slate-500 dark:text-[#949ba4]">Hard circuit breakers that prevent overtrading and account blowups.</p>
+              <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white">Capital Risk Guard</h3>
+              <p className="text-xs text-slate-400 dark:text-neutral-500">Hard circuit breakers that prevent overtrading and account blowups.</p>
             </div>
           </div>
-          <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">
+          <span className="text-[10.5px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20 shrink-0">
             Active Protection
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
           {/* Daily Max Loss Limit */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Max Daily Loss Limit
             </label>
@@ -214,14 +216,14 @@ export default function TradingPreferencesTab() {
                 value={dailyLossLimit}
                 onChange={e => setDailyLossLimit(e.target.value)}
                 placeholder="5000"
-                className="w-full pl-8 pr-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                className="w-full pl-8 pr-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
               />
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Trading stops once reached.</p>
+            <p className="text-[11px] text-slate-400 dark:text-neutral-500">Trading stops once reached.</p>
           </div>
 
           {/* Max Risk Per Trade */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Max Risk Per Trade (%)
             </label>
@@ -232,22 +234,22 @@ export default function TradingPreferencesTab() {
                 value={maxRiskPerTrade}
                 onChange={e => setMaxRiskPerTrade(e.target.value)}
                 placeholder="1.5"
-                className="w-full pl-3 pr-8 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                className="w-full pl-3 pr-8 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
               />
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">%</span>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Calculates maximum lot size.</p>
+            <p className="text-[11px] text-slate-400 dark:text-neutral-500">Calculates maximum lot size.</p>
           </div>
 
           {/* Max Open Positions */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
               Max Open Trades
             </label>
             <select
               value={maxOpenPositions}
               onChange={e => setMaxOpenPositions(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
             >
               <option value="1">1 Trade (Strict Focus)</option>
               <option value="2">2 Trades</option>
@@ -255,49 +257,49 @@ export default function TradingPreferencesTab() {
               <option value="5">5 Trades</option>
               <option value="10">10 Trades (Multi-asset)</option>
             </select>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">Prevents position stacking.</p>
+            <p className="text-[11px] text-slate-400 dark:text-neutral-500">Prevents position stacking.</p>
           </div>
         </div>
 
         {/* Guardrail Toggles */}
-        <div className="space-y-3 pt-2">
+        <div className="space-y-3 pt-1">
           {/* Hard Drawdown Lock */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07]">
             <div className="space-y-0.5 pr-4">
               <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Lock className="w-4 h-4 text-amber-500" />
                 Hard Drawdown Lock (Discipline Circuit Breaker)
               </span>
-              <p className="text-xs text-slate-500 dark:text-[#949ba4]">
+              <p className="text-xs text-slate-500 dark:text-neutral-400">
                 When your daily loss limit is hit, lock terminal execution until next market open at 09:15 AM IST.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setHardDrawdownLock(!hardDrawdownLock)}
-              className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${hardDrawdownLock ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+              className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 cursor-pointer ${hardDrawdownLock ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
             >
-              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${hardDrawdownLock ? 'translate-x-5' : 'translate-x-0'}`} />
+              <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform duration-200 ${hardDrawdownLock ? 'translate-x-5 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'}`} />
             </button>
           </div>
 
           {/* Auto Breakeven */}
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07]">
             <div className="space-y-0.5 pr-4">
               <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <Zap className="w-4 h-4 text-emerald-500" />
                 Automated Breakeven Trigger
               </span>
-              <p className="text-xs text-slate-500 dark:text-[#949ba4]">
+              <p className="text-xs text-slate-500 dark:text-neutral-400">
                 Automatically moves your Stop Loss to entry price when trade profit hits {breakevenTriggerRatio} R:R.
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <select
                 value={breakevenTriggerRatio}
                 onChange={e => setBreakevenTriggerRatio(e.target.value)}
                 disabled={!autoBreakeven}
-                className="px-2 py-1 rounded-lg text-xs font-bold bg-white dark:bg-black border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-white disabled:opacity-40"
+                className="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-800 dark:text-white disabled:opacity-40"
               >
                 <option value="1:1">1:1 R:R</option>
                 <option value="1:1.5">1:1.5 R:R</option>
@@ -306,9 +308,9 @@ export default function TradingPreferencesTab() {
               <button
                 type="button"
                 onClick={() => setAutoBreakeven(!autoBreakeven)}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${autoBreakeven ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${autoBreakeven ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
               >
-                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${autoBreakeven ? 'translate-x-5' : 'translate-x-0'}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform duration-200 ${autoBreakeven ? 'translate-x-5 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'}`} />
               </button>
             </div>
           </div>
@@ -316,33 +318,33 @@ export default function TradingPreferencesTab() {
       </section>
 
       {/* SECTION 2: ORDER EXECUTION PRESETS */}
-      <section className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[28px] p-6 md:p-8 space-y-6 shadow-sm">
+      <section className="bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] rounded-[22px] p-5 sm:p-6 space-y-5 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-            <Layers className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] flex items-center justify-center text-slate-700 dark:text-neutral-200 shrink-0">
+            <Layers className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Order Execution Defaults</h3>
-            <p className="text-xs text-slate-500 dark:text-[#949ba4]">Prefill parameters when opening fast trade tickets or copying signals.</p>
+            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white">Order Execution Defaults</h3>
+            <p className="text-xs text-slate-400 dark:text-neutral-500">Prefill parameters when opening fast trade tickets or copying signals.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           {/* Default Order Type */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Default Order Type</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => setDefaultOrderType('market')}
-                className={`py-2 rounded-xl text-xs font-bold transition-all ${defaultOrderType === 'market' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-black/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'}`}
+                className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${defaultOrderType === 'market' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs' : 'bg-white dark:bg-[#232329] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]'}`}
               >
                 Market Order
               </button>
               <button
                 type="button"
                 onClick={() => setDefaultOrderType('limit')}
-                className={`py-2 rounded-xl text-xs font-bold transition-all ${defaultOrderType === 'limit' ? 'bg-blue-600 text-white shadow-sm' : 'bg-white dark:bg-black/40 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'}`}
+                className={`py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${defaultOrderType === 'limit' ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs' : 'bg-white dark:bg-[#232329] text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-white/[0.08]'}`}
               >
                 Limit Order
               </button>
@@ -350,12 +352,12 @@ export default function TradingPreferencesTab() {
           </div>
 
           {/* Default Take Profit */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Default Target (R:R)</label>
             <select
               value={defaultTakeProfitRatio}
               onChange={e => setDefaultTakeProfitRatio(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
             >
               <option value="1:1.5">1:1.5 (Quick Scalp)</option>
               <option value="1:2">1:2 (Institutional Standard)</option>
@@ -365,13 +367,13 @@ export default function TradingPreferencesTab() {
           </div>
 
           {/* Default Stop Loss */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Default Stop Loss</label>
             <div className="flex gap-2">
               <select
                 value={defaultStopLossMode}
                 onChange={e => setDefaultStopLossMode(e.target.value)}
-                className="w-1/2 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                className="w-1/2 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white"
               >
                 <option value="pips">Pips / Points</option>
                 <option value="percent">Percent (%)</option>
@@ -381,18 +383,18 @@ export default function TradingPreferencesTab() {
                 type="number"
                 value={defaultStopLossValue}
                 onChange={e => setDefaultStopLossValue(e.target.value)}
-                className="w-1/2 px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white"
+                className="w-1/2 px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white"
               />
             </div>
           </div>
 
           {/* Slippage */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Max Slippage Tolerance</label>
             <select
               value={slippagePips}
               onChange={e => setSlippagePips(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
             >
               <option value="1">1 Pip / Pt (Strict)</option>
               <option value="2">2 Pips / Pts (Standard)</option>
@@ -402,57 +404,57 @@ export default function TradingPreferencesTab() {
         </div>
 
         {/* One Click Trading Toggle */}
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
+        <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07]">
           <div className="space-y-0.5 pr-4">
             <span className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-500" />
               One-Click Scalp Execution
             </span>
-            <p className="text-xs text-slate-500 dark:text-[#949ba4]">
+            <p className="text-xs text-slate-500 dark:text-neutral-400">
               Executes trades instantly upon clicking Buy/Sell without opening a secondary confirmation modal.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setOneClickTrading(!oneClickTrading)}
-            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${oneClickTrading ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+            className={`relative w-11 h-6 rounded-full transition-colors duration-200 shrink-0 cursor-pointer ${oneClickTrading ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
           >
-            <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${oneClickTrading ? 'translate-x-5' : 'translate-x-0'}`} />
+            <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform duration-200 ${oneClickTrading ? 'translate-x-5 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'}`} />
           </button>
         </div>
       </section>
 
       {/* SECTION 3: MARKET & CURRENCY */}
-      <section className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[28px] p-6 md:p-8 space-y-6 shadow-sm">
+      <section className="bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] rounded-[22px] p-5 sm:p-6 space-y-5 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
-            <Globe className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+            <Globe className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Market & Currency Localization</h3>
-            <p className="text-xs text-slate-500 dark:text-[#949ba4]">Choose your default asset universe and number formatting.</p>
+            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white">Market & Currency Localization</h3>
+            <p className="text-xs text-slate-400 dark:text-neutral-500">Choose your default asset universe and number formatting.</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Primary Market Universe</label>
             <select
               value={primaryMarket}
               onChange={e => setPrimaryMarket(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
             >
               <option value="indian">Indian Equities, F&O & Commodities (NSE / BSE)</option>
               <option value="global">Global Forex, Indices & Crypto (MT5 / Vantage)</option>
             </select>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Display Currency</label>
             <select
               value={displayCurrency}
               onChange={e => setDisplayCurrency(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
             >
               <option value="INR">INR (₹) - Indian Rupee</option>
               <option value="USD">USD ($) - US Dollar</option>
@@ -461,24 +463,24 @@ export default function TradingPreferencesTab() {
             </select>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Number Formatting</label>
             <select
               value={numberFormat}
               onChange={e => setNumberFormat(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
             >
               <option value="inr_lakhs">Indian System (₹ 1,50,000 / Lakhs & Crores)</option>
               <option value="intl_millions">International System ($ 150,000 / Millions)</option>
             </select>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5 space-y-2">
+          <div className="p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] space-y-2">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">Default Chart Timeframe</label>
             <select
               value={defaultTimeframe}
               onChange={e => setDefaultTimeframe(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-black/40 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+              className="w-full px-3 py-2 rounded-xl text-sm font-semibold bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
             >
               <option value="1m">1 Minute (Scalping)</option>
               <option value="5m">5 Minutes (Intraday Momentum)</option>
@@ -491,71 +493,71 @@ export default function TradingPreferencesTab() {
       </section>
 
       {/* SECTION 4: AUDIO FEEDBACK */}
-      <section className="bg-white dark:bg-[#111112] border border-slate-200 dark:border-white/5 rounded-[28px] p-6 md:p-8 space-y-6 shadow-sm">
+      <section className="bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] rounded-[22px] p-5 sm:p-6 space-y-5 shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-500">
-            <Volume2 className="w-5 h-5" />
+          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] flex items-center justify-center text-slate-700 dark:text-neutral-200 shrink-0">
+            <Volume2 className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">Terminal Audio Signals</h3>
-            <p className="text-xs text-slate-500 dark:text-[#949ba4]">High-fidelity sound cues for instant execution confirmation.</p>
+            <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white">Terminal Audio Signals</h3>
+            <p className="text-xs text-slate-400 dark:text-neutral-500">High-fidelity sound cues for instant execution confirmation.</p>
           </div>
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07]">
             <div>
               <span className="text-sm font-bold text-slate-900 dark:text-white block">Order Fill Chime</span>
-              <span className="text-xs text-slate-500">Plays when an order is matched and executed by your broker.</span>
+              <span className="text-xs text-slate-500 dark:text-neutral-400">Plays when an order is matched and executed by your broker.</span>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => playTestChime('fill')} className="text-xs h-8">
+              <Button variant="outline" size="sm" onClick={() => playTestChime('fill')} className="text-xs h-8 rounded-full">
                 Test Sound
               </Button>
               <button
                 type="button"
                 onClick={() => setSoundOrderFill(!soundOrderFill)}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${soundOrderFill ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${soundOrderFill ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
               >
-                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${soundOrderFill ? 'translate-x-5' : 'translate-x-0'}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform duration-200 ${soundOrderFill ? 'translate-x-5 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'}`} />
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07]">
             <div>
               <span className="text-sm font-bold text-slate-900 dark:text-white block">Take Profit Target Victory Bell</span>
-              <span className="text-xs text-slate-500">Pleasant victory chime when your trade hits TP target.</span>
+              <span className="text-xs text-slate-500 dark:text-neutral-400">Pleasant victory chime when your trade hits TP target.</span>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => playTestChime('tp')} className="text-xs h-8">
+              <Button variant="outline" size="sm" onClick={() => playTestChime('tp')} className="text-xs h-8 rounded-full">
                 Test Sound
               </Button>
               <button
                 type="button"
                 onClick={() => setSoundTakeProfit(!soundTakeProfit)}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${soundTakeProfit ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${soundTakeProfit ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
               >
-                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${soundTakeProfit ? 'translate-x-5' : 'translate-x-0'}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform duration-200 ${soundTakeProfit ? 'translate-x-5 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'}`} />
               </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-[#161618] border border-slate-200/60 dark:border-white/5">
+          <div className="flex items-center justify-between p-4 rounded-2xl bg-[#F8F9FA]/80 dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07]">
             <div>
               <span className="text-sm font-bold text-slate-900 dark:text-white block">Stop Loss Alert Sound</span>
-              <span className="text-xs text-slate-500">Noticeable audio alert when a stop loss is triggered.</span>
+              <span className="text-xs text-slate-500 dark:text-neutral-400">Noticeable audio alert when a stop loss is triggered.</span>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => playTestChime('sl')} className="text-xs h-8">
+              <Button variant="outline" size="sm" onClick={() => playTestChime('sl')} className="text-xs h-8 rounded-full">
                 Test Sound
               </Button>
               <button
                 type="button"
                 onClick={() => setSoundStopLoss(!soundStopLoss)}
-                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${soundStopLoss ? 'bg-blue-600' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${soundStopLoss ? 'bg-slate-900 dark:bg-white' : 'bg-slate-300 dark:bg-[#2b2d31]'}`}
               >
-                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-200 ${soundStopLoss ? 'translate-x-5' : 'translate-x-0'}`} />
+                <div className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform duration-200 ${soundStopLoss ? 'translate-x-5 bg-white dark:bg-slate-900' : 'translate-x-0 bg-white'}`} />
               </button>
             </div>
           </div>
@@ -563,11 +565,11 @@ export default function TradingPreferencesTab() {
       </section>
 
       {/* Bottom Save Bar */}
-      <div className="flex justify-end pt-4">
+      <div className="flex justify-end pt-2">
         <Button
           onClick={handleSavePreferences}
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-full px-8 py-3 shadow-lg hover:shadow-xl transition-all active:scale-95"
+          className="h-10 px-7 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-semibold text-sm shadow-xs transition-all active:scale-95 cursor-pointer"
         >
           {loading ? 'Saving Changes...' : saved ? '✓ Saved Successfully' : 'Save Trading Preferences'}
         </Button>

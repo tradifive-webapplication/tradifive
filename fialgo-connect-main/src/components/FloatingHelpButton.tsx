@@ -501,6 +501,7 @@ export default function FloatingHelpButton() {
     location.pathname === "/auth" ||
     location.pathname === "/forgot-password" ||
     location.pathname === "/reset-password" ||
+    location.pathname.startsWith("/settings") ||
     location.pathname.startsWith("/admin");
 
   if (isHiddenRoute) {

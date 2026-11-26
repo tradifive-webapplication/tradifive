@@ -8,7 +8,7 @@ export default function TermsTab() {
   const sections = [
     { id: 'terms', title: 'Terms of Service', icon: FileText, color: 'text-indigo-500 dark:text-indigo-400' },
     { id: 'privacy', title: 'Privacy Policy', icon: Shield, color: 'text-emerald-500 dark:text-emerald-400' },
-    { id: 'security', title: 'Data Security', icon: Lock, color: 'text-blue-500 dark:text-blue-400' },
+    { id: 'security', title: 'Data Security', icon: Lock, color: 'text-slate-700 dark:text-neutral-300' },
     { id: 'legal', title: 'Legal & Risk', icon: AlertTriangle, color: 'text-amber-500 dark:text-amber-400' },
     { id: 'refunds', title: 'Refund Policy', icon: RotateCcw, color: 'text-rose-500 dark:text-rose-400' },
   ];

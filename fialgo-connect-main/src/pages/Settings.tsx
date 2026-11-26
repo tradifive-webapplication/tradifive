@@ -137,15 +137,15 @@ const SettingsToggle = ({ checked, onChange, disabled = false }: { checked: bool
 const BrokerIcon = ({ name, size = 36 }: { name: string; size?: number }) => {
    const colors: Record<string, string> = {
       icmarkets: "from-emerald-500 to-teal-600 text-white",
-      zerodha: "from-blue-500 to-sky-600 text-white",
+      zerodha: "from-slate-800 to-slate-950 text-white",
       dhan: "from-amber-400 to-yellow-500 text-slate-900",
-      upstox: "from-purple-500 to-indigo-600 text-white",
-      groww: "from-cyan-500 to-teal-500 text-white",
+      upstox: "from-slate-700 to-slate-900 text-white",
+      groww: "from-emerald-600 to-teal-700 text-white",
       angelone: "from-orange-500 to-amber-600 text-white",
       ibkr: "from-red-600 to-rose-700 text-white",
       pepperstone: "from-slate-800 to-slate-900 text-white",
       ic: "from-emerald-500 to-teal-600 text-white",
-      vantage: "from-blue-600 to-indigo-700 text-white",
+      vantage: "from-slate-800 to-slate-950 text-white",
       exness: "from-yellow-400 to-yellow-600 text-slate-900",
       xm: "from-red-500 to-red-700 text-white"
    };
@@ -2086,18 +2086,18 @@ export default function Settings() {
          noScroll={true}
          hideBottomNav={mobileShowDetails}
       >
-      <motion.div
-         className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 backdrop-blur-[3px] p-0 sm:p-6 md:p-8 select-none font-sans"
-         initial={{ opacity: 0 }}
-         animate={{ opacity: 1 }}
-         transition={{ duration: 0.16, ease: "easeOut" }}
-      >
+      <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/45 backdrop-blur-[4px] p-0 sm:p-6 md:p-8 select-none font-sans">
          
          {/* Click outside backdrop container back to dashboard page (desktop/tablet only) */}
          <div className="absolute inset-0 hidden sm:block" onClick={handleCloseSettings} />
 
          {/* Centered Settings Dialog Modal Box */}
-         <div className="relative w-full h-full sm:h-[88vh] sm:max-h-[860px] max-w-[1160px] rounded-none sm:rounded-[24px] bg-white dark:bg-[#141417] text-slate-800 dark:text-[#dbdee1] flex flex-col overflow-hidden shadow-[0_24px_80px_rgba(15,23,42,0.22)] border-0 sm:border sm:border-slate-200/70 dark:sm:border-white/[0.08] z-10 pb-16 md:pb-0">
+         <motion.div
+            initial={{ scale: 0.985, y: 6 }}
+            animate={{ scale: 1, y: 0 }}
+            transition={{ duration: 0.14, ease: "easeOut" }}
+            className="relative w-full h-full sm:h-[88vh] sm:max-h-[860px] max-w-[1160px] rounded-none sm:rounded-[24px] bg-white dark:bg-[#141417] text-slate-800 dark:text-[#dbdee1] flex flex-col overflow-hidden shadow-[0_24px_80px_rgba(15,23,42,0.22)] border-0 sm:border sm:border-slate-200/70 dark:sm:border-white/[0.08] z-10 pb-16 md:pb-0"
+         >
             
             {/* ── DESKTOP TOP BANNER HERO (md+ web user app) ── */}
             <div className="hidden md:block relative shrink-0 select-none">
@@ -2631,20 +2631,24 @@ export default function Settings() {
                      ))}
                   </div>
 
-                  {/* Subtle Footer Links */}
-                  <div className="mt-auto pt-4 px-2 select-none border-t border-slate-100 dark:border-white/[0.06]">
-                     <div className="flex items-center justify-between mb-2.5">
-                        <span className="text-[10px] font-mono tracking-wider text-slate-400 uppercase">v2.0.0</span>
-                        <span className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium">
-                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                           Connected
-                        </span>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] font-medium text-slate-400">
-                        <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Privacy Policy</a>
-                        <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Terms</a>
-                        <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Risk Disclosure</a>
-                        <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="hover:text-slate-700 dark:hover:text-neutral-200 transition-colors">Refund Policy</a>
+                  {/* Sidebar Version & Legal Footer Card */}
+                  <div className="mt-auto pt-3 px-0.5 select-none">
+                     <div className="rounded-[14px] bg-[#F6F7F9] dark:bg-white/[0.03] border border-slate-200/75 dark:border-white/[0.07] p-3 space-y-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                           <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-white dark:bg-white/[0.06] border border-slate-200/80 dark:border-white/10 text-[10px] font-mono font-semibold tracking-wider text-slate-700 dark:text-neutral-200 uppercase shadow-2xs">
+                              v2.0.0
+                           </span>
+                           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200/70 dark:border-emerald-500/20 text-[10.5px] font-semibold text-emerald-700 dark:text-emerald-400">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              Connected
+                           </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-1 pt-2 border-t border-slate-200/60 dark:border-white/[0.06] text-[10.5px] font-medium text-slate-500 dark:text-neutral-400">
+                           <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="px-1.5 py-1 rounded-lg hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-all truncate">Privacy Policy</a>
+                           <a href="/terms-of-service" target="_blank" rel="noopener noreferrer" className="px-1.5 py-1 rounded-lg hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-all truncate">Terms</a>
+                           <a href="/risk-disclosure" target="_blank" rel="noopener noreferrer" className="px-1.5 py-1 rounded-lg hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-all truncate">Risk Disclosure</a>
+                           <a href="/refund-policy" target="_blank" rel="noopener noreferrer" className="px-1.5 py-1 rounded-lg hover:bg-white dark:hover:bg-white/[0.06] hover:text-slate-900 dark:hover:text-white transition-all truncate">Refund Policy</a>
+                        </div>
                      </div>
                   </div>
                </div>
@@ -3113,118 +3117,179 @@ export default function Settings() {
                            className="space-y-5 w-full max-w-[820px]"
                         >
                            {/* Card 1: Workspace Display & Appearance Controls */}
-                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 divide-y divide-slate-100 dark:divide-white/[0.06]">
-                              {/* Global Color Theme */}
-                              <div className="pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                                       {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
-                                    </div>
-                                    <div className="min-w-0">
-                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Global Color Theme</h3>
-                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Switch light or dark workspace lighting across all pages.
-                                       </p>
-                                    </div>
-                                 </div>
-                                 <ThemeSwitch checked={theme === 'dark'} onChange={() => handleThemeChange(theme === 'dark' ? 'light' : 'dark')} />
-                              </div>
-
-                              {/* Immersive Full Screen */}
-                              <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                                       <Monitor size={16} />
-                                    </div>
-                                    <div className="min-w-0">
-                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Immersive Full Screen</h3>
-                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Stretch workspace views edge-to-edge without outer margins.
-                                       </p>
-                                    </div>
-                                 </div>
-                                 <SettingsToggle checked={fullScreenLayout} onChange={handleFullScreenChange} />
-                              </div>
-
-                              {/* Background Fade Style (Light Mode) */}
-                              <div className={`py-4 flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
-                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                           <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
                                        <Palette size={16} />
                                     </div>
                                     <div className="min-w-0">
-                                       <h3 className="text-[13.5px] font-bold text-slate-900">Background Fade Style</h3>
-                                       <p className="text-[12px] text-slate-400 mt-0.5">
-                                          Subtle ambient tint in light mode pages.
+                                       <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                                          Workspace Appearance
+                                       </h3>
+                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                          Configure lighting mode, full-screen framing, and neutral surface tones.
                                        </p>
                                     </div>
                                  </div>
-                                 <div className="w-[155px] shrink-0">
-                                    <Select
-                                       value={bgFadeStyle}
-                                       onValueChange={(value) => {
-                                          setBgFadeStyle(value);
-                                          localStorage.setItem("fialgo_bg_fade_style", value);
-                                          window.dispatchEvent(new Event("fialgo_bg_style_changed"));
-                                       }}
-                                    >
-                                       <SelectTrigger className="w-full bg-[#F4F5F8] border border-slate-200/80 text-slate-800 text-[12.5px] font-semibold rounded-xl h-9 focus:ring-2 focus:ring-slate-900/15">
-                                          <SelectValue placeholder="Select Fade" />
-                                       </SelectTrigger>
-                                       <SelectContent className="bg-white border-slate-200 rounded-xl shadow-lg z-[9999]">
-                                          <SelectItem value="gray" className="text-[12.5px] font-semibold cursor-pointer">Gray Fade</SelectItem>
-                                          <SelectItem value="black" className="text-[12.5px] font-semibold cursor-pointer">Black Fade</SelectItem>
-                                          <SelectItem value="purple" className="text-[12.5px] font-semibold cursor-pointer">Muted Violet</SelectItem>
-                                          <SelectItem value="blue" className="text-[12.5px] font-semibold cursor-pointer">Cool Slate</SelectItem>
-                                          <SelectItem value="rose" className="text-[12.5px] font-semibold cursor-pointer">Warm Rose</SelectItem>
-                                       </SelectContent>
-                                    </Select>
-                                 </div>
+                                 <TactileBoxButton
+                                    onClick={() => {
+                                       handleThemeChange('light');
+                                       if (fullScreenLayout) handleFullScreenChange(false);
+                                       setBgFadeStyle('gray');
+                                       localStorage.setItem('fialgo_bg_fade_style', 'gray');
+                                       window.dispatchEvent(new Event('fialgo_bg_style_changed'));
+                                       setAccentColor('slate');
+                                       localStorage.setItem('tradifive_accent_color', 'slate');
+                                       changePnlTheme('classic');
+                                       localStorage.setItem('tradifive_chart_theme', 'classic');
+                                       handleCursorStyleChange('3d');
+                                       toast.success('Display settings reset to defaults');
+                                    }}
+                                    className="h-8 px-3.5 rounded-full text-[11.5px] font-semibold shrink-0 self-start sm:self-center"
+                                 >
+                                    Reset Defaults
+                                 </TactileBoxButton>
                               </div>
 
-                              {/* Interface Accent Tint */}
-                              <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                 <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                    <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                                       <Sparkles size={16} />
+                              <div className="divide-y divide-slate-100 dark:divide-white/[0.06]">
+                                 {/* Global Color Theme */}
+                                 <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                                          {theme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+                                       </div>
+                                       <div className="min-w-0">
+                                          <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Global Color Theme</h3>
+                                          <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                             Switch light or dark workspace lighting across all pages.
+                                          </p>
+                                       </div>
                                     </div>
-                                    <div className="min-w-0">
-                                       <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Interface Neutral Tone</h3>
-                                       <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Choose your subtle highlight finish across controls.
-                                       </p>
+                                    <div className="inline-flex items-center p-1 rounded-full bg-[#F3F4F6] dark:bg-white/[0.05] border border-slate-200/70 dark:border-white/[0.08] shrink-0 self-start sm:self-center">
+                                       <button
+                                          type="button"
+                                          onClick={() => handleThemeChange('light')}
+                                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+                                             theme !== 'dark'
+                                                ? 'bg-white dark:bg-[#26262C] text-slate-900 dark:text-white shadow-xs'
+                                                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white'
+                                          }`}
+                                       >
+                                          <Sun size={12.5} />
+                                          Light
+                                       </button>
+                                       <button
+                                          type="button"
+                                          onClick={() => handleThemeChange('dark')}
+                                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-semibold transition-all cursor-pointer ${
+                                             theme === 'dark'
+                                                ? 'bg-white dark:bg-[#26262C] text-slate-900 dark:text-white shadow-xs'
+                                                : 'text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white'
+                                          }`}
+                                       >
+                                          <Moon size={12.5} />
+                                          Dark
+                                       </button>
                                     </div>
                                  </div>
-                                 <div className="flex items-center gap-2 shrink-0">
-                                    {[
-                                       { id: 'slate', color: 'bg-slate-900', name: 'Obsidian' },
-                                       { id: 'zinc', color: 'bg-zinc-600', name: 'Graphite' },
-                                       { id: 'emerald', color: 'bg-emerald-600', name: 'Forest' },
-                                       { id: 'amber', color: 'bg-amber-600', name: 'Amber' },
-                                       { id: 'rose', color: 'bg-rose-600', name: 'Crimson' },
-                                    ].map((tint) => (
-                                       <button
-                                          key={tint.id}
-                                          type="button"
-                                          title={tint.name}
-                                          onClick={() => {
-                                             setAccentColor(tint.id);
-                                             localStorage.setItem('tradifive_accent_color', tint.id);
-                                             toast.success(tint.name + ' tone selected');
+
+                                 {/* Immersive Full Screen */}
+                                 <div className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                                          <Monitor size={16} />
+                                       </div>
+                                       <div className="min-w-0">
+                                          <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Immersive Full Screen</h3>
+                                          <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                             Stretch workspace views edge-to-edge without outer margins.
+                                          </p>
+                                       </div>
+                                    </div>
+                                    <SettingsToggle checked={fullScreenLayout} onChange={handleFullScreenChange} />
+                                 </div>
+
+                                 {/* Background Fade Style (Light Mode) */}
+                                 <div className={`py-4 flex-col sm:flex-row sm:items-center justify-between gap-4 ${theme === 'dark' ? 'hidden' : 'flex'} dark:hidden`}>
+                                    <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                       <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200/70 text-slate-600 flex items-center justify-center shrink-0">
+                                          <Palette size={16} />
+                                       </div>
+                                       <div className="min-w-0">
+                                          <h3 className="text-[13.5px] font-bold text-slate-900">Background Fade Style</h3>
+                                          <p className="text-[12px] text-slate-400 mt-0.5">
+                                             Subtle ambient tint in light mode pages.
+                                          </p>
+                                       </div>
+                                    </div>
+                                    <div className="w-[160px] shrink-0">
+                                       <Select
+                                          value={bgFadeStyle}
+                                          onValueChange={(value) => {
+                                             setBgFadeStyle(value);
+                                             localStorage.setItem("fialgo_bg_fade_style", value);
+                                             window.dispatchEvent(new Event("fialgo_bg_style_changed"));
                                           }}
-                                          className={'w-7 h-7 rounded-full cursor-pointer ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white dark:ring-offset-[#1B1B20] scale-105' : 'opacity-75 hover:opacity-100')}
                                        >
-                                          {accentColor === tint.id && <Check size={13} className="text-white" strokeWidth={3} />}
-                                       </button>
-                                    ))}
+                                          <SelectTrigger className="w-full bg-[#F4F5F8] border border-slate-200/80 text-slate-800 text-[12.5px] font-semibold rounded-xl h-9 focus:ring-2 focus:ring-slate-900/15">
+                                             <SelectValue placeholder="Select Fade" />
+                                          </SelectTrigger>
+                                          <SelectContent className="bg-white border-slate-200 rounded-xl shadow-lg z-[9999]">
+                                             <SelectItem value="gray" className="text-[12.5px] font-semibold cursor-pointer">Gray Fade</SelectItem>
+                                             <SelectItem value="black" className="text-[12.5px] font-semibold cursor-pointer">Black Fade</SelectItem>
+                                             <SelectItem value="purple" className="text-[12.5px] font-semibold cursor-pointer">Muted Violet</SelectItem>
+                                             <SelectItem value="blue" className="text-[12.5px] font-semibold cursor-pointer">Cool Slate</SelectItem>
+                                             <SelectItem value="rose" className="text-[12.5px] font-semibold cursor-pointer">Warm Rose</SelectItem>
+                                          </SelectContent>
+                                       </Select>
+                                    </div>
+                                 </div>
+
+                                 {/* Interface Neutral Tone */}
+                                 <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="flex items-start sm:items-center gap-3 min-w-0">
+                                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                                          <Sparkles size={16} />
+                                       </div>
+                                       <div className="min-w-0">
+                                          <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Interface Neutral Tone</h3>
+                                          <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+                                             Choose your subtle highlight finish across controls.
+                                          </p>
+                                       </div>
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-[#F3F4F6] dark:bg-white/[0.05] border border-slate-200/70 dark:border-white/[0.08] shrink-0 self-start sm:self-center">
+                                       {[
+                                          { id: 'slate', color: 'bg-slate-900', name: 'Obsidian' },
+                                          { id: 'zinc', color: 'bg-zinc-600', name: 'Graphite' },
+                                          { id: 'emerald', color: 'bg-emerald-600', name: 'Forest' },
+                                          { id: 'amber', color: 'bg-amber-600', name: 'Amber' },
+                                          { id: 'rose', color: 'bg-rose-600', name: 'Crimson' },
+                                       ].map((tint) => (
+                                          <button
+                                             key={tint.id}
+                                             type="button"
+                                             title={tint.name}
+                                             onClick={() => {
+                                                setAccentColor(tint.id);
+                                                localStorage.setItem('tradifive_accent_color', tint.id);
+                                                toast.success(tint.name + ' tone selected');
+                                             }}
+                                             className={'w-6 h-6 rounded-full cursor-pointer ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white dark:ring-offset-[#1B1B20] scale-105' : 'opacity-75 hover:opacity-100')}
+                                          >
+                                             {accentColor === tint.id && <Check size={11.5} className="text-white" strokeWidth={3} />}
+                                          </button>
+                                       ))}
+                                    </div>
                                  </div>
                               </div>
                            </div>
 
                            {/* Card 2: Trading & P&L Colors Palette */}
                            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
-                              <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                 <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                              <div className="flex items-center gap-3 pb-3.5 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
                                     <TrendingUp size={16} />
                                  </div>
                                  <div className="min-w-0">
@@ -3232,7 +3297,7 @@ export default function Settings() {
                                        <h3 className="text-[14.5px] font-bold text-slate-900 dark:text-white tracking-tight">
                                           Trading &amp; P&amp;L Colors
                                        </h3>
-                                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300">
+                                       <span className="text-[10.5px] font-semibold px-2.5 py-0.5 rounded-full bg-[#F3F4F6] dark:bg-white/[0.07] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-300">
                                           Dashboard &amp; Journal
                                        </span>
                                     </div>
@@ -3258,8 +3323,8 @@ export default function Settings() {
                                           }}
                                           className={`text-left p-4 rounded-2xl border transition-all relative flex flex-col justify-between cursor-pointer ${
                                              isSelected
-                                                ? "border-slate-900 dark:border-white bg-slate-50/70 dark:bg-white/[0.05] shadow-[0_1px_6px_rgba(15,23,42,0.06)]"
-                                                : "border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20"
+                                                ? "border-slate-900 dark:border-white bg-white dark:bg-[#232329] shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/10 dark:ring-white/15"
+                                                : "border-slate-200/80 dark:border-white/[0.08] bg-[#F8F9FA]/75 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] hover:border-slate-300 dark:hover:border-white/20"
                                           }`}
                                        >
                                           <div>
@@ -3283,7 +3348,7 @@ export default function Settings() {
                                           </div>
 
                                           {/* Live Swatch Preview */}
-                                          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-100 dark:border-white/[0.06] text-[11px] font-bold tabular-nums">
+                                          <div className="flex items-center gap-2 pt-2.5 border-t border-slate-200/60 dark:border-white/[0.06] text-[11px] font-bold tabular-nums">
                                              <span className={`px-2 py-0.5 rounded-md text-[11px] ${t.profitBadge}`}>
                                                 {t.previewProfit}
                                              </span>
@@ -3299,8 +3364,8 @@ export default function Settings() {
 
                            {/* Card 3: Mouse Pointer & Cursor Selection */}
                            <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none p-5 sm:p-6 space-y-4">
-                              <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                                 <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
+                              <div className="flex items-center gap-3 pb-3.5 border-b border-slate-100 dark:border-white/[0.06]">
+                                 <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
                                     <MousePointer size={16} />
                                  </div>
                                  <div className="min-w-0">
@@ -3322,7 +3387,7 @@ export default function Settings() {
                                        badge: 'Recommended',
                                        desc: 'Sleek beveled arrow with crisp contrast & click feedback.',
                                        preview: (
-                                          <div className="w-full h-12 rounded-xl bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                          <div className="w-full h-12 rounded-xl bg-[#F4F5F8] dark:bg-black/30 border border-slate-200/60 dark:border-white/[0.06] flex items-center justify-center relative overflow-hidden">
                                              <img src="/custom-cursor.png" alt="3D Arrow" className="w-5 h-5 object-contain drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.20)]" />
                                           </div>
                                        ),
@@ -3333,7 +3398,7 @@ export default function Settings() {
                                        badge: 'Modern',
                                        desc: 'Minimalist dot cursor with subtle dynamic hover ring.',
                                        preview: (
-                                          <div className="w-full h-12 rounded-xl bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                          <div className="w-full h-12 rounded-xl bg-[#F4F5F8] dark:bg-black/30 border border-slate-200/60 dark:border-white/[0.06] flex items-center justify-center relative overflow-hidden">
                                              <div className="w-3.5 h-3.5 rounded-full bg-slate-900 dark:bg-white shadow-sm ring-4 ring-slate-900/15 dark:ring-white/20" />
                                           </div>
                                        ),
@@ -3344,7 +3409,7 @@ export default function Settings() {
                                        badge: 'Classic',
                                        desc: 'Standard native OS pointer across all panels.',
                                        preview: (
-                                          <div className="w-full h-12 rounded-xl bg-slate-100 dark:bg-black/30 flex items-center justify-center relative overflow-hidden">
+                                          <div className="w-full h-12 rounded-xl bg-[#F4F5F8] dark:bg-black/30 border border-slate-200/60 dark:border-white/[0.06] flex items-center justify-center relative overflow-hidden">
                                              <MousePointer size={18} className="text-slate-700 dark:text-neutral-300" />
                                           </div>
                                        ),
@@ -3358,8 +3423,8 @@ export default function Settings() {
                                           onClick={() => handleCursorStyleChange(opt.id)}
                                           className={`text-left p-4 rounded-2xl border transition-all relative flex flex-col justify-between cursor-pointer ${
                                              isSelected
-                                                ? "border-slate-900 dark:border-white bg-slate-50/70 dark:bg-white/[0.05] shadow-[0_1px_6px_rgba(15,23,42,0.06)]"
-                                                : "border-slate-200/80 dark:border-white/[0.08] bg-slate-50/70 dark:bg-white/[0.02] hover:border-slate-300 dark:hover:border-white/20"
+                                                ? "border-slate-900 dark:border-white bg-white dark:bg-[#232329] shadow-[0_2px_10px_rgba(15,23,42,0.06)] ring-1 ring-slate-900/10 dark:ring-white/15"
+                                                : "border-slate-200/80 dark:border-white/[0.08] bg-[#F8F9FA]/75 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/[0.04] hover:border-slate-300 dark:hover:border-white/20"
                                           }`}
                                        >
                                           <div>
@@ -3774,12 +3839,16 @@ export default function Settings() {
 
                               {/* MT5 Only Direct Connect Form (Global / Forex) */}
                               {activeMarket !== 'indian' && (!connectedBroker || isConnectingBroker) && (
-                                 <form onSubmit={handleConnectBrokerSubmit} className="space-y-4">
+                                 <form onSubmit={handleConnectBrokerSubmit} autoComplete="off" className="space-y-4">
+                                    {/* Hidden honeypot inputs prevent Chromium/password managers from autofilling user email & login password into MT5 fields */}
+                                    <input type="text" name="fake_email_prevent" autoComplete="username" tabIndex={-1} aria-hidden="true" className="hidden" />
+                                    <input type="password" name="fake_pass_prevent" autoComplete="current-password" tabIndex={-1} aria-hidden="true" className="hidden" />
+
                                     {isBrokerLocked && (
-                                       <div className="rounded-2xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] p-3.5 flex items-center justify-between gap-3">
-                                          <div className="flex items-center gap-2.5 min-w-0">
-                                             <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-white/[0.07] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                                                <Lock size={14} strokeWidth={2.4} />
+                                       <div className="rounded-2xl bg-[#F8F9FA] dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/[0.08] p-3.5 flex items-center justify-between gap-3">
+                                          <div className="flex items-center gap-3 min-w-0">
+                                             <div className="w-9 h-9 rounded-xl bg-white dark:bg-white/[0.07] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
+                                                <Lock size={14} strokeWidth={2.3} />
                                              </div>
                                              <div className="min-w-0">
                                                 <span className="text-[12.5px] font-bold text-slate-900 dark:text-white block leading-tight">
@@ -3790,62 +3859,86 @@ export default function Settings() {
                                                 </p>
                                              </div>
                                           </div>
-                                          <button
-                                             type="button"
+                                          <TactileBoxButton
                                              onClick={() => setActiveTab('subscription')}
-                                             className="px-3.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[11.5px] font-semibold shrink-0 shadow-xs cursor-pointer active:scale-95 transition-all"
+                                             className="h-8 px-3.5 rounded-full text-[11.5px] font-semibold shrink-0"
                                           >
                                              Upgrade
-                                          </button>
+                                          </TactileBoxButton>
                                        </div>
                                     )}
 
-                                    <div className="space-y-3.5">
+                                    <div className="rounded-2xl bg-[#F8F9FA]/70 dark:bg-white/[0.02] border border-slate-200/70 dark:border-white/[0.07] p-4 space-y-3.5">
                                        <div>
-                                          <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+                                          <label htmlFor="mt5-server-field" className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-0.5">
                                              MT5 Server Name
                                           </label>
                                           <input
+                                             id="mt5-server-field"
+                                             name="mt5_broker_server_host"
                                              type="text"
+                                             autoComplete="off"
+                                             data-lpignore="true"
+                                             data-1p-ignore="true"
+                                             data-form-type="other"
+                                             readOnly
+                                             onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
                                              value={mt5SettingsForm.server}
                                              onChange={(e) => setMt5SettingsForm((p) => ({ ...p, server: e.target.value }))}
                                              placeholder="e.g. VantageInternational-Live, Exness-MT5Real9"
-                                             className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
+                                             className="w-full h-10 px-3.5 rounded-xl bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
                                           />
-                                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 px-1">
+                                          <p className="text-[11px] text-slate-400 dark:text-neutral-500 mt-1 px-0.5">
                                              Enter the exact MetaTrader 5 server name provided by your broker.
                                           </p>
                                        </div>
 
                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                           <div>
-                                             <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
+                                             <label htmlFor="mt5-login-field" className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-0.5">
                                                 MT5 Account Number
                                              </label>
                                              <input
+                                                id="mt5-login-field"
+                                                name="mt5_terminal_login_id"
                                                 type="text"
+                                                inputMode="numeric"
+                                                autoComplete="off"
+                                                data-lpignore="true"
+                                                data-1p-ignore="true"
+                                                data-form-type="other"
+                                                readOnly
+                                                onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
                                                 value={mt5SettingsForm.login}
                                                 onChange={(e) => setMt5SettingsForm((p) => ({ ...p, login: e.target.value }))}
                                                 placeholder="e.g. 98310842"
-                                                className="w-full h-10 px-3.5 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors tabular-nums"
+                                                className="w-full h-10 px-3.5 rounded-xl bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white transition-colors tabular-nums"
                                              />
                                           </div>
                                           <div>
-                                             <label className="text-[10.5px] font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-1">
-                                                Password
+                                             <label htmlFor="mt5-secret-field" className="text-[10.5px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1.5 px-0.5">
+                                                Investor Password
                                              </label>
                                              <div className="relative">
                                                 <input
+                                                   id="mt5-secret-field"
+                                                   name="mt5_terminal_secret_key"
                                                    type={showMt5SettingsPass ? 'text' : 'password'}
+                                                   autoComplete="new-password"
+                                                   data-lpignore="true"
+                                                   data-1p-ignore="true"
+                                                   data-form-type="other"
+                                                   readOnly
+                                                   onFocus={(e) => e.currentTarget.removeAttribute('readonly')}
                                                    value={mt5SettingsForm.password}
                                                    onChange={(e) => setMt5SettingsForm((p) => ({ ...p, password: e.target.value }))}
                                                    placeholder="Enter MT5 password"
-                                                   className="w-full h-10 pl-3.5 pr-9 rounded-xl bg-[#F4F5F8] dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:bg-white dark:focus:bg-[#1E1E24] transition-colors"
+                                                   className="w-full h-10 pl-3.5 pr-9 rounded-xl bg-white dark:bg-[#232329] border border-slate-200/80 dark:border-white/[0.08] text-[13px] font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white transition-colors"
                                                 />
                                                 <button
                                                    type="button"
                                                    onClick={() => setShowMt5SettingsPass((v) => !v)}
-                                                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-neutral-200 cursor-pointer"
+                                                   className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-neutral-200 cursor-pointer"
                                                    aria-label={showMt5SettingsPass ? 'Hide password' : 'Show password'}
                                                 >
                                                    {showMt5SettingsPass ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -3874,7 +3967,7 @@ export default function Settings() {
                                              className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
                                           >
                                              <Lock size={13} strokeWidth={2.4} />
-                                             <span>Connect MT5 Account</span>
+                                             <span>Unlock &amp; Connect MT5</span>
                                           </button>
                                        ) : (
                                           <button
@@ -4607,7 +4700,7 @@ export default function Settings() {
 
             </div>
 
-         </div>
+         </motion.div>
 
          {/* EDIT PROFILE DETAILS MODAL */}
          <AnimatePresence>
@@ -4766,37 +4859,43 @@ export default function Settings() {
          </AnimatePresence>
 
          <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
-           <DialogContent className="sm:max-w-[425px] bg-white dark:bg-[#1C1C1E] border border-slate-200 dark:border-[#333333] shadow-2xl rounded-2xl p-6">
+           <DialogContent className="sm:max-w-[420px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/10 shadow-2xl rounded-[22px] p-6 text-slate-900 dark:text-white gap-0">
              <DialogHeader>
-               <DialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                 <LogOut className="text-red-500" size={24} />
+               <div className="w-11 h-11 rounded-2xl bg-rose-50 dark:bg-rose-500/15 border border-rose-200/70 dark:border-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center mb-2">
+                 <LogOut size={20} strokeWidth={2.1} />
+               </div>
+               <DialogTitle className="text-[17px] font-bold tracking-[-0.015em] text-slate-900 dark:text-white">
                  Confirm Logout
                </DialogTitle>
-               <DialogDescription className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
-                 Are you sure you want to log out? You will need to log in again to access your account.
+               <DialogDescription className="text-[13px] text-slate-500 dark:text-neutral-400 mt-1 leading-relaxed">
+                 Are you sure you want to log out? You will need to sign in again to access your account.
                </DialogDescription>
              </DialogHeader>
-             <DialogFooter className="mt-6 flex gap-3 sm:justify-end">
-               <button 
-                 type="button" 
+             <DialogFooter className="mt-6 mx-0 mb-0 p-0 border-t-0 bg-transparent flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-end">
+               <TactileBoxButton
                  onClick={() => setShowLogoutConfirm(false)}
-                 className="h-[38px] px-5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-[#222226] text-slate-700 dark:text-slate-200 font-semibold text-[13.5px] hover:bg-slate-50 dark:hover:bg-[#2b2b30] transition-all duration-150 active:scale-[0.985] shadow-sm"
+                 disabled={isLoggingOut}
+                 className="h-9 px-5 rounded-full text-[12.5px] font-semibold"
                >
                  Cancel
-               </button>
-               <button 
-                 type="button" 
+               </TactileBoxButton>
+               <button
+                 type="button"
+                 disabled={isLoggingOut}
                  onClick={async () => {
                    setShowLogoutConfirm(false);
                    setIsLoggingOut(true);
                    await performAppLogout('/login?logout=true');
                  }}
-                 className="h-[38px] px-6 rounded-full bg-rose-500 hover:bg-rose-600 text-white font-bold text-[13.5px] transition-all duration-150 active:scale-[0.985] shadow-sm shadow-rose-500/25 flex items-center justify-center min-w-[105px]"
+                 className="h-9 px-5 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-semibold text-[12.5px] transition-all duration-150 active:scale-[0.98] shadow-xs flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
                >
                  {isLoggingOut ? (
-                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                   <>
+                     <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                     Logging out...
+                   </>
                  ) : (
-                   "Log Out"
+                   'Log Out'
                  )}
                </button>
              </DialogFooter>
@@ -5078,7 +5177,7 @@ export default function Settings() {
            </DialogContent>
          </Dialog>
 
-</motion.div>
+</div>
       </DashboardLayout>
    );
 }
