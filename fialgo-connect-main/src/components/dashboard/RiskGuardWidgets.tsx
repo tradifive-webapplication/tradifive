@@ -66,8 +66,8 @@ export const RISK_WIDGET_CATALOG: {
   },
   {
     id: "profit_target",
-    title: "Daily Profit Target",
-    subtitle: "72-notch dial: today's gain vs target",
+    title: "Daily Profit Goal",
+    subtitle: "Emerald milestone bar: today's gain vs goal",
   },
   {
     id: "equity_floor",
@@ -906,7 +906,7 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
             title="Daily Profit Goal"
             badge={
               widgetData.profitTarget.reached
-                ? "Hit!"
+                ? "Goal Hit!"
                 : widgetData.profitTarget.active
                 ? "Active"
                 : "Off"
@@ -917,56 +917,37 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
                 : "neutral"
             }
           />
-          <div className="flex items-center gap-2.5">
-            <div className="w-[126px] shrink-0 flex justify-center">
-              <Gauge
-                compact
-                ariaLabel="Dashboard Profit Target Gauge"
-                value={widgetData.profitTarget.pct}
-                centerValue={widgetData.profitTarget.pct}
-                defaultLabel={`${widgetData.sym}${Math.max(0, widgetData.profitTarget.today).toLocaleString()} / ${widgetData.sym}${widgetData.profitTarget.goal.toLocaleString()}`}
-                suffix="%"
-                needle="line"
-                ruler
-                totalNotches={72}
-                spacing={40}
-                notchLengthPercent={34}
-                notchCornerRadius={2}
-                startAngle={148}
-                endAngle={392}
-                enterTransition={{ type: "spring", visualDuration: 1.4, bounce: 0 }}
-                enterStaggerScale={2}
-                inactiveFillOpacity={0.4}
-                useGradient
-                gradientColors={
-                  widgetData.profitTarget.reached
-                    ? ["#34D399", "#10B981", "#059669"]
-                    : ["#60A5FA", "#2563EB", "#0031F2"]
-                }
-              />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                Earned +{widgetData.sym}
+                {Math.max(0, widgetData.profitTarget.today).toLocaleString()}
+              </span>
+              <span className="text-[10.5px] text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                Goal +{widgetData.sym}{widgetData.profitTarget.goal.toLocaleString()}
+              </span>
             </div>
-            <div className="flex-1 min-w-0 space-y-1.5">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-400">Goal</span>
-                <span className="font-bold text-slate-800 dark:text-white tabular-nums">
-                  {widgetData.sym}{widgetData.profitTarget.goal.toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-400">Today</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                  +{widgetData.sym}{Math.max(0, widgetData.profitTarget.today).toLocaleString()}
-                </span>
-              </div>
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-slate-400">Remaining</span>
-                <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-                  {widgetData.profitTarget.reached
-                    ? "Target Hit"
-                    : `${widgetData.sym}${Math.max(0, widgetData.profitTarget.goal - widgetData.profitTarget.today).toLocaleString()}`}
-                </span>
-              </div>
-            </div>
+            <Gauge
+              orientation="linear"
+              ariaLabel="Dashboard Profit Milestone Bar"
+              value={widgetData.profitTarget.pct}
+              centerValue={widgetData.profitTarget.pct}
+              defaultLabel={
+                widgetData.profitTarget.reached
+                  ? "Daily goal secured!"
+                  : `+${widgetData.sym}${Math.max(0, widgetData.profitTarget.goal - widgetData.profitTarget.today).toLocaleString()} to go`
+              }
+              suffix="% of goal"
+              labelPlacement="top"
+              labelAlign="start"
+              totalNotches={36}
+              linearHeight={12}
+              spacing={2}
+              notchCornerRadius={3}
+              inactiveFillOpacity={0.32}
+              useGradient
+              gradientColors={["#6EE7B7", "#10B981", "#059669"]}
+            />
           </div>
         </div>
       )}

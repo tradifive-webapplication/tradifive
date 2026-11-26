@@ -1381,10 +1381,8 @@ export default function RiskGuard() {
     const profitReached = profitToday >= safeProfitTarget;
     const profitRemaining = Math.max(0, Number((safeProfitTarget - profitToday).toFixed(0)));
     const profitGrad = profitReached
-      ? ["#34D399", "#10B981", "#059669"]
-      : profitGaugePct >= 75
-      ? ["#60A5FA", "#10B981", "#059669"]
-      : ["#60A5FA", "#2563EB", "#0031F2"];
+      ? ["#34D399", "#10B981", "#047857"]
+      : ["#6EE7B7", "#10B981", "#059669"];
 
     // Tab 2 Card #3 (Stop Loss Required)
     const slOpenTotal = useDemoData ? 3 : livePositions.length;
@@ -2853,59 +2851,22 @@ export default function RiskGuard() {
                             ? "Profit Target"
                             : "Daily Profit Target"
                         }
-                        description="Lock profits automatically once your daily goal is hit"
-                        value={`${sym}${lotTelemetry.profitTarget.target.toLocaleString()}`}
+                        description="Secure your green day automatically once your goal is hit"
+                        value={`+${sym}${lotTelemetry.profitTarget.target.toLocaleString()}`}
                         active={dailyProfitTargetActive}
                         onToggle={setDailyProfitTargetActive}
-                        intent="trading"
+                        intent="positive"
                         hasDashboardWidget={pinnedWidgets.includes("profit_target")}
                       >
-                        <div className="space-y-2.5">
-                          <div className="flex items-center gap-3">
-                            {/* 72-Notch Profit Goal Dial Gauge */}
-                            <div className="w-[134px] shrink-0 flex flex-col items-center">
-                              <Gauge
-                                compact
-                                ariaLabel="Daily Profit Target Gauge"
-                                value={lotTelemetry.profitTarget.pct}
-                                centerValue={lotTelemetry.profitTarget.pct}
-                                defaultLabel={`${sym}${Math.max(0, Math.round(lotTelemetry.profitTarget.today)).toLocaleString()} / ${sym}${lotTelemetry.profitTarget.target.toLocaleString()}`}
-                                suffix="%"
-                                needle="line"
-                                ruler
-                                totalNotches={72}
-                                spacing={40}
-                                notchLengthPercent={34}
-                                notchCornerRadius={2}
-                                startAngle={148}
-                                endAngle={392}
-                                enterTransition={{
-                                  type: "spring",
-                                  visualDuration: 1.4,
-                                  bounce: 0,
-                                }}
-                                enterStaggerScale={2}
-                                inactiveFillOpacity={0.4}
-                                useGradient
-                                gradientColors={lotTelemetry.profitTarget.grad}
-                              />
-                            </div>
-
-                            <div className="flex-1 min-w-0 space-y-1.5">
-                              <div className="flex items-center justify-between gap-2 text-[11px]">
-                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                                  Daily Goal
-                                </span>
-                                <span className="font-bold text-slate-800 dark:text-white tabular-nums">
-                                  {sym}{lotTelemetry.profitTarget.target.toLocaleString()}
-                                </span>
-                              </div>
-
-                              <div className="flex items-center justify-between gap-2 text-[11px]">
-                                <span className="text-slate-400 dark:text-neutral-500 font-medium inline-flex items-center gap-1">
-                                  <span>Profit Today</span>
+                        <div className="space-y-3">
+                          {/* Uplifting Positive Milestone Flow: Earned Today -> % Milestone -> Lock Goal */}
+                          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                            <div className="px-2.5 py-2 rounded-xl bg-emerald-50/75 dark:bg-emerald-500/10 border border-emerald-200/70 dark:border-emerald-500/25">
+                              <div className="flex items-center justify-between gap-1 mb-0.5">
+                                <span className="text-[9.5px] font-semibold text-emerald-700/80 dark:text-emerald-400/80 inline-flex items-center gap-1">
+                                  <span>Earned Today</span>
                                   <span
-                                    className={`px-1 py-[1px] rounded text-[8.5px] font-bold uppercase tracking-wide ${
+                                    className={`px-1 py-[0.5px] rounded text-[8px] font-bold uppercase ${
                                       useDemoData
                                         ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
                                         : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
@@ -2914,59 +2875,95 @@ export default function RiskGuard() {
                                     {useDemoData ? "Demo" : "Live"}
                                   </span>
                                 </span>
-                                <div className="flex items-center gap-1">
-                                  {useDemoData && (
+                                {useDemoData && (
+                                  <div className="flex items-center gap-0.5">
                                     <button
                                       type="button"
                                       onClick={() =>
                                         setDemoProfitToday((v) => Math.max(0, v - 50))
                                       }
-                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      className="w-3.5 h-3.5 rounded bg-emerald-100/80 hover:bg-emerald-200/80 dark:bg-white/[0.08] flex items-center justify-center text-emerald-800 dark:text-neutral-200 cursor-pointer"
                                       title="Decrease demo profit"
                                     >
-                                      <Minus size={9} />
+                                      <Minus size={8} />
                                     </button>
-                                  )}
-                                  <span
-                                    className={`font-bold tabular-nums ${
-                                      lotTelemetry.profitTarget.today >= 0
-                                        ? "text-emerald-600 dark:text-emerald-400"
-                                        : "text-rose-600 dark:text-rose-400"
-                                    }`}
-                                  >
-                                    {lotTelemetry.profitTarget.today >= 0 ? "+" : "-"}
-                                    {sym}
-                                    {Math.abs(Math.round(lotTelemetry.profitTarget.today)).toLocaleString()}
-                                  </span>
-                                  {useDemoData && (
                                     <button
                                       type="button"
                                       onClick={() => setDemoProfitToday((v) => v + 50)}
-                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      className="w-3.5 h-3.5 rounded bg-emerald-100/80 hover:bg-emerald-200/80 dark:bg-white/[0.08] flex items-center justify-center text-emerald-800 dark:text-neutral-200 cursor-pointer"
                                       title="Increase demo profit"
                                     >
-                                      <Plus size={9} />
+                                      <Plus size={8} />
                                     </button>
-                                  )}
-                                </div>
+                                  </div>
+                                )}
                               </div>
+                              <span className="text-[14px] font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+                                {lotTelemetry.profitTarget.today >= 0 ? "+" : "-"}
+                                {sym}
+                                {Math.abs(Math.round(lotTelemetry.profitTarget.today)).toLocaleString()}
+                              </span>
+                            </div>
 
-                              <div className="flex items-center justify-between gap-2 text-[11px]">
-                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                                  {lotTelemetry.profitTarget.reached ? "Status" : "Left to Goal"}
-                                </span>
-                                <span
-                                  className={`font-bold tabular-nums ${
-                                    lotTelemetry.profitTarget.reached
-                                      ? "text-emerald-600 dark:text-emerald-400"
-                                      : "text-blue-600 dark:text-blue-400"
-                                  }`}
-                                >
-                                  {lotTelemetry.profitTarget.reached
-                                    ? "Target Hit · Lock"
-                                    : `${sym}${lotTelemetry.profitTarget.remaining.toLocaleString()} left`}
-                                </span>
-                              </div>
+                            <div className="flex flex-col items-center">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-[10px] font-bold tabular-nums shadow-xs ${
+                                  lotTelemetry.profitTarget.reached
+                                    ? "bg-emerald-500 text-white"
+                                    : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                }`}
+                              >
+                                {lotTelemetry.profitTarget.reached
+                                  ? "Goal Hit!"
+                                  : `${lotTelemetry.profitTarget.pct}%`}
+                              </span>
+                            </div>
+
+                            <div className="px-2.5 py-2 rounded-xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] text-right">
+                              <span className="text-[9.5px] font-semibold text-slate-400 dark:text-neutral-500 block mb-0.5">
+                                Lock Goal
+                              </span>
+                              <span className="text-[14px] font-bold text-slate-800 dark:text-white tabular-nums">
+                                +{sym}
+                                {lotTelemetry.profitTarget.target.toLocaleString()}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Emerald Milestone Progress Track */}
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                                {lotTelemetry.profitTarget.reached
+                                  ? "Goal Achieved · Wins Locked In"
+                                  : `+${sym}${lotTelemetry.profitTarget.remaining.toLocaleString()} more to lock your green day`}
+                              </span>
+                              <span className="text-slate-400 dark:text-neutral-500 font-semibold tabular-nums">
+                                {lotTelemetry.profitTarget.pct}%
+                              </span>
+                            </div>
+
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="Daily Profit Milestone Progress"
+                              value={lotTelemetry.profitTarget.pct}
+                              totalNotches={42}
+                              linearHeight={13}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.32}
+                              useGradient
+                              gradientColors={lotTelemetry.profitTarget.grad}
+                            />
+
+                            <div className="flex items-center justify-between text-[9px] font-semibold text-slate-400 dark:text-neutral-500 tabular-nums px-0.5">
+                              <span>Start</span>
+                              <span className={lotTelemetry.profitTarget.pct >= 50 ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                                50% Halfway
+                              </span>
+                              <span className={lotTelemetry.profitTarget.reached ? "text-emerald-600 dark:text-emerald-400" : ""}>
+                                100% Lock Wins
+                              </span>
                             </div>
                           </div>
 
@@ -2978,7 +2975,7 @@ export default function RiskGuard() {
                                   : "Target Amount"}
                               </label>
                               <div className="relative flex items-center">
-                                <span className="absolute left-2.5 text-[11.5px] font-semibold text-slate-400">
+                                <span className="absolute left-2.5 text-[11.5px] font-semibold text-emerald-600 dark:text-emerald-400">
                                   {sym}
                                 </span>
                                 <input
@@ -3028,7 +3025,7 @@ export default function RiskGuard() {
                             onChange={(e) =>
                               setDailyProfitTarget(Number(e.target.value))
                             }
-                            className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                            className="w-full h-1.5 bg-emerald-100 dark:bg-emerald-500/15 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                           />
                         </div>
                       </RiskGuardCard>

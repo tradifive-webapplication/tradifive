@@ -3,7 +3,7 @@ import { Switch } from "./ui/switch";
 import { motion, AnimatePresence } from "framer-motion";
 import { Lock } from "lucide-react";
 
-type CardIntent = "trading" | "warning" | "discipline" | "emergency";
+type CardIntent = "trading" | "warning" | "discipline" | "emergency" | "positive";
 
 export function RiskGuardCard({
   icon: Icon,
@@ -29,6 +29,8 @@ export function RiskGuardCard({
   const activeIconStyle =
     intent === "emergency"
       ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+      : intent === "positive"
+      ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"
       : intent === "warning"
       ? "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400"
       : "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400";
@@ -36,6 +38,8 @@ export function RiskGuardCard({
   const activeBadgeStyle =
     intent === "emergency"
       ? "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+      : intent === "positive"
+      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
       : intent === "warning"
       ? "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
       : "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-400";
@@ -53,6 +57,8 @@ export function RiskGuardCard({
         active
           ? intent === "emergency"
             ? "border-rose-200/80 dark:border-rose-500/25"
+            : intent === "positive"
+            ? "border-emerald-200/80 dark:border-emerald-500/25"
             : intent === "warning"
             ? "border-amber-200/80 dark:border-amber-500/25"
             : "border-blue-200/80 dark:border-blue-500/25"
@@ -136,6 +142,8 @@ export function RiskGuardCard({
                     className={
                       intent === "emergency"
                         ? "text-rose-500"
+                        : intent === "positive"
+                        ? "text-emerald-500"
                         : intent === "warning"
                         ? "text-amber-500"
                         : "text-[#2563EB] dark:text-blue-400"
