@@ -35,7 +35,8 @@ export default function Login() {
   const searchParams = new URLSearchParams(location.search);
   // Sanitize the referral code from the URL to prevent injection
   const referralCode = sanitizeReferralCode(searchParams.get('ref') || "");
-  const [isLogin, setIsLogin] = useState(location.state?.mode !== 'signup' && !referralCode);
+  const isSignupPath = location.pathname === '/signup' || location.pathname === '/register';
+  const [isLogin, setIsLogin] = useState(!isSignupPath && location.state?.mode !== 'signup' && !referralCode);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -115,15 +116,21 @@ export default function Login() {
   }, []);
 
   useEffect(() => {
-    const modeParam = searchParams.get('mode');
-    if (location.state?.mode === 'signup' || modeParam === 'signup') {
+    const params = new URLSearchParams(location.search);
+    const modeParam = params.get('mode');
+    if (
+      location.pathname === '/signup' ||
+      location.pathname === '/register' ||
+      location.state?.mode === 'signup' ||
+      modeParam === 'signup'
+    ) {
       setIsLogin(false);
     } else if (location.state?.mode === 'login' || modeParam === 'login') {
       setIsLogin(true);
     }
 
     // If returning from an explicit logout or logout param is present, ensure local session is purged
-    const isLogoutIntent = searchParams.get('logout') === 'true' || sessionStorage.getItem('fialgo_logged_out') === 'true';
+    const isLogoutIntent = params.get('logout') === 'true' || sessionStorage.getItem('fialgo_logged_out') === 'true';
     if (isLogoutIntent) {
       supabase.auth.signOut({ scope: 'local' }).catch(() => {});
       try {
@@ -135,7 +142,7 @@ export default function Login() {
 
     // Only auto-finalize if an explicit OAuth callback code or access_token is present in URL hash/params
     const hash = window.location.hash || '';
-    const hasOAuthReturn = hash.includes('access_token=') || searchParams.has('code');
+    const hasOAuthReturn = hash.includes('access_token=') || params.has('code');
 
     if (hasOAuthReturn) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -158,7 +165,7 @@ export default function Login() {
         subscription.unsubscribe();
       };
     }
-  }, [location.state, searchParams, navigate]);
+  }, [location.pathname, location.search, location.state?.mode, navigate]);
 
   const finalizeLogin = async (user: any, loginMethod = "Email & Password") => {
     // Reset the login rate limiter on successful auth
@@ -741,7 +748,7 @@ export default function Login() {
                               type="text"
                               value={firstName}
                               onChange={(e) => setFirstName(e.target.value)}
-                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-900/35 dark:focus:border-white/30 focus:ring-1 focus:ring-slate-900/10 dark:focus:ring-white/10 transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
                               placeholder="First name"
                               required={!isLogin}
                             />
@@ -757,7 +764,7 @@ export default function Login() {
                               type="text"
                               value={lastName}
                               onChange={(e) => setLastName(e.target.value)}
-                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                              className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-900/35 dark:focus:border-white/30 focus:ring-1 focus:ring-slate-900/10 dark:focus:ring-white/10 transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
                               placeholder="Last name"
                               required={!isLogin}
                             />
@@ -770,14 +777,14 @@ export default function Login() {
                   <div className="space-y-1 lg:space-y-1.5">
                     <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Email Address</label>
                     <div className="relative group">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 transition-colors">
                         <IconlyMessage set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                       </div>
                       <AnimatedInput
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-900/35 dark:focus:border-white/30 focus:ring-1 focus:ring-slate-900/10 dark:focus:ring-white/10 transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
                         placeholder="Enter your email"
                         required
                         autoComplete="off"
@@ -799,14 +806,14 @@ export default function Login() {
                       )}
                     </div>
                     <div className="relative group">
-                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
+                      <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 transition-colors">
                         <IconlyLock set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                       </div>
                       <AnimatedInput
                         type={showPw ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                        className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-10 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-900/35 dark:focus:border-white/30 focus:ring-1 focus:ring-slate-900/10 dark:focus:ring-white/10 transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
                         placeholder={isLogin ? "Enter your password" : "Create a password"}
                         required
                         autoComplete="new-password"
@@ -831,14 +838,14 @@ export default function Login() {
                       >
                         <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Confirm Password</label>
                         <div className="relative group">
-                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
+                          <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 transition-colors">
                             <IconlyLock set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                           </div>
                           <AnimatedInput
                             type={showPw ? "text" : "password"}
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                            className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-900/35 dark:focus:border-white/30 focus:ring-1 focus:ring-slate-900/10 dark:focus:ring-white/10 transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
                             placeholder="Confirm your password"
                             required={!isLogin}
                             autoComplete="new-password"
@@ -867,10 +874,11 @@ export default function Login() {
                 <p className="mt-8 lg:mt-12 text-center text-[10px] lg:text-[11px] font-bold text-slate-500 lg:text-slate-400 tracking-wide uppercase">
                   {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
                   <button
+                    type="button"
                     onClick={() => {
-                      setIsLogin(!isLogin);
+                      setIsLogin((prev) => !prev);
                     }}
-                    className="text-primary hover:text-primary/70 ml-1 font-bold"
+                    className="text-primary hover:text-primary/70 ml-1 font-bold cursor-pointer"
                     style={{
                       transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
                       display: 'inline-block' }}
@@ -895,14 +903,14 @@ export default function Login() {
                     <div className="space-y-1 lg:space-y-1.5">
                       <label className="text-[9px] lg:text-[10px] font-extrabold uppercase tracking-wider text-slate-500 lg:text-slate-400 ml-1">Email Address</label>
                       <div className="relative group">
-                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 group-focus-within:text-primary transition-colors">
+                        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-slate-400 dark:text-slate-500 transition-colors">
                           <IconlyMessage set="curved" primaryColor="currentColor" size={19} stroke="bold" strokeWidth={2} />
                         </div>
                         <AnimatedInput
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
+                          className="w-full bg-white lg:bg-slate-50 dark:bg-[#141414] border border-slate-200 lg:border-slate-100 dark:border-[#333333] rounded-xl py-2.5 lg:py-3 pl-10 pr-3.5 lg:pr-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:border-slate-900/35 dark:focus:border-white/30 focus:ring-1 focus:ring-slate-900/10 dark:focus:ring-white/10 transition-colors duration-200 text-[13px] lg:text-sm font-semibold lg:font-medium shadow-sm"
                           placeholder="Enter your email"
                           required
                         />

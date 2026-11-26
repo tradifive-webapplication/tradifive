@@ -24,6 +24,8 @@ export function CustomCursor() {
     location.pathname === "/download" ||
     location.pathname === "/contact" ||
     location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/register" ||
     location.pathname === "/auth-callback" ||
     location.pathname === "/forgot-password" ||
     location.pathname === "/reset-password" ||

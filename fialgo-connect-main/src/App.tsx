@@ -45,34 +45,34 @@ function lazyWithRetry<T extends React.ComponentType<any>>(
   });
 }
 
-const Landing = lazy(() => import("./pages/Landing"));
+const Landing = lazyWithRetry(() => import("./pages/Landing"));
 const ContactPublic = lazy(() => import("./pages/ContactPublic"));
 const DownloadAppPublic = lazy(() => import("./pages/DownloadAppPublic"));
-const Login = lazy(() => import("./pages/Login"));
-const AuthCallback = lazy(() => import("./pages/AuthCallback"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Portfolio = lazy(() => import("./pages/dashboard/Portfolio"));
-const Reports = lazy(() => import("./pages/dashboard/Reports"));
-const Settings = lazy(() => import("./pages/Settings"));
-const BrokerConnect = lazy(() => import("./pages/BrokerConnect"));
+const Login = lazyWithRetry(() => import("./pages/Login"));
+const AuthCallback = lazyWithRetry(() => import("./pages/AuthCallback"));
+const Dashboard = lazyWithRetry(() => import("./pages/Dashboard"));
+const Portfolio = lazyWithRetry(() => import("./pages/dashboard/Portfolio"));
+const Reports = lazyWithRetry(() => import("./pages/dashboard/Reports"));
+const Settings = lazyWithRetry(() => import("./pages/Settings"));
+const BrokerConnect = lazyWithRetry(() => import("./pages/BrokerConnect"));
 const Profile = lazyWithRetry(() => import("./pages/Profile"));
 const Channel = lazy(() => import("./pages/Channel"));
-const Inbox = lazy(() => import("./pages/Inbox"));
+const Inbox = lazyWithRetry(() => import("./pages/Inbox"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const RiskGuard = lazy(() => import("./pages/RiskGuard"));
-const Journal = lazy(() => import("./pages/Journal"));
-const Rewards = lazy(() => import("./pages/Rewards"));
-const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const RiskGuard = lazyWithRetry(() => import("./pages/RiskGuard"));
+const Journal = lazyWithRetry(() => import("./pages/Journal"));
+const Rewards = lazyWithRetry(() => import("./pages/Rewards"));
+const VerifyEmail = lazyWithRetry(() => import("./pages/VerifyEmail"));
 const Support = lazy(() => import("./pages/Support"));
 const Feedback = lazy(() => import("./pages/Feedback"));
-const Upgrade = lazy(() => import("./pages/Upgrade"));
-const Notifications = lazy(() => import("./pages/Notifications"));
-const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Upgrade = lazyWithRetry(() => import("./pages/Upgrade"));
+const Notifications = lazyWithRetry(() => import("./pages/Notifications"));
+const ForgotPassword = lazyWithRetry(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const CompetitionsDashboard = lazy(() => import("./pages/CompetitionsDashboard"));
 const CompetitionsLeaderboard = lazy(() => import("./pages/CompetitionsLeaderboard"));
 const CompetitionsRewards = lazy(() => import("./pages/CompetitionsRewards"));
-const TradifiveAI = lazy(() => import("./pages/TradifiveAI"));
+const TradifiveAI = lazyWithRetry(() => import("./pages/TradifiveAI"));
 const AITrading = lazy(() => import("./pages/AITrading"));
 const AutoTradeDashboardPage = lazy(() => import('./pages/AutoTradeDashboardPage'));
 const MyRobots = lazy(() => import('./pages/MyRobots'));
@@ -222,6 +222,8 @@ const App = () => {
                   <Route path="/features/creator-hub" element={<ChannelsPublic />} />
                   <Route path="/features/pulse-feeds" element={<PulseFeedsPublic />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<Login />} />
+                  <Route path="/register" element={<Login />} />
                   <Route path="/auth-callback" element={<AuthCallback />} />
                   <Route path="/contact" element={<ContactPublic />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
