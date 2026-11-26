@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Key,
   Smartphone,
@@ -10,19 +9,14 @@ import {
   ShieldAlert,
   Ban,
   Loader2,
-  Trash2,
   Laptop,
-  Download,
   Mail,
-  FileSpreadsheet,
-  FileJson,
   Shield,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -50,7 +44,6 @@ export default function AccountTab({
   onEditPhone?: () => void;
   onProfileUpdated?: (patch: Record<string, any>) => void;
 }) {
-  const navigate = useNavigate();
   const [revealEmail, setRevealEmail] = useState(false);
   const [revealPhone, setRevealPhone] = useState(false);
 
@@ -95,15 +88,6 @@ export default function AccountTab({
   const [guardianStrictPaper, setGuardianStrictPaper] = useState(() => localStorage.getItem('tf_guardian_strict_paper') === 'true');
   const [guardianWeeklyReport, setGuardianWeeklyReport] = useState(() => localStorage.getItem('tf_guardian_weekly_report') !== 'false');
   const [familyCenterActive, setFamilyCenterActive] = useState(() => Boolean(localStorage.getItem('tf_guardian_email')));
-
-  // Data Export State
-  const [isExportingCsv, setIsExportingCsv] = useState(false);
-  const [isExportingJson, setIsExportingJson] = useState(false);
-
-  // Complete Account Deletion States
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteConfirmText, setDeleteConfirmText] = useState('');
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     setLocalStanding(null);
@@ -383,167 +367,6 @@ export default function AccountTab({
     setIsFamilyCenterModalOpen(false);
   };
 
-  const handleExportTradingCsv = async () => {
-    setIsExportingCsv(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Please log in to export your trades.');
-
-      const { data: trades, error } = await supabase
-        .from('trades')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      if (!trades || trades.length === 0) {
-        toast.info('No recorded trades found to export.');
-        return;
-      }
-
-      const headers = ['Trade ID', 'Symbol', 'Side', 'Lots', 'Open Price', 'Close Price', 'P&L', 'Closed At'];
-      const rows = trades.map((t: any) => [
-        t.id,
-        t.symbol || 'N/A',
-        t.type || t.side || 'BUY',
-        t.lot_size ?? t.lots ?? t.quantity ?? 0,
-        t.open_price ?? t.entry_price ?? t.price ?? 0,
-        t.close_price ?? t.exit_price ?? 0,
-        t.profit ?? t.pnl ?? 0,
-        t.closed_at || t.created_at || '',
-      ]);
-
-      const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `tradifive_trade_ledger_${new Date().toISOString().slice(0, 10)}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success(`Exported ${trades.length} trades to CSV!`);
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to generate CSV export');
-    } finally {
-      setIsExportingCsv(false);
-    }
-  };
-
-  const handleExportAccountJson = async () => {
-    setIsExportingJson(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Please log in to export your account data.');
-
-      const [profileRes, tradesRes, riskRes] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-        supabase.from('trades').select('*').eq('user_id', user.id).limit(500),
-        supabase.from('user_risk_configs').select('*').eq('user_id', user.id).maybeSingle(),
-      ]);
-
-      const exportPayload = {
-        export_version: '2.0.0',
-        export_date: new Date().toISOString(),
-        user: {
-          id: user.id,
-          email: user.email,
-          created_at: user.created_at,
-        },
-        profile: profileRes.data || {},
-        risk_config: riskRes.data || {},
-        trades: tradesRes.data || [],
-      };
-
-      const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `tradifive_account_backup_${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      toast.success('Account backup downloaded!');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to generate JSON backup');
-    } finally {
-      setIsExportingJson(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmText.trim().toUpperCase() !== 'DELETE') {
-      toast.error('Please type DELETE to confirm permanent account deletion.');
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('User session not found.');
-        navigate('/login');
-        return;
-      }
-
-      const userId = user.id;
-
-      try {
-        await supabase.rpc('delete_user_account');
-      } catch (rpcErr) {
-        console.warn('RPC delete_user_account fallback execution:', rpcErr);
-      }
-
-      await Promise.allSettled([
-        supabase.from('social_follows').delete().or(`follower_id.eq.${userId},following_id.eq.${userId}`),
-        supabase.from('social_follow_requests').delete().or(`requester_id.eq.${userId},target_id.eq.${userId}`),
-        supabase.from('dm_conversations').delete().or(`user1_id.eq.${userId},user2_id.eq.${userId}`),
-        supabase.from('direct_messages').delete().or(`sender_id.eq.${userId},receiver_id.eq.${userId}`),
-        supabase.from('channel_members').delete().eq('user_id', userId),
-        supabase.from('channel_messages').delete().eq('user_id', userId),
-        supabase.from('channels').delete().eq('created_by', userId),
-        supabase.from('social_post_likes').delete().eq('user_id', userId),
-        supabase.from('social_post_bookmarks').delete().eq('user_id', userId),
-        supabase.from('social_post_comments').delete().eq('user_id', userId),
-        supabase.from('social_posts').delete().eq('user_id', userId),
-        supabase.from('trades').delete().eq('user_id', userId),
-        supabase.from('journal_entries').delete().eq('user_id', userId),
-        supabase.from('mt5_accounts').delete().eq('user_id', userId),
-        supabase.from('notifications').delete().eq('user_id', userId),
-        supabase.from('active_bots').delete().eq('user_id', userId),
-        supabase.from('ai_coach_messages').delete().eq('user_id', userId),
-        supabase.from('ai_coach_sessions').delete().eq('user_id', userId),
-        supabase.from('user_activity_logs').delete().eq('user_id', userId),
-        supabase.from('user_feedback').delete().eq('user_id', userId),
-        supabase.from('user_mission_progress').delete().eq('user_id', userId),
-        supabase.from('user_risk_configs').delete().eq('user_id', userId),
-        supabase.from('user_xp_ledger').delete().eq('user_id', userId),
-        supabase.from('profiles').delete().eq('id', userId),
-      ]);
-
-      await supabase.auth.signOut();
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-      } catch {
-        // Ignore storage restrictions
-      }
-
-      toast.success('Your account and all associated data have been permanently erased.');
-      navigate('/account-deleted');
-    } catch (err: any) {
-      toast.error(err.message || 'Failed to delete account completely.');
-    } finally {
-      setIsDeleting(false);
-      setIsDeleteDialogOpen(false);
-    }
-  };
-
   useEffect(() => {
     const handleScroll = (e: Event) => {
       const container = e.target as HTMLElement;
@@ -553,8 +376,6 @@ export default function AccountTab({
         'active-sessions',
         'account-standing',
         'family-center',
-        'data-export',
-        'danger-zone',
       ];
       let currentActive = sections[0];
       const isAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 10;
@@ -1175,157 +996,6 @@ export default function AccountTab({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-      </section>
-
-      {/* SECTION 6: DATA EXPORT */}
-      <section id="data-export">
-        <div className={SETTINGS_CARD}>
-          <div>
-            <h3 className="text-[14px] font-bold text-slate-900 dark:text-white tracking-tight">
-              Export Trading &amp; Account Data
-            </h3>
-            <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-              Download your recorded trades and account settings anytime.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className={`${SETTINGS_BOX} flex flex-col justify-between gap-3`}>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                  <FileSpreadsheet size={16} />
-                </div>
-                <div>
-                  <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Trading Ledger (CSV)</h4>
-                  <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                    Spreadsheet export of your closed trades, lots, prices, and P&amp;L.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={isExportingCsv}
-                onClick={handleExportTradingCsv}
-                className="tactile-white-pill rounded-full py-2 px-4 text-[12px] font-semibold w-full inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
-              >
-                {isExportingCsv ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download size={13} />}
-                <span>{isExportingCsv ? 'Generating CSV...' : 'Download CSV'}</span>
-              </button>
-            </div>
-
-            <div className={`${SETTINGS_BOX} flex flex-col justify-between gap-3`}>
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                  <FileJson size={16} />
-                </div>
-                <div>
-                  <h4 className="text-[13px] font-bold text-slate-900 dark:text-white">Account Backup (JSON)</h4>
-                  <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-0.5">
-                    Full archive of your profile, risk rules, and trade records.
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                disabled={isExportingJson}
-                onClick={handleExportAccountJson}
-                className="tactile-white-pill rounded-full py-2 px-4 text-[12px] font-semibold w-full inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
-              >
-                {isExportingJson ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download size={13} />}
-                <span>{isExportingJson ? 'Generating JSON...' : 'Download JSON'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 7: DANGER ZONE */}
-      <section id="danger-zone">
-        <div className="rounded-[20px] bg-white dark:bg-[#1B1B20] border border-rose-200/90 dark:border-rose-500/25 shadow-[0_2px_14px_rgba(15,23,42,0.04)] p-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-[14px] font-bold text-rose-600 dark:text-rose-400 tracking-tight">
-                Delete Account
-              </h3>
-              <p className="text-[12px] text-slate-500 dark:text-neutral-400 mt-0.5 max-w-md leading-relaxed">
-                Permanently erase your account, trade ledger, MT5 links, and posts. This cannot be undone.
-              </p>
-            </div>
-
-            <Dialog
-              open={isDeleteDialogOpen}
-              onOpenChange={(open) => {
-                setIsDeleteDialogOpen(open);
-                if (!open) setDeleteConfirmText('');
-              }}
-            >
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className="rounded-full px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-[12px] font-bold shrink-0 shadow-sm transition-colors cursor-pointer"
-                >
-                  Delete Account
-                </button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[440px] border-rose-500/20 bg-white dark:bg-[#1B1B20] rounded-[22px]">
-                <DialogHeader>
-                  <div className="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 mb-2">
-                    <Trash2 className="w-5 h-5" />
-                  </div>
-                  <DialogTitle className="text-[16px] font-bold text-slate-900 dark:text-white">
-                    Permanently Delete Account?
-                  </DialogTitle>
-                  <DialogDescription className="text-[12.5px] text-slate-500 dark:text-neutral-400 mt-1.5 leading-relaxed">
-                    This permanently erases your login, trading ledger, MT5 connections, journal entries, and profile data.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="py-2">
-                  <label className="block text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider mb-1.5">
-                    Type <span className="text-rose-600 font-black">DELETE</span> to confirm:
-                  </label>
-                  <input
-                    type="text"
-                    value={deleteConfirmText}
-                    onChange={(e) => setDeleteConfirmText(e.target.value)}
-                    placeholder="DELETE"
-                    disabled={isDeleting}
-                    className="w-full px-3.5 py-2 rounded-xl text-sm border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#202024] text-slate-900 dark:text-white focus:outline-none focus:border-rose-500"
-                  />
-                </div>
-
-                <DialogFooter className="gap-2 pt-2">
-                  <button
-                    type="button"
-                    disabled={isDeleting}
-                    onClick={() => {
-                      setIsDeleteDialogOpen(false);
-                      setDeleteConfirmText('');
-                    }}
-                    className="tactile-white-pill rounded-full px-4 py-2 text-xs font-semibold cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    disabled={deleteConfirmText.trim().toUpperCase() !== 'DELETE' || isDeleting}
-                    className="rounded-full px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
-                    onClick={handleDeleteAccount}
-                  >
-                    {isDeleting ? (
-                      <>
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Deleting...</span>
-                      </>
-                    ) : (
-                      <span>Permanently Delete</span>
-                    )}
-                  </button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
         </div>
       </section>
     </div>

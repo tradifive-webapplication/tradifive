@@ -309,7 +309,7 @@ export default function CreatorTab({
               </div>
               <button 
                 onClick={handleApply}
-                className="px-5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 transition-colors text-white dark:text-slate-900 text-xs font-bold shadow-xs"
+                className="tactile-black-pill px-5 py-2 rounded-full text-xs font-bold cursor-pointer"
               >
                 Submit Application
               </button>
@@ -485,7 +485,7 @@ export default function CreatorTab({
                 <button 
                   onClick={handleSaveSettings}
                   disabled={isUpdating}
-                  className="px-5 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-xs font-bold shadow-xs active:scale-95 transition-all flex items-center gap-2"
+                  className="tactile-black-pill px-5 py-2 rounded-full text-xs font-bold flex items-center gap-2 cursor-pointer"
                 >
                   {isUpdating ? "Saving..." : "Save Config"}
                 </button>

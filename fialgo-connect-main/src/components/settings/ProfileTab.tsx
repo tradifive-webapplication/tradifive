@@ -889,7 +889,7 @@ export default function ProfileTab({
                         <button
                            type="button"
                            onClick={() => setActiveTab && setActiveTab('subscription')}
-                           className="shrink-0 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-[11.5px] px-3.5 py-1.5 rounded-full shadow-sm active:scale-95 transition-all cursor-pointer"
+                           className="tactile-black-pill shrink-0 font-bold text-[11.5px] px-4 py-1.5 rounded-full cursor-pointer"
                         >
                            Upgrade
                         </button>

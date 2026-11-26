@@ -856,13 +856,19 @@ export default function DashboardLayout({ children, breadcrumbs, onBack, headerA
               style={{ WebkitOverflowScrolling: "touch" }}
               className={`flex-1 min-h-0 ${noScroll ? "overflow-hidden flex flex-col" : "overflow-y-auto overscroll-y-contain scrollbar-hide"} ${noPadding || noScroll ? "p-0" : isEffectiveFullScreen ? "p-0 sm:p-4 lg:p-6 pb-8" : "p-3 sm:p-5 md:p-8 pb-8"}`}
             >
-              <PageTransition
-                key={transitionKey}
-                enableGlowSweep={!isCommunityRoute}
-                className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : "min-h-full flex flex-col"} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[2px] opacity-85 pointer-events-none select-none" : ""}`}
-              >
-                {children}
-              </PageTransition>
+              {location.pathname.startsWith('/settings') ? (
+                <div className="flex-1 h-full flex flex-col min-h-0">
+                  {children}
+                </div>
+              ) : (
+                <PageTransition
+                  key={transitionKey}
+                  enableGlowSweep={!isCommunityRoute}
+                  className={`${noScroll || (comingSoonInfo.isSoon && !isPeeking) ? "flex-1 h-full flex flex-col min-h-0" : "min-h-full flex flex-col"} transition-all duration-300 ${comingSoonInfo.isSoon && !isPeeking ? "filter blur-[2px] opacity-85 pointer-events-none select-none" : ""}`}
+                >
+                  {children}
+                </PageTransition>
+              )}
             </div>
 
             {/* Coming Soon Veil Overlay - Confined strictly to THIS page (<main>) */}

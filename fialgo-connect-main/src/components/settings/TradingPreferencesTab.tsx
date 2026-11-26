@@ -161,24 +161,26 @@ export default function TradingPreferencesTab() {
   };
 
   return (
-    <div className="space-y-6 pb-24 font-sans max-w-[840px] mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 dark:border-white/[0.06] pb-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
-              <Sliders className="w-4 h-4" />
-            </span>
-            Trading & Risk Preferences
-          </h2>
-          <p className="text-xs text-slate-500 dark:text-neutral-400 mt-1">
-            Configure automated risk guardrails, default order presets, regional currency, and audio triggers.
-          </p>
+    <div className="space-y-5 pb-12 font-sans max-w-[820px]">
+      {/* Quick Save Bar */}
+      <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-700 dark:text-neutral-200 flex items-center justify-center shrink-0">
+            <Sliders className="w-4 h-4" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="text-[14px] font-bold text-slate-900 dark:text-white leading-tight">
+              Risk Guardrails &amp; Execution Presets
+            </h3>
+            <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
+              Save defaults to sync across terminal orders, risk checks, and audio cues.
+            </p>
+          </div>
         </div>
         <Button
           onClick={handleSavePreferences}
           disabled={loading}
-          className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-semibold text-xs shadow-xs active:scale-95 transition-all cursor-pointer"
+          className="tactile-black-pill h-9 px-5 rounded-full font-bold text-xs cursor-pointer shrink-0 self-start sm:self-center border-0"
         >
           {loading ? 'Saving...' : saved ? '✓ Saved' : 'Save Preferences'}
         </Button>
@@ -569,7 +571,7 @@ export default function TradingPreferencesTab() {
         <Button
           onClick={handleSavePreferences}
           disabled={loading}
-          className="h-10 px-7 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-semibold text-sm shadow-xs transition-all active:scale-95 cursor-pointer"
+          className="tactile-black-pill h-10 px-7 rounded-full font-bold text-sm cursor-pointer border-0"
         >
           {loading ? 'Saving Changes...' : saved ? '✓ Saved Successfully' : 'Save Trading Preferences'}
         </Button>

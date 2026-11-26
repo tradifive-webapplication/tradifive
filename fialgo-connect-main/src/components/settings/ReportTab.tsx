@@ -332,7 +332,7 @@ export default function ReportTab() {
                   onClick={() => setReportPriority(lvl)}
                   className={`px-3 py-1 rounded-full text-[11.5px] font-semibold capitalize transition-all cursor-pointer ${
                     reportPriority === lvl
-                      ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
+                      ? "tactile-black-pill font-bold"
                       : "text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
@@ -482,7 +482,7 @@ export default function ReportTab() {
             <button
               type="submit"
               disabled={isSubmitting || !reportSubject.trim() || !reportDescription.trim()}
-              className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-semibold text-[12.5px] shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+              className="tactile-black-pill h-9 px-5 rounded-full font-bold text-[12.5px] inline-flex items-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

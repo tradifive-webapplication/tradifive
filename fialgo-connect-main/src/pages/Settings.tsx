@@ -1,6 +1,7 @@
 import { RunningNumber } from '@/components/ui/RunningNumber';
 import { AnimatedInput } from '@/components/ui/animated-input';
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import '../theme-switch.css';
@@ -12,6 +13,8 @@ import ProfileTab, { TactileBoxButton, ProfileAccountPreferencesCard } from '@/c
 import HelpTab from '@/components/settings/HelpTab';
 import ReportTab from '@/components/settings/ReportTab';
 import CreatorTab from '@/components/settings/CreatorTab';
+import TradingPreferencesTab from '@/components/settings/TradingPreferencesTab';
+import TermsTab from '@/components/settings/TermsTab';
 import { supabase } from '@/lib/supabase';
 import { usePlan } from '@/hooks/usePlan';
 import { performAppLogout } from '@/utils/logout';
@@ -48,11 +51,12 @@ const TAB_TITLES: Record<string, string> = {
    security: "Account & Security",
    privacy: "Data & Privacy",
    'data-privacy': "Data & Privacy",
-   'delete-history': "Delete history",
+   'delete-history': "Delete History",
    appearance: "Theme & Display",
    notifications: "Notifications",
    ai: "AI Coach",
    trading: "Accounts & Brokers",
+   'trading-preferences': "Trading & Risk",
    subscription: "Subscription",
    creator: "Creator Account",
    help: "Help Center",
@@ -69,10 +73,12 @@ const TAB_SUBTITLES: Record<string, string> = {
    'delete-history': "Wipe your trades, Daily and Weekly entries",
    notifications: "Choose which trade alerts and activity pings you receive",
    trading: "Connect MetaTrader 5 and Indian broker accounts",
+   'trading-preferences': "Configure capital risk guardrails, order defaults, currency, and audio signals",
    ai: "Track your daily AI Coach quota and credit allowance",
    subscription: "Manage your active plan, perks and billing history",
    appearance: "Switch light or dark theme and display preferences",
    creator: "Manage creator monetization, payouts and subscriber perks",
+   terms: "Review terms of service, privacy, security, risk disclosures, and refund policies",
    help: "Guides, FAQs and direct TradiFive support",
    report: "Share bugs or issues directly with our engineering team",
 };
@@ -192,7 +198,10 @@ export default function Settings() {
       if (rawTab === 'privacy' || rawTab === 'data' || rawTab === 'data-privacy') return 'data-privacy';
       if (rawTab === 'delete-history' || rawTab === 'history') return 'delete-history';
       if (rawTab === 'channel') return 'profile';
-      if (rawTab === 'File Setup' || rawTab === 'risk' || rawTab === 'preferences' || rawTab === 'trading-preferences') return 'trading';
+      if (rawTab === 'File Setup') return 'trading';
+      if (rawTab === 'risk' || rawTab === 'trading-preferences') return 'trading-preferences';
+      if (rawTab === 'preferences' || rawTab === 'display' || rawTab === 'theme') return 'appearance';
+      if (rawTab === 'legal' || rawTab === 'policies' || rawTab === 'terms') return 'terms';
       return rawTab;
    };
 
@@ -612,19 +621,21 @@ export default function Settings() {
    const [isConnectingMt5Settings, setIsConnectingMt5Settings] = useState(false);
    const [mt5ConnectedServer, setMt5ConnectedServer] = useState('');
    
-   // Profile State (pre-hydrated from cache to avoid opening flash)
+   // Profile State (pre-hydrated from freshest per-user / sidebar cache to prevent old-cover flash)
    const [profile, setProfile] = useState<any>(() => {
       let cached: any = {};
       try {
-         const raw = localStorage.getItem('prof_cache_data');
+         const cachedUid = localStorage.getItem('tradifive_cached_user_id');
+         const scopedRaw = cachedUid ? localStorage.getItem(`prof_cache_data_${cachedUid}`) : null;
+         const raw = scopedRaw || localStorage.getItem('prof_cache_data');
          if (raw) cached = JSON.parse(raw) || {};
       } catch {
          // Ignore malformed cache
       }
-      const cachedDisplay = cached.display_name || localStorage.getItem('tradifive_cached_display_name') || '';
-      const cachedUser = cached.username || localStorage.getItem('tradifive_cached_username') || '';
-      const cachedAvatar = cached.avatar_url || localStorage.getItem('tradifive_cached_avatar_url') || '';
-      const cachedBanner = cached.banner_url || localStorage.getItem('tradifive_cached_banner_url') || '';
+      const cachedDisplay = localStorage.getItem('tradifive_cached_display_name') || cached.display_name || '';
+      const cachedUser = localStorage.getItem('tradifive_cached_username') || cached.username || '';
+      const cachedAvatar = localStorage.getItem('tradifive_cached_avatar_url') || cached.avatar_url || '';
+      const cachedBanner = localStorage.getItem('tradifive_cached_banner_url') || cached.banner_url || '';
       return {
          firstName: cached.first_name || '',
          lastName: cached.last_name || '',
@@ -732,7 +743,6 @@ export default function Settings() {
 
     // Appearance State
     const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light');
-   const [accentColor, setAccentColor] = useState(() => localStorage.getItem('tradifive_accent_color') || 'slate');
    const [layoutDensity, setLayoutDensity] = useState('comfortable');
    const [terminalLogging, setTerminalLogging] = useState(false);
    const [fullScreenLayout, setFullScreenLayout] = useState(() => localStorage.getItem('fialgo_full_screen') === 'true');
@@ -1017,6 +1027,29 @@ export default function Settings() {
                   standing_message: data.standing_message || '',
                   preferred_market: data.preferred_market || 'global'
                });
+               try {
+                  localStorage.setItem('tradifive_cached_user_id', user.id);
+                  localStorage.setItem('prof_cache_data', JSON.stringify(data));
+                  localStorage.setItem(`prof_cache_data_${user.id}`, JSON.stringify(data));
+                  if (data.display_name || data.first_name) {
+                     localStorage.setItem('tradifive_cached_display_name', data.display_name || data.first_name);
+                  }
+                  if (data.username) {
+                     localStorage.setItem('tradifive_cached_username', data.username);
+                  }
+                  if (data.avatar_url) {
+                     localStorage.setItem('tradifive_cached_avatar_url', data.avatar_url);
+                  } else {
+                     localStorage.removeItem('tradifive_cached_avatar_url');
+                  }
+                  if (data.banner_url) {
+                     localStorage.setItem('tradifive_cached_banner_url', data.banner_url);
+                  } else {
+                     localStorage.removeItem('tradifive_cached_banner_url');
+                  }
+               } catch {
+                  // Ignore storage quota / privacy restrictions
+               }
                setCreatorHandle(data.username ? `@${data.username}_trades` : '');
             } else {
                 // Load fallback from localStorage cache only if it belongs to current user
@@ -1984,16 +2017,17 @@ export default function Settings() {
       setReportDescription('');
    };
 
-   // Define structural settings categories for left sidebar (grouped like ACCOUNT / TRADING / APP)
+   // Define structural settings categories for left sidebar (grouped 1:1 with page headings)
    const sidebarSections = [
       {
          title: "Account",
          items: [
-            { id: "profile", label: "Profile", icon: User },
+            { id: "profile", label: "Profile", icon: User, keywords: "avatar bio banner handle privacy" },
             { 
                id: "account", 
                label: "Account & Security", 
                icon: ShieldDone,
+               keywords: "email password 2fa sessions standing activity family badges",
                children: [
                   { id: "account-info", label: "Account Info" },
                   { id: "password-security", label: "Password & Security" },
@@ -2002,38 +2036,45 @@ export default function Settings() {
                   { id: "family-center", label: "Family Center" }
                ]
             },
-            { id: "data-privacy", label: "Data & Privacy", icon: Document },
-            { id: "delete-history", label: "Delete history", icon: Trash2 },
-            { id: "notifications", label: "Notifications", icon: Notification }
+            { id: "data-privacy", label: "Data & Privacy", icon: Document, keywords: "export backup json csv delete account" },
+            { id: "delete-history", label: "Delete History", icon: Trash2, keywords: "wipe trades daily weekly journal" },
+            { id: "notifications", label: "Notifications", icon: Notification, keywords: "alerts push email audio chimes" }
          ]
       },
       {
          title: "Trading",
          items: [
-            { id: "trading", label: "Accounts & Brokers", icon: Wallet },
-            { id: "ai", label: "AI Coach", icon: Sparkles }
+            { id: "trading", label: "Accounts & Brokers", icon: Wallet, keywords: "mt5 zerodha dhan upstox vantage sync" },
+            { id: "trading-preferences", label: "Trading & Risk", icon: Sliders, keywords: "risk guard drawdown breakeven order slippage currency sound" },
+            { id: "ai", label: "AI Coach", icon: Sparkles, keywords: "credits quota tradifive ai" }
          ]
       },
       {
          title: "App",
          items: [
-            { id: "appearance", label: "Preferences", icon: Category },
-            { id: "subscription", label: "Subscription", icon: TicketStar },
-            { id: "creator", label: "Creator Account", icon: Star },
-            { id: "help", label: "Help Center", icon: InfoCircle },
-            { id: "report", label: "Report a Problem", icon: Danger },
-            { id: "logout", label: "Log Out", icon: Logout }
+            { id: "appearance", label: "Theme & Display", icon: Category, keywords: "preferences dark light mode pnl colors cursor fade" },
+            { id: "subscription", label: "Subscription", icon: TicketStar, keywords: "plan billing pro elite coupon cancel refund" },
+            { id: "creator", label: "Creator Account", icon: Star, keywords: "monetization payouts" },
+            { id: "terms", label: "Terms & Policies", icon: FileText, keywords: "legal privacy policy risk disclosure refund" },
+            { id: "help", label: "Help Center", icon: InfoCircle, keywords: "faq guides tickets support" },
+            { id: "report", label: "Report a Problem", icon: Danger, keywords: "bug feedback issue" },
+            { id: "logout", label: "Log Out", icon: Logout, keywords: "sign out exit" }
          ]
       }
    ];
 
    // Filter the sidebar list using query search AND plan requirement
    const filteredSections = sidebarSections.map(section => {
+      const q = searchQuery.trim().toLowerCase();
       const items = section.items.filter(item => {
          // Hide Creator Account tab if not on Elite plan
          if (item.id === 'creator' && activePlan !== 'elite') return false;
-         
-         return item.label.toLowerCase().includes(searchQuery.toLowerCase());
+         if (!q) return true;
+         return (
+            item.label.toLowerCase().includes(q) ||
+            (item.keywords && item.keywords.includes(q)) ||
+            (item.children && item.children.some((c: any) => c.label.toLowerCase().includes(q)))
+         );
       });
       return { ...section, items };
    }).filter(section => section.items.length > 0);
@@ -2086,6 +2127,7 @@ export default function Settings() {
          noScroll={true}
          hideBottomNav={mobileShowDetails}
       >
+      {typeof document !== 'undefined' && createPortal(
       <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/45 backdrop-blur-[4px] p-0 sm:p-6 md:p-8 select-none font-sans">
          
          {/* Click outside backdrop container back to dashboard page (desktop/tablet only) */}
@@ -2093,9 +2135,9 @@ export default function Settings() {
 
          {/* Centered Settings Dialog Modal Box */}
          <motion.div
-            initial={{ scale: 0.985, y: 6 }}
-            animate={{ scale: 1, y: 0 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
+            initial={{ opacity: 0.98, scale: 0.99 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.12, ease: "easeOut" }}
             className="relative w-full h-full sm:h-[88vh] sm:max-h-[860px] max-w-[1160px] rounded-none sm:rounded-[24px] bg-white dark:bg-[#141417] text-slate-800 dark:text-[#dbdee1] flex flex-col overflow-hidden shadow-[0_24px_80px_rgba(15,23,42,0.22)] border-0 sm:border sm:border-slate-200/70 dark:sm:border-white/[0.08] z-10 pb-16 md:pb-0"
          >
             
@@ -2272,242 +2314,57 @@ export default function Settings() {
                       )}
                    </div>
 
-                   {/* 3. Grouped Settings Lists (Matching Reference Picture 2) */}
+                   {/* 3. Grouped Settings Lists (Unified 1:1 with Desktop Sidebar & Page Headings) */}
                    <div className="space-y-4 pt-1">
-                      {/* Section: ACCOUNT */}
-                      {(!searchQuery || "account profile activity trophies security notifications delete history privacy".includes(searchQuery.toLowerCase())) && (
-                         <div>
+                      {filteredSections.map((section, sIdx) => (
+                         <div key={sIdx}>
                             <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
-                               ACCOUNT
+                               {section.title}
                             </h3>
                             <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                               {(!searchQuery || "profile".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('profile'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <User set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                               {section.items.map((item: any) => {
+                                  const isLogout = item.id === 'logout';
+                                  const isLucideIcon = item.icon === Sparkles || item.icon === Sliders || item.icon === Trash2 || item.icon === FileText;
+                                  return (
+                                     <button
+                                        key={item.id}
+                                        type="button"
+                                        onClick={() => {
+                                           if (isLogout) {
+                                              setShowLogoutConfirm(true);
+                                           } else {
+                                              setActiveTab(item.id);
+                                              setMobileShowDetails(true);
+                                              if (item.children) setActiveSubTab(item.children[0].id);
+                                           }
+                                        }}
+                                        className={`w-full flex items-center justify-between p-3.5 transition-colors cursor-pointer text-left ${
+                                           isLogout
+                                              ? 'hover:bg-rose-50/50 dark:hover:bg-rose-500/10 active:bg-rose-100/50'
+                                              : 'hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70'
+                                        }`}
+                                     >
+                                        <div className="flex items-center gap-3">
+                                           <div className={isLogout ? 'text-rose-500' : 'text-slate-700 dark:text-neutral-300'}>
+                                              {isLucideIcon ? (
+                                                 <item.icon size={16} strokeWidth={2.1} />
+                                              ) : (
+                                                 <item.icon set="curved" stroke="bold" primaryColor="currentColor" size={17} />
+                                              )}
+                                           </div>
+                                           <span className={`text-[13.5px] font-semibold ${isLogout ? 'text-rose-500' : 'text-slate-800 dark:text-white'}`}>
+                                              {item.label}
+                                           </span>
                                         </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Profile</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "activity".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('active-sessions'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Activity set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Activity</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "trophies badges standing".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('account-standing'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Star set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Trophies & Standing</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "security password green check".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('account'); setActiveSubTab('password-security'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <ShieldDone set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Security & Password</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "notifications alerts".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('notifications'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Notification set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Notifications</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "privacy data export backup".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('data-privacy'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Document set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Data &amp; Privacy</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "delete history wipe trades".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('delete-history'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Trash2 size={16} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Delete history</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
+                                        {!isLogout && (
+                                           <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
+                                        )}
+                                     </button>
+                                  );
+                               })}
                             </div>
                          </div>
-                      )}
-
-                      {/* Section: TRADING */}
-                      {(!searchQuery || "trading accounts brokers".includes(searchQuery.toLowerCase())) && (
-                         <div>
-                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
-                               TRADING
-                            </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                               {(!searchQuery || "accounts brokers".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('trading'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Wallet set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Accounts & Brokers</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-                            </div>
-                         </div>
-                      )}
-
-                      {/* Section: PREFERENCES & SUPPORT */}
-                      {(!searchQuery || "subscription theme appearance help report logout".includes(searchQuery.toLowerCase())) && (
-                         <div>
-                            <h3 className="text-[11px] font-bold text-slate-400 dark:text-neutral-500 uppercase tracking-wider mb-2 px-1">
-                               PREFERENCES & SUPPORT
-                            </h3>
-                            <div className="bg-white dark:bg-[#1A1A1E] rounded-2xl border border-black/[0.05] dark:border-white/5 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.06),0_2px_6px_-1px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5 overflow-hidden">
-                               {(!searchQuery || "subscription plan billing".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('subscription'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <TicketStar set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Subscription & Plan</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "theme appearance display".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('appearance'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Category set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Theme & Display</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "help center desk support".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('help'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <InfoCircle set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Help Center</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               {(!searchQuery || "report problem issue".includes(searchQuery.toLowerCase())) && (
-                                  <button
-                                     type="button"
-                                     onClick={() => { setActiveTab('report'); setMobileShowDetails(true); }}
-                                     className="w-full flex items-center justify-between p-3.5 hover:bg-slate-50 dark:hover:bg-white/[0.04] active:bg-slate-100/70 transition-colors cursor-pointer text-left"
-                                  >
-                                     <div className="flex items-center gap-3">
-                                        <div className="text-slate-700 dark:text-neutral-300">
-                                           <Danger set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                        </div>
-                                        <span className="text-[13.5px] font-semibold text-slate-800 dark:text-white">Report a Problem</span>
-                                     </div>
-                                     <ChevronRight set="curved" primaryColor="currentColor" size={14} className="text-slate-400 dark:text-neutral-500" />
-                                  </button>
-                               )}
-
-                               <button
-                                  type="button"
-                                  onClick={() => setShowLogoutConfirm(true)}
-                                  className="w-full flex items-center justify-between p-3.5 hover:bg-rose-50/50 dark:hover:bg-rose-500/10 active:bg-rose-100/50 transition-colors cursor-pointer text-left"
-                               >
-                                  <div className="flex items-center gap-3">
-                                     <div className="text-rose-500">
-                                        <Logout set="curved" stroke="bold" primaryColor="currentColor" size={17} />
-                                     </div>
-                                     <span className="text-[13.5px] font-semibold text-rose-500">Log Out</span>
-                                  </div>
-                               </button>
-                            </div>
-                         </div>
-                      )}
+                      ))}
                    </div>
                 </div>
              </div>
@@ -2580,7 +2437,7 @@ export default function Settings() {
                                                    : 'text-slate-500 dark:text-neutral-400'
                                              }`}
                                           >
-                                             {item.icon === Sparkles || item.icon === Sliders || item.icon === Trash2 ? (
+                                             {item.icon === Sparkles || item.icon === Sliders || item.icon === Trash2 || item.icon === FileText ? (
                                                 <item.icon size={15} strokeWidth={2.1} />
                                              ) : (
                                                 <item.icon
@@ -3020,16 +2877,17 @@ export default function Settings() {
                                        Erase your account and everything in it
                                     </p>
                                  </div>
-                                 <TactileBoxButton
+                                 <button
+                                    type="button"
                                     onClick={() => {
                                        setDeleteAccountConfirm('');
                                        setShowDeleteAccountDialog(true);
                                     }}
-                                    className="h-9 px-4 text-[12.5px] font-semibold shrink-0 self-start sm:self-center inline-flex items-center gap-1.5 text-slate-700 dark:text-neutral-200 hover:text-rose-600"
+                                    className="tactile-rose-pill h-9 px-4 rounded-full text-[12.5px] font-bold shrink-0 self-start sm:self-center inline-flex items-center gap-1.5 cursor-pointer"
                                  >
                                     <Trash2 size={14} />
                                     <span>Delete account</span>
-                                 </TactileBoxButton>
+                                 </button>
                               </div>
                            </div>
                         </motion.div>
@@ -3065,7 +2923,7 @@ export default function Settings() {
                                     type="button"
                                     disabled={isWipingHistory}
                                     onClick={handleWipeHistory}
-                                    className="h-9 px-6 rounded-xl bg-neutral-500 hover:bg-rose-600 dark:bg-neutral-600 dark:hover:bg-rose-600 text-white text-[13px] font-semibold shadow-xs transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                                    className="tactile-rose-pill h-9 px-6 rounded-full text-[13px] font-bold cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
                                  >
                                     {isWipingHistory ? (
                                        <>
@@ -3128,7 +2986,7 @@ export default function Settings() {
                                           Workspace Appearance
                                        </h3>
                                        <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                          Configure lighting mode, full-screen framing, and neutral surface tones.
+                                          Configure lighting mode, full-screen layout, and ambient surface finish.
                                        </p>
                                     </div>
                                  </div>
@@ -3139,8 +2997,6 @@ export default function Settings() {
                                        setBgFadeStyle('gray');
                                        localStorage.setItem('fialgo_bg_fade_style', 'gray');
                                        window.dispatchEvent(new Event('fialgo_bg_style_changed'));
-                                       setAccentColor('slate');
-                                       localStorage.setItem('tradifive_accent_color', 'slate');
                                        changePnlTheme('classic');
                                        localStorage.setItem('tradifive_chart_theme', 'classic');
                                        handleCursorStyleChange('3d');
@@ -3243,44 +3099,6 @@ export default function Settings() {
                                              <SelectItem value="rose" className="text-[12.5px] font-semibold cursor-pointer">Warm Rose</SelectItem>
                                           </SelectContent>
                                        </Select>
-                                    </div>
-                                 </div>
-
-                                 {/* Interface Neutral Tone */}
-                                 <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="flex items-start sm:items-center gap-3 min-w-0">
-                                       <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-white/[0.06] border border-slate-200/70 dark:border-white/[0.08] text-slate-600 dark:text-neutral-300 flex items-center justify-center shrink-0">
-                                          <Sparkles size={16} />
-                                       </div>
-                                       <div className="min-w-0">
-                                          <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white">Interface Neutral Tone</h3>
-                                          <p className="text-[12px] text-slate-400 dark:text-neutral-500 mt-0.5">
-                                             Choose your subtle highlight finish across controls.
-                                          </p>
-                                       </div>
-                                    </div>
-                                    <div className="inline-flex items-center gap-1.5 p-1.5 rounded-full bg-[#F3F4F6] dark:bg-white/[0.05] border border-slate-200/70 dark:border-white/[0.08] shrink-0 self-start sm:self-center">
-                                       {[
-                                          { id: 'slate', color: 'bg-slate-900', name: 'Obsidian' },
-                                          { id: 'zinc', color: 'bg-zinc-600', name: 'Graphite' },
-                                          { id: 'emerald', color: 'bg-emerald-600', name: 'Forest' },
-                                          { id: 'amber', color: 'bg-amber-600', name: 'Amber' },
-                                          { id: 'rose', color: 'bg-rose-600', name: 'Crimson' },
-                                       ].map((tint) => (
-                                          <button
-                                             key={tint.id}
-                                             type="button"
-                                             title={tint.name}
-                                             onClick={() => {
-                                                setAccentColor(tint.id);
-                                                localStorage.setItem('tradifive_accent_color', tint.id);
-                                                toast.success(tint.name + ' tone selected');
-                                             }}
-                                             className={'w-6 h-6 rounded-full cursor-pointer ' + tint.color + ' flex items-center justify-center transition-all ' + (accentColor === tint.id ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white dark:ring-offset-[#1B1B20] scale-105' : 'opacity-75 hover:opacity-100')}
-                                          >
-                                             {accentColor === tint.id && <Check size={11.5} className="text-white" strokeWidth={3} />}
-                                          </button>
-                                       ))}
                                     </div>
                                  </div>
                               </div>
@@ -3483,9 +3301,9 @@ export default function Settings() {
                                     <button
                                        type="button"
                                        onClick={handleGlobalOff}
-                                       className={`h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                       className={`h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer select-none ${
                                           globalOff
-                                             ? 'bg-rose-600 text-white border border-rose-600 shadow-xs'
+                                             ? 'tactile-rose-pill font-bold'
                                              : 'tactile-white-pill text-slate-700 dark:text-neutral-200'
                                        }`}
                                     >
@@ -3495,9 +3313,9 @@ export default function Settings() {
                                     <button
                                        type="button"
                                        onClick={handleEmailOnly}
-                                       className={`h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer select-none active:scale-95 ${
+                                       className={`h-8 px-3.5 rounded-full text-[12px] font-semibold flex items-center gap-1.5 cursor-pointer select-none ${
                                           globalEmailOnly
-                                             ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs'
+                                             ? 'tactile-black-pill font-bold'
                                              : 'tactile-white-pill text-slate-700 dark:text-neutral-200'
                                        }`}
                                     >
@@ -3636,10 +3454,10 @@ export default function Settings() {
                                                       key={channel}
                                                       type="button"
                                                       onClick={() => handleToggle(section.key, notif.id, channel)}
-                                                      className={`h-7 px-3 rounded-full text-[11px] font-semibold transition-all cursor-pointer select-none active:scale-95 ${
+                                                      className={`h-7 px-3 rounded-full text-[11px] font-semibold cursor-pointer select-none ${
                                                          isActive
-                                                            ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 border border-slate-900 dark:border-white shadow-xs'
-                                                            : 'bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-neutral-400 border border-slate-200/80 dark:border-white/[0.08] hover:border-slate-300 dark:hover:border-white/20 hover:text-slate-800 dark:hover:text-white'
+                                                            ? 'tactile-black-pill font-bold'
+                                                            : 'tactile-white-pill text-slate-600 dark:text-neutral-300'
                                                       }`}
                                                       title={`Toggle ${label} alert`}
                                                    >
@@ -3725,7 +3543,7 @@ export default function Settings() {
                                  <button
                                     type="button"
                                     onClick={() => setActiveTab('subscription')}
-                                    className="h-9 px-4 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12px] font-semibold shadow-xs inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all"
+                                    className="tactile-black-pill h-9 px-4 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer"
                                  >
                                     <span>{isStarter ? 'Upgrade' : 'View Plans'}</span>
                                     <ArrowRight size={13} />
@@ -3777,7 +3595,7 @@ export default function Settings() {
                                     <button
                                        type="button"
                                        onClick={() => setActiveTab('subscription')}
-                                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12px] font-semibold shadow-xs transition-all cursor-pointer shrink-0 self-start sm:self-center active:scale-95"
+                                       className="tactile-black-pill inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-[12px] font-bold cursor-pointer shrink-0 self-start sm:self-center"
                                     >
                                        <Lock size={12} strokeWidth={2.3} />
                                        <span>Upgrade</span>
@@ -3829,7 +3647,7 @@ export default function Settings() {
                                        <button
                                           type="button"
                                           onClick={handleDisconnectBroker}
-                                          className="h-8 px-3.5 rounded-full text-[12px] font-semibold bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-200/70 dark:border-rose-500/25 transition-colors cursor-pointer"
+                                          className="tactile-rose-pill h-8 px-3.5 rounded-full text-[12px] font-bold cursor-pointer"
                                        >
                                           Disconnect
                                        </button>
@@ -3964,7 +3782,7 @@ export default function Settings() {
                                           <button
                                              type="button"
                                              onClick={() => setActiveTab('subscription')}
-                                             className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+                                             className="tactile-black-pill h-9 px-5 rounded-full text-[12.5px] font-bold inline-flex items-center gap-2 cursor-pointer"
                                           >
                                              <Lock size={13} strokeWidth={2.4} />
                                              <span>Unlock &amp; Connect MT5</span>
@@ -3973,7 +3791,7 @@ export default function Settings() {
                                           <button
                                              type="submit"
                                              disabled={isConnectingMt5Settings}
-                                             className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-50 text-white dark:text-slate-900 text-[12.5px] font-semibold shadow-xs inline-flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+                                             className="tactile-black-pill h-9 px-5 rounded-full disabled:opacity-50 text-[12.5px] font-bold inline-flex items-center gap-2 cursor-pointer"
                                           >
                                              <Link2 size={14} />
                                              <span>{isConnectingMt5Settings ? 'Connecting...' : 'Connect MT5 Account'}</span>
@@ -4042,7 +3860,7 @@ export default function Settings() {
                                              </TactileBoxButton>
                                              <button
                                                 type="submit"
-                                                className="h-9 px-5 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12.5px] font-semibold inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                                                className="tactile-black-pill h-9 px-5 rounded-full text-[12.5px] font-bold inline-flex items-center gap-2 cursor-pointer"
                                              >
                                                 <Link2 size={14} />
                                                 <span>Connect {selectedBrokerToConnect.toUpperCase()}</span>
@@ -4144,7 +3962,7 @@ export default function Settings() {
                                              onClick={() => window.open(partner.url, '_blank', 'noopener,noreferrer')}
                                              className={
                                                 partner.featured
-                                                   ? 'h-8 px-4 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12px] font-semibold inline-flex items-center gap-1.5 shadow-xs shrink-0 self-start sm:self-center cursor-pointer active:scale-95 transition-all'
+                                                   ? 'tactile-black-pill h-8 px-4 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 shrink-0 self-start sm:self-center cursor-pointer'
                                                    : 'tactile-white-pill h-8 px-3.5 rounded-full text-[12px] font-semibold inline-flex items-center gap-1.5 text-slate-800 dark:text-white shrink-0 self-start sm:self-center cursor-pointer'
                                              }
                                           >
@@ -4156,6 +3974,20 @@ export default function Settings() {
                                  </div>
                               </div>
                            )}
+                        </motion.div>
+                     )}
+
+                     {/* TAB 9B: TRADING & RISK PREFERENCES */}
+                     {activeTab === 'trading-preferences' && (
+                        <motion.div
+                           key="trading-preferences"
+                           initial={{ opacity: 0, y: 6 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="w-full max-w-[820px]"
+                        >
+                           <TradingPreferencesTab />
                         </motion.div>
                      )}
 
@@ -4591,7 +4423,7 @@ export default function Settings() {
                   <button
                      type="button"
                      onClick={() => setShowCancelPlanModal(true)}
-                     className="h-9 px-4 rounded-xl text-xs font-semibold bg-rose-50 dark:bg-rose-500/15 hover:bg-rose-100 dark:hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-500/25 transition-colors self-end sm:self-auto shrink-0 cursor-pointer"
+                     className="tactile-rose-pill h-9 px-4 rounded-full text-xs font-bold self-end sm:self-auto shrink-0 cursor-pointer"
                   >
                      Cancel Plan
                   </button>
@@ -4689,6 +4521,20 @@ export default function Settings() {
                            className="w-full max-w-[820px]"
                         >
                            <ReportTab />
+                        </motion.div>
+                     )}
+
+                     {/* TAB 15: TERMS & POLICIES */}
+                     {activeTab === 'terms' && (
+                        <motion.div
+                           key="terms"
+                           initial={{ opacity: 0, y: 6 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: -6 }}
+                           transition={{ duration: 0.16, ease: "easeOut" }}
+                           className="w-full max-w-[820px]"
+                        >
+                           <TermsTab />
                         </motion.div>
                      )}
 
@@ -4847,7 +4693,7 @@ export default function Settings() {
                                     setIsSavingPhone(false);
                                  }
                               }}
-                              className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm transition-colors cursor-pointer disabled:opacity-60"
+                              className="tactile-black-pill rounded-full px-5 py-2 font-bold text-xs cursor-pointer disabled:opacity-60"
                            >
                               {isSavingPhone ? "Saving..." : "Save Number"}
                            </button>
@@ -4887,7 +4733,7 @@ export default function Settings() {
                    setIsLoggingOut(true);
                    await performAppLogout('/login?logout=true');
                  }}
-                 className="h-9 px-5 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-semibold text-[12.5px] transition-all duration-150 active:scale-[0.98] shadow-xs flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
+                 className="tactile-rose-pill h-9 px-5 rounded-full disabled:opacity-60 font-bold text-[12.5px] flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
                >
                  {isLoggingOut ? (
                    <>
@@ -4930,7 +4776,7 @@ export default function Settings() {
                  type="button" 
                  disabled={isChangingPlan}
                  onClick={() => downgradeModalPlan && applyPlanChange(downgradeModalPlan, { reason: 'switch' })}
-                 className="h-10 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                 className="tactile-black-pill h-9 px-5 rounded-full font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
                >
                  {isChangingPlan ? (
                    <>
@@ -4971,7 +4817,7 @@ export default function Settings() {
                  type="button" 
                  disabled={isChangingPlan}
                  onClick={() => applyPlanChange('starter', { reason: 'cancel' })}
-                 className="h-10 px-6 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                 className="tactile-rose-pill h-9 px-5 rounded-full font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
                >
                  {isChangingPlan ? 'Canceling...' : 'Confirm Cancellation'}
                </button>
@@ -5044,7 +4890,7 @@ export default function Settings() {
                  <button
                    type="submit"
                    disabled={isSubmittingRefund}
-                   className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+                   className="tactile-black-pill rounded-full px-5 py-2 font-bold text-xs cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
                  >
                    {isSubmittingRefund && <Loader2 size={13} className="animate-spin" />}
                    <span>{isSubmittingRefund ? 'Submitting...' : 'Submit Refund Request'}</span>
@@ -5104,7 +4950,7 @@ export default function Settings() {
                  type="button"
                  disabled={isExportingCsvData}
                  onClick={() => handleExportTradesCsv(csvExportScope)}
-                 className="rounded-full px-5 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 font-bold text-xs shadow-sm cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
+                 className="tactile-black-pill rounded-full px-5 py-2 font-bold text-xs cursor-pointer disabled:opacity-60 inline-flex items-center gap-1.5"
                >
                  {isExportingCsvData ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
                  <span>{isExportingCsvData ? 'Exporting...' : 'Download CSV'}</span>
@@ -5161,7 +5007,7 @@ export default function Settings() {
                <button
                  type="button"
                  disabled={deleteAccountConfirm.trim().toUpperCase() !== 'DELETE' || isDeletingAccount}
-                 className="rounded-full px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
+                 className="tactile-rose-pill rounded-full px-5 py-2 font-bold text-xs disabled:opacity-50 inline-flex items-center gap-1.5 cursor-pointer"
                  onClick={handlePermanentDeleteAccount}
                >
                  {isDeletingAccount ? (
@@ -5177,7 +5023,9 @@ export default function Settings() {
            </DialogContent>
          </Dialog>
 
-</div>
+</div>,
+      document.body
+      )}
       </DashboardLayout>
    );
 }

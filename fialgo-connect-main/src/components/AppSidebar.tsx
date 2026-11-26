@@ -2625,7 +2625,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                   onClick={() => {
 
-                    React.startTransition(() => navigate("/settings"));
+                    navigate("/settings");
 
                     toggleCollapse?.();
 
@@ -3402,7 +3402,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                               }
 
-                              React.startTransition(() => navigate("/settings?tab=account"));
+                              navigate("/settings?tab=account");
 
                             }}
 
@@ -3729,7 +3729,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
               type="button"
               disabled={isLoggingOut}
               onClick={handleLogout}
-              className="h-9 px-5 rounded-full bg-rose-600 hover:bg-rose-700 disabled:opacity-60 text-white font-semibold text-[12.5px] transition-all duration-150 active:scale-[0.98] shadow-xs flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
+              className="tactile-rose-pill h-9 px-5 rounded-full disabled:opacity-60 font-bold text-[12.5px] flex items-center justify-center gap-2 min-w-[100px] cursor-pointer"
             >
               {isLoggingOut ? (
                 <>

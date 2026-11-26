@@ -42,7 +42,7 @@ const INNER_BOX =
   "rounded-2xl bg-slate-50/70 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.07]";
 
 const PRIMARY_PILL_BTN =
-  "h-9 px-4 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-slate-900 text-[12px] font-semibold shadow-xs inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95 disabled:opacity-50";
+  "tactile-black-pill h-9 px-4 rounded-full text-[12px] font-bold inline-flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50";
 
 const SECONDARY_PILL_BTN =
   "tactile-white-pill h-9 px-4 rounded-full text-[12px] font-semibold inline-flex items-center justify-center gap-1.5 text-slate-700 dark:text-neutral-200 cursor-pointer active:scale-95 disabled:opacity-50";
@@ -812,7 +812,7 @@ export default function HelpTab() {
                     onClick={() => setTicketStatusFilter(st.id)}
                     className={`h-7 px-3 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
                       ticketStatusFilter === st.id
-                        ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xs"
+                        ? "tactile-black-pill font-bold"
                         : "bg-slate-50 dark:bg-white/[0.04] text-slate-500 dark:text-neutral-400 border border-slate-200/80 dark:border-white/[0.08] hover:text-slate-900 dark:hover:text-white"
                     }`}
                   >
@@ -1540,7 +1540,7 @@ export default function HelpTab() {
                     type="button"
                     onClick={sendMessage}
                     disabled={!newMessage.trim() && stagedAttachments.length === 0}
-                    className="w-8 h-8 rounded-full bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-neutral-200 disabled:opacity-40 text-white dark:text-slate-900 flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                    className="tactile-black-pill w-8 h-8 rounded-full disabled:opacity-40 flex items-center justify-center cursor-pointer shrink-0"
                   >
                     <Send size={14} />
                   </button>

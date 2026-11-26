@@ -484,10 +484,18 @@ export default function Profile() {
     // Also store the updated mock profiles in localStorage for public user profile page to look up!
     localStorage.setItem(`tradifive_mock_profile_${editUsername.toLowerCase()}`, JSON.stringify(updatedProfile));
 
-    // Update tradifive cache keys for sidebar
+    // Update tradifive cache keys for sidebar & Settings
     localStorage.setItem("tradifive_cached_display_name", editDisplayName);
     localStorage.setItem("tradifive_cached_username", editUsername);
     localStorage.setItem("tradifive_cached_avatar_url", editAvatarUrl);
+    if (editBannerUrl) {
+      localStorage.setItem("tradifive_cached_banner_url", editBannerUrl);
+    }
+    if (profile.id) {
+      localStorage.setItem("tradifive_cached_user_id", profile.id);
+      localStorage.setItem(`prof_cache_data_${profile.id}`, JSON.stringify(updatedProfile));
+    }
+    localStorage.setItem("prof_cache_data", JSON.stringify(updatedProfile));
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -577,6 +585,13 @@ export default function Profile() {
         } else {
           setProfile(profileData);
           localStorage.setItem(`prof_cache_data_${userIdSync}`, JSON.stringify(profileData));
+          localStorage.setItem("prof_cache_data", JSON.stringify(profileData));
+          if (profileData.banner_url) {
+            localStorage.setItem("tradifive_cached_banner_url", profileData.banner_url);
+          }
+          if (profileData.avatar_url) {
+            localStorage.setItem("tradifive_cached_avatar_url", profileData.avatar_url);
+          }
         }
       } else {
         const meta = user.user_metadata || {};
