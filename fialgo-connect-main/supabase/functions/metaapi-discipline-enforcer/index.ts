@@ -301,11 +301,34 @@ serve(async (req) => {
             if (!violationReason && stopLossRequired && (!position.stopLoss || Number(position.stopLoss) <= 0)) {
               if (stopLossAction === 'auto' && position.openPrice > 0) {
                 const isBuy = String(position.type || '').includes('BUY');
+                const symSpec = await connection.getSymbolSpecification(String(position.symbol || '')).catch(() => null);
+                const symUpper = String(position.symbol || '').toUpperCase();
+                const fallbackPip = symUpper.includes('JPY')
+                  ? 0.01
+                  : symUpper.includes('XAU') || symUpper.includes('XAG')
+                  ? 0.1
+                  : position.openPrice > 5000
+                  ? 1.0
+                  : 0.0001;
+                const pipSize = Number(symSpec?.pipSize || fallbackPip);
+                const digits = Number.isFinite(Number(symSpec?.digits))
+                  ? Number(symSpec?.digits)
+                  : symUpper.includes('JPY') || symUpper.includes('XAU')
+                  ? 2
+                  : position.openPrice > 500
+                  ? 2
+                  : 5;
                 const offset = stopLossMethod === 'percent'
                   ? (position.openPrice * defaultStopLossVal) / 100
-                  : defaultStopLossVal * (position.openPrice > 50 ? 0.1 : 0.0001);
-                const computedSl = Number((isBuy ? position.openPrice - offset : position.openPrice + offset).toFixed(5));
+                  : defaultStopLossVal * pipSize;
+                const computedSl = Number((isBuy ? position.openPrice - offset : position.openPrice + offset).toFixed(digits));
                 await connection.modifyPosition(String(ticketId), computedSl, position.takeProfit).catch(() => null);
+                position.stopLoss = computedSl;
+                await supabaseAdmin.from('risk_breach_logs').insert({
+                  user_id: userId,
+                  rule_type: 'AUTO_SL_ATTACHED',
+                  message: `Auto-attached SL (${computedSl}) on ${position.symbol} (${defaultStopLossVal} ${stopLossMethod === 'percent' ? '%' : 'pips'}).`,
+                });
               } else {
                 violationReason = 'STOP_LOSS_REQUIRED';
               }

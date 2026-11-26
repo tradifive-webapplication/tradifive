@@ -3111,8 +3111,15 @@ export default function RiskGuard() {
                                   <div>
                                     <label className={FIELD_LABEL}>Distance</label>
                                     <Select
-                                      value={stopLossMethod}
-                                      onValueChange={setStopLossMethod}
+                                      value={stopLossMethod === "percent" ? "percent" : "pips"}
+                                      onValueChange={(v) => {
+                                        setStopLossMethod(v);
+                                        if (v === "percent" && defaultStopLoss > 10) {
+                                          setDefaultStopLoss(0.5);
+                                        } else if (v === "pips" && defaultStopLoss < 2) {
+                                          setDefaultStopLoss(15);
+                                        }
+                                      }}
                                     >
                                       <SelectTrigger className={SELECT_TRIGGER}>
                                         <SelectValue />
@@ -3122,21 +3129,26 @@ export default function RiskGuard() {
                                         <SelectItem value="percent">
                                           Percent (%)
                                         </SelectItem>
-                                        <SelectItem value="atr">ATR</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   </div>
                                   <div>
                                     <label className={FIELD_LABEL}>Value</label>
-                                    <input
-                                      type="number"
-                                      min="1"
-                                      value={defaultStopLoss}
-                                      onChange={(e) =>
-                                        setDefaultStopLoss(Number(e.target.value))
-                                      }
-                                      className={`w-full px-2.5 h-[30px] ${INPUT_BASE}`}
-                                    />
+                                    <div className="relative flex items-center">
+                                      <input
+                                        type="number"
+                                        min={stopLossMethod === "percent" ? "0.1" : "1"}
+                                        step={stopLossMethod === "percent" ? "0.1" : "1"}
+                                        value={defaultStopLoss}
+                                        onChange={(e) =>
+                                          setDefaultStopLoss(Number(e.target.value))
+                                        }
+                                        className={`w-full pl-2.5 pr-9 h-[30px] ${INPUT_BASE}`}
+                                      />
+                                      <span className="absolute right-2 text-[9.5px] font-semibold text-slate-400">
+                                        {stopLossMethod === "percent" ? "%" : "pips"}
+                                      </span>
+                                    </div>
                                   </div>
                                 </>
                               )}
