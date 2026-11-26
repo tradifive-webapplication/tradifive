@@ -589,7 +589,7 @@ export default function ProfileTab({
             {/* 1. Hero Profile Card with crisp cover banner (or gradient), cover camera button, avatar with camera overlay, name, username, Cancel & Save tactile buttons */}
             <div className="bg-white dark:bg-[#1B1B20] rounded-[22px] overflow-hidden border border-slate-200/80 dark:border-white/[0.08] shadow-[0_2px_14px_rgba(15,23,42,0.04)] dark:shadow-none relative">
                {/* Banner Image with clean gradient fallback */}
-               <div className="relative h-40 w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+               <div className="relative h-48 w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
                   {profile.bannerUrl ? (
                      <img
                         src={profile.bannerUrl}
@@ -603,7 +603,16 @@ export default function ProfileTab({
                         className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
                      />
                   )}
-                  <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/35 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/40 pointer-events-none" />
+                  <div
+                     aria-hidden="true"
+                     className="absolute inset-x-0 bottom-0 h-12 pointer-events-none dark:hidden"
+                     style={{ background: "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.65) 40%, rgba(255,255,255,0) 100%)" }}
+                  />
+                  <div
+                     aria-hidden="true"
+                     className="absolute inset-x-0 bottom-0 h-12 pointer-events-none hidden dark:block"
+                     style={{ background: "linear-gradient(to top, rgba(27,27,32,1) 0%, rgba(27,27,32,0.65) 40%, rgba(27,27,32,0) 100%)" }}
+                  />
                   
                   {/* Cover camera button */}
                   <button

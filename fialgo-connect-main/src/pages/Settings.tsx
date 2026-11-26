@@ -1415,34 +1415,32 @@ export default function Settings() {
 
    const tabTitles = TAB_TITLES;
 
-   const resizeImageFile = (file: File, maxWidth: number, maxHeight: number, quality: number = 0.8): Promise<string> => {
+   const resizeImageFile = (file: File, maxWidth: number, maxHeight: number, quality: number = 0.95): Promise<string> => {
       return new Promise((resolve, reject) => {
          const reader = new FileReader();
          reader.onload = (e) => {
             const img = new Image();
             img.onload = () => {
-               const canvas = document.createElement('canvas');
-               let width = img.width;
-               let height = img.height;
+               const scale = Math.min(1, maxWidth / img.width, maxHeight / img.height);
+               const width = Math.max(1, Math.round(img.width * scale));
+               const height = Math.max(1, Math.round(img.height * scale));
 
-               if (width > height) {
-                  if (width > maxWidth) {
-                     height = Math.round((height * maxWidth) / width);
-                     width = maxWidth;
-                  }
-               } else {
-                  if (height > maxHeight) {
-                     width = Math.round((width * maxHeight) / height);
-                     height = maxHeight;
-                  }
+               // If image already fits within HD bounds and is reasonably sized, keep original quality
+               if (scale === 1 && file.size <= 2 * 1024 * 1024 && typeof e.target?.result === 'string') {
+                  resolve(e.target.result);
+                  return;
                }
 
+               const canvas = document.createElement('canvas');
                canvas.width = width;
                canvas.height = height;
                const ctx = canvas.getContext('2d');
                if (ctx) {
+                  ctx.imageSmoothingEnabled = true;
+                  ctx.imageSmoothingQuality = 'high';
                   ctx.drawImage(img, 0, 0, width, height);
-                  resolve(canvas.toDataURL('image/jpeg', quality));
+                  const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+                  resolve(canvas.toDataURL(mime, quality));
                } else {
                   resolve(e.target?.result as string);
                }
@@ -1490,8 +1488,17 @@ export default function Settings() {
                         className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
                      />
                   )}
-                  {/* Smooth fade melting bottom edge cleanly into white/dark surface */}
-                  <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/45 to-transparent dark:from-[#141417] dark:via-[#141417]/45 pointer-events-none" />
+                  {/* Crisp bottom-edge blend without washing out upper banner detail */}
+                  <div
+                     aria-hidden="true"
+                     className="absolute inset-x-0 bottom-0 h-9 pointer-events-none dark:hidden"
+                     style={{ background: "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.65) 42%, rgba(255,255,255,0) 100%)" }}
+                  />
+                  <div
+                     aria-hidden="true"
+                     className="absolute inset-x-0 bottom-0 h-9 pointer-events-none hidden dark:block"
+                     style={{ background: "linear-gradient(to top, rgba(20,20,23,1) 0%, rgba(20,20,23,0.65) 42%, rgba(20,20,23,0) 100%)" }}
+                  />
 
                   {/* Top-Right Translucent Close Circle */}
                   <button
@@ -1566,7 +1573,16 @@ export default function Settings() {
                                className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
                             />
                          )}
-                         <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-white via-white/40 to-transparent dark:from-[#1A1A1E] dark:via-[#1A1A1E]/40 pointer-events-none" />
+                         <div
+                            aria-hidden="true"
+                            className="absolute inset-x-0 bottom-0 h-10 pointer-events-none dark:hidden"
+                            style={{ background: "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.65) 42%, rgba(255,255,255,0) 100%)" }}
+                         />
+                         <div
+                            aria-hidden="true"
+                            className="absolute inset-x-0 bottom-0 h-10 pointer-events-none hidden dark:block"
+                            style={{ background: "linear-gradient(to top, rgba(26,26,30,1) 0%, rgba(26,26,30,0.65) 42%, rgba(26,26,30,0) 100%)" }}
+                         />
                       </div>
 
                       {/* Overlapping Avatar */}
@@ -2078,7 +2094,7 @@ export default function Settings() {
                               <div className="hidden md:block space-y-5">
                                  {/* Card 1: Profile Showcase Card (Clean Banner + Fade + Avatar + Name + Bio preview + Edit Profile) */}
                                  <div className="rounded-[22px] bg-white dark:bg-[#1B1B20] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_4px_22px_rgba(15,23,42,0.05)] dark:shadow-none overflow-hidden">
-                                    <div className="relative h-[170px] w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
+                                    <div className="relative h-[200px] w-full overflow-hidden bg-gradient-to-r from-[#2563EB] via-[#4F46E5] to-[#6D28D9] dark:from-[#1E3A8A] dark:via-[#312E81] dark:to-[#4C1D95]">
                                        {profile.bannerUrl ? (
                                           <img
                                              src={profile.bannerUrl}
@@ -2092,7 +2108,16 @@ export default function Settings() {
                                              className="absolute inset-0 bg-[radial-gradient(circle_at_22%_30%,rgba(255,255,255,0.24),transparent_55%),radial-gradient(circle_at_82%_70%,rgba(167,139,250,0.32),transparent_50%)]"
                                           />
                                        )}
-                                       <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/35 to-transparent dark:from-[#1B1B20] dark:via-[#1B1B20]/40 pointer-events-none" />
+                                       <div
+                                          aria-hidden="true"
+                                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none dark:hidden"
+                                          style={{ background: "linear-gradient(to top, rgba(255,255,255,1) 0%, rgba(255,255,255,0.65) 40%, rgba(255,255,255,0) 100%)" }}
+                                       />
+                                       <div
+                                          aria-hidden="true"
+                                          className="absolute inset-x-0 bottom-0 h-12 pointer-events-none hidden dark:block"
+                                          style={{ background: "linear-gradient(to top, rgba(27,27,32,1) 0%, rgba(27,27,32,0.65) 40%, rgba(27,27,32,0) 100%)" }}
+                                       />
                                     </div>
 
                                     <div className="px-6 pb-6">
@@ -2191,7 +2216,7 @@ export default function Settings() {
                               const file = e.target.files?.[0];
                               if (file) {
                                  try {
-                                    const base64 = await resizeImageFile(file, 512, 512, 0.9);
+                                    const base64 = await resizeImageFile(file, 768, 768, 0.94);
                                     setProfile((p: any) => ({...p, avatarUrl: base64}));
                                  } catch (err) {
                                     console.error("Failed to resize avatar", err);
@@ -2202,7 +2227,7 @@ export default function Settings() {
                               const file = e.target.files?.[0];
                               if (file) {
                                  try {
-                                    const base64 = await resizeImageFile(file, 1440, 480, 0.9);
+                                    const base64 = await resizeImageFile(file, 2560, 1600, 0.95);
                                     setProfile((p: any) => ({...p, bannerUrl: base64}));
                                  } catch (err) {
                                     console.error("Failed to resize banner", err);
