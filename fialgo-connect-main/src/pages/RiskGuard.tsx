@@ -2244,72 +2244,82 @@ export default function RiskGuard() {
               </div>
             </motion.section>
 
-            {/* 2. Pinned Category Tabs (never scrolls horizontally or out of view) */}
-            <div className="sticky top-0 z-20 -mx-1 px-1 py-1.5 bg-[#F7F8FA]/95 dark:bg-[#141416]/95 backdrop-blur-md">
-              <div className="grid grid-cols-3 p-1 rounded-[13px] bg-slate-200/70 dark:bg-white/[0.06]">
-                {(
-                  [
-                    {
-                      id: "trading_control" as const,
-                      label: "Trading Control",
-                      count: tabCounts.trading_control,
-                    },
-                    {
-                      id: "risk_management" as const,
-                      label: "Risk Management",
-                      count: tabCounts.risk_management,
-                    },
-                    {
-                      id: "behaviour" as const,
-                      label: "Behaviour & Discipline",
-                      count: tabCounts.behaviour,
-                    },
-                  ] as const
-                ).map((tab) => {
-                  const active = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`relative min-w-0 px-2 sm:px-3 py-2 rounded-[10px] text-[11.5px] sm:text-[12.5px] font-semibold transition-colors whitespace-nowrap inline-flex items-center justify-center gap-1.5 cursor-pointer ${
-                        active
-                          ? "text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
-                      }`}
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="riskguard-tab-pill"
-                          transition={{
-                            type: "spring",
-                            stiffness: 460,
-                            damping: 34,
-                          }}
-                          className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[10px] shadow-[0_1px_5px_rgba(15,23,42,0.09)]"
-                        />
-                      )}
-                      <span className="relative z-10 truncate">{tab.label}</span>
-                      {tab.count > 0 && (
-                        <span
-                          className={`relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums shrink-0 ${
-                            active
-                              ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/20 dark:text-blue-400"
-                              : "bg-slate-300/60 dark:bg-white/10 text-slate-600 dark:text-neutral-300"
-                          }`}
-                        >
-                          {tab.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* Main 2-Column Workspace: Rules (Left) + Account Protection Shield (Right) */}
             <div className="flex flex-col xl:flex-row gap-5 items-start">
               <div className="flex-1 w-full min-w-0 space-y-4">
+                {/* 2. Pinned Category Tabs (scoped strictly to left rule boxes width, with frosted bottom blur) */}
+                <div className="sticky top-0 z-20 -mx-1 px-1 pt-1">
+                  <div className="bg-[#F7F8FA]/90 dark:bg-[#141416]/90 backdrop-blur-md pt-0.5 pb-1">
+                    <div className="grid grid-cols-3 p-1 rounded-[13px] bg-slate-200/75 dark:bg-white/[0.07] backdrop-blur-md border border-white/60 dark:border-white/[0.06] shadow-[0_6px_18px_-6px_rgba(15,23,42,0.1)]">
+                      {(
+                        [
+                          {
+                            id: "trading_control" as const,
+                            label: "Trading Control",
+                            count: tabCounts.trading_control,
+                          },
+                          {
+                            id: "risk_management" as const,
+                            label: "Risk Management",
+                            count: tabCounts.risk_management,
+                          },
+                          {
+                            id: "behaviour" as const,
+                            label: "Behaviour & Discipline",
+                            count: tabCounts.behaviour,
+                          },
+                        ] as const
+                      ).map((tab) => {
+                        const active = activeTab === tab.id;
+                        return (
+                          <button
+                            key={tab.id}
+                            type="button"
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`relative min-w-0 px-2 sm:px-3 py-2 rounded-[10px] text-[11.5px] sm:text-[12.5px] font-semibold transition-colors whitespace-nowrap inline-flex items-center justify-center gap-1.5 cursor-pointer ${
+                              active
+                                ? "text-slate-900 dark:text-white"
+                                : "text-slate-500 dark:text-neutral-400 hover:text-slate-800 dark:hover:text-white"
+                            }`}
+                          >
+                            {active && (
+                              <motion.span
+                                layoutId="riskguard-tab-pill"
+                                transition={{
+                                  type: "spring",
+                                  stiffness: 460,
+                                  damping: 34,
+                                }}
+                                className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[10px] shadow-[0_1px_5px_rgba(15,23,42,0.09)]"
+                              />
+                            )}
+                            <span className="relative z-10 truncate">{tab.label}</span>
+                            {tab.count > 0 && (
+                              <span
+                                className={`relative z-10 px-1.5 py-0.2 rounded-full text-[10px] font-bold tabular-nums shrink-0 ${
+                                  active
+                                    ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/20 dark:text-blue-400"
+                                    : "bg-slate-300/60 dark:bg-white/10 text-slate-600 dark:text-neutral-300"
+                                }`}
+                              >
+                                {tab.count}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {/* Soft progressive blur skirt beneath the horizontal switch bar */}
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      WebkitMaskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
+                      maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
+                    }}
+                    className="pointer-events-none h-4 -mb-4 bg-[#F7F8FA]/80 dark:bg-[#141416]/80 backdrop-blur-sm"
+                  />
+                </div>
 
                 {/* Tab Content */}
                 <AnimatePresence mode="wait">
@@ -4821,7 +4831,7 @@ export default function RiskGuard() {
               {/* Right Column: Live Account Protection Shield Panel */}
               <motion.aside
                 variants={sectionVariants}
-                className="w-full xl:w-[300px] shrink-0 xl:sticky xl:top-16 space-y-3"
+                className="w-full xl:w-[300px] shrink-0 xl:sticky xl:top-2 space-y-3"
               >
                 {(() => {
                   const tcMax = activeMarket === "indian" ? 2 : 4;
