@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { Gauge } from "@/components/ui/charts";
+import { TradeSlotsBlobStrip } from "@/components/ui/TradeSlotBlobCheckbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 
@@ -1141,26 +1142,10 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
                 : "neutral"
             }
           />
-          <Gauge
-            orientation="linear"
-            ariaLabel="Dashboard Daily Trade Count"
-            value={widgetData.tradeLimit.pct}
-            centerValue={widgetData.tradeLimit.used}
-            defaultLabel={`${widgetData.tradeLimit.used} of ${widgetData.tradeLimit.cap} trades today`}
-            suffix={`/${widgetData.tradeLimit.cap}`}
-            labelPlacement="top"
-            labelAlign="start"
-            totalNotches={36}
-            linearHeight={12}
-            spacing={2}
-            notchCornerRadius={3}
-            inactiveFillOpacity={0.35}
-            useGradient
-            gradientColors={
-              widgetData.tradeLimit.breached
-                ? ["#FB7185", "#E11D48", "#BE123C"]
-                : ["#60A5FA", "#2563EB", "#0031F2"]
-            }
+          <TradeSlotsBlobStrip
+            total={widgetData.tradeLimit.cap}
+            completed={widgetData.tradeLimit.used}
+            compact
           />
         </div>
       )}

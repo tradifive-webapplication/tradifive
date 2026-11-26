@@ -61,6 +61,7 @@ import { useRiskConfig } from "@/hooks/useRiskConfig";
 import { getGamificationState } from "@/utils/gamification";
 import { useMarket } from "@/contexts/MarketContext";
 import { RiskGuardCard } from "@/components/RiskGuardCard";
+import { TradeSlotsBlobStrip } from "@/components/ui/TradeSlotBlobCheckbox";
 import {
   getPinnedRiskWidgets,
   type RiskWidgetId,
@@ -3860,17 +3861,11 @@ export default function RiskGuard() {
                                   : `${lotTelemetry.behaviour.tradesLeft} left today`}
                               </span>
                             </div>
-                            <Gauge
-                              orientation="linear"
-                              ariaLabel="Daily Trade Count Limit Bar"
-                              value={lotTelemetry.behaviour.tradesPct}
-                              totalNotches={42}
-                              linearHeight={12}
-                              spacing={2}
-                              notchCornerRadius={3}
-                              inactiveFillOpacity={0.35}
-                              useGradient
-                              gradientColors={lotTelemetry.behaviour.tradesGrad}
+                            <TradeSlotsBlobStrip
+                              total={lotTelemetry.behaviour.tradeCap}
+                              completed={lotTelemetry.behaviour.tradesUsed}
+                              interactive={useDemoData}
+                              onSelectCount={setDemoTradesToday}
                             />
                           </div>
 
