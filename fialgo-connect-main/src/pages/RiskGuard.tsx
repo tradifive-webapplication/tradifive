@@ -60,7 +60,6 @@ import { useMarket } from "@/contexts/MarketContext";
 import { RiskGuardCard } from "@/components/RiskGuardCard";
 import {
   getPinnedRiskWidgets,
-  togglePinRiskWidget,
   type RiskWidgetId,
 } from "@/components/dashboard/RiskGuardWidgets";
 import { supabase } from "@/lib/supabase";
@@ -461,6 +460,8 @@ export default function RiskGuard() {
   // Expanded RiskGuard States
   const [maxOpenPositions, setMaxOpenPositions] = useState(5);
   const [noAveragingDown, setNoAveragingDown] = useState(false);
+  const [noAvgMode, setNoAvgMode] = useState("strict");
+  const [noAvgScope, setNoAvgScope] = useState("symbol_dir");
   const [martingaleDetection, setMartingaleDetection] = useState(false);
   const [oneInstrumentMode, setOneInstrumentMode] = useState(false);
   const [oneStrategyRule, setOneStrategyRule] = useState(false);
@@ -580,12 +581,18 @@ export default function RiskGuard() {
         setMaxOpenPositions(config.maxOpenPositions);
       if (config.noAveragingDown !== undefined)
         setNoAveragingDown(config.noAveragingDown);
+      if (config.noAvgMode) setNoAvgMode(config.noAvgMode);
+      if (config.noAvgScope) setNoAvgScope(config.noAvgScope);
       if (config.martingaleDetection !== undefined)
         setMartingaleDetection(config.martingaleDetection);
+      if (config.martingaleMultiplier)
+        setMartingaleMultiplier(config.martingaleMultiplier);
       if (config.oneInstrumentMode !== undefined)
         setOneInstrumentMode(config.oneInstrumentMode);
+      if (config.allowedTicker) setAllowedTicker(config.allowedTicker);
       if (config.oneStrategyRule !== undefined)
         setOneStrategyRule(config.oneStrategyRule);
+      if (config.strategyName) setStrategyName(config.strategyName);
       if (config.stopLossRequired !== undefined)
         setStopLossRequired(config.stopLossRequired);
       if (config.minRiskReward !== undefined)
@@ -653,9 +660,14 @@ export default function RiskGuard() {
     targetCapital,
     maxOpenPositions,
     noAveragingDown,
+    noAvgMode,
+    noAvgScope,
     martingaleDetection,
+    martingaleMultiplier,
     oneInstrumentMode,
+    allowedTicker,
     oneStrategyRule,
+    strategyName,
     stopLossRequired,
     minRiskReward,
     minRiskRewardActive,
@@ -705,6 +717,7 @@ export default function RiskGuard() {
       "fialgo_risk_config",
       JSON.stringify(buildConfigPayload())
     );
+    window.dispatchEvent(new Event("fialgo_config_changed"));
 
     toast.success("Risk Guard Settings Synchronized", {
       description: "All automated safety brackets are now live.",
@@ -724,6 +737,7 @@ export default function RiskGuard() {
         "fialgo_risk_config",
         JSON.stringify(buildConfigPayload())
       );
+      window.dispatchEvent(new Event("fialgo_config_changed"));
 
       if (user?.id) {
         const activeLotCap = maxLotActive ? maxLot : 0;
@@ -759,9 +773,14 @@ export default function RiskGuard() {
     targetCapital,
     maxOpenPositions,
     noAveragingDown,
+    noAvgMode,
+    noAvgScope,
     martingaleDetection,
+    martingaleMultiplier,
     oneInstrumentMode,
+    allowedTicker,
     oneStrategyRule,
+    strategyName,
     stopLossRequired,
     minRiskReward,
     minRiskRewardActive,
@@ -832,9 +851,14 @@ export default function RiskGuard() {
     activeMarket,
     maxLotActive,
     noAveragingDown,
+    noAvgMode,
+    noAvgScope,
     martingaleDetection,
+    martingaleMultiplier,
     oneInstrumentMode,
+    allowedTicker,
     oneStrategyRule,
+    strategyName,
     drawdownGuardActive,
     dailyProfitTargetActive,
     stopLossRequired,
@@ -927,6 +951,54 @@ export default function RiskGuard() {
 
     const fmt = (val: number) => (isIndian ? String(Math.round(val)) : val.toFixed(2));
 
+    // Card #2 (No Averaging Down)
+    const losingOpenCount = useDemoData
+      ? 1
+      : livePositions.filter((p: any) => Number(p.profit ?? 0) < 0).length;
+    const noAvgCleanPct = losingOpenCount > 0 && useDemoData ? 85 : losingOpenCount > 1 ? 65 : 100;
+
+    // Card #3 (Martingale Protection)
+    const closedTrades = (recentTrades || []).filter((t: any) => t.closed_at);
+    const lastLossTrade = closedTrades.find((t: any) => Number(t.profit ?? 0) < 0);
+    const lastLossLot = useDemoData
+      ? 0.4
+      : Number(lastLossTrade?.lot_size ?? lastLossTrade?.volume ?? 0.2);
+    const martingaleMaxNext = Number((lastLossLot * martingaleMultiplier).toFixed(2));
+    const martingaleCurrent = useDemoData ? 0.35 : Number(liveOpenSum.toFixed(2));
+    const martingalePct =
+      martingaleMaxNext > 0
+        ? Math.min(100, Math.round((martingaleCurrent / martingaleMaxNext) * 100))
+        : 0;
+    const martingaleGrad =
+      martingalePct >= 95
+        ? ["#FB7185", "#E11D48", "#BE123C"]
+        : martingalePct >= 70
+        ? ["#FBBF24", "#F59E0B", "#D97706"]
+        : ["#60A5FA", "#2563EB", "#0031F2"];
+
+    // Card #4 (One Instrument Mode)
+    const allTrades = (recentTrades || []) as any[];
+    const onTickerTrades = useDemoData
+      ? 4
+      : allTrades.filter((t) =>
+          String(t.symbol || "").toUpperCase().includes(allowedTicker.toUpperCase())
+        ).length;
+    const offTickerTrades = useDemoData ? 0 : Math.max(0, allTrades.length - onTickerTrades);
+    const instrFocusPct = useDemoData
+      ? 100
+      : allTrades.length > 0
+      ? Math.round((onTickerTrades / allTrades.length) * 100)
+      : 100;
+
+    // Card #5 (Allowed Strategy Only)
+    const magicMap: Record<string, string> = {
+      "Breakout Pro": "1024",
+      "Trend Follower": "2048",
+      "Mean Reversion": "4096",
+      "News Scalper": "8192",
+    };
+    const strategyMagic = magicMap[strategyName] || "1024";
+
     return {
       unit,
       safeCap,
@@ -939,8 +1011,38 @@ export default function RiskGuard() {
       isWarning,
       gradientColors,
       fmt,
+      noAvg: {
+        losingOpenCount,
+        cleanPct: noAvgCleanPct,
+      },
+      martingale: {
+        lastLossLot,
+        maxNext: martingaleMaxNext,
+        current: martingaleCurrent,
+        pct: martingalePct,
+        grad: martingaleGrad,
+      },
+      instr: {
+        onTickerTrades,
+        offTickerTrades,
+        focusPct: instrFocusPct,
+      },
+      strategy: {
+        magic: strategyMagic,
+        matchPct: 100,
+      },
     };
-  }, [activeMarket, maxLot, accountMetrics, recentTrades, useDemoData, demoOpenLots]);
+  }, [
+    activeMarket,
+    maxLot,
+    accountMetrics,
+    recentTrades,
+    useDemoData,
+    demoOpenLots,
+    martingaleMultiplier,
+    allowedTicker,
+    strategyName,
+  ]);
 
   if (!authChecked) {
     return (
@@ -1369,222 +1471,146 @@ export default function RiskGuard() {
                         active={maxLotActive}
                         onToggle={setMaxLotActive}
                         intent={lotTelemetry.isBreached ? "emergency" : "trading"}
-                        fixedBodyHeight
-                        pinned={pinnedWidgets.includes("max_lot")}
-                        onTogglePin={() => {
-                          const added = togglePinRiskWidget("max_lot");
-                          setPinnedWidgets(getPinnedRiskWidgets());
-                          toast.success(
-                            added
-                              ? "Added Max Lot Gauge widget to Dashboard"
-                              : "Removed Max Lot widget from Dashboard"
-                          );
-                        }}
-                        activeContent={
-                          <div className="flex-1 flex flex-col justify-between gap-2">
-                            <div className="flex items-center gap-3">
-                              {/* Bklit-style Dial Gauge with Ruler & Gradient Needle */}
-                              <div className="w-[136px] shrink-0 flex flex-col items-center">
-                                <Gauge
-                                  compact
-                                  ariaLabel="Max Lot Exposure Gauge"
-                                  value={lotTelemetry.pct}
-                                  suffix="%"
-                                  defaultLabel={`${lotTelemetry.fmt(lotTelemetry.openLots)} / ${lotTelemetry.fmt(lotTelemetry.safeCap)} ${lotTelemetry.unit}`}
-                                  startAngle={135}
-                                  endAngle={405}
-                                  ruler
-                                  needle="gradient"
-                                  inactiveFillOpacity={0.42}
-                                  useGradient
-                                  gradientColors={lotTelemetry.gradientColors}
-                                />
+                        hasDashboardWidget={pinnedWidgets.includes("max_lot")}
+                      >
+                        <div className="space-y-2.5">
+                          <div className="flex items-center gap-3">
+                            {/* 72-Notch Dial Gauge with Ruler & Line Needle */}
+                            <div className="w-[134px] shrink-0 flex flex-col items-center">
+                              <Gauge
+                                compact
+                                ariaLabel="Max Lot Exposure Gauge"
+                                value={lotTelemetry.pct}
+                                centerValue={lotTelemetry.pct}
+                                defaultLabel={`${lotTelemetry.fmt(lotTelemetry.openLots)} / ${lotTelemetry.fmt(lotTelemetry.safeCap)} ${lotTelemetry.unit}`}
+                                suffix="%"
+                                needle="line"
+                                ruler
+                                totalNotches={72}
+                                spacing={40}
+                                notchLengthPercent={34}
+                                notchCornerRadius={2}
+                                startAngle={148}
+                                endAngle={392}
+                                enterTransition={{
+                                  type: "spring",
+                                  visualDuration: 1.4,
+                                  bounce: 0,
+                                }}
+                                enterStaggerScale={2}
+                                inactiveFillOpacity={0.4}
+                                useGradient
+                                gradientColors={lotTelemetry.gradientColors}
+                              />
+                            </div>
+
+                            {/* Live / Demo Breakdown Rows */}
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                  Lock Set
+                                </span>
+                                <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                                  {lotTelemetry.fmt(lotTelemetry.safeCap)} {lotTelemetry.unit}
+                                </span>
                               </div>
 
-                              {/* Live / Demo Breakdown Rows */}
-                              <div className="flex-1 min-w-0 space-y-1.5">
-                                <div className="flex items-center justify-between gap-2 text-[11px]">
-                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                                    Lock Set
-                                  </span>
-                                  <span className="font-bold text-slate-800 dark:text-white tabular-nums">
-                                    {lotTelemetry.fmt(lotTelemetry.safeCap)} {lotTelemetry.unit}
-                                  </span>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-2 text-[11px]">
-                                  <span className="text-slate-400 dark:text-neutral-500 font-medium inline-flex items-center gap-1">
-                                    <span>Open Now</span>
-                                    <span
-                                      className={`px-1 py-[1px] rounded text-[8.5px] font-bold uppercase tracking-wide ${
-                                        useDemoData
-                                          ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
-                                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
-                                      }`}
-                                    >
-                                      {useDemoData ? "Demo" : "Live"}
-                                    </span>
-                                  </span>
-                                  <div className="flex items-center gap-1">
-                                    {useDemoData && (
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setDemoOpenLots((v) =>
-                                            Math.max(0, Number((v - 0.1).toFixed(2)))
-                                          )
-                                        }
-                                        className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
-                                        title="Decrease demo open lot"
-                                      >
-                                        <Minus size={9} />
-                                      </button>
-                                    )}
-                                    <span className="font-bold text-slate-900 dark:text-white tabular-nums">
-                                      {lotTelemetry.fmt(lotTelemetry.openLots)} {lotTelemetry.unit}
-                                    </span>
-                                    {useDemoData && (
-                                      <button
-                                        type="button"
-                                        onClick={() =>
-                                          setDemoOpenLots((v) =>
-                                            Number((v + 0.1).toFixed(2))
-                                          )
-                                        }
-                                        className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
-                                        title="Increase demo open lot"
-                                      >
-                                        <Plus size={9} />
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-2 text-[11px]">
-                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
-                                    {lotTelemetry.isBreached ? "Exceeded" : "Remaining"}
-                                  </span>
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium inline-flex items-center gap-1">
+                                  <span>Open Now</span>
                                   <span
-                                    className={`font-bold tabular-nums ${
-                                      lotTelemetry.isBreached
-                                        ? "text-rose-600 dark:text-rose-400"
-                                        : lotTelemetry.isWarning
-                                        ? "text-amber-600 dark:text-amber-400"
-                                        : "text-emerald-600 dark:text-emerald-400"
+                                    className={`px-1 py-[1px] rounded text-[8.5px] font-bold uppercase tracking-wide ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
                                     }`}
                                   >
-                                    {lotTelemetry.isBreached
-                                      ? `+${lotTelemetry.fmt(lotTelemetry.exceededBy)} ${lotTelemetry.unit} over`
-                                      : `${lotTelemetry.fmt(lotTelemetry.remainingLots)} ${lotTelemetry.unit} left`}
+                                    {useDemoData ? "Demo" : "Live"}
                                   </span>
-                                </div>
-
-                                <div className="flex items-center justify-between gap-2 text-[10.5px] pt-0.5">
-                                  <span className="text-slate-400 dark:text-neutral-500">
-                                    Open Positions
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  {useDemoData && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDemoOpenLots((v) =>
+                                          Math.max(0, Number((v - 0.1).toFixed(2)))
+                                        )
+                                      }
+                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Decrease demo open lot"
+                                    >
+                                      <Minus size={9} />
+                                    </button>
+                                  )}
+                                  <span className="font-bold text-slate-900 dark:text-white tabular-nums">
+                                    {lotTelemetry.fmt(lotTelemetry.openLots)} {lotTelemetry.unit}
                                   </span>
-                                  <span className="font-semibold text-slate-600 dark:text-neutral-300 tabular-nums">
-                                    {lotTelemetry.openCount} active · {lotTelemetry.pct}%
-                                  </span>
+                                  {useDemoData && (
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setDemoOpenLots((v) =>
+                                          Number((v + 0.1).toFixed(2))
+                                        )
+                                      }
+                                      className="w-4 h-4 rounded bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.08] dark:hover:bg-white/[0.15] flex items-center justify-center text-slate-600 dark:text-neutral-300 cursor-pointer"
+                                      title="Increase demo open lot"
+                                    >
+                                      <Plus size={9} />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
-                            </div>
 
-                            <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/[0.06] text-[10px]">
-                              <span
-                                className={`inline-flex items-center gap-1.5 font-semibold ${
-                                  lotTelemetry.isBreached
-                                    ? "text-rose-600 dark:text-rose-400"
-                                    : useDemoData
-                                    ? "text-amber-600 dark:text-amber-400"
-                                    : "text-emerald-600 dark:text-emerald-400"
-                                }`}
-                              >
-                                <span
-                                  className={`w-1.5 h-1.5 rounded-full ${
-                                    lotTelemetry.isBreached
-                                      ? "bg-rose-500 animate-pulse"
-                                      : useDemoData
-                                      ? "bg-amber-500"
-                                      : "bg-emerald-500"
-                                  }`}
-                                />
-                                <span>
-                                  {lotTelemetry.isBreached
-                                    ? "Cap Breached · MetaApi Auto-Close Triggered"
-                                    : useDemoData
-                                    ? "Demo Preview · MetaApi Guard Armed"
-                                    : "MetaApi Auto-Close Armed"}
+                              <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                  {lotTelemetry.isBreached ? "Exceeded" : "Remaining"}
                                 </span>
-                              </span>
-                              <span className="inline-flex items-center gap-1 font-medium text-slate-400 dark:text-neutral-500">
-                                <Lock size={10} />
-                                <span>Turn off to edit</span>
-                              </span>
+                                <span
+                                  className={`font-bold tabular-nums ${
+                                    lotTelemetry.isBreached
+                                      ? "text-rose-600 dark:text-rose-400"
+                                      : lotTelemetry.isWarning
+                                      ? "text-amber-600 dark:text-amber-400"
+                                      : "text-emerald-600 dark:text-emerald-400"
+                                  }`}
+                                >
+                                  {lotTelemetry.isBreached
+                                    ? `+${lotTelemetry.fmt(lotTelemetry.exceededBy)} ${lotTelemetry.unit} over`
+                                    : `${lotTelemetry.fmt(lotTelemetry.remainingLots)} ${lotTelemetry.unit} left`}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        }
-                      >
-                        <div className="flex-1 flex flex-col justify-between gap-2">
-                          <div className="space-y-2.5">
-                            <div className="flex items-center gap-3">
-                              <div className="relative flex items-center w-[116px] shrink-0">
-                                <input
-                                  type="number"
-                                  step={activeMarket === "indian" ? "1" : "0.01"}
-                                  min={activeMarket === "indian" ? "1" : "0.01"}
-                                  value={maxLot}
-                                  onChange={(e) =>
-                                    setMaxLot(Number(e.target.value))
-                                  }
-                                  className={`w-full pl-2.5 pr-9 h-[32px] ${INPUT_BASE}`}
-                                />
-                                <span className="absolute right-2.5 text-[10px] font-semibold text-slate-400">
-                                  {activeMarket === "indian" ? "Qty" : "Lots"}
-                                </span>
-                              </div>
+
+                          <div className="flex items-center gap-3">
+                            <div className="relative flex items-center w-[112px] shrink-0">
                               <input
-                                type="range"
-                                min={activeMarket === "indian" ? "1" : "0.01"}
-                                max={activeMarket === "indian" ? "500" : "10.00"}
+                                type="number"
                                 step={activeMarket === "indian" ? "1" : "0.01"}
+                                min={activeMarket === "indian" ? "1" : "0.01"}
                                 value={maxLot}
                                 onChange={(e) =>
                                   setMaxLot(Number(e.target.value))
                                 }
-                                className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                                className={`w-full pl-2.5 pr-9 h-[30px] ${INPUT_BASE}`}
                               />
-                            </div>
-
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="text-[10px] font-medium text-slate-400 dark:text-neutral-500 mr-0.5">
-                                Presets:
+                              <span className="absolute right-2.5 text-[10px] font-semibold text-slate-400">
+                                {lotTelemetry.unit}
                               </span>
-                              {(activeMarket === "indian"
-                                ? [25, 50, 100, 250, 500]
-                                : [0.25, 0.5, 1.0, 2.0, 5.0]
-                              ).map((preset) => (
-                                <button
-                                  key={preset}
-                                  type="button"
-                                  onClick={() => setMaxLot(preset)}
-                                  className={`px-2 py-0.5 rounded-md text-[10px] font-semibold tabular-nums border transition-colors cursor-pointer ${
-                                    Number(maxLot) === preset
-                                      ? "bg-blue-50 border-blue-200 text-[#2563EB] dark:bg-blue-500/15 dark:border-blue-500/30 dark:text-blue-400"
-                                      : "bg-slate-50 border-slate-200/70 text-slate-500 hover:text-slate-800 dark:bg-white/[0.04] dark:border-white/[0.08] dark:text-neutral-400"
-                                  }`}
-                                >
-                                  {preset} {lotTelemetry.unit}
-                                </button>
-                              ))}
                             </div>
-                          </div>
-
-                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-100 dark:border-white/[0.06] text-[10px] text-slate-400 dark:text-neutral-500">
-                            <span>Set cap above &amp; toggle ON to lock exposure</span>
-                            <span className="font-semibold text-slate-500 dark:text-neutral-400">
-                              Editable
-                            </span>
+                            <input
+                              type="range"
+                              min={activeMarket === "indian" ? "1" : "0.01"}
+                              max={activeMarket === "indian" ? "500" : "10.00"}
+                              step={activeMarket === "indian" ? "1" : "0.01"}
+                              value={maxLot}
+                              onChange={(e) =>
+                                setMaxLot(Number(e.target.value))
+                              }
+                              className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                            />
                           </div>
                         </div>
                       </RiskGuardCard>
@@ -1594,45 +1620,81 @@ export default function RiskGuard() {
                           icon={TrendingDown}
                           title="No Averaging Down"
                           description="Prevent adding to losing positions"
+                          value={`${lotTelemetry.noAvg.cleanPct}% clean`}
                           active={noAveragingDown}
                           onToggle={setNoAveragingDown}
                           intent="trading"
+                          hasDashboardWidget={pinnedWidgets.includes("no_avg")}
                         >
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <div>
-                              <label className={FIELD_LABEL}>Mode</label>
-                              <Select defaultValue="strict">
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="strict">
-                                    Strict Block
-                                  </SelectItem>
-                                  <SelectItem value="warning">
-                                    Warning Only
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+                          <div className="space-y-2.5">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between text-[10.5px]">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                  <span>Clean Guard</span>
+                                  <span
+                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                  {lotTelemetry.noAvg.losingOpenCount} losing open · 0 adds
+                                </span>
+                              </div>
+                              <Gauge
+                                orientation="linear"
+                                ariaLabel="No Averaging Down Linear Gauge"
+                                value={lotTelemetry.noAvg.cleanPct}
+                                totalNotches={42}
+                                linearHeight={14}
+                                spacing={2}
+                                notchCornerRadius={3}
+                                inactiveFillOpacity={0.35}
+                                useGradient
+                                gradientColors={["#34D399", "#10B981", "#059669"]}
+                              />
                             </div>
-                            <div>
-                              <label className={FIELD_LABEL}>Scope</label>
-                              <Select defaultValue="symbol_dir">
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="symbol_dir">
-                                    Same Symbol + Dir
-                                  </SelectItem>
-                                  <SelectItem value="symbol_only">
-                                    Same Symbol
-                                  </SelectItem>
-                                  <SelectItem value="all">
-                                    Global Account
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
+
+                            <div className="grid grid-cols-2 gap-2.5">
+                              <div>
+                                <label className={FIELD_LABEL}>Mode</label>
+                                <Select value={noAvgMode} onValueChange={setNoAvgMode}>
+                                  <SelectTrigger className={SELECT_TRIGGER}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="strict">
+                                      Strict Block
+                                    </SelectItem>
+                                    <SelectItem value="warning">
+                                      Warning Only
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div>
+                                <label className={FIELD_LABEL}>Scope</label>
+                                <Select value={noAvgScope} onValueChange={setNoAvgScope}>
+                                  <SelectTrigger className={SELECT_TRIGGER}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="symbol_dir">
+                                      Same Symbol + Dir
+                                    </SelectItem>
+                                    <SelectItem value="symbol_only">
+                                      Same Symbol
+                                    </SelectItem>
+                                    <SelectItem value="all">
+                                      Global Account
+                                    </SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           </div>
                         </RiskGuardCard>
@@ -1647,26 +1709,86 @@ export default function RiskGuard() {
                           active={martingaleDetection}
                           onToggle={setMartingaleDetection}
                           intent="warning"
+                          hasDashboardWidget={pinnedWidgets.includes("martingale")}
                         >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={`w-[72px] shrink-0 h-[32px] flex items-center justify-center ${INPUT_BASE}`}
-                            >
-                              {martingaleMultiplier.toFixed(1)}×
+                          <div className="space-y-2.5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-[134px] shrink-0 flex flex-col items-center">
+                                <Gauge
+                                  compact
+                                  ariaLabel="Martingale Scale Dial Gauge"
+                                  value={lotTelemetry.martingale.pct}
+                                  centerValue={lotTelemetry.martingale.pct}
+                                  defaultLabel={`${lotTelemetry.martingale.current.toFixed(2)} / ${lotTelemetry.martingale.maxNext.toFixed(2)}`}
+                                  suffix="%"
+                                  needle="line"
+                                  ruler
+                                  totalNotches={72}
+                                  spacing={40}
+                                  notchLengthPercent={34}
+                                  notchCornerRadius={2}
+                                  startAngle={148}
+                                  endAngle={392}
+                                  enterTransition={{
+                                    type: "spring",
+                                    visualDuration: 1.4,
+                                    bounce: 0,
+                                  }}
+                                  enterStaggerScale={2}
+                                  inactiveFillOpacity={0.4}
+                                  useGradient
+                                  gradientColors={lotTelemetry.martingale.grad}
+                                />
+                              </div>
+
+                              <div className="flex-1 min-w-0 space-y-1.5 text-[11px]">
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                    Scale Cap
+                                  </span>
+                                  <span className="font-bold text-slate-800 dark:text-white tabular-nums">
+                                    {martingaleMultiplier.toFixed(1)}×
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                    Last Loss
+                                  </span>
+                                  <span className="font-bold text-slate-900 dark:text-white tabular-nums">
+                                    {lotTelemetry.martingale.lastLossLot.toFixed(2)} Lots
+                                  </span>
+                                </div>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-slate-400 dark:text-neutral-500 font-medium">
+                                    Next Max
+                                  </span>
+                                  <span className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                                    {lotTelemetry.martingale.maxNext.toFixed(2)} Lots
+                                  </span>
+                                </div>
+                              </div>
                             </div>
-                            <input
-                              type="range"
-                              min="1.1"
-                              max="5.0"
-                              step="0.1"
-                              value={martingaleMultiplier}
-                              onChange={(e) =>
-                                setMartingaleMultiplier(
-                                  Number(e.target.value)
-                                )
-                              }
-                              className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
-                            />
+
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-[72px] shrink-0 h-[30px] flex items-center justify-center ${INPUT_BASE}`}
+                              >
+                                {martingaleMultiplier.toFixed(1)}×
+                              </div>
+                              <input
+                                type="range"
+                                min="1.1"
+                                max="5.0"
+                                step="0.1"
+                                value={martingaleMultiplier}
+                                onChange={(e) =>
+                                  setMartingaleMultiplier(
+                                    Number(e.target.value)
+                                  )
+                                }
+                                className="flex-1 h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#2563EB]"
+                              />
+                            </div>
                           </div>
                         </RiskGuardCard>
                       )}
@@ -1679,46 +1801,82 @@ export default function RiskGuard() {
                         active={oneInstrumentMode}
                         onToggle={setOneInstrumentMode}
                         intent="trading"
+                        hasDashboardWidget={pinnedWidgets.includes("one_instrument")}
                       >
-                        <Select
-                          value={allowedTicker}
-                          onValueChange={setAllowedTicker}
-                        >
-                          <SelectTrigger className={SELECT_TRIGGER}>
-                            <SelectValue placeholder="Select an instrument..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {activeMarket === "indian" ? (
-                              <>
-                                <SelectItem value="NIFTY50">NIFTY 50</SelectItem>
-                                <SelectItem value="BANKNIFTY">
-                                  BANKNIFTY
-                                </SelectItem>
-                                <SelectItem value="RELIANCE">RELIANCE</SelectItem>
-                                <SelectItem value="HDFCBANK">HDFCBANK</SelectItem>
-                                <SelectItem value="INFY">INFY</SelectItem>
-                              </>
-                            ) : (
-                              <>
-                                <SelectItem value="XAUUSD">
-                                  XAUUSD — Gold
-                                </SelectItem>
-                                <SelectItem value="EURUSD">
-                                  EURUSD — Euro / US Dollar
-                                </SelectItem>
-                                <SelectItem value="GBPUSD">
-                                  GBPUSD — British Pound / US Dollar
-                                </SelectItem>
-                                <SelectItem value="US30">
-                                  US30 — Wall Street 30
-                                </SelectItem>
-                                <SelectItem value="NAS100">
-                                  NAS100 — US Tech 100
-                                </SelectItem>
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <div className="space-y-2.5">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between text-[10.5px]">
+                              <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                <span>Pair Focus</span>
+                                <span
+                                  className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                    useDemoData
+                                      ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                  }`}
+                                >
+                                  {useDemoData ? "Demo" : "Live"}
+                                </span>
+                              </span>
+                              <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                {lotTelemetry.instr.onTickerTrades} on {allowedTicker} ·{" "}
+                                {lotTelemetry.instr.offTickerTrades} off-pair
+                              </span>
+                            </div>
+                            <Gauge
+                              orientation="linear"
+                              ariaLabel="One Instrument Focus Bar"
+                              value={lotTelemetry.instr.focusPct}
+                              totalNotches={42}
+                              linearHeight={14}
+                              spacing={2}
+                              notchCornerRadius={3}
+                              inactiveFillOpacity={0.35}
+                              useGradient
+                              gradientColors={["#60A5FA", "#2563EB", "#0031F2"]}
+                            />
+                          </div>
+
+                          <Select
+                            value={allowedTicker}
+                            onValueChange={setAllowedTicker}
+                          >
+                            <SelectTrigger className={SELECT_TRIGGER}>
+                              <SelectValue placeholder="Select an instrument..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {activeMarket === "indian" ? (
+                                <>
+                                  <SelectItem value="NIFTY50">NIFTY 50</SelectItem>
+                                  <SelectItem value="BANKNIFTY">
+                                    BANKNIFTY
+                                  </SelectItem>
+                                  <SelectItem value="RELIANCE">RELIANCE</SelectItem>
+                                  <SelectItem value="HDFCBANK">HDFCBANK</SelectItem>
+                                  <SelectItem value="INFY">INFY</SelectItem>
+                                </>
+                              ) : (
+                                <>
+                                  <SelectItem value="XAUUSD">
+                                    XAUUSD — Gold
+                                  </SelectItem>
+                                  <SelectItem value="EURUSD">
+                                    EURUSD — Euro / US Dollar
+                                  </SelectItem>
+                                  <SelectItem value="GBPUSD">
+                                    GBPUSD — British Pound / US Dollar
+                                  </SelectItem>
+                                  <SelectItem value="US30">
+                                    US30 — Wall Street 30
+                                  </SelectItem>
+                                  <SelectItem value="NAS100">
+                                    NAS100 — US Tech 100
+                                  </SelectItem>
+                                </>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </RiskGuardCard>
 
                       {activeMarket !== "indian" && (
@@ -1730,29 +1888,64 @@ export default function RiskGuard() {
                           active={oneStrategyRule}
                           onToggle={setOneStrategyRule}
                           intent="trading"
+                          hasDashboardWidget={pinnedWidgets.includes("allowed_strategy")}
                         >
-                          <Select
-                            value={strategyName}
-                            onValueChange={setStrategyName}
-                          >
-                            <SelectTrigger className={SELECT_TRIGGER}>
-                              <SelectValue placeholder="Select a strategy..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Breakout Pro">
-                                Breakout Pro — Magic #1024
-                              </SelectItem>
-                              <SelectItem value="Trend Follower">
-                                Trend Follower — Magic #2048
-                              </SelectItem>
-                              <SelectItem value="Mean Reversion">
-                                Mean Reversion — Magic #4096
-                              </SelectItem>
-                              <SelectItem value="News Scalper">
-                                News Scalper — Magic #8192
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+                          <div className="space-y-2.5">
+                            <div className="space-y-1.5">
+                              <div className="flex items-center justify-between text-[10.5px]">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
+                                  <span>Magic #{lotTelemetry.strategy.magic}</span>
+                                  <span
+                                    className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
+                                      useDemoData
+                                        ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300"
+                                        : "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300"
+                                    }`}
+                                  >
+                                    {useDemoData ? "Demo" : "Live"}
+                                  </span>
+                                </span>
+                                <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
+                                  {lotTelemetry.strategy.matchPct}% EA match · 0 manual
+                                </span>
+                              </div>
+                              <Gauge
+                                orientation="linear"
+                                ariaLabel="Allowed Strategy EA Match Bar"
+                                value={lotTelemetry.strategy.matchPct}
+                                totalNotches={42}
+                                linearHeight={14}
+                                spacing={2}
+                                notchCornerRadius={3}
+                                inactiveFillOpacity={0.35}
+                                useGradient
+                                gradientColors={["#818CF8", "#4F46E5", "#2563EB"]}
+                              />
+                            </div>
+
+                            <Select
+                              value={strategyName}
+                              onValueChange={setStrategyName}
+                            >
+                              <SelectTrigger className={SELECT_TRIGGER}>
+                                <SelectValue placeholder="Select a strategy..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Breakout Pro">
+                                  Breakout Pro — Magic #1024
+                                </SelectItem>
+                                <SelectItem value="Trend Follower">
+                                  Trend Follower — Magic #2048
+                                </SelectItem>
+                                <SelectItem value="Mean Reversion">
+                                  Mean Reversion — Magic #4096
+                                </SelectItem>
+                                <SelectItem value="News Scalper">
+                                  News Scalper — Magic #8192
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </RiskGuardCard>
                       )}
                     </motion.div>

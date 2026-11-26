@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Cpu, TrendingUp } from "lucide-react";
 import { animate, useMotionValue, useMotionValueEvent, useReducedMotion } from "framer-motion";
 import {
@@ -14,6 +14,12 @@ import {
    1. GAUGE COMPONENT (NOTCH-BASED SEMICIRCLE)
 ========================================================================= */
 
+export interface GaugeTransition {
+  type?: "spring";
+  visualDuration?: number;
+  bounce?: number;
+}
+
 export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
   centerValue?: React.ReactNode;
@@ -21,6 +27,7 @@ export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   startAngle?: number;
   endAngle?: number;
   totalNotches?: number;
+  notchLengthPercent?: number;
   notchCornerRadius?: number;
   suffix?: string;
   useGradient?: boolean;
@@ -30,6 +37,8 @@ export interface GaugeProps extends React.HTMLAttributes<HTMLDivElement> {
   spacing?: number;
   ruler?: boolean;
   needle?: boolean | "gradient" | "line" | "triangle" | "polygon";
+  enterTransition?: GaugeTransition;
+  enterStaggerScale?: number;
   ariaLabel?: string;
   orientation?: "arc" | "linear";
   linearHeight?: number;
@@ -78,6 +87,7 @@ export const Gauge: React.FC<GaugeProps> = ({
   startAngle = 180,
   endAngle = 360,
   totalNotches = 36,
+  notchLengthPercent,
   notchCornerRadius = 3,
   suffix = "%",
   useGradient = true,
@@ -87,6 +97,8 @@ export const Gauge: React.FC<GaugeProps> = ({
   spacing,
   ruler = false,
   needle = false,
+  enterTransition,
+  enterStaggerScale = 1,
   ariaLabel = "Gauge",
   orientation = "arc",
   linearHeight = 22,
@@ -101,41 +113,70 @@ export const Gauge: React.FC<GaugeProps> = ({
   const sweepDeg = Math.abs(endAngle - startAngle);
   const isDial = sweepDeg > 185;
 
-  const effectiveNotches = isDial
-    ? totalNotches === 36
-      ? compact
-        ? 54
-        : 68
-      : totalNotches
-    : compact && totalNotches === 36
-    ? 28
-    : totalNotches;
+  const effectiveNotches = totalNotches;
 
   const clampedValue = Math.max(0, Math.min(100, value));
+  const numericCenterTarget =
+    typeof centerValue === "number" ? centerValue : clampedValue;
+
   const springMotion = useMotionValue(prefersReduced ? clampedValue : 0);
+  const centerMotion = useMotionValue(prefersReduced ? numericCenterTarget : 0);
+  const hasEnteredRef = React.useRef(false);
+
   const [animValue, setAnimValue] = useState<number>(
     prefersReduced ? clampedValue : 0
+  );
+  const [animCenter, setAnimCenter] = useState<number>(
+    prefersReduced ? numericCenterTarget : 0
   );
 
   useMotionValueEvent(springMotion, "change", (latest) => {
     setAnimValue(Math.max(0, Math.min(100, latest)));
   });
 
+  useMotionValueEvent(centerMotion, "change", (latest) => {
+    setAnimCenter(latest);
+  });
+
   useEffect(() => {
     if (prefersReduced) {
       springMotion.set(clampedValue);
+      centerMotion.set(numericCenterTarget);
       setAnimValue(clampedValue);
+      setAnimCenter(numericCenterTarget);
       return;
     }
-    const controls = animate(springMotion, clampedValue, {
+
+    const isEnter = !hasEnteredRef.current;
+    hasEnteredRef.current = true;
+    const duration = isEnter
+      ? enterTransition?.visualDuration ?? 1.4
+      : 0.7;
+    const bounce = enterTransition?.bounce ?? 0;
+
+    const c1 = animate(springMotion, clampedValue, {
       type: "spring",
-      stiffness: 115,
-      damping: 22,
-      mass: 0.75,
-      bounce: 0,
+      duration,
+      bounce,
     });
-    return () => controls.stop();
-  }, [clampedValue, prefersReduced, springMotion]);
+    const c2 = animate(centerMotion, numericCenterTarget, {
+      type: "spring",
+      duration,
+      bounce,
+    });
+    return () => {
+      c1.stop();
+      c2.stop();
+    };
+  }, [
+    clampedValue,
+    numericCenterTarget,
+    prefersReduced,
+    springMotion,
+    centerMotion,
+    enterTransition?.visualDuration,
+    enterTransition?.bounce,
+  ]);
 
   const activeCount = Math.round((animValue / 100) * effectiveNotches);
 
@@ -152,9 +193,9 @@ export const Gauge: React.FC<GaugeProps> = ({
         ];
 
   const displayCenter =
-    centerValue !== undefined
+    centerValue !== undefined && typeof centerValue !== "number"
       ? centerValue
-      : `${Math.round(animValue)}${suffix}`;
+      : `${Math.round(animCenter)}${suffix}`;
 
   // ── LINEAR HORIZONTAL BAR GAUGE MODE ──
   if (orientation === "linear") {
@@ -233,17 +274,22 @@ export const Gauge: React.FC<GaugeProps> = ({
   // ── ARC / DIAL GAUGE GEOMETRY ──
   const cx = 150;
   const cy = isDial ? 148 : 135;
-  const rInner = isDial ? 96 : 76;
-  const rOuter = isDial ? 116 : 108;
-  const viewBox = isDial ? "0 0 300 246" : "0 0 300 156";
-  const baseRadius = isDial
-    ? compact
-      ? 2.1
-      : 2.2
-    : compact
-    ? Math.max(notchCornerRadius, 3.6)
-    : notchCornerRadius;
-  const strokeW = baseRadius * 1.8;
+  const rOuter = isDial ? 118 : 108;
+  const notchRadialLength = notchLengthPercent
+    ? (notchLengthPercent / 100) * (isDial ? 62 : 94)
+    : isDial
+    ? 20
+    : 32;
+  const rInner = Math.max(48, rOuter - notchRadialLength);
+  const viewBox = isDial ? "0 0 300 242" : "0 0 300 156";
+
+  // Notch thickness respects spacing (%) and totalNotches
+  const arcLen = 2 * Math.PI * ((rInner + rOuter) / 2) * (sweepDeg / 360);
+  const pitch = arcLen / Math.max(1, effectiveNotches);
+  const gapFactor = spacing !== undefined ? Math.max(0.15, Math.min(0.8, spacing / 100)) : 0.42;
+  const strokeW = isDial
+    ? Math.max(1.8, Math.min(4.8, pitch * (1 - gapFactor)))
+    : (compact ? Math.max(notchCornerRadius, 3.6) : notchCornerRadius) * 1.8;
 
   const notches = Array.from({ length: effectiveNotches }, (_, idx) => {
     const stepRatio = effectiveNotches > 1 ? idx / (effectiveNotches - 1) : 0;
@@ -281,8 +327,8 @@ export const Gauge: React.FC<GaugeProps> = ({
         const angleDeg = startAngle + stepRatio * (endAngle - startAngle);
         const angleRad = (angleDeg * Math.PI) / 180;
         const isMajor = idx % 5 === 0;
-        const tickOuter = rInner - 6;
-        const tickInner = isMajor ? tickOuter - 13 : tickOuter - 7;
+        const tickOuter = rInner - 5;
+        const tickInner = isMajor ? tickOuter - 12 : tickOuter - 6;
         const passed = stepRatio * 100 <= animValue + 0.5;
 
         return {
@@ -302,12 +348,13 @@ export const Gauge: React.FC<GaugeProps> = ({
   const needleMode = needle === true ? "gradient" : needle || "gradient";
   const needleAngleDeg = startAngle + (animValue / 100) * (endAngle - startAngle);
   const needleRotDeg = needleAngleDeg - 270;
-  const rNeedleStart = isDial ? 46 : 36;
-  const rNeedleTip = rInner - 7;
+  const rNeedleStart = isDial ? 44 : 36;
+  const rNeedleTip = rInner - 6;
   const vStartY = cy - rNeedleStart;
   const vTipY = cy - rNeedleTip;
   const triHalfW = 3.2;
   const polyPoints = `${cx - triHalfW},${vStartY} ${cx + triHalfW},${vStartY} ${cx},${vTipY}`;
+  const staggerMs = enterStaggerScale ? enterStaggerScale * 8 : 0;
 
   return (
     <div
@@ -323,7 +370,7 @@ export const Gauge: React.FC<GaugeProps> = ({
         className={`w-full h-auto overflow-visible ${
           compact
             ? isDial
-              ? "max-w-[136px]"
+              ? "max-w-[138px]"
               : "max-w-[154px]"
             : "max-w-[280px]"
         }`}
@@ -381,7 +428,14 @@ export const Gauge: React.FC<GaugeProps> = ({
                   : ""
               }
               strokeWidth={strokeW}
-              strokeLinecap="round"
+              strokeLinecap={notchCornerRadius <= 2 ? "round" : "round"}
+              style={
+                staggerMs > 0
+                  ? {
+                      transition: `stroke 180ms ease ${(notch.idx * staggerMs) % 240}ms`,
+                    }
+                  : undefined
+              }
             />
           ))}
         </g>
@@ -397,7 +451,7 @@ export const Gauge: React.FC<GaugeProps> = ({
                 x2={t.x2}
                 y2={t.y2}
                 stroke="currentColor"
-                strokeWidth={t.isMajor ? 2.4 : 1.25}
+                strokeWidth={t.isMajor ? 2.2 : 1.15}
                 strokeLinecap="round"
                 className={
                   t.passed
@@ -428,7 +482,7 @@ export const Gauge: React.FC<GaugeProps> = ({
                 x2={cx}
                 y2={vTipY}
                 stroke="currentColor"
-                strokeWidth={3}
+                strokeWidth={2.8}
                 strokeLinecap="round"
                 className="text-slate-900 dark:text-white"
               />
@@ -440,7 +494,7 @@ export const Gauge: React.FC<GaugeProps> = ({
                   x2={cx}
                   y2={vTipY}
                   stroke={`url(#tfNeedleLight-${uid})`}
-                  strokeWidth={3.8}
+                  strokeWidth={3.6}
                   strokeLinecap="round"
                   className="dark:hidden"
                 />
@@ -450,7 +504,7 @@ export const Gauge: React.FC<GaugeProps> = ({
                   x2={cx}
                   y2={vTipY}
                   stroke={`url(#tfNeedleDark-${uid})`}
-                  strokeWidth={3.8}
+                  strokeWidth={3.6}
                   strokeLinecap="round"
                   className="hidden dark:block"
                 />
@@ -673,6 +727,7 @@ export const Area: React.FC<AreaProps> = ({
   strokeColor = "#006DFE",
   fillColor = "#006DFE",
 }) => {
+  const uniqueId = React.useId().replace(/:/g, "");
   const ctx = useContext(ChartContext);
   if (!ctx) return null;
   const { data, width, height, padding, setHoverIndex, setHoverCoords } = ctx;
@@ -711,7 +766,6 @@ export const Area: React.FC<AreaProps> = ({
       ? `${linePath} L ${points[points.length - 1].x.toFixed(1)} ${baselineY} L ${points[0].x.toFixed(1)} ${baselineY} Z`
       : "";
 
-  const uniqueId = React.useId().replace(/:/g, "");
   const gradientId = `areaGrad-${uniqueId}`;
   const maskId = `fadeMask-${uniqueId}`;
 

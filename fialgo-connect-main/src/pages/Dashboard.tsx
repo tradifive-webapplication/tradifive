@@ -30,7 +30,10 @@ import ShareProfileModal from "@/components/ShareProfileModal";
 import DashboardNewsCard from "@/components/dashboard/DashboardNewsCard";
 import DashboardPnLCalendar from "@/components/dashboard/DashboardPnLCalendar";
 import DashboardGoalsCard from "@/components/dashboard/DashboardGoalsCard";
-import { DashboardPinnedRiskWidgets } from "@/components/dashboard/RiskGuardWidgets";
+import {
+  DashboardPinnedRiskWidgets,
+  DashboardWidgetsPicker,
+} from "@/components/dashboard/RiskGuardWidgets";
 import PreMarketPlanModal, {
   loadTodayPlan,
   DailyPreMarketPlan,
@@ -658,6 +661,7 @@ const Dashboard = () => {
                     >
                       Connect broker
                     </motion.button>
+                    <DashboardWidgetsPicker />
                   </div>
                 </div>
               ) : (
@@ -726,6 +730,7 @@ const Dashboard = () => {
                     >
                       Connect broker
                     </motion.button>
+                    <DashboardWidgetsPicker />
                   </div>
                 </div>
               )}
