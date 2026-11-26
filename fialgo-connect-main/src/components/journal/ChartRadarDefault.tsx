@@ -46,14 +46,18 @@ export function ChartRadarDefault({
 
   // Filter trades based on selected timeframe
   const scopedTrades = useMemo(() => {
+    const getCloseMs = (t: any) => {
+      const raw = t?.closed_at || (t?.status === "closed" ? t?.opened_at || t?.created_at : null);
+      if (!raw) return 0;
+      const ms = new Date(raw).getTime();
+      return Number.isFinite(ms) ? ms : 0;
+    };
     const closed = recentTrades.filter(
-      (t: any) => t && t.closed_at && !t.is_pending
+      (t: any) => t && !t.is_pending && !t.is_open && getCloseMs(t) > 0
     );
     if (timeframe === "30d") {
       const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
-      return closed.filter(
-        (t: any) => new Date(t.closed_at).getTime() >= cutoff
-      );
+      return closed.filter((t: any) => getCloseMs(t) >= cutoff);
     }
     return closed;
   }, [recentTrades, timeframe]);
@@ -93,8 +97,15 @@ export function ChartRadarDefault({
 
     // 3. Avg R (Reward-to-Risk)
     const avgWin = wins.length > 0 ? totalWin / wins.length : 0;
-    const avgLoss = losses.length > 0 ? totalLoss / losses.length : 1;
-    const rawRR = avgLoss > 0 ? avgWin / avgLoss : 1;
+    const avgLoss = losses.length > 0 ? totalLoss / losses.length : 0;
+    const rawRR =
+      closed.length === 0
+        ? 0
+        : avgLoss > 0
+        ? avgWin / avgLoss
+        : wins.length > 0
+        ? 2.0
+        : 0;
     const avgRScore = closed.length === 0 ? 0 : Math.min(100, Math.round((rawRR / 2.0) * 100));
     const avgRExp =
       closed.length === 0
@@ -105,7 +116,7 @@ export function ChartRadarDefault({
 
     // 4. Consistency
     const uniqueDays = new Set(
-      closed.map((t: any) => new Date(t.closed_at).toDateString())
+      closed.map((t: any) => new Date(t.closed_at || t.opened_at || t.created_at).toDateString())
     ).size;
     const consistencyLocked = uniqueDays < 3;
     const consistencyScore = consistencyLocked
@@ -380,7 +391,9 @@ export function ChartRadarDefault({
             <AnimatedNumber value={overallScore} duration={950} delay={100} />
           </span>
           <span className="text-[10px] font-medium text-slate-400 dark:text-neutral-500 mt-1 flex items-center gap-0.5">
-            {scopedTrades.length > 0 ? "-1 since yesterday" : "Awaiting trades"}
+            {scopedTrades.length > 0
+              ? `${scopedTrades.length} trade${scopedTrades.length === 1 ? "" : "s"} scored`
+              : "Awaiting trades"}
           </span>
         </div>
       </div>
@@ -493,10 +506,11 @@ export function ChartRadarDefault({
                   className={`text-[10.5px] transition-colors duration-150 ${
                     isHovered
                       ? "fill-slate-900 dark:fill-white font-bold"
+                      : m.isLocked
+                      ? "fill-slate-400 dark:fill-neutral-500 group-hover:fill-slate-900 dark:group-hover:fill-white font-medium"
                       : "fill-slate-500 dark:fill-neutral-400 group-hover:fill-slate-900 dark:group-hover:fill-white font-medium"
                   }`}
                 >
-                  {m.isLocked ? "🔒 " : ""}
                   {m.label}
                 </text>
               </g>

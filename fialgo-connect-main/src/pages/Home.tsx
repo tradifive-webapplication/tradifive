@@ -416,7 +416,9 @@ export default function Home() {
                     }
                 }
             }
-        } catch (_) {}
+        } catch {
+            // Ignore malformed auth token cache
+        }
         return null;
     });
     const [authChecked, setAuthChecked] = useState<boolean>(() => {
@@ -430,7 +432,9 @@ export default function Home() {
                     }
                 }
             }
-        } catch (_) {}
+        } catch {
+            // Ignore malformed auth token cache
+        }
         return false;
     });
 
@@ -704,7 +708,9 @@ export default function Home() {
             if (filtered.length !== local.length) {
                 localStorage.setItem('fialgo_local_posts', JSON.stringify(filtered));
             }
-        } catch (e) { }
+        } catch {
+            // Ignore storage access errors
+        }
     }, []);
 
     const { activeMarket } = useMarket();
@@ -725,7 +731,9 @@ export default function Home() {
             next.add(idToDismiss);
             try {
                 localStorage.setItem('tradifive_dismissed_suggestions', JSON.stringify(Array.from(next)));
-            } catch (_) {}
+            } catch {
+            // Ignore malformed auth token cache
+        }
             return next;
         });
     }, []);
@@ -802,7 +810,7 @@ export default function Home() {
                 if (!error && data && isMounted) {
                     const rawPosts = data.map((b: any) => b.social_posts).filter(Boolean);
                     const authorIds = Array.from(new Set(rawPosts.map((p: any) => p.user_id).filter(Boolean)));
-                    let profMap: Record<string, any> = {};
+                    const profMap: Record<string, any> = {};
                     if (authorIds.length > 0) {
                         const { data: profs } = await supabase
                             .from('profiles')
@@ -941,7 +949,9 @@ export default function Home() {
                         const arr = JSON.parse(localStorage.getItem(k) || '[]');
                         const filtered = arr.filter((p: any) => String(p.id) !== postIdStr);
                         localStorage.setItem(k, JSON.stringify(filtered));
-                    } catch (_) {}
+                    } catch {
+            // Ignore malformed auth token cache
+        }
                 }
             }
 
@@ -950,7 +960,9 @@ export default function Home() {
                 deletedIds.push(postIdStr);
                 localStorage.setItem('tradifive_deleted_post_ids', JSON.stringify(deletedIds.slice(-500)));
             }
-        } catch (_) {}
+        } catch {
+            // Ignore malformed auth token cache
+        }
 
         toast.success("Post deleted successfully!");
 
@@ -1250,13 +1262,16 @@ export default function Home() {
             const displaySlug = sug.username || sug.id || "user";
             const displayAvatar = sug.avatar_url || sug.avatar || "/default-avatar.svg";
             const displayHandle = `@${displaySlug}`;
+            const primaryStyle = sug.trading_style
+                ? String(sug.trading_style).split(',').map((s: string) => s.trim()).filter(Boolean).slice(0, 1).join('')
+                : "";
 
             return (
                 <div
                     key={sug.id}
-                    className="group flex items-center justify-between gap-3 py-2.5 px-2 -mx-2 rounded-xl hover:bg-slate-50/80 dark:hover:bg-white/[0.04] transition-colors"
+                    className="group flex items-center justify-between gap-2.5 py-2.5 px-2 -mx-2 rounded-xl hover:bg-slate-50/80 dark:hover:bg-white/[0.04] transition-colors"
                 >
-                    <Link to={`/user/${displaySlug}`} className="flex items-center gap-3 min-w-0 flex-1 group/user">
+                    <Link to={`/user/${displaySlug}`} className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden group/user">
                         <div className="relative shrink-0">
                             <img
                                 src={displayAvatar}
@@ -1265,23 +1280,21 @@ export default function Home() {
                                 onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }}
                             />
                         </div>
-                        <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                            <div className="flex items-center gap-1.5 min-w-0">
                                 <span className="text-[13.5px] font-semibold text-slate-900 dark:text-white truncate group-hover/user:text-indigo-600 dark:group-hover/user:text-indigo-400 transition-colors">
                                     {displayName}
                                 </span>
                                 {sug.is_pro && (
-                                    <span className="text-amber-500 text-[10px] font-bold" title="Pro Trader">★</span>
+                                    <span className="text-amber-500 text-[10px] font-bold shrink-0" title="Pro Trader">★</span>
                                 )}
                             </div>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-xs text-slate-400 dark:text-slate-500 truncate">{displayHandle}</span>
-                                {sug.trading_style && (
-                                    <span className="text-[10.5px] font-medium text-slate-400 dark:text-slate-500 shrink-0 capitalize">
-                                        · {sug.trading_style}
-                                    </span>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 truncate mt-0.5">
+                                <span>{displayHandle}</span>
+                                {primaryStyle && (
+                                    <span className="text-[11px] font-medium capitalize"> · {primaryStyle}</span>
                                 )}
-                            </div>
+                            </p>
                         </div>
                     </Link>
 

@@ -36,7 +36,7 @@ export default function ConnectBrokerTopDrawer({
   const { isStarter, brokerAccountLimit } = usePlan();
   const isBrokerLocked = isStarter || brokerAccountLimit <= 0;
 
-  const [brokerServer, setBrokerServer] = useState("Exness-MT5Real14");
+  const [brokerServer, setBrokerServer] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -319,7 +319,7 @@ export default function ConnectBrokerTopDrawer({
                 >
                   <div>
                     <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
-                      Broker Server Name
+                      MT5 Server Name
                     </label>
                     <input
                       type="text"
@@ -327,27 +327,30 @@ export default function ConnectBrokerTopDrawer({
                       onChange={(e) => setBrokerServer(e.target.value)}
                       disabled={isBrokerLocked}
                       tabIndex={isBrokerLocked ? -1 : undefined}
-                      placeholder="e.g. Exness-MT5Real14, FTMO-Server"
+                      autoComplete="off"
+                      placeholder="Enter MT5 server name"
                       className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all font-medium disabled:cursor-not-allowed"
                       required
                     />
                     <p className="text-[10.5px] text-slate-400 dark:text-neutral-500 mt-1 font-medium">
-                      Exact MT5 server from your broker (e.g. <span className="font-mono text-slate-600 dark:text-neutral-300">Exness-MT5Real14</span>, not MT4 names).
+                      Enter the exact MetaTrader 5 server name provided by your broker.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
                       <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
-                        Username / MT5 Login
+                        MT5 Account Number
                       </label>
                       <input
                         type="text"
+                        inputMode="numeric"
                         value={accountNumber}
                         onChange={(e) => setAccountNumber(e.target.value)}
                         disabled={isBrokerLocked}
                         tabIndex={isBrokerLocked ? -1 : undefined}
-                        placeholder="e.g. 89124412"
+                        autoComplete="off"
+                        placeholder="Enter MT5 account number"
                         className="w-full h-[40px] px-3.5 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 font-mono transition-all font-semibold disabled:cursor-not-allowed"
                         required
                       />
@@ -355,7 +358,7 @@ export default function ConnectBrokerTopDrawer({
 
                     <div>
                       <label className="text-[11px] font-bold text-slate-500 dark:text-neutral-400 uppercase tracking-wider block mb-1">
-                        Password (Master or Investor)
+                        MT5 Password (Master or Investor)
                       </label>
                       <div className="relative">
                         <input
@@ -364,7 +367,8 @@ export default function ConnectBrokerTopDrawer({
                           onChange={(e) => setPassword(e.target.value)}
                           disabled={isBrokerLocked}
                           tabIndex={isBrokerLocked ? -1 : undefined}
-                          placeholder="••••••••••••"
+                          autoComplete="new-password"
+                          placeholder="Enter MT5 password"
                           className="w-full h-[40px] px-3.5 pr-10 rounded-xl text-[13px] bg-slate-50/80 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-white/40 focus:border-zinc-400 dark:focus:border-white/40 transition-all disabled:cursor-not-allowed"
                           required
                         />

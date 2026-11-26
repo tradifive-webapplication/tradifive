@@ -280,12 +280,6 @@ const riskGuardMenu = [
 
   { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard" },
 
-  { path: "/risk-guard/limits", icon: wrapLucide(ShieldAlert), label: "Drawdown Limits" },
-
-  { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure" },
-
-  { path: "/risk-guard/kill-switch", icon: wrapLucide(X), label: "Kill Switch" },
-
 ];
 
 
@@ -580,7 +574,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     if (typeof window !== "undefined") {
       try {
         sessionStorage.setItem("tf_active_pillar", pillar);
-      } catch (e) {}
+      } catch {
+        // Ignore session storage errors
+      }
     }
 
     return pillar;
@@ -599,7 +595,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
     if (activePillar && typeof window !== "undefined") {
       try {
         sessionStorage.setItem("tf_active_pillar", activePillar);
-      } catch (e) {}
+      } catch {
+        // Ignore session storage errors
+      }
     }
   }, [activePillar]);
 
@@ -647,7 +645,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
   const [userPlan, setUserPlan] = useState(() => (localStorage.getItem("tradifive_cached_plan") || "beginner").toLowerCase());
 
-  const isCreator = userPlan === 'elite' || userPlan === 'advanced';
+  const isCreator = userPlan === 'elite' || userPlan === 'advanced' || userPlan === 'institutional';
 
   const PROMO_SNOOZE_KEY = 'tradifive_promo_snoozed_until';
 
@@ -1298,7 +1296,9 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
           if (p.plan_tier === "three_years" || p.amount === "100000" || Number(p.amount) === 100000) return true;
         }
       }
-    } catch (e) {}
+    } catch {
+      // Ignore storage access errors
+    }
     return false;
   });
 
@@ -1361,12 +1361,6 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         return [
 
           { path: "/risk-guard", icon: WrappedIconly(ShieldDone), label: "Risk Dashboard" },
-
-          { path: "/risk-guard/limits", icon: WrappedIconly(ShieldFail), label: "Drawdown Limits" },
-
-          { path: "/risk-guard/exposure", icon: WrappedIconly(Graph), label: "Position Exposure" },
-
-          { path: "/risk-guard/kill-switch", icon: WrappedIconly(Danger), label: "Kill Switch", isDanger: true },
 
         ];
 
@@ -1543,7 +1537,7 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
         key={item.label}
         type="button"
 
-        id={`tour-nav-${item.label.toLowerCase().replace(/[\s\/]+/g, '-')}`}
+        id={`tour-nav-${item.label.toLowerCase().replace(/[\s/]+/g, '-')}`}
 
         onClick={(e) => {
           if (item.isLocked) {
@@ -3373,35 +3367,99 @@ export default function AppSidebar({ isCollapsed = false, toggleCollapse, isFull
 
                         {/* Actions Row */}
 
-                        <div className="flex items-center justify-between pt-1">
-
-                          <div
-
-                            onMouseEnter={() => import("../pages/Settings")}
-
-                            onClick={(e) => { e.stopPropagation(); React.startTransition(() => navigate("/settings")); setIsSwitchOpen(false); }}
-
-                            className="flex items-center gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 py-1.5 px-2.5 rounded-lg cursor-pointer transition-colors"
-
-                          >
-
-                            <Plus size={14} className="text-slate-450 dark:text-slate-400" />
-
-                            <span className="text-[13.5px] font-semibold text-slate-600 dark:text-slate-300 font-sans">Create new</span>
-
-                          </div>
+                        <div className="flex items-center justify-between gap-2 pt-1">
 
                           <button
 
-                            onClick={(e) => { e.stopPropagation(); React.startTransition(() => navigate("/upgrade")); setIsSwitchOpen(false); }}
+                            type="button"
 
-                            className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold py-1.5 px-3 rounded-lg text-[11.5px] flex items-center gap-1 transition-all shadow-md shadow-indigo-500/10 active:scale-[0.98] font-sans"
+                            onMouseEnter={() => import("../pages/Settings")}
+
+                            onClick={(e) => {
+
+                              e.stopPropagation();
+
+                              setIsSwitchOpen(false);
+
+                              if (!isCreator) {
+
+                                toast.info("Elite Feature · Multi-Account Access", {
+
+                                  description: "Only Elite members can add and switch between multiple accounts.",
+
+                                  action: {
+
+                                    label: "Upgrade",
+
+                                    onClick: () => React.startTransition(() => navigate("/upgrade")),
+
+                                  },
+
+                                });
+
+                                return;
+
+                              }
+
+                              React.startTransition(() => navigate("/settings?tab=account"));
+
+                            }}
+
+                            className="flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 py-1.5 px-2.5 rounded-lg cursor-pointer transition-colors"
+
+                            title={isCreator ? "Add another account" : "Elite Feature: Upgrade to add accounts"}
 
                           >
 
-                            <Sparkles size={11.5} /> Upgrade
+                            {isCreator ? (
+
+                              <>
+
+                                <Plus size={14} className="text-slate-450 dark:text-slate-400" />
+
+                                <span className="text-[13px] font-semibold text-slate-600 dark:text-slate-300 font-sans">Add account</span>
+
+                              </>
+
+                            ) : (
+
+                              <>
+
+                                <Lock size={12.5} strokeWidth={2.4} className="text-blue-600 dark:text-blue-400 shrink-0" />
+
+                                <span className="btn-shine text-[13px] font-semibold font-sans">Add account</span>
+
+                              </>
+
+                            )}
 
                           </button>
+
+                          {!isCreator ? (
+
+                            <button
+
+                              type="button"
+
+                              onClick={(e) => { e.stopPropagation(); React.startTransition(() => navigate("/upgrade")); setIsSwitchOpen(false); }}
+
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-3.5 rounded-full text-[11.5px] flex items-center gap-1 transition-all shadow-sm active:scale-[0.98] font-sans cursor-pointer"
+
+                            >
+
+                              <Sparkles size={11.5} /> Upgrade
+
+                            </button>
+
+                          ) : (
+
+                            <span className="px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 text-[10.5px] font-bold uppercase tracking-wider">
+
+                              Elite Active
+
+                            </span>
+
+                          )}
 
                         </div>
 

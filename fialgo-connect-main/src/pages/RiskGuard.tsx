@@ -34,6 +34,7 @@ import {
   Check,
   ChevronDown,
   Gift,
+  X,
 } from "lucide-react";
 import {
   Select,
@@ -258,7 +259,17 @@ export default function RiskGuard() {
   const [user, setUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  const [killSwitchActive, setKillSwitchActive] = useState(false);
+  const [killSwitchActive, setKillSwitchActive] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("fialgo_risk_config");
+      if (saved) return JSON.parse(saved).killSwitchActive === true;
+    } catch {
+      /* ignore */
+    }
+    return false;
+  });
+  const [killSwitchModalOpen, setKillSwitchModalOpen] = useState(false);
+  const [isTogglingKillSwitch, setIsTogglingKillSwitch] = useState(false);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<RiskTab>("trading_control");
@@ -807,6 +818,8 @@ export default function RiskGuard() {
       if (config.sessionActive !== undefined)
         setSessionActive(config.sessionActive);
       if (config.maxDrawdown !== undefined) setMaxDrawdown(config.maxDrawdown);
+      if (config.killSwitchActive !== undefined)
+        setKillSwitchActive(Boolean(config.killSwitchActive));
       if (config.ddPeriod === "daily" || config.ddPeriod === "weekly" || config.ddPeriod === "monthly")
         setDdPeriod(config.ddPeriod);
       if (config.drawdownBasis === "balance" || config.drawdownBasis === "equity")
@@ -894,7 +907,8 @@ export default function RiskGuard() {
     }
   }, [activeMarket, weekendCloseTime]);
 
-  const buildConfigPayload = () => ({
+  const buildConfigPayload = (overrides: Record<string, any> = {}) => ({
+    killSwitchActive,
     maxLotActive,
     drawdownGuardActive,
     disciplineActive,
@@ -950,17 +964,28 @@ export default function RiskGuard() {
     noTradingAfterTime,
     noTradeAfterAction,
     noTradingAfterTimeActive,
+    ...overrides,
   });
 
-  const syncProfileLotCap = async (userId: string, activeLotCap: number) => {
+  const syncProfileLotCap = async (
+    userId: string,
+    activeLotCap: number,
+    killSwitchOverride?: boolean
+  ) => {
+    const effectiveKillSwitch =
+      killSwitchOverride !== undefined ? killSwitchOverride : killSwitchActive;
     try {
       await Promise.all([
         (supabase.from("profiles") as any)
-          .update({ max_lot_size: activeLotCap })
+          .update({
+            max_lot_size: activeLotCap,
+            is_locked_for_today: effectiveKillSwitch,
+          })
           .eq("id", userId),
         (supabase.from("system_settings") as any).upsert({
           id: `risk_guard_rules_${userId}`,
           value: {
+            kill_switch_active: effectiveKillSwitch,
             no_averaging_down: noAveragingDown,
             no_avg_mode: noAvgMode,
             martingale_detection: martingaleDetection,
@@ -1114,8 +1139,85 @@ export default function RiskGuard() {
     noTradingAfterTime,
     noTradeAfterAction,
     noTradingAfterTimeActive,
+    killSwitchActive,
     user?.id,
   ]);
+
+  const activateKillSwitch = async () => {
+    setIsTogglingKillSwitch(true);
+    try {
+      setKillSwitchActive(true);
+      setAutoTrading(false);
+      const nextPayload = buildConfigPayload({
+        killSwitchActive: true,
+        autoTrading: false,
+      });
+      localStorage.setItem("fialgo_risk_config", JSON.stringify(nextPayload));
+      window.dispatchEvent(new Event("fialgo_config_changed"));
+
+      if (user?.id) {
+        const activeLotCap = maxLotActive ? maxLot : 0;
+        await syncProfileLotCap(user.id, activeLotCap, true);
+
+        await (supabase.from("risk_breach_logs") as any)
+          .insert({
+            user_id: user.id,
+            rule_type: "KILL_SWITCH_ACTIVATED",
+            message:
+              "Emergency Kill Switch activated: Automated trading paused & account halted.",
+          })
+          .catch(() => {});
+
+        // Trigger MetaAPI discipline enforcer if live MT5 broker & open trades exist
+        try {
+          const { data: mt5Acct } = await (supabase.from("mt5_accounts") as any)
+            .select("metaapi_account_id")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          const metaAccountId = mt5Acct?.metaapi_account_id;
+          if (metaAccountId && openTradesCount > 0) {
+            await supabase.functions
+              .invoke("metaapi-discipline-enforcer", {
+                body: { accountId: metaAccountId, ticketId: "KILL_SWITCH" },
+              })
+              .catch(() => {});
+          }
+        } catch {
+          // Optional live terminal close fallback
+        }
+      }
+
+      setKillSwitchModalOpen(false);
+      toast.error("KILL SWITCH ACTIVATED", {
+        description:
+          "All automated trading halted and new orders locked until you resume.",
+        duration: 6000,
+      });
+    } finally {
+      setIsTogglingKillSwitch(false);
+    }
+  };
+
+  const deactivateKillSwitch = async () => {
+    setIsTogglingKillSwitch(true);
+    try {
+      setKillSwitchActive(false);
+      const nextPayload = buildConfigPayload({ killSwitchActive: false });
+      localStorage.setItem("fialgo_risk_config", JSON.stringify(nextPayload));
+      window.dispatchEvent(new Event("fialgo_config_changed"));
+
+      if (user?.id) {
+        const activeLotCap = maxLotActive ? maxLot : 0;
+        await syncProfileLotCap(user.id, activeLotCap, false);
+      }
+
+      toast.success("Kill Switch Deactivated", {
+        description: "Trading resumed with your saved Risk Guard rules intact.",
+      });
+    } finally {
+      setIsTogglingKillSwitch(false);
+    }
+  };
 
   // Tab active-guard counts
   const tabCounts = useMemo(() => {
@@ -1841,25 +1943,12 @@ export default function RiskGuard() {
                 <Switch
                   size="sm"
                   checked={killSwitchActive}
+                  disabled={isTogglingKillSwitch}
                   onChange={(val) => {
                     if (val) {
-                      if (
-                        window.confirm(
-                          "KILL SWITCH: This will immediately close ALL open positions and halt all trading. Are you sure?"
-                        )
-                      ) {
-                        setKillSwitchActive(true);
-                        toast.error("KILL SWITCH ACTIVATED", {
-                          description:
-                            "All positions closing. Trading halted immediately.",
-                          duration: 6000,
-                        });
-                      }
+                      setKillSwitchModalOpen(true);
                     } else {
-                      setKillSwitchActive(false);
-                      toast.success(
-                        "Kill switch deactivated. Trading resumed."
-                      );
+                      deactivateKillSwitch();
                     }
                   }}
                 />
@@ -1882,6 +1971,40 @@ export default function RiskGuard() {
             animate="visible"
             className="max-w-[1380px] mx-auto px-3.5 sm:px-6 pt-2 pb-12 space-y-4"
           >
+            {/* Active Emergency Kill Switch Banner */}
+            <AnimatePresence>
+              {killSwitchActive && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="rounded-[18px] bg-rose-50/95 dark:bg-rose-500/12 border border-rose-200 dark:border-rose-500/35 px-4 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+                >
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0">
+                      <Power size={15} strokeWidth={2.4} />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-rose-700 dark:text-rose-300 leading-tight">
+                        Emergency Kill Switch Active · All Trading Halted
+                      </p>
+                      <p className="text-[11.5px] text-rose-600/85 dark:text-rose-200/80 mt-0.5 leading-snug">
+                        Automation is paused and new orders are blocked. Your Risk Guard settings and journal data are untouched.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={deactivateKillSwitch}
+                    disabled={isTogglingKillSwitch}
+                    className="px-4 py-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-[12px] font-bold shrink-0 cursor-pointer transition-colors shadow-xs disabled:opacity-50"
+                  >
+                    Resume Trading
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* SEBI Compliance Banner for Indian Market */}
             {activeMarket === "indian" && !dailyTokenActive && (
               <motion.div
@@ -4815,6 +4938,92 @@ export default function RiskGuard() {
           </motion.div>
         </div>
       </div>
+
+      {/* ── Emergency Kill Switch Confirmation Modal ───────────────────────── */}
+      <AnimatePresence>
+        {killSwitchModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !isTogglingKillSwitch && setKillSwitchModalOpen(false)}
+              className="fixed inset-0 bg-black/55 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 8 }}
+              transition={{ duration: 0.2, ease: EXPO_OUT }}
+              className="relative z-10 w-full max-w-md rounded-[22px] bg-white dark:bg-[#17171A] border border-slate-200/90 dark:border-white/10 shadow-[0_24px_60px_-12px_rgba(0,0,0,0.28)] overflow-hidden"
+            >
+              <div className="px-5 pt-5 pb-4 border-b border-slate-100 dark:border-white/[0.06] flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-500/15 border border-rose-200/80 dark:border-rose-500/25 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                    <ShieldAlert size={20} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <h3 className="text-[15.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                      Activate Emergency Kill Switch?
+                    </h3>
+                    <p className="text-[11.5px] text-slate-500 dark:text-neutral-400 mt-0.5">
+                      Instant safety halt for live trading &amp; automation
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => !isTogglingKillSwitch && setKillSwitchModalOpen(false)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                >
+                  <X size={15} />
+                </button>
+              </div>
+
+              <div className="px-5 py-4 space-y-2.5 text-[12.5px]">
+                <div className="flex items-start gap-2.5 rounded-xl bg-rose-50/70 dark:bg-rose-500/10 border border-rose-200/60 dark:border-rose-500/20 px-3 py-2.5">
+                  <Power size={14} className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                  <p className="text-slate-700 dark:text-neutral-200 leading-snug">
+                    <strong className="font-semibold text-slate-900 dark:text-white">Closes open positions:</strong> Immediately flattens active MT5 positions on connected terminals.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] px-3 py-2.5">
+                  <Lock size={14} className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                  <p className="text-slate-700 dark:text-neutral-200 leading-snug">
+                    <strong className="font-semibold text-slate-900 dark:text-white">Halts all trading:</strong> Pauses Auto-Trading and locks new entries until you turn Kill Switch off.
+                  </p>
+                </div>
+                <div className="flex items-start gap-2.5 rounded-xl bg-slate-50/90 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/[0.08] px-3 py-2.5">
+                  <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <p className="text-slate-700 dark:text-neutral-200 leading-snug">
+                    <strong className="font-semibold text-slate-900 dark:text-white">Does NOT reset your data:</strong> Your Risk Guard limits, goals, and journal history remain saved.
+                  </p>
+                </div>
+              </div>
+
+              <div className="px-5 py-3.5 bg-slate-50/60 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  disabled={isTogglingKillSwitch}
+                  onClick={() => setKillSwitchModalOpen(false)}
+                  className="tactile-white-pill rounded-full px-4 py-2 text-[12px] font-semibold cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isTogglingKillSwitch}
+                  onClick={activateKillSwitch}
+                  className="rounded-full px-5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-[12px] font-bold inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer disabled:opacity-60"
+                >
+                  <Power size={13} strokeWidth={2.5} />
+                  <span>{isTogglingKillSwitch ? "Halting..." : "Halt Trading Now"}</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }
