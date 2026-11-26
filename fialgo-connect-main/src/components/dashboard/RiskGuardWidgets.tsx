@@ -48,7 +48,7 @@ export const RISK_WIDGET_CATALOG: {
   {
     id: "one_instrument",
     title: "One Instrument Focus",
-    subtitle: "Linear gauge: single-ticker focus score",
+    subtitle: "Pair split bar: locked vs off-pair trades",
   },
 ];
 
@@ -257,7 +257,27 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
     const losingOpen = useDemo
       ? 1
       : livePositions.filter((p: any) => Number(p.profit ?? 0) < 0).length;
-    const noAvgScore = losingOpen > 0 && useDemo ? 85 : losingOpen > 1 ? 65 : 100;
+    const extraAdds = useDemo
+      ? 0
+      : (() => {
+          const grouped = new Map<string, number[]>();
+          livePositions.forEach((p: any) => {
+            const symKey = String(p.symbol || "").toUpperCase();
+            const dirKey = String(p.trade_type ?? p.type ?? "");
+            const k = `${symKey}:${dirKey}`;
+            const list = grouped.get(k) || [];
+            list.push(Number(p.profit ?? 0));
+            grouped.set(k, list);
+          });
+          let adds = 0;
+          grouped.forEach((profits) => {
+            if (profits.length > 1 && profits.some((pr) => pr < 0)) {
+              adds += profits.length - 1;
+            }
+          });
+          return adds;
+        })();
+    const noAvgScore = extraAdds === 0 ? 100 : Math.max(20, 100 - extraAdds * 30);
 
     // 3. Martingale Protection
     const martingaleActive = Boolean(savedCfg?.martingaleDetection);
@@ -282,19 +302,34 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
 
     // 4. One Instrument Mode
     const oneInstrActive = Boolean(savedCfg?.oneInstrumentMode);
-    const allowedTicker = String(savedCfg?.allowedTicker || (isIndian ? "NIFTY50" : "XAUUSD"));
+    const allowedTicker = String(savedCfg?.allowedTicker || (isIndian ? "NIFTY50" : "XAUUSD")).toUpperCase();
     const allTrades = (recentTrades || []) as any[];
-    const onTickerCount = useDemo
-      ? 4
-      : allTrades.filter((t) =>
-          String(t.symbol || "").toUpperCase().includes(allowedTicker.toUpperCase())
-        ).length;
-    const offTickerCount = useDemo ? 0 : Math.max(0, allTrades.length - onTickerCount);
-    const instrPct = useDemo
-      ? 100
-      : allTrades.length > 0
-      ? Math.round((onTickerCount / allTrades.length) * 100)
-      : 100;
+    const symCounts = new Map<string, number>();
+    if (useDemo) {
+      symCounts.set(allowedTicker, 4);
+      symCounts.set(allowedTicker === "EURUSD" ? "GBPUSD" : "EURUSD", 1);
+    } else {
+      allTrades.forEach((t) => {
+        const s = String(t.symbol || "").trim().toUpperCase();
+        if (s) symCounts.set(s, (symCounts.get(s) || 0) + 1);
+      });
+    }
+    const totalInstrTrades = Array.from(symCounts.values()).reduce((a, b) => a + b, 0);
+    const onTickerCount = Array.from(symCounts.entries()).reduce(
+      (acc, [s, c]) => (s.includes(allowedTicker) ? acc + c : acc),
+      0
+    );
+    const offTickerCount = Math.max(0, totalInstrTrades - onTickerCount);
+    const instrPct =
+      totalInstrTrades > 0 ? Math.round((onTickerCount / totalInstrTrades) * 100) : 100;
+    const pairSegments = Array.from(symCounts.entries())
+      .map(([symbol, count]) => ({
+        symbol,
+        pct: totalInstrTrades > 0 ? Math.round((count / totalInstrTrades) * 100) : 0,
+        isAllowed: symbol.includes(allowedTicker),
+      }))
+      .sort((a, b) => Number(b.isAllowed) - Number(a.isAllowed))
+      .slice(0, 3);
 
     return {
       isIndian,
@@ -332,6 +367,7 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
         onTickerCount,
         offTickerCount,
         pct: instrPct,
+        pairSegments,
       },
     };
   }, [activeMarket, isConnected, demoMode, riskConfig, recentTrades, accountMetrics]);
@@ -571,23 +607,47 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
             badge={widgetData.oneInstr.active ? "Locked" : "Off"}
             badgeTone={widgetData.oneInstr.active ? "emerald" : "neutral"}
           />
-          <Gauge
-            orientation="linear"
-            ariaLabel="One Instrument Focus Score"
-            value={widgetData.oneInstr.pct}
-            centerValue={widgetData.oneInstr.pct}
-            defaultLabel={`${widgetData.oneInstr.onTickerCount} on-pair · ${widgetData.oneInstr.offTickerCount} off-pair`}
-            suffix="% focus"
-            labelPlacement="top"
-            labelAlign="start"
-            totalNotches={36}
-            linearHeight={14}
-            spacing={2}
-            notchCornerRadius={3}
-            inactiveFillOpacity={0.35}
-            useGradient
-            gradientColors={["#60A5FA", "#2563EB", "#0031F2"]}
-          />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-bold text-slate-900 dark:text-white tabular-nums">
+                {widgetData.oneInstr.pct}% focused
+              </span>
+              <span className="text-[10.5px] text-slate-400 tabular-nums">
+                {widgetData.oneInstr.onTickerCount} on · {widgetData.oneInstr.offTickerCount} blocked
+              </span>
+            </div>
+            <div className="w-full h-[10px] rounded-full bg-slate-100 dark:bg-white/[0.07] p-[1px] flex gap-0.5 overflow-hidden">
+              {widgetData.oneInstr.pairSegments.length > 0 ? (
+                widgetData.oneInstr.pairSegments.map((seg) => (
+                  <div
+                    key={seg.symbol}
+                    style={{ width: `${Math.max(10, seg.pct)}%` }}
+                    className={`h-full rounded-full ${
+                      seg.isAllowed
+                        ? "bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]"
+                        : "bg-rose-500/85"
+                    }`}
+                  />
+                ))
+              ) : (
+                <div className="w-full h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]" />
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {widgetData.oneInstr.pairSegments.map((seg) => (
+                <span
+                  key={seg.symbol}
+                  className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded ${
+                    seg.isAllowed
+                      ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+                      : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+                  }`}
+                >
+                  {seg.symbol} {seg.pct}%
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

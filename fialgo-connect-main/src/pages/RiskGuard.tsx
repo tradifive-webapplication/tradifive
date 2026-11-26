@@ -41,6 +41,9 @@ import {
   ShieldOff,
   RefreshCw,
   Lock,
+  Search,
+  Check,
+  ChevronDown,
 } from "lucide-react";
 import {
   Select,
@@ -276,7 +279,39 @@ export default function RiskGuard() {
     lastImportTime,
   } = useDashboardData();
 
-  // Demo Preview & Dashboard Widget Pinning (Card #1: Max Lot Size)
+  // Custom Tickers & Searchable Pair Picker (Card #4: One Instrument Mode)
+  const [tickerPickerOpen, setTickerPickerOpen] = useState(false);
+  const [tickerSearch, setTickerSearch] = useState("");
+  const [customTickers, setCustomTickers] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("fialgo_custom_tickers");
+      const parsed = saved ? JSON.parse(saved) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const addCustomTicker = (raw: string) => {
+    const clean = raw.trim().toUpperCase().replace(/\s+/g, "");
+    if (!clean) return;
+    setAllowedTicker(clean);
+    setCustomTickers((prev) => {
+      if (prev.includes(clean)) return prev;
+      const next = [clean, ...prev];
+      try {
+        localStorage.setItem("fialgo_custom_tickers", JSON.stringify(next));
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+    setTickerSearch("");
+    setTickerPickerOpen(false);
+    toast.success(`Locked symbol updated to ${clean}`);
+  };
+
+  // Demo Preview & Dashboard Widget Pinning
   const [demoDataOverride, setDemoDataOverride] = useState<boolean | null>(null);
   const useDemoData = demoDataOverride !== null ? demoDataOverride : !isConnected;
   const [demoOpenLots, setDemoOpenLots] = useState<number>(() => {
@@ -460,7 +495,6 @@ export default function RiskGuard() {
   const [maxOpenPositions, setMaxOpenPositions] = useState(5);
   const [noAveragingDown, setNoAveragingDown] = useState(false);
   const [noAvgMode, setNoAvgMode] = useState("strict");
-  const [noAvgScope, setNoAvgScope] = useState("symbol_dir");
   const [martingaleDetection, setMartingaleDetection] = useState(false);
   const [oneInstrumentMode, setOneInstrumentMode] = useState(false);
 
@@ -580,7 +614,6 @@ export default function RiskGuard() {
       if (config.noAveragingDown !== undefined)
         setNoAveragingDown(config.noAveragingDown);
       if (config.noAvgMode) setNoAvgMode(config.noAvgMode);
-      if (config.noAvgScope) setNoAvgScope(config.noAvgScope);
       if (config.martingaleDetection !== undefined)
         setMartingaleDetection(config.martingaleDetection);
       if (config.martingaleMultiplier)
@@ -656,7 +689,6 @@ export default function RiskGuard() {
     maxOpenPositions,
     noAveragingDown,
     noAvgMode,
-    noAvgScope,
     martingaleDetection,
     martingaleMultiplier,
     oneInstrumentMode,
@@ -684,11 +716,26 @@ export default function RiskGuard() {
 
   const syncProfileLotCap = async (userId: string, activeLotCap: number) => {
     try {
-      await (supabase.from("profiles") as any)
-        .update({ max_lot_size: activeLotCap })
-        .eq("id", userId);
+      await Promise.all([
+        (supabase.from("profiles") as any)
+          .update({ max_lot_size: activeLotCap })
+          .eq("id", userId),
+        (supabase.from("system_settings") as any).upsert({
+          id: `risk_guard_rules_${userId}`,
+          value: {
+            no_averaging_down: noAveragingDown,
+            no_avg_mode: noAvgMode,
+            martingale_detection: martingaleDetection,
+            martingale_multiplier: martingaleMultiplier,
+            one_instrument_mode: oneInstrumentMode,
+            allowed_ticker: allowedTicker,
+            updated_at: new Date().toISOString(),
+          },
+          updated_at: new Date().toISOString(),
+        }),
+      ]);
     } catch {
-      /* optional profiles column sync */
+      /* optional extended sync */
     }
   };
 
@@ -767,7 +814,6 @@ export default function RiskGuard() {
     maxOpenPositions,
     noAveragingDown,
     noAvgMode,
-    noAvgScope,
     martingaleDetection,
     martingaleMultiplier,
     oneInstrumentMode,
@@ -842,7 +888,6 @@ export default function RiskGuard() {
     maxLotActive,
     noAveragingDown,
     noAvgMode,
-    noAvgScope,
     martingaleDetection,
     martingaleMultiplier,
     oneInstrumentMode,
@@ -943,7 +988,30 @@ export default function RiskGuard() {
     const losingOpenCount = useDemoData
       ? 1
       : livePositions.filter((p: any) => Number(p.profit ?? 0) < 0).length;
-    const noAvgCleanPct = losingOpenCount > 0 && useDemoData ? 85 : losingOpenCount > 1 ? 65 : 100;
+
+    const liveAvgAdds = useDemoData
+      ? 0
+      : (() => {
+          const grouped = new Map<string, number[]>();
+          livePositions.forEach((p: any) => {
+            const symKey = String(p.symbol || "").toUpperCase();
+            const dirKey = String(p.trade_type ?? p.type ?? "");
+            const k = `${symKey}:${dirKey}`;
+            const list = grouped.get(k) || [];
+            list.push(Number(p.profit ?? 0));
+            grouped.set(k, list);
+          });
+          let extraAdds = 0;
+          grouped.forEach((profits) => {
+            if (profits.length > 1 && profits.some((pr) => pr < 0)) {
+              extraAdds += profits.length - 1;
+            }
+          });
+          return extraAdds;
+        })();
+
+    const noAvgCleanPct =
+      liveAvgAdds === 0 ? 100 : Math.max(20, 100 - liveAvgAdds * 30);
 
     // Card #3 (Martingale Protection)
     const closedTrades = (recentTrades || []).filter((t: any) => t.closed_at);
@@ -964,19 +1032,93 @@ export default function RiskGuard() {
         ? ["#FBBF24", "#F59E0B", "#D97706"]
         : ["#60A5FA", "#2563EB", "#0031F2"];
 
-    // Card #4 (One Instrument Mode)
+    // Card #4 (One Instrument Mode) — Segmented Pair Distribution
     const allTrades = (recentTrades || []) as any[];
-    const onTickerTrades = useDemoData
-      ? 4
-      : allTrades.filter((t) =>
-          String(t.symbol || "").toUpperCase().includes(allowedTicker.toUpperCase())
-        ).length;
-    const offTickerTrades = useDemoData ? 0 : Math.max(0, allTrades.length - onTickerTrades);
-    const instrFocusPct = useDemoData
-      ? 100
-      : allTrades.length > 0
-      ? Math.round((onTickerTrades / allTrades.length) * 100)
-      : 100;
+    const symbolCounts = new Map<string, number>();
+    if (useDemoData) {
+      symbolCounts.set(allowedTicker.toUpperCase(), 4);
+      symbolCounts.set(allowedTicker.toUpperCase() === "EURUSD" ? "GBPUSD" : "EURUSD", 1);
+    } else {
+      const sourceList = livePositions.length > 0 ? allTrades : allTrades;
+      sourceList.forEach((t) => {
+        const s = String(t.symbol || "").trim().toUpperCase();
+        if (s) symbolCounts.set(s, (symbolCounts.get(s) || 0) + 1);
+      });
+    }
+
+    const totalSymbolTrades = Array.from(symbolCounts.values()).reduce((a, b) => a + b, 0);
+    const onTickerTrades = symbolCounts.get(allowedTicker.toUpperCase()) ||
+      Array.from(symbolCounts.entries()).reduce(
+        (acc, [s, c]) => (s.includes(allowedTicker.toUpperCase()) ? acc + c : acc),
+        0
+      );
+    const offTickerTrades = Math.max(0, totalSymbolTrades - onTickerTrades);
+    const instrFocusPct =
+      totalSymbolTrades > 0
+        ? Math.round((onTickerTrades / totalSymbolTrades) * 100)
+        : 100;
+
+    const pairBreakdown = Array.from(symbolCounts.entries())
+      .map(([symbol, count]) => ({
+        symbol,
+        count,
+        pct: totalSymbolTrades > 0 ? Math.round((count / totalSymbolTrades) * 100) : 0,
+        isAllowed:
+          symbol === allowedTicker.toUpperCase() ||
+          symbol.includes(allowedTicker.toUpperCase()),
+      }))
+      .sort((a, b) => Number(b.isAllowed) - Number(a.isAllowed) || b.count - a.count)
+      .slice(0, 4);
+
+    // Build searchable symbol list: Account Symbols + Custom Symbols + Popular Presets
+    const presetList =
+      activeMarket === "indian"
+        ? [
+            { symbol: "NIFTY50", label: "NIFTY 50 Index" },
+            { symbol: "BANKNIFTY", label: "BANKNIFTY Index" },
+            { symbol: "FINNIFTY", label: "FINNIFTY Index" },
+            { symbol: "SENSEX", label: "BSE SENSEX" },
+            { symbol: "RELIANCE", label: "Reliance Industries" },
+            { symbol: "HDFCBANK", label: "HDFC Bank" },
+            { symbol: "ICICIBANK", label: "ICICI Bank" },
+            { symbol: "INFY", label: "Infosys" },
+            { symbol: "TCS", label: "Tata Consultancy" },
+            { symbol: "SBIN", label: "State Bank of India" },
+          ]
+        : [
+            { symbol: "XAUUSD", label: "Gold / US Dollar" },
+            { symbol: "EURUSD", label: "Euro / US Dollar" },
+            { symbol: "GBPUSD", label: "British Pound / USD" },
+            { symbol: "USDJPY", label: "US Dollar / Yen" },
+            { symbol: "US30", label: "Wall Street 30" },
+            { symbol: "NAS100", label: "US Tech 100" },
+            { symbol: "SPX500", label: "S&P 500 Index" },
+            { symbol: "GER40", label: "DAX 40 Germany" },
+            { symbol: "AUDUSD", label: "Australian Dollar / USD" },
+            { symbol: "USDCAD", label: "US Dollar / Canadian" },
+            { symbol: "GBPJPY", label: "British Pound / Yen" },
+            { symbol: "EURJPY", label: "Euro / Japanese Yen" },
+            { symbol: "XAGUSD", label: "Silver / US Dollar" },
+            { symbol: "BTCUSD", label: "Bitcoin / US Dollar" },
+            { symbol: "USOIL", label: "WTI Crude Oil" },
+          ];
+
+    const mergedMap = new Map<string, { symbol: string; label: string; tag?: string }>();
+    customTickers.forEach((s) =>
+      mergedMap.set(s, { symbol: s, label: "Custom Pair", tag: "Custom" })
+    );
+    allTrades.forEach((t) => {
+      const s = String(t.symbol || "").trim().toUpperCase();
+      if (s && !mergedMap.has(s)) {
+        mergedMap.set(s, { symbol: s, label: "Traded on Account", tag: "Account" });
+      }
+    });
+    presetList.forEach((p) => {
+      if (!mergedMap.has(p.symbol)) {
+        mergedMap.set(p.symbol, p);
+      }
+    });
+    const tickerOptions = Array.from(mergedMap.values());
 
     return {
       unit,
@@ -992,6 +1134,7 @@ export default function RiskGuard() {
       fmt,
       noAvg: {
         losingOpenCount,
+        extraAdds: liveAvgAdds,
         cleanPct: noAvgCleanPct,
       },
       martingale: {
@@ -1005,6 +1148,8 @@ export default function RiskGuard() {
         onTickerTrades,
         offTickerTrades,
         focusPct: instrFocusPct,
+        pairBreakdown,
+        tickerOptions,
       },
     };
   }, [
@@ -1016,6 +1161,7 @@ export default function RiskGuard() {
     demoOpenLots,
     martingaleMultiplier,
     allowedTicker,
+    customTickers,
   ]);
 
   if (!authChecked) {
@@ -1593,7 +1739,7 @@ export default function RiskGuard() {
                         <RiskGuardCard
                           icon={TrendingDown}
                           title="No Averaging Down"
-                          description="Prevent adding to losing positions"
+                          description="Stop adding more trades on a losing position"
                           value={`${lotTelemetry.noAvg.cleanPct}% clean`}
                           active={noAveragingDown}
                           onToggle={setNoAveragingDown}
@@ -1604,7 +1750,7 @@ export default function RiskGuard() {
                             <div className="space-y-1.5">
                               <div className="flex items-center justify-between text-[10.5px]">
                                 <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
-                                  <span>Clean Guard</span>
+                                  <span>Loss-Add Guard</span>
                                   <span
                                     className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
                                       useDemoData
@@ -1616,7 +1762,8 @@ export default function RiskGuard() {
                                   </span>
                                 </span>
                                 <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
-                                  {lotTelemetry.noAvg.losingOpenCount} losing open · 0 adds
+                                  {lotTelemetry.noAvg.losingOpenCount} losing open ·{" "}
+                                  {lotTelemetry.noAvg.extraAdds} extra adds
                                 </span>
                               </div>
                               <Gauge
@@ -1629,46 +1776,29 @@ export default function RiskGuard() {
                                 notchCornerRadius={3}
                                 inactiveFillOpacity={0.35}
                                 useGradient
-                                gradientColors={["#34D399", "#10B981", "#059669"]}
+                                gradientColors={
+                                  lotTelemetry.noAvg.extraAdds > 0
+                                    ? ["#FB7185", "#E11D48", "#BE123C"]
+                                    : ["#34D399", "#10B981", "#059669"]
+                                }
                               />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <div>
-                                <label className={FIELD_LABEL}>Mode</label>
-                                <Select value={noAvgMode} onValueChange={setNoAvgMode}>
-                                  <SelectTrigger className={SELECT_TRIGGER}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="strict">
-                                      Strict Block
-                                    </SelectItem>
-                                    <SelectItem value="warning">
-                                      Warning Only
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <label className={FIELD_LABEL}>Scope</label>
-                                <Select value={noAvgScope} onValueChange={setNoAvgScope}>
-                                  <SelectTrigger className={SELECT_TRIGGER}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="symbol_dir">
-                                      Same Symbol + Dir
-                                    </SelectItem>
-                                    <SelectItem value="symbol_only">
-                                      Same Symbol
-                                    </SelectItem>
-                                    <SelectItem value="all">
-                                      Global Account
-                                    </SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
+                            <div>
+                              <label className={FIELD_LABEL}>Action When Added</label>
+                              <Select value={noAvgMode} onValueChange={setNoAvgMode}>
+                                <SelectTrigger className={SELECT_TRIGGER}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="strict">
+                                    Auto-Close Extra Order (Strict Block)
+                                  </SelectItem>
+                                  <SelectItem value="warning">
+                                    Warning Alert Only
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
                             </div>
                           </div>
                         </RiskGuardCard>
@@ -1773,7 +1903,7 @@ export default function RiskGuard() {
                       <RiskGuardCard
                         icon={Crosshair}
                         title="One Instrument Mode"
-                        description="Limit trading to a single ticker"
+                        description="Allow trades only on 1 selected pair"
                         value={allowedTicker}
                         active={oneInstrumentMode}
                         onToggle={setOneInstrumentMode}
@@ -1781,10 +1911,11 @@ export default function RiskGuard() {
                         hasDashboardWidget={pinnedWidgets.includes("one_instrument")}
                       >
                         <div className="space-y-2.5">
+                          {/* Segmented Pair Breakdown Bar */}
                           <div className="space-y-1.5">
                             <div className="flex items-center justify-between text-[10.5px]">
                               <span className="font-semibold text-slate-700 dark:text-slate-200 inline-flex items-center gap-1.5">
-                                <span>Pair Focus</span>
+                                <span>{lotTelemetry.instr.focusPct}% Focused</span>
                                 <span
                                   className={`px-1 py-[0.5px] rounded text-[8.5px] font-bold uppercase ${
                                     useDemoData
@@ -1796,63 +1927,190 @@ export default function RiskGuard() {
                                 </span>
                               </span>
                               <span className="text-slate-500 dark:text-neutral-400 font-semibold tabular-nums">
-                                {lotTelemetry.instr.onTickerTrades} on {allowedTicker} ·{" "}
-                                {lotTelemetry.instr.offTickerTrades} off-pair
+                                {lotTelemetry.instr.onTickerTrades} on {allowedTicker}
+                                {lotTelemetry.instr.offTickerTrades > 0
+                                  ? ` · ${lotTelemetry.instr.offTickerTrades} blocked`
+                                  : " · 0 off-pair"}
                               </span>
                             </div>
-                            <Gauge
-                              orientation="linear"
-                              ariaLabel="One Instrument Focus Bar"
-                              value={lotTelemetry.instr.focusPct}
-                              totalNotches={42}
-                              linearHeight={14}
-                              spacing={2}
-                              notchCornerRadius={3}
-                              inactiveFillOpacity={0.35}
-                              useGradient
-                              gradientColors={["#60A5FA", "#2563EB", "#0031F2"]}
-                            />
+
+                            {/* Segmented Multi-Pair Split Bar */}
+                            <div className="w-full h-[10px] rounded-full bg-slate-100 dark:bg-white/[0.07] p-[1px] flex gap-0.5 overflow-hidden">
+                              {lotTelemetry.instr.pairBreakdown.length > 0 ? (
+                                lotTelemetry.instr.pairBreakdown.map((seg) => (
+                                  <div
+                                    key={seg.symbol}
+                                    style={{ width: `${Math.max(8, seg.pct)}%` }}
+                                    title={`${seg.symbol}: ${seg.count} trades (${seg.pct}%)`}
+                                    className={`h-full rounded-full transition-all duration-500 ${
+                                      seg.isAllowed
+                                        ? "bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]"
+                                        : "bg-rose-500/85"
+                                    }`}
+                                  />
+                                ))
+                              ) : (
+                                <div className="w-full h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#1D4ED8]" />
+                              )}
+                            </div>
+
+                            {/* Pair Chips Breakdown */}
+                            <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                              {lotTelemetry.instr.pairBreakdown.map((seg) => (
+                                <span
+                                  key={seg.symbol}
+                                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold tabular-nums ${
+                                    seg.isAllowed
+                                      ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/15 dark:text-blue-300"
+                                      : "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400"
+                                  }`}
+                                >
+                                  <span
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      seg.isAllowed ? "bg-[#2563EB]" : "bg-rose-500"
+                                    }`}
+                                  />
+                                  <span>
+                                    {seg.symbol} {seg.pct}%
+                                    {!seg.isAllowed ? " (Blocked)" : ""}
+                                  </span>
+                                </span>
+                              ))}
+                            </div>
                           </div>
 
-                          <Select
-                            value={allowedTicker}
-                            onValueChange={setAllowedTicker}
+                          {/* Searchable Symbol Picker + Add Custom Pair */}
+                          <Popover
+                            open={tickerPickerOpen}
+                            onOpenChange={setTickerPickerOpen}
                           >
-                            <SelectTrigger className={SELECT_TRIGGER}>
-                              <SelectValue placeholder="Select an instrument..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {activeMarket === "indian" ? (
-                                <>
-                                  <SelectItem value="NIFTY50">NIFTY 50</SelectItem>
-                                  <SelectItem value="BANKNIFTY">
-                                    BANKNIFTY
-                                  </SelectItem>
-                                  <SelectItem value="RELIANCE">RELIANCE</SelectItem>
-                                  <SelectItem value="HDFCBANK">HDFCBANK</SelectItem>
-                                  <SelectItem value="INFY">INFY</SelectItem>
-                                </>
-                              ) : (
-                                <>
-                                  <SelectItem value="XAUUSD">
-                                    XAUUSD — Gold
-                                  </SelectItem>
-                                  <SelectItem value="EURUSD">
-                                    EURUSD — Euro / US Dollar
-                                  </SelectItem>
-                                  <SelectItem value="GBPUSD">
-                                    GBPUSD — British Pound / US Dollar
-                                  </SelectItem>
-                                  <SelectItem value="US30">
-                                    US30 — Wall Street 30
-                                  </SelectItem>
-                                  <SelectItem value="NAS100">
-                                    NAS100 — US Tech 100
-                                  </SelectItem>
-                                </>
-                              )}
-                            </SelectContent>
-                          </Select>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className={`flex items-center justify-between w-full ${SELECT_TRIGGER} cursor-pointer`}
+                              >
+                                <span className="truncate font-semibold">
+                                  {lotTelemetry.instr.tickerOptions.find(
+                                    (o) => o.symbol === allowedTicker
+                                  )
+                                    ? `${allowedTicker} — ${
+                                        lotTelemetry.instr.tickerOptions.find(
+                                          (o) => o.symbol === allowedTicker
+                                        )?.label
+                                      }`
+                                    : allowedTicker}
+                                </span>
+                                <ChevronDown size={14} className="text-slate-400 shrink-0" />
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              align="start"
+                              className="w-[290px] p-2.5 rounded-2xl border-slate-200 dark:border-white/10 bg-white dark:bg-[#1C1C20] shadow-xl z-50"
+                            >
+                              <div className="relative mb-2">
+                                <Search
+                                  size={13}
+                                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
+                                />
+                                <input
+                                  type="text"
+                                  value={tickerSearch}
+                                  onChange={(e) => setTickerSearch(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter" && tickerSearch.trim()) {
+                                      e.preventDefault();
+                                      addCustomTicker(tickerSearch);
+                                    }
+                                  }}
+                                  placeholder="Search or type pair (e.g. USDJPY)..."
+                                  className={`w-full pl-8 pr-2.5 h-[32px] ${INPUT_BASE}`}
+                                  autoFocus
+                                />
+                              </div>
+
+                              <div className="max-h-[190px] overflow-y-auto amazing-scrollbar space-y-0.5">
+                                {(() => {
+                                  const q = tickerSearch.trim().toUpperCase();
+                                  const filtered = lotTelemetry.instr.tickerOptions.filter(
+                                    (opt) =>
+                                      !q ||
+                                      opt.symbol.toUpperCase().includes(q) ||
+                                      opt.label.toUpperCase().includes(q)
+                                  );
+                                  const exactExists = lotTelemetry.instr.tickerOptions.some(
+                                    (opt) => opt.symbol.toUpperCase() === q
+                                  );
+
+                                  return (
+                                    <>
+                                      {q.length >= 2 && !exactExists && (
+                                        <button
+                                          type="button"
+                                          onClick={() => addCustomTicker(q)}
+                                          className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-500/15 dark:hover:bg-blue-500/25 text-[#2563EB] dark:text-blue-300 text-[11.5px] font-bold transition-colors cursor-pointer mb-1"
+                                        >
+                                          <span className="inline-flex items-center gap-1.5">
+                                            <Plus size={13} />
+                                            <span>Add &amp; Lock &ldquo;{q}&rdquo;</span>
+                                          </span>
+                                          <span className="text-[9.5px] uppercase font-semibold opacity-75">
+                                            Custom
+                                          </span>
+                                        </button>
+                                      )}
+
+                                      {filtered.map((opt) => {
+                                        const isSelected =
+                                          opt.symbol.toUpperCase() ===
+                                          allowedTicker.toUpperCase();
+                                        return (
+                                          <button
+                                            key={opt.symbol}
+                                            type="button"
+                                            onClick={() => {
+                                              setAllowedTicker(opt.symbol);
+                                              setTickerPickerOpen(false);
+                                              setTickerSearch("");
+                                            }}
+                                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-xl text-left transition-colors cursor-pointer ${
+                                              isSelected
+                                                ? "bg-blue-50/80 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-300"
+                                                : "hover:bg-slate-100/80 dark:hover:bg-white/[0.06] text-slate-700 dark:text-neutral-200"
+                                            }`}
+                                          >
+                                            <div className="min-w-0">
+                                              <span className="text-[12px] font-semibold block leading-tight">
+                                                {opt.symbol}
+                                              </span>
+                                              <span className="text-[10px] text-slate-400 dark:text-neutral-500 block truncate">
+                                                {opt.label}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 shrink-0">
+                                              {opt.tag && (
+                                                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-neutral-400">
+                                                  {opt.tag}
+                                                </span>
+                                              )}
+                                              {isSelected && (
+                                                <Check size={13} className="text-[#2563EB]" />
+                                              )}
+                                            </div>
+                                          </button>
+                                        );
+                                      })}
+
+                                      {filtered.length === 0 && q.length < 2 && (
+                                        <p className="text-[11px] text-slate-400 text-center py-3">
+                                          Type symbol name to add custom pair
+                                        </p>
+                                      )}
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </RiskGuardCard>
                     </motion.div>
