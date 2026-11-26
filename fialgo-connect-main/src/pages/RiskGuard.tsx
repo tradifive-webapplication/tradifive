@@ -19,10 +19,7 @@ import {
   FlaskConical,
   Minus,
   Plus,
-  MonitorOff,
   Key,
-  Eye,
-  EyeOff,
   Crown,
   Moon,
   Sunrise,
@@ -262,12 +259,6 @@ export default function RiskGuard() {
   const [user, setUser] = useState<any>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Guardian PIN & Hard Stop States
-  const [pinActive, setPinActive] = useState(false);
-  const [guardianPin, setGuardianPin] = useState("");
-  const [confirmPin, setConfirmPin] = useState("");
-  const [showPin, setShowPin] = useState(false);
-  const [hardStopActive, setHardStopActive] = useState(false);
   const [killSwitchActive, setKillSwitchActive] = useState(false);
 
   // Active Tab
@@ -646,7 +637,6 @@ export default function RiskGuard() {
   const [noTradeAfterAction, setNoTradeAfterAction] = useState<"block" | "close">("block");
   const [noTradingAfterTimeActive, setNoTradingAfterTimeActive] =
     useState(false);
-  const [hardStopTrigger, setHardStopTrigger] = useState<"drawdown" | "equity" | "rules">("drawdown");
   const [demoTradesToday, setDemoTradesToday] = useState<number>(() => {
     try {
       const saved = Number(localStorage.getItem("fialgo_demo_trades_today"));
@@ -895,8 +885,6 @@ export default function RiskGuard() {
       if (config.noTradeAfterAction) setNoTradeAfterAction(config.noTradeAfterAction);
       if (config.noTradingAfterTimeActive !== undefined)
         setNoTradingAfterTimeActive(config.noTradingAfterTimeActive);
-      if (config.hardStopTrigger) setHardStopTrigger(config.hardStopTrigger);
-      if (config.pinActive !== undefined) setPinActive(config.pinActive);
     } catch {
       /* ignore */
     }
@@ -964,8 +952,6 @@ export default function RiskGuard() {
     noTradingAfterTime,
     noTradeAfterAction,
     noTradingAfterTimeActive,
-    hardStopTrigger,
-    pinActive,
   });
 
   const syncProfileLotCap = async (userId: string, activeLotCap: number) => {
@@ -1130,8 +1116,6 @@ export default function RiskGuard() {
     noTradingAfterTime,
     noTradeAfterAction,
     noTradingAfterTimeActive,
-    hardStopTrigger,
-    pinActive,
     user?.id,
   ]);
 
@@ -1163,8 +1147,6 @@ export default function RiskGuard() {
       noTradingAfterTimeActive,
       newsFilter,
       sleepProtection,
-      pinActive,
-      hardStopActive,
     ].filter(Boolean).length;
 
     return {
@@ -1198,8 +1180,6 @@ export default function RiskGuard() {
     noTradingAfterTimeActive,
     newsFilter,
     sleepProtection,
-    pinActive,
-    hardStopActive,
   ]);
 
   const sessionButtons =
@@ -2246,11 +2226,11 @@ export default function RiskGuard() {
 
             {/* Main 2-Column Workspace: Rules (Left) + Account Protection Shield (Right) */}
             <div className="flex flex-col xl:flex-row gap-5 items-start">
-              <div className="flex-1 w-full min-w-0 space-y-4">
-                {/* 2. Pinned Category Tabs (scoped strictly to left rule boxes width, with frosted bottom blur) */}
-                <div className="sticky top-0 z-20 -mx-1 px-1 pt-1">
-                  <div className="bg-[#F7F8FA]/90 dark:bg-[#141416]/90 backdrop-blur-md pt-0.5 pb-1">
-                    <div className="grid grid-cols-3 p-1 rounded-[13px] bg-slate-200/75 dark:bg-white/[0.07] backdrop-blur-md border border-white/60 dark:border-white/[0.06] shadow-[0_6px_18px_-6px_rgba(15,23,42,0.1)]">
+              <div className="flex-1 w-full min-w-0">
+                {/* 2. Pinned Category Tabs (solid opaque cap so cards vanish cleanly behind it + shaded blur below) */}
+                <div className="sticky top-0 z-30 -mx-2 px-2">
+                  <div className="bg-[#F7F8FA] dark:bg-[#141416] pt-1 pb-1.5">
+                    <div className="grid grid-cols-3 p-1 rounded-[13px] bg-slate-200/95 dark:bg-[#222227] border border-slate-200/80 dark:border-white/[0.08] shadow-[0_6px_18px_-6px_rgba(15,23,42,0.14)]">
                       {(
                         [
                           {
@@ -2290,7 +2270,7 @@ export default function RiskGuard() {
                                   stiffness: 460,
                                   damping: 34,
                                 }}
-                                className="absolute inset-0 bg-white dark:bg-[#26262B] rounded-[10px] shadow-[0_1px_5px_rgba(15,23,42,0.09)]"
+                                className="absolute inset-0 bg-white dark:bg-[#2B2B31] rounded-[10px] shadow-[0_1px_5px_rgba(15,23,42,0.1)]"
                               />
                             )}
                             <span className="relative z-10 truncate">{tab.label}</span>
@@ -2310,18 +2290,19 @@ export default function RiskGuard() {
                       })}
                     </div>
                   </div>
-                  {/* Soft progressive blur skirt beneath the horizontal switch bar */}
+                  {/* Soft shaded blur curtain so scrolling boxes smoothly tuck behind the switch bar */}
                   <div
                     aria-hidden="true"
                     style={{
-                      WebkitMaskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
-                      maskImage: "linear-gradient(to bottom, black 0%, transparent 100%)",
+                      WebkitMaskImage: "linear-gradient(to bottom, black 25%, transparent 100%)",
+                      maskImage: "linear-gradient(to bottom, black 25%, transparent 100%)",
                     }}
-                    className="pointer-events-none h-4 -mb-4 bg-[#F7F8FA]/80 dark:bg-[#141416]/80 backdrop-blur-sm"
+                    className="pointer-events-none h-6 -mb-6 bg-gradient-to-b from-[#F7F8FA] via-[#F7F8FA]/80 to-transparent dark:from-[#141416] dark:via-[#141416]/80 dark:to-transparent backdrop-blur-[3px]"
                   />
                 </div>
 
                 {/* Tab Content */}
+                <div className="relative z-10 pt-2.5">
                 <AnimatePresence mode="wait">
                   {/* ═══ TAB 1: TRADING CONTROL ═══ */}
                   {activeTab === "trading_control" && (
@@ -4665,167 +4646,10 @@ export default function RiskGuard() {
                           </div>
                         </div>
                       </RiskGuardCard>
-
-                      <RiskGuardCard
-                        icon={Key}
-                        title="Guardian PIN"
-                        description="Require 4-digit PIN before turning off any lock"
-                        value={
-                          guardianPin.length === 4 && guardianPin === confirmPin
-                            ? "PIN Set"
-                            : "Setup"
-                        }
-                        active={pinActive}
-                        onToggle={(val) => {
-                          if (
-                            val &&
-                            (guardianPin.length !== 4 || guardianPin !== confirmPin)
-                          ) {
-                            toast.error("Set Matching 4-Digit PIN First", {
-                              description:
-                                "Enter and confirm the same 4 digits before activating PIN lock.",
-                            });
-                            return;
-                          }
-                          setPinActive(val);
-                        }}
-                        intent="emergency"
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between text-[10px] font-semibold">
-                            <span className="text-slate-400">PIN Status</span>
-                            <span
-                              className={
-                                guardianPin.length === 4 &&
-                                guardianPin === confirmPin
-                                  ? "text-emerald-600 dark:text-emerald-400"
-                                  : "text-amber-600 dark:text-amber-400"
-                              }
-                            >
-                              {guardianPin.length === 4 &&
-                              guardianPin === confirmPin
-                                ? "✓ 4-digit PIN ready"
-                                : guardianPin.length === 4
-                                ? "PINs do not match yet"
-                                : "Enter 4 digits below"}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2.5">
-                            <div>
-                              <label className={FIELD_LABEL}>Enter PIN</label>
-                              <div className="relative flex items-center">
-                                <input
-                                  type={showPin ? "text" : "password"}
-                                  value={guardianPin}
-                                  onChange={(e) =>
-                                    setGuardianPin(
-                                      e.target.value.replace(/\D/g, "").slice(0, 4)
-                                    )
-                                  }
-                                  placeholder="••••"
-                                  className={`w-full pl-2.5 pr-7 h-[30px] tracking-widest ${INPUT_BASE}`}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowPin(!showPin)}
-                                  className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
-                                >
-                                  {showPin ? (
-                                    <EyeOff size={12} />
-                                  ) : (
-                                    <Eye size={12} />
-                                  )}
-                                </button>
-                              </div>
-                            </div>
-                            <div>
-                              <label className={FIELD_LABEL}>Confirm PIN</label>
-                              <div className="relative flex items-center">
-                                <input
-                                  type={showPin ? "text" : "password"}
-                                  value={confirmPin}
-                                  onChange={(e) =>
-                                    setConfirmPin(
-                                      e.target.value.replace(/\D/g, "").slice(0, 4)
-                                    )
-                                  }
-                                  placeholder="••••"
-                                  className={`w-full pl-2.5 pr-7 h-[30px] tracking-widest ${INPUT_BASE}`}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() => setShowPin(!showPin)}
-                                  className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
-                                >
-                                  {showPin ? (
-                                    <EyeOff size={12} />
-                                  ) : (
-                                    <Eye size={12} />
-                                  )}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </RiskGuardCard>
-
-                      <RiskGuardCard
-                        icon={MonitorOff}
-                        title="Terminal Hard Stop"
-                        description="Emergency lock: flattens open orders & blocks trading today"
-                        value={hardStopActive ? "Locked" : "Armed"}
-                        active={hardStopActive}
-                        onToggle={setHardStopActive}
-                        intent="emergency"
-                      >
-                        <div className="space-y-2">
-                          <div className="px-2.5 py-1.5 rounded-xl bg-rose-50/75 dark:bg-rose-500/10 border border-rose-200/70 dark:border-rose-500/20 text-[10px] font-semibold text-rose-700 dark:text-rose-300">
-                            Flattens open orders &amp; blocks entries for rest of the day
-                          </div>
-                          <div className="grid grid-cols-[1.35fr_0.65fr] gap-2.5">
-                            <div>
-                              <label className={FIELD_LABEL}>Trigger On</label>
-                              <Select
-                                value={hardStopTrigger}
-                                onValueChange={(v) =>
-                                  setHardStopTrigger(
-                                    v as "drawdown" | "equity" | "rules"
-                                  )
-                                }
-                              >
-                                <SelectTrigger className={SELECT_TRIGGER}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="drawdown">
-                                    Max Drawdown breach
-                                  </SelectItem>
-                                  <SelectItem value="equity">
-                                    Equity stop limit hit
-                                  </SelectItem>
-                                  <SelectItem value="rules">
-                                    Repeated rule violation
-                                  </SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className={FIELD_LABEL}>Preview</label>
-                              <button
-                                type="button"
-                                onClick={() => setHardStopActive(true)}
-                                className="w-full h-[32px] flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-500/15 border border-rose-200/80 dark:border-rose-500/30 rounded-[9px] text-[11px] font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors cursor-pointer"
-                              >
-                                <MonitorOff size={11} />
-                                <span>Test Lock</span>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </RiskGuardCard>
                     </motion.div>
                   )}
                 </AnimatePresence>
+                </div>
               </div>
 
               {/* Right Column: Live Account Protection Shield Panel */}
@@ -4836,7 +4660,7 @@ export default function RiskGuard() {
                 {(() => {
                   const tcMax = activeMarket === "indian" ? 2 : 4;
                   const rmMax = activeMarket === "indian" ? 6 : 6;
-                  const bhMax = isProOrElite ? 9 : 8;
+                  const bhMax = isProOrElite ? 7 : 6;
                   const totalMax = tcMax + rmMax + bhMax;
 
                   const tcPct = Math.min(100, Math.round((tabCounts.trading_control / tcMax) * 100));
@@ -4871,63 +4695,68 @@ export default function RiskGuard() {
 
                   const safetyChecks = [
                     {
-                      label: "Capital Protected",
+                      label: "Capital safe",
                       ok: drawdownGuardActive || equityHardStopActive || stopLossRequired,
                     },
                     {
-                      label: "Lot Size Controlled",
+                      label: "Lots capped",
                       ok: maxLotActive || (activeMarket !== "indian" && martingaleDetection),
                     },
                     {
-                      label: "Behaviour Calm",
+                      label: "Tilt blocked",
                       ok: disciplineActive || revengeGuard || sessionActive,
                     },
                     {
-                      label: "Auto-Lock Ready",
-                      ok: hardStopActive || noTradingAfterTimeActive || dailyProfitTargetActive,
+                      label: "Auto-stop on",
+                      ok: equityHardStopActive || noTradingAfterTimeActive || dailyProfitTargetActive,
                     },
                   ];
 
                   return (
-                    <div className={`${SURFACE_CARD} p-4 space-y-4`}>
+                    <div className={`${SURFACE_CARD} overflow-hidden`}>
                       {/* Header */}
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-400 flex items-center justify-center shrink-0">
-                            <ShieldCheck size={14} />
-                          </span>
-                          <div>
-                            <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white leading-tight">
-                              Account Shield
-                            </h3>
-                            <p className="text-[10.5px] text-slate-400 dark:text-neutral-400">
-                              Live safety breakdown
-                            </p>
-                          </div>
-                        </div>
+                      <div className="px-4 pt-3.5 pb-2 flex items-center justify-between gap-2">
+                        <h3 className="text-[13.5px] font-bold text-slate-900 dark:text-white tracking-tight">
+                          Account Shield
+                        </h3>
                         <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${shieldTier.badge}`}
+                          className={`inline-flex items-center gap-1.5 text-[10.5px] font-semibold ${
+                            shieldScore >= 70
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : shieldScore >= 35
+                              ? "text-[#2563EB] dark:text-blue-400"
+                              : "text-amber-600 dark:text-amber-400"
+                          }`}
                         >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              shieldScore >= 70
+                                ? "bg-emerald-500"
+                                : shieldScore >= 35
+                                ? "bg-[#2563EB]"
+                                : "bg-amber-500"
+                            }`}
+                          />
                           {shieldTier.label}
                         </span>
                       </div>
 
-                      {/* Central 72-Notch Gauge */}
-                      <div className="flex flex-col items-center py-1">
+                      {/* Precision Gauge (real notches, ruler & needle) */}
+                      <div className="px-4 pt-1 pb-3 flex flex-col items-center">
                         <Gauge
                           value={shieldScore}
-                          max={100}
-                          totalNotches={72}
-                          size={146}
-                          strokeWidth={10}
-                          colors={shieldTier.colors}
-                          label={`${tabCounts.total}/${totalMax} guards`}
-                          labelClassName="text-[10.5px] font-semibold text-slate-400 dark:text-neutral-400"
+                          totalNotches={28}
+                          ruler
+                          needle="line"
+                          gradientColors={shieldTier.colors}
+                          defaultLabel={`${tabCounts.total} of ${totalMax} rules active`}
+                          ariaLabel="Account Shield protection score"
+                          className="w-full max-w-[210px]"
                         />
                       </div>
 
-                      {/* 3 Pillar Protection Bars (Click to Switch Tab) */}
-                      <div className="space-y-2.5 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                      {/* Systematic 3-Pillar Progress List (flat hairline layout) */}
+                      <div className="px-4 py-3 border-t border-slate-100 dark:border-white/[0.06] space-y-3">
                         {[
                           {
                             tab: "trading_control" as const,
@@ -4936,10 +4765,6 @@ export default function RiskGuard() {
                             max: tcMax,
                             pct: tcPct,
                             barClass: "bg-[#2563EB]",
-                            desc:
-                              tabCounts.trading_control > 0
-                                ? "Order sizing & pair discipline active"
-                                : "No lot size or pair caps active",
                           },
                           {
                             tab: "risk_management" as const,
@@ -4948,10 +4773,6 @@ export default function RiskGuard() {
                             max: rmMax,
                             pct: rmPct,
                             barClass: "bg-emerald-500",
-                            desc:
-                              tabCounts.risk_management > 0
-                                ? "Account equity & loss bounds guarded"
-                                : "Drawdown & stop-loss unprotected",
                           },
                           {
                             tab: "behaviour" as const,
@@ -4960,63 +4781,68 @@ export default function RiskGuard() {
                             max: bhMax,
                             pct: bhPct,
                             barClass: "bg-indigo-500",
-                            desc:
-                              tabCounts.behaviour > 0
-                                ? "Overtrading & emotions restricted"
-                                : "No cooldown or session rules set",
                           },
                         ].map((pillar) => (
                           <button
                             key={pillar.tab}
                             type="button"
                             onClick={() => setActiveTab(pillar.tab)}
-                            className="w-full text-left p-2 rounded-[11px] bg-slate-50/80 dark:bg-white/[0.03] hover:bg-slate-100/80 dark:hover:bg-white/[0.06] border border-slate-200/60 dark:border-white/[0.06] transition-colors cursor-pointer"
+                            className="group w-full text-left cursor-pointer"
                           >
-                            <div className="flex items-center justify-between text-[11px] font-semibold">
-                              <span className="text-slate-700 dark:text-neutral-200">
+                            <div className="flex items-center justify-between text-[11.5px] mb-1.5">
+                              <span
+                                className={`font-semibold transition-colors ${
+                                  activeTab === pillar.tab
+                                    ? "text-slate-900 dark:text-white"
+                                    : "text-slate-600 dark:text-neutral-300 group-hover:text-slate-900 dark:group-hover:text-white"
+                                }`}
+                              >
                                 {pillar.title}
                               </span>
-                              <span className="text-slate-500 dark:text-neutral-400 tabular-nums">
-                                {pillar.active}/{pillar.max} ({pillar.pct}%)
+                              <span className="text-[11px] font-semibold text-slate-400 dark:text-neutral-500 tabular-nums">
+                                {pillar.active}/{pillar.max}
                               </span>
                             </div>
-                            <div className="w-full h-1.5 mt-1.5 rounded-full bg-slate-200/70 dark:bg-white/[0.08] overflow-hidden">
+                            <div className="w-full h-[5px] rounded-full bg-slate-100 dark:bg-white/[0.07] overflow-hidden">
                               <div
                                 style={{ width: `${pillar.pct}%` }}
                                 className={`h-full rounded-full transition-all duration-300 ${pillar.barClass}`}
                               />
                             </div>
-                            <p className="text-[10px] text-slate-400 dark:text-neutral-400 mt-1 truncate">
-                              {pillar.desc}
-                            </p>
                           </button>
                         ))}
                       </div>
 
-                      {/* 2x2 Clear Protection Status Chips */}
-                      <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                      {/* Clean 2x2 Status Matrix */}
+                      <div className="px-4 py-3 border-t border-slate-100 dark:border-white/[0.06] grid grid-cols-2 gap-y-2 gap-x-3">
                         {safetyChecks.map((item) => (
                           <div
                             key={item.label}
-                            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-[10px] font-semibold ${
-                              item.ok
-                                ? "bg-emerald-50/70 dark:bg-emerald-500/10 border-emerald-200/70 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300"
-                                : "bg-slate-50/70 dark:bg-white/[0.02] border-slate-200/70 dark:border-white/[0.06] text-slate-400 dark:text-neutral-500"
-                            }`}
+                            className="flex items-center gap-1.5 text-[11px] font-medium"
                           >
                             <span
                               className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                item.ok ? "bg-emerald-500" : "bg-slate-300 dark:bg-neutral-600"
+                                item.ok
+                                  ? "bg-emerald-500"
+                                  : "bg-slate-300 dark:bg-neutral-600"
                               }`}
                             />
-                            <span className="truncate">{item.label}</span>
+                            <span
+                              className={
+                                item.ok
+                                  ? "text-slate-800 dark:text-neutral-200"
+                                  : "text-slate-400 dark:text-neutral-500"
+                              }
+                            >
+                              {item.label}
+                            </span>
                           </div>
                         ))}
                       </div>
 
-                      {/* Plain-English Verdict */}
-                      <div className="p-2.5 rounded-[11px] bg-slate-50/90 dark:bg-white/[0.03] border border-slate-200/70 dark:border-white/[0.06]">
-                        <p className="text-[11px] text-slate-600 dark:text-neutral-300 leading-relaxed">
+                      {/* Quiet Footer Note */}
+                      <div className="px-4 py-2.5 bg-slate-50/70 dark:bg-white/[0.02] border-t border-slate-100 dark:border-white/[0.06]">
+                        <p className="text-[11px] text-slate-500 dark:text-neutral-400 leading-snug">
                           {shieldTier.summary}
                         </p>
                       </div>
@@ -5027,56 +4853,6 @@ export default function RiskGuard() {
             </div>
           </motion.div>
         </div>
-
-        {/* HARD STOP OVERLAY */}
-        <AnimatePresence>
-          {hardStopActive && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.96 }}
-              transition={{ duration: 0.35, ease: EXPO_OUT }}
-              className="fixed inset-0 z-[99999] bg-[#0A0A0C]/95 backdrop-blur-xl flex flex-col items-center justify-center text-center px-6 overflow-hidden"
-            >
-              <div className="w-20 h-20 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mb-6">
-                <AlertTriangle className="w-10 h-10 text-rose-500" />
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-3">
-                HARD STOP <span className="text-rose-500">ENGAGED</span>
-              </h1>
-
-              <p className="text-[15px] md:text-[17px] text-slate-300 max-w-xl mx-auto leading-relaxed">
-                You have reached your daily drawdown limit. All open positions
-                have been squared off and new order entry is locked.
-              </p>
-
-              <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl px-8 py-5">
-                <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-widest mb-2">
-                  Terminal Lockout Ends In
-                </p>
-                <div className="flex items-center justify-center gap-2 text-3xl md:text-4xl font-bold text-white tabular-nums">
-                  <span>04</span>
-                  <span className="text-rose-500/60">:</span>
-                  <span>12</span>
-                  <span className="text-rose-500/60">:</span>
-                  <span>59</span>
-                </div>
-                <p className="text-slate-500 text-[11px] mt-2">
-                  Access restores automatically at next session open
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setHardStopActive(false)}
-                className="mt-8 px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 border border-white/15 text-[12px] font-semibold text-white/80 hover:text-white transition-colors cursor-pointer"
-              >
-                Exit Test Lock
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </DashboardLayout>
   );
