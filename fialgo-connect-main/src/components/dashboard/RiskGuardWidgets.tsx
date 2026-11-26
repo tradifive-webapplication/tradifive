@@ -4,8 +4,11 @@ import {
   AlertTriangle,
   Clock,
   Crosshair,
+  GripVertical,
   Layers,
   LayoutGrid,
+  Lock,
+  Move,
   ShieldAlert,
   ShieldCheck,
   ShieldOff,
@@ -14,6 +17,8 @@ import {
   Wallet,
   X,
 } from "lucide-react";
+import { useSortable, SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Gauge } from "@/components/ui/charts";
 import { TradeSlotsBlobStrip } from "@/components/ui/TradeSlotBlobCheckbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -112,7 +117,35 @@ export const RISK_WIDGET_CATALOG: {
   },
 ];
 
+export type DashboardWidgetZone =
+  | "top_strip"
+  | "mid_band"
+  | "col_left"
+  | "col_mid"
+  | "col_right";
+
+export const DASHBOARD_WIDGET_ZONES: {
+  id: DashboardWidgetZone;
+  label: string;
+  shortLabel: string;
+}[] = [
+  { id: "top_strip", label: "Top Row", shortLabel: "Top" },
+  { id: "mid_band", label: "Middle Row", shortLabel: "Mid" },
+  { id: "col_left", label: "Bottom Left", shortLabel: "Left" },
+  { id: "col_mid", label: "Bottom Center", shortLabel: "Center" },
+  { id: "col_right", label: "Bottom Right", shortLabel: "Right" },
+];
+
+const VALID_ZONES = new Set<DashboardWidgetZone>([
+  "top_strip",
+  "mid_band",
+  "col_left",
+  "col_mid",
+  "col_right",
+]);
+
 const STORAGE_KEY = "tradifive_dashboard_risk_widgets";
+const ZONES_STORAGE_KEY = "tradifive_dashboard_risk_widget_zones";
 const EVENTS = ["tradifive:risk-widgets-changed", "fialgo_config_changed", "storage"] as const;
 
 export function getPinnedRiskWidgets(): RiskWidgetId[] {
@@ -128,6 +161,53 @@ export function getPinnedRiskWidgets(): RiskWidgetId[] {
   }
 }
 
+export function getRiskWidgetZones(): Record<string, DashboardWidgetZone> {
+  try {
+    const raw = localStorage.getItem(ZONES_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return {};
+    const clean: Record<string, DashboardWidgetZone> = {};
+    Object.entries(parsed).forEach(([k, v]) => {
+      if (VALID_WIDGET_IDS.has(k as RiskWidgetId) && VALID_ZONES.has(v as DashboardWidgetZone)) {
+        clean[k] = v as DashboardWidgetZone;
+      }
+    });
+    return clean;
+  } catch {
+    return {};
+  }
+}
+
+export function setRiskWidgetZone(id: RiskWidgetId, zone: DashboardWidgetZone) {
+  const current = getRiskWidgetZones();
+  const next = { ...current, [id]: zone };
+  try {
+    localStorage.setItem(ZONES_STORAGE_KEY, JSON.stringify(next));
+    window.dispatchEvent(new CustomEvent("tradifive:risk-widgets-changed"));
+  } catch {
+    /* ignore storage errors */
+  }
+}
+
+export function reorderPinnedRiskWidgets(nextOrder: RiskWidgetId[]) {
+  const clean = nextOrder.filter((id) => VALID_WIDGET_IDS.has(id));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clean));
+    window.dispatchEvent(new CustomEvent("tradifive:risk-widgets-changed"));
+  } catch {
+    /* ignore storage errors */
+  }
+}
+
+export const RISK_WIDGET_LABELS: Record<RiskWidgetId, string> = RISK_WIDGET_CATALOG.reduce(
+  (acc, item) => {
+    acc[item.id] = item.title;
+    return acc;
+  },
+  {} as Record<RiskWidgetId, string>
+);
+
 export function togglePinRiskWidget(id: RiskWidgetId): boolean {
   const current = getPinnedRiskWidgets();
   const exists = current.includes(id);
@@ -141,89 +221,219 @@ export function togglePinRiskWidget(id: RiskWidgetId): boolean {
   return !exists;
 }
 
-export const DashboardWidgetsPicker: React.FC = () => {
+export function useDashboardRiskWidgetState() {
   const [pinned, setPinned] = useState<RiskWidgetId[]>(() => getPinnedRiskWidgets());
+  const [zones, setZones] = useState<Record<string, DashboardWidgetZone>>(() =>
+    getRiskWidgetZones()
+  );
 
   useEffect(() => {
-    const refresh = () => setPinned(getPinnedRiskWidgets());
+    const refresh = () => {
+      setPinned(getPinnedRiskWidgets());
+      setZones(getRiskWidgetZones());
+    };
     EVENTS.forEach((evt) => window.addEventListener(evt, refresh));
     return () => {
       EVENTS.forEach((evt) => window.removeEventListener(evt, refresh));
     };
   }, []);
 
+  return { pinned, zones };
+}
+
+interface DashboardWidgetsPickerProps {
+  locked?: boolean;
+  placeMode?: boolean;
+  onTogglePlaceMode?: () => void;
+}
+
+export const DashboardWidgetsPicker: React.FC<DashboardWidgetsPickerProps> = ({
+  locked = false,
+  placeMode = false,
+  onTogglePlaceMode,
+}) => {
+  const { pinned, zones } = useDashboardRiskWidgetState();
+  const [open, setOpen] = useState(false);
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tactile-white-pill rounded-full px-3 py-1 text-[11.5px] font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-          title="Manage Risk Guard widgets on Dashboard"
+          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full tactile-white-pill text-[12.5px] font-semibold cursor-pointer select-none ${
+            placeMode && !locked ? "tactile-pill-active" : ""
+          }`}
+          title={
+            locked
+              ? "Dashboard Widgets (Pro & Elite)"
+              : "Add and place widgets anywhere on Dashboard"
+          }
         >
-          <LayoutGrid size={12} className="text-blue-600 dark:text-blue-400" />
+          {locked ? (
+            <Lock size={12.5} className="text-amber-500 shrink-0" />
+          ) : (
+            <LayoutGrid size={13.5} className="text-blue-600 dark:text-blue-400 shrink-0" />
+          )}
           <span>Widgets</span>
-          {pinned.length > 0 && (
-            <span className="px-1.5 py-[0.5px] rounded-full text-[9.5px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 tabular-nums">
-              {pinned.length}
+          {locked ? (
+            <span className="px-1.5 py-[0.5px] rounded-full text-[9px] font-bold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300 uppercase tracking-wide">
+              Pro
             </span>
+          ) : (
+            pinned.length > 0 && (
+              <span className="px-1.5 py-[0.5px] rounded-full text-[9.5px] font-bold bg-blue-50 text-blue-600 dark:bg-blue-500/20 dark:text-blue-300 tabular-nums">
+                {pinned.length}
+              </span>
+            )
           )}
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[276px] p-3 rounded-2xl border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#17171A] shadow-xl"
+        sideOffset={8}
+        className="w-[310px] p-3 rounded-2xl border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#17171A] shadow-xl z-50"
       >
-        <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-white/[0.06]">
-          <span className="text-[12px] font-bold text-slate-900 dark:text-white">
-            Risk Guard Widgets
-          </span>
-          <Link
-            to="/risk-guard"
-            className="text-[10.5px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            Configure
-          </Link>
-        </div>
-
-        <div className="space-y-2.5 max-h-[340px] overflow-y-auto amazing-scrollbar pr-0.5">
-          {(["Trading Control", "Risk Management", "Behaviour & Discipline"] as const).map(
-            (groupName) => (
-              <div key={groupName} className="space-y-1">
-                <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-1 pt-0.5">
-                  {groupName}
+        {locked ? (
+          <div className="space-y-3">
+            <div className="flex items-start gap-2.5 p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/25">
+              <span className="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-300 flex items-center justify-center shrink-0">
+                <Lock size={14} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[12px] font-bold text-slate-900 dark:text-white leading-snug">
+                  Widgets Locked on Standard
                 </p>
-                {RISK_WIDGET_CATALOG.filter((item) => item.group === groupName).map(
-                  (item) => {
-                    const checked = pinned.includes(item.id);
-                    return (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between gap-2.5 p-2 rounded-xl bg-slate-50/80 dark:bg-white/[0.04]"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-[11.5px] font-semibold text-slate-800 dark:text-white truncate">
-                            {item.title}
-                          </p>
-                          <p className="text-[10px] text-slate-400 dark:text-neutral-500 truncate">
-                            {item.subtitle}
-                          </p>
-                        </div>
-                        <Switch
-                          size="sm"
-                          checked={checked}
-                          onChange={() => {
-                            togglePinRiskWidget(item.id);
-                            setPinned(getPinnedRiskWidgets());
-                          }}
-                        />
-                      </div>
-                    );
-                  }
-                )}
+                <p className="text-[10.5px] text-slate-500 dark:text-neutral-400 mt-0.5 leading-relaxed">
+                  Add live Risk Guard widgets and drag/place them anywhere on your Dashboard with Pro or Elite.
+                </p>
               </div>
-            )
-          )}
-        </div>
+            </div>
+
+            <div className="space-y-1 opacity-60 pointer-events-none select-none">
+              {RISK_WIDGET_CATALOG.slice(0, 4).map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-100 dark:border-white/[0.06]"
+                >
+                  <span className="text-[11px] font-medium text-slate-600 dark:text-neutral-300 truncate">
+                    {item.title}
+                  </span>
+                  <Lock size={11} className="text-slate-400 shrink-0" />
+                </div>
+              ))}
+            </div>
+
+            <Link
+              to="/upgrade"
+              onClick={() => setOpen(false)}
+              className="w-full h-9 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white text-[12px] font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+            >
+              <Lock size={12} />
+              <span>Unlock with Pro &amp; Elite</span>
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-white/[0.06] gap-2">
+              <span className="text-[12px] font-bold text-slate-900 dark:text-white">
+                Dashboard Widgets
+              </span>
+              <div className="flex items-center gap-1.5">
+                {onTogglePlaceMode && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onTogglePlaceMode();
+                      setOpen(false);
+                    }}
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-colors cursor-pointer ${
+                      placeMode
+                        ? "bg-blue-600 text-white border-blue-600"
+                        : "bg-slate-50 dark:bg-white/[0.06] text-slate-600 dark:text-neutral-300 border-slate-200/80 dark:border-white/10 hover:border-blue-300"
+                    }`}
+                    title="Show drop zones across Dashboard to place widgets anywhere"
+                  >
+                    <Move size={10} />
+                    <span>{placeMode ? "Placing" : "Place on Page"}</span>
+                  </button>
+                )}
+                <Link
+                  to="/risk-guard"
+                  onClick={() => setOpen(false)}
+                  className="text-[10.5px] font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Rules
+                </Link>
+              </div>
+            </div>
+
+            <p className="text-[10px] text-slate-400 dark:text-neutral-500 mb-2 px-0.5">
+              Toggle widgets on, choose a Dashboard section below, or drag any widget directly onto a slot.
+            </p>
+
+            <div className="space-y-2.5 max-h-[340px] overflow-y-auto amazing-scrollbar pr-0.5">
+              {(["Trading Control", "Risk Management", "Behaviour & Discipline"] as const).map(
+                (groupName) => (
+                  <div key={groupName} className="space-y-1.5">
+                    <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 dark:text-neutral-500 px-1 pt-0.5">
+                      {groupName}
+                    </p>
+                    {RISK_WIDGET_CATALOG.filter((item) => item.group === groupName).map(
+                      (item) => {
+                        const checked = pinned.includes(item.id);
+                        const currentZone = zones[item.id] || "col_right";
+                        return (
+                          <div
+                            key={item.id}
+                            className="p-2 rounded-xl bg-slate-50/85 dark:bg-white/[0.04] space-y-1.5"
+                          >
+                            <div className="flex items-center justify-between gap-2.5">
+                              <div className="min-w-0">
+                                <p className="text-[11.5px] font-semibold text-slate-800 dark:text-white truncate">
+                                  {item.title}
+                                </p>
+                                <p className="text-[10px] text-slate-400 dark:text-neutral-500 truncate">
+                                  {item.subtitle}
+                                </p>
+                              </div>
+                              <Switch
+                                size="sm"
+                                checked={checked}
+                                onChange={() => togglePinRiskWidget(item.id)}
+                              />
+                            </div>
+
+                            {checked && (
+                              <div className="flex items-center gap-1 pt-1 border-t border-slate-200/60 dark:border-white/[0.06] flex-wrap">
+                                <span className="text-[9px] font-semibold text-slate-400 mr-0.5">
+                                  Place:
+                                </span>
+                                {DASHBOARD_WIDGET_ZONES.map((z) => (
+                                  <button
+                                    key={z.id}
+                                    type="button"
+                                    onClick={() => setRiskWidgetZone(item.id, z.id)}
+                                    className={`px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold transition-colors cursor-pointer ${
+                                      currentZone === z.id
+                                        ? "bg-[#2563EB] text-white"
+                                        : "bg-white dark:bg-[#1C1C20] text-slate-500 dark:text-neutral-400 border border-slate-200/70 dark:border-white/10 hover:text-slate-900 dark:hover:text-white"
+                                    }`}
+                                  >
+                                    {z.shortLabel}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
+                )
+              )}
+            </div>
+          </>
+        )}
       </PopoverContent>
     </Popover>
   );
@@ -237,7 +447,57 @@ interface DashboardPinnedRiskWidgetsProps {
   recentTrades: any[];
   accountMetrics: any;
   cardClass: string;
+  locked?: boolean;
+  zone?: DashboardWidgetZone;
+  gridClassName?: string;
+  isEditMode?: boolean;
 }
+
+const SortableWidgetShell: React.FC<{
+  id: RiskWidgetId;
+  cardClass: string;
+  isEditMode?: boolean;
+  children: React.ReactNode;
+}> = ({ id, cardClass, isEditMode = false, children }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.35 : 1,
+    position: "relative",
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`${cardClass} p-3.5 relative transition-shadow ${
+        isEditMode
+          ? "ring-2 ring-[#2563EB]/45 ring-offset-2 dark:ring-offset-[#141416] cursor-grab active:cursor-grabbing"
+          : "cursor-grab active:cursor-grabbing hover:border-blue-200/80 dark:hover:border-blue-500/30"
+      }`}
+    >
+      {isEditMode && (
+        <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 z-30 inline-flex items-center gap-1 px-2.5 py-0.5 bg-white dark:bg-[#242428] text-slate-900 dark:text-white rounded-full text-[9.5px] font-semibold shadow-sm border border-[#2563EB]/30 whitespace-nowrap pointer-events-none">
+          <GripVertical size={10} className="text-[#2563EB]" />
+          <span>{RISK_WIDGET_LABELS[id]}</span>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+};
 
 export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProps> = ({
   activeMarket,
@@ -247,15 +507,16 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
   recentTrades,
   accountMetrics,
   cardClass,
+  locked = false,
+  zone,
+  gridClassName = "space-y-3",
+  isEditMode = false,
 }) => {
-  const [pinned, setPinned] = useState<RiskWidgetId[]>(() => getPinnedRiskWidgets());
+  const { pinned, zones } = useDashboardRiskWidgetState();
   const [, setSyncTick] = useState(0);
 
   useEffect(() => {
-    const refresh = () => {
-      setPinned(getPinnedRiskWidgets());
-      setSyncTick((t) => t + 1);
-    };
+    const refresh = () => setSyncTick((t) => t + 1);
     EVENTS.forEach((evt) => window.addEventListener(evt, refresh));
     return () => {
       EVENTS.forEach((evt) => window.removeEventListener(evt, refresh));
@@ -685,18 +946,61 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
 
     return (
       <div className="flex items-center justify-between gap-2 mb-2">
-        <Link
-          to="/risk-guard"
-          className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-700 dark:text-neutral-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 truncate"
-        >
-          <Icon size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
-          <span className="truncate">{title}</span>
-        </Link>
+        <div className="inline-flex items-center gap-1 min-w-0">
+          <GripVertical
+            size={12}
+            className="text-slate-300 dark:text-neutral-600 shrink-0 cursor-grab"
+          />
+          <Link
+            to="/risk-guard"
+            className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-slate-700 dark:text-neutral-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors min-w-0 truncate"
+          >
+            <Icon size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
+            <span className="truncate">{title}</span>
+          </Link>
+        </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
           <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${toneClass}`}>
             {badge}
           </span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className="w-5 h-5 rounded-md flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-white/10 dark:hover:text-blue-400 transition-colors cursor-pointer"
+                title="Move widget to another section"
+              >
+                <Move size={10.5} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              sideOffset={6}
+              className="w-40 p-1.5 rounded-xl bg-white dark:bg-[#1C1C20] border border-slate-200 dark:border-white/10 shadow-xl"
+            >
+              <p className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400 px-2 py-1">
+                Place Widget In
+              </p>
+              {DASHBOARD_WIDGET_ZONES.map((z) => {
+                const activeZone = (zones[id] || "col_right") === z.id;
+                return (
+                  <button
+                    key={z.id}
+                    type="button"
+                    onClick={() => setRiskWidgetZone(id, z.id)}
+                    className={`w-full text-left px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-colors cursor-pointer ${
+                      activeZone
+                        ? "bg-blue-50 text-[#2563EB] dark:bg-blue-500/20 dark:text-blue-300"
+                        : "text-slate-600 dark:text-neutral-300 hover:bg-slate-50 dark:hover:bg-white/[0.06]"
+                    }`}
+                  >
+                    {z.label}
+                  </button>
+                );
+              })}
+            </PopoverContent>
+          </Popover>
           <button
             type="button"
             onClick={() => togglePinRiskWidget(id)}
@@ -710,10 +1014,14 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
     );
   };
 
-  return (
-    <div className="space-y-3">
-      {pinned.includes("max_lot") && (
-        <div className={`${cardClass} p-3.5`}>
+  const visibleIds = pinned.filter((id) => !zone || (zones[id] || "col_right") === zone);
+  if (locked || visibleIds.length === 0) return null;
+
+  const renderWidget = (id: RiskWidgetId): React.ReactNode => {
+    switch (id) {
+      case "max_lot":
+        return (
+          <>
           <WidgetHeader
             id="max_lot"
             icon={Layers}
@@ -802,11 +1110,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {pinned.includes("no_avg") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "no_avg":
+        return (
+          <>
           <WidgetHeader
             id="no_avg"
             icon={TrendingDown}
@@ -831,11 +1139,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
             useGradient
             gradientColors={["#34D399", "#10B981", "#059669"]}
           />
-        </div>
-      )}
-
-      {pinned.includes("martingale") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "martingale":
+        return (
+          <>
           <WidgetHeader
             id="martingale"
             icon={AlertTriangle}
@@ -882,11 +1190,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               gradientColors={widgetData.martingale.grad}
             />
           </div>
-        </div>
-      )}
-
-      {pinned.includes("one_instrument") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "one_instrument":
+        return (
+          <>
           <WidgetHeader
             id="one_instrument"
             icon={Crosshair}
@@ -949,11 +1257,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {pinned.includes("drawdown") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "drawdown":
+        return (
+          <>
           <WidgetHeader
             id="drawdown"
             icon={ShieldAlert}
@@ -1026,11 +1334,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {pinned.includes("profit_target") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "profit_target":
+        return (
+          <>
           <WidgetHeader
             id="profit_target"
             icon={Target}
@@ -1080,11 +1388,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               gradientColors={["#6EE7B7", "#10B981", "#059669"]}
             />
           </div>
-        </div>
-      )}
-
-      {pinned.includes("equity_floor") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "equity_floor":
+        return (
+          <>
           <WidgetHeader
             id="equity_floor"
             icon={Wallet}
@@ -1128,11 +1436,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               }
             />
           </div>
-        </div>
-      )}
-
-      {pinned.includes("trade_limit") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "trade_limit":
+        return (
+          <>
           <WidgetHeader
             id="trade_limit"
             icon={ShieldCheck}
@@ -1157,11 +1465,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
             completed={widgetData.tradeLimit.used}
             compact
           />
-        </div>
-      )}
-
-      {pinned.includes("loss_cooldown") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "loss_cooldown":
+        return (
+          <>
           <WidgetHeader
             id="loss_cooldown"
             icon={ShieldOff}
@@ -1187,11 +1495,11 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               {widgetData.cooldown.mins} mins
             </span>
           </div>
-        </div>
-      )}
-
-      {pinned.includes("session") && (
-        <div className={`${cardClass} p-3.5`}>
+          </>
+        );
+      case "session":
+        return (
+          <>
           <WidgetHeader
             id="session"
             icon={Clock}
@@ -1218,9 +1526,27 @@ export const DashboardPinnedRiskWidgets: React.FC<DashboardPinnedRiskWidgetsProp
               </div>
             ))}
           </div>
-        </div>
-      )}
+          </>
+        );
+      default:
+        return null;
+    }
+  };
 
-    </div>
+  return (
+    <SortableContext items={visibleIds} strategy={rectSortingStrategy}>
+      <div className={gridClassName}>
+        {visibleIds.map((id) => (
+          <SortableWidgetShell
+            key={id}
+            id={id}
+            cardClass={cardClass}
+            isEditMode={isEditMode}
+          >
+            {renderWidget(id)}
+          </SortableWidgetShell>
+        ))}
+      </div>
+    </SortableContext>
   );
 };

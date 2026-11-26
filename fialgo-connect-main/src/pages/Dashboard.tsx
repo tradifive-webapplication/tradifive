@@ -15,7 +15,20 @@ import {
   Check,
   TrendingUp,
   Lock,
+  GripVertical,
 } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+  closestCenter,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
 import DashboardLayout from "@/components/DashboardLayout";
 import Portfolio from "./dashboard/Portfolio";
 import Reports from "./dashboard/Reports";
@@ -33,6 +46,13 @@ import DashboardGoalsCard from "@/components/dashboard/DashboardGoalsCard";
 import {
   DashboardPinnedRiskWidgets,
   DashboardWidgetsPicker,
+  DASHBOARD_WIDGET_ZONES,
+  RISK_WIDGET_LABELS,
+  type DashboardWidgetZone,
+  type RiskWidgetId,
+  setRiskWidgetZone,
+  reorderPinnedRiskWidgets,
+  useDashboardRiskWidgetState,
 } from "@/components/dashboard/RiskGuardWidgets";
 import PreMarketPlanModal, {
   loadTodayPlan,
@@ -173,6 +193,34 @@ const cardVariants = {
   },
 };
 
+const DroppableWidgetZoneWrapper: React.FC<{
+  zone: DashboardWidgetZone;
+  label: string;
+  showSlot: boolean;
+  hasWidgets: boolean;
+  children: React.ReactNode;
+}> = ({ zone, label, showSlot, hasWidgets, children }) => {
+  const { setNodeRef, isOver } = useDroppable({ id: `zone:${zone}` });
+  if (!hasWidgets && !showSlot) return null;
+
+  return (
+    <div ref={setNodeRef} className="space-y-2.5">
+      {children}
+      {showSlot && (
+        <div
+          className={`px-3 py-2.5 rounded-2xl border-2 border-dashed text-center text-[11px] font-semibold transition-colors ${
+            isOver
+              ? "border-[#2563EB] bg-blue-50/80 dark:bg-blue-500/15 text-[#2563EB] dark:text-blue-300"
+              : "border-slate-300/80 dark:border-white/15 bg-slate-50/60 dark:bg-white/[0.02] text-slate-400 dark:text-neutral-500"
+          }`}
+        >
+          Drop widget here · {label}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Dashboard = () => {
   const [searchParams] = useSearchParams();
   const currentTab = searchParams.get("tab") || "main";
@@ -209,7 +257,9 @@ const Dashboard = () => {
     const syncDemo = () => {
       try {
         setDemoMode(localStorage.getItem("tf_dashboard_demo_mode") !== "false");
-      } catch {}
+      } catch {
+        /* ignore storage error */
+      }
     };
     window.addEventListener("tf_demo_mode_change", syncDemo);
     window.addEventListener("storage", syncDemo);
@@ -224,7 +274,9 @@ const Dashboard = () => {
     setDemoMode(next);
     try {
       localStorage.setItem("tf_dashboard_demo_mode", String(next));
-    } catch {}
+    } catch {
+      /* ignore storage error */
+    }
     window.dispatchEvent(new CustomEvent("tf_demo_mode_change"));
     toast.info(next ? "Demo data enabled" : "Switched to live account data");
   };
@@ -245,6 +297,88 @@ const Dashboard = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [profileData, setProfileData] = useState<any>(null);
   const [gamification, setGamification] = useState(getGamificationState());
+  const { pinned: pinnedWidgets, zones: widgetZones } = useDashboardRiskWidgetState();
+  const [widgetPlaceMode, setWidgetPlaceMode] = useState(false);
+  const [activeDragWidgetId, setActiveDragWidgetId] = useState<RiskWidgetId | null>(null);
+
+  const widgetSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+  );
+
+  const handleWidgetDragStart = (event: DragStartEvent) => {
+    setActiveDragWidgetId(event.active.id as RiskWidgetId);
+  };
+
+  const handleWidgetDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveDragWidgetId(null);
+    if (!over || isStarter) return;
+
+    const activeId = active.id as RiskWidgetId;
+    const overStr = String(over.id);
+
+    if (overStr.startsWith("zone:")) {
+      const targetZone = overStr.replace("zone:", "") as DashboardWidgetZone;
+      const currentZone = widgetZones[activeId] || "col_right";
+      if (currentZone !== targetZone) {
+        setRiskWidgetZone(activeId, targetZone);
+        const zoneLabel = DASHBOARD_WIDGET_ZONES.find((z) => z.id === targetZone)?.label;
+        if (zoneLabel) toast.success(`Moved widget to ${zoneLabel}`);
+      }
+      return;
+    }
+
+    const overWidgetId = overStr as RiskWidgetId;
+    if (activeId !== overWidgetId) {
+      const targetZone = widgetZones[overWidgetId] || "col_right";
+      const currentZone = widgetZones[activeId] || "col_right";
+      if (currentZone !== targetZone) {
+        setRiskWidgetZone(activeId, targetZone);
+      }
+      const oldIdx = pinnedWidgets.indexOf(activeId);
+      const newIdx = pinnedWidgets.indexOf(overWidgetId);
+      if (oldIdx !== -1 && newIdx !== -1) {
+        reorderPinnedRiskWidgets(arrayMove(pinnedWidgets, oldIdx, newIdx));
+      }
+    }
+  };
+
+  const renderWidgetZone = (
+    zone: DashboardWidgetZone,
+    gridClassName: string = "space-y-3"
+  ) => {
+    if (isStarter) return null;
+    const zoneMeta = DASHBOARD_WIDGET_ZONES.find((z) => z.id === zone);
+    const zoneWidgets = pinnedWidgets.filter(
+      (id) => (widgetZones[id] || "col_right") === zone
+    );
+    const showSlot = Boolean(activeDragWidgetId || widgetPlaceMode);
+
+    return (
+      <DroppableWidgetZoneWrapper
+        zone={zone}
+        label={zoneMeta?.label || "Section"}
+        showSlot={showSlot}
+        hasWidgets={zoneWidgets.length > 0}
+      >
+        {zoneWidgets.length > 0 && (
+          <DashboardPinnedRiskWidgets
+            activeMarket={activeMarket}
+            isConnected={isConnected}
+            demoMode={demoMode}
+            riskConfig={riskConfig}
+            recentTrades={recentTrades}
+            accountMetrics={accountMetrics}
+            cardClass={SURFACE_CARD}
+            locked={isStarter}
+            zone={zone}
+            gridClassName={gridClassName}
+            isEditMode={widgetPlaceMode}
+          />
+        )}
+      </DroppableWidgetZoneWrapper>
+    );
+  };
 
   useEffect(() => {
     try {
@@ -607,6 +741,12 @@ const Dashboard = () => {
                   <Share2 size={13.5} strokeWidth={2} />
                   <span>Share profile</span>
                 </motion.button>
+
+                <DashboardWidgetsPicker
+                  locked={isStarter}
+                  placeMode={widgetPlaceMode}
+                  onTogglePlaceMode={() => setWidgetPlaceMode((v) => !v)}
+                />
               </div>
             </div>
           </motion.header>
@@ -616,6 +756,13 @@ const Dashboard = () => {
             style={{ WebkitOverflowScrolling: "touch", willChange: "scroll-position" }}
             className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden overscroll-y-contain amazing-scrollbar"
           >
+            <DndContext
+              sensors={widgetSensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleWidgetDragStart}
+              onDragEnd={handleWidgetDragEnd}
+              onDragCancel={() => setActiveDragWidgetId(null)}
+            >
             <motion.div
               variants={containerVariants}
               initial="hidden"
@@ -730,13 +877,43 @@ const Dashboard = () => {
                     >
                       Connect broker
                     </motion.button>
-                    <DashboardWidgetsPicker />
                   </div>
                 </div>
               )}
             </motion.section>
 
-            {/* ── 2. HERO BAND: Open Net P&L (Left) + 3-Metric Telemetry & Plan (Right) ── */}
+            {/* Journal-style Edit Mode Hint Banner (Pro & Elite) */}
+            <AnimatePresence>
+              {!isStarter && widgetPlaceMode && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-center justify-between gap-3 px-4 py-2.5 bg-blue-50 dark:bg-blue-500/10 border border-blue-200/80 dark:border-blue-500/25 rounded-xl text-[12px] font-medium text-[#2563EB] dark:text-blue-300">
+                    <span className="inline-flex items-center gap-2">
+                      <GripVertical size={14} className="shrink-0" />
+                      <span>
+                        Drag any widget card into a highlighted Dashboard slot or reorder inside a section. Click <strong>Done</strong> when finished.
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setWidgetPlaceMode(false)}
+                      className="px-3 py-1 rounded-full bg-[#2563EB] text-white text-[11px] font-semibold cursor-pointer shrink-0"
+                    >
+                      Done
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Custom Widgets Slot: Top Row */}
+            {renderWidgetZone("top_strip", "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3")}
+
+            {/* ── 2. HERO BAND: Open Net P&L Hero (Left) + 3-Metric Telemetry & Plan (Right) ── */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 items-center">
               {/* LEFT: Open Net P&L Hero + Win Rate Ring (NO BOX) */}
               <motion.section variants={cardVariants} className="lg:col-span-6 pt-1 pb-1 space-y-3.5">
@@ -1011,6 +1188,9 @@ const Dashboard = () => {
               </motion.section>
             </div>
 
+            {/* Custom Widgets Slot: Middle Row */}
+            {renderWidgetZone("mid_band", "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3")}
+
             {/* ── 3. OPEN 3-GRAPH ANALYTICS BAND: Cumulative P&L | Account Balance | TradiFive Score ── */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-7 pt-5 pb-1 border-t border-slate-200/75 dark:border-white/[0.08] items-stretch">
               {/* Graph 1: Open Cumulative P&L */}
@@ -1182,6 +1362,9 @@ const Dashboard = () => {
                     </div>
                   </motion.section>
                 )}
+
+                {/* Custom Widgets Slot: Bottom Left */}
+                {renderWidgetZone("col_left", "space-y-3")}
               </div>
 
               {/* Col 2: Forex Factory News + TradiFive AI Coach */}
@@ -1214,6 +1397,9 @@ const Dashboard = () => {
                     />
                   </Link>
                 </motion.div>
+
+                {/* Custom Widgets Slot: Bottom Center */}
+                {renderWidgetZone("col_mid", "space-y-3")}
               </div>
 
               {/* Col 3: Risk Guard + Discipline + Goals */}
@@ -1320,15 +1506,7 @@ const Dashboard = () => {
                 </motion.section>
 
                 <motion.div variants={cardVariants}>
-                  <DashboardPinnedRiskWidgets
-                    activeMarket={activeMarket}
-                    isConnected={isConnected}
-                    demoMode={demoMode}
-                    riskConfig={riskConfig}
-                    recentTrades={recentTrades}
-                    accountMetrics={accountMetrics}
-                    cardClass={SURFACE_CARD}
-                  />
+                  {renderWidgetZone("col_right", "space-y-3")}
                 </motion.div>
 
                 <motion.div variants={cardVariants}>
@@ -1354,7 +1532,16 @@ const Dashboard = () => {
               </p>
             </motion.footer>
               </motion.div>
-            </div>
+              <DragOverlay>
+                {activeDragWidgetId ? (
+                  <div className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white dark:bg-[#242428] text-slate-900 dark:text-white rounded-2xl text-[12px] font-bold shadow-2xl border border-[#2563EB]/40 cursor-grabbing">
+                    <GripVertical size={13} className="text-[#2563EB]" />
+                    <span>{RISK_WIDGET_LABELS[activeDragWidgetId]}</span>
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+          </div>
 
           {/* Modals */}
           <PreMarketPlanModal

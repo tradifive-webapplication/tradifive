@@ -4741,17 +4741,23 @@ export default function RiskGuard() {
                         </span>
                       </div>
 
-                      {/* Precision Gauge (real notches, ruler & needle) */}
+                      {/* Precision Dial Gauge (compact % so zero overlap with needle or divider) */}
                       <div className="px-4 pt-1 pb-3 flex flex-col items-center">
                         <Gauge
+                          compact
                           value={shieldScore}
-                          totalNotches={28}
+                          startAngle={148}
+                          endAngle={392}
+                          totalNotches={48}
+                          spacing={40}
+                          notchLengthPercent={32}
+                          notchCornerRadius={2}
                           ruler
                           needle="line"
                           gradientColors={shieldTier.colors}
-                          defaultLabel={`${tabCounts.total} of ${totalMax} rules active`}
+                          defaultLabel={`${tabCounts.total}/${totalMax} rules`}
                           ariaLabel="Account Shield protection score"
-                          className="w-full max-w-[210px]"
+                          className="w-full max-w-[168px]"
                         />
                       </div>
 
