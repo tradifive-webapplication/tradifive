@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { PricingCards } from "@/components/PricingCards";
 import { motion, AnimatePresence, useScroll, useTransform, useSpring } from "framer-motion";
-import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck, ChevronDown, ChevronUp } from "lucide-react";
+import { CheckCircle2, Shield, TrendingUp, Users, ArrowRight, Activity, Cpu, Play, Layers, X, Zap, Trophy, Star, Globe, MessageSquare, Radio, MessageCircle, GraduationCap, Sparkles, BookText, Crown, ShieldCheck, ChevronDown, ChevronUp, ChevronRight, Plus, Bell } from "lucide-react";
 import { ShieldDone, Graph, Activity as IconlyActivity, TwoUsers } from "react-iconly";
 import PremiumBackground from "../components/PremiumBackground";
 import StarsBackground from "../components/StarsBackground";
@@ -149,370 +149,390 @@ function AmbientGlowField() {
 
 
 /* ════════════════
-   3D HERO DASHBOARD VISUAL
+   HERO PRODUCT SHOWCASE MOCKUP
 ════════════════ */
-function HeroDashboard() {
-  const [tick, setTick] = useState(0);
-  const [trades, setTrades] = useState([
-    { pair: "EUR/USD", dir: "BUY", pnl: "+₹142.50", pos: true, time: "2s ago" },
-    { pair: "XAU/USD", dir: "SELL", pnl: "+₹89.20", pos: true, time: "18s ago" },
-    { pair: "BTC/USD", dir: "BUY", pnl: "-₹32.10", pos: false, time: "1m ago" },
-    { pair: "GBP/JPY", dir: "BUY", pnl: "+₹211.00", pos: true, time: "3m ago" },
-  ]);
-  // Animated chart points
-  const chartPoints = [
-    "0,80 40,65 80,70 120,45 160,55 200,30 240,40 280,20 320,35 360,15 400,25 440,10 480,18"
-  ];
+function HeroDashboard({ onStart }: { onStart: () => void }) {
+  const [activeTab, setActiveTab] = useState<"Overview" | "Journal" | "Risk Guard" | "Reports">("Overview");
 
-  useEffect(() => {
-    const t = setInterval(() => setTick(p => (p + 1) % 100), 1800);
-    return () => clearInterval(t);
-  }, []);
+  const tabStats: Record<
+    "Overview" | "Journal" | "Risk Guard" | "Reports",
+    {
+      bannerTitle: string;
+      bannerSub: string;
+      kpis: { label: string; delta: string; deltaPositive: boolean; value: string; sub: string }[];
+      chartTitle: string;
+      tooltipLabel: string;
+      tooltipVal: string;
+    }
+  > = {
+    Overview: {
+      bannerTitle: "Good morning, Trader",
+      bannerSub: "Portfolio snapshot · Today",
+      kpis: [
+        { label: "Net P&L", delta: "+12.4%", deltaPositive: true, value: "+$42,890", sub: "vs $38,160 last month" },
+        { label: "Account Equity", delta: "+8.1%", deltaPositive: true, value: "$248,400", sub: "Across 3 accounts" },
+        { label: "Risk Score", delta: "+0 breaches", deltaPositive: true, value: "94 / 100", sub: "All guards active" },
+      ],
+      chartTitle: "Equity vs target",
+      tooltipLabel: "Oct 26",
+      tooltipVal: "+$42.9K",
+    },
+    Journal: {
+      bannerTitle: "Automated Trade Journal",
+      bannerSub: "MT5 & Broker auto-sync · 128 trades",
+      kpis: [
+        { label: "Win Rate", delta: "+4.2%", deltaPositive: true, value: "68.4%", sub: "Last 30 days" },
+        { label: "Profit Factor", delta: "+0.35", deltaPositive: true, value: "2.41", sub: "R-Multiple 1.9R avg" },
+        { label: "Best Setup", delta: "78% WR", deltaPositive: true, value: "NY Open", sub: "London / NY overlap" },
+      ],
+      chartTitle: "Cumulative R-Multiple",
+      tooltipLabel: "Week 4",
+      tooltipVal: "+24.6R",
+    },
+    "Risk Guard": {
+      bannerTitle: "Institutional Risk Guard",
+      bannerSub: "Real-time drawdown & revenge-trade lock",
+      kpis: [
+        { label: "Daily Drawdown", delta: "Safe", deltaPositive: true, value: "0.42%", sub: "Max limit 2.00%" },
+        { label: "Lot Cap", delta: "Locked", deltaPositive: true, value: "2.0 lots", sub: "Per position guard" },
+        { label: "Saved Capital", delta: "+3 blocks", deltaPositive: true, value: "$6,450", sub: "Blocked tilt trades" },
+      ],
+      chartTitle: "Drawdown buffer vs limit",
+      tooltipLabel: "Peak",
+      tooltipVal: "98.2% safe",
+    },
+    Reports: {
+      bannerTitle: "AI Performance Audit",
+      bannerSub: "Weekly insights powered by TradiFive AI",
+      kpis: [
+        { label: "Discipline Score", delta: "+9 pts", deltaPositive: true, value: "96%", sub: "Top 5% this week" },
+        { label: "Avg Hold Time", delta: "Optimal", deltaPositive: true, value: "42m", sub: "Winning trades" },
+        { label: "Tilt Warnings", delta: "Resolved", deltaPositive: true, value: "0 active", sub: "Clean streak: 14d" },
+      ],
+      chartTitle: "Consistency index",
+      tooltipLabel: "Today",
+      tooltipVal: "96 pts",
+    },
+  };
 
-  return (
-    <div className="hero-dashboard-container">
-      {/* Main glass terminal */}
-      <motion.div
-        initial={{ opacity: 0, x: 40, rotateY: -8 }}
-        animate={{ opacity: 1, x: 0, rotateY: 0 }}
-        transition={{ duration: 1, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
-        style={{
-          position: "absolute", top: 20, left: 0, right: 0,
-          background: "linear-gradient(160deg, rgba(18,18,22,0.98) 0%, rgba(10,10,12,0.99) 100%)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderTopColor: "rgba(150,200,255,0.2)",
-          borderRightColor: "rgba(150,200,255,0.15)",
-          borderRadius: 24,
-          padding: "20px",
-          backdropFilter: "blur(40px)",
-          boxShadow: "0 40px 80px rgba(0,0,0,0.7), inset -1px 1px 3px rgba(150,200,255,0.15), 0 0 0 1px rgba(255,255,255,0.04)",
-          overflow: "hidden"
-        }}
-      >
-
-
-        {/* Header bar */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ display: "flex", gap: 5 }}>
-              {["#f43f5e", "#f59e0b", "#10b981"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c, opacity: 0.8 }} />)}
-            </div>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.35)", marginLeft: 6 }}>tradifive — live dashboard</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span className="pulse-dot" style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#10b981" }}>LIVE</span>
-          </div>
-        </div>
-
-        {/* Stats row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
-          {[
-            { l: "Total P&L", v: "+₹2,847", c: "#10b981", sub: "this week" },
-            { l: "Win Rate", v: "73.4%", c: "rgba(255,255,255,0.9)", sub: "last 50 trades" },
-            { l: "Followers", v: "1,240", c: "rgba(255,255,255,0.75)", sub: "on your profile" },
-          ].map((s, i) => (
-            <div key={i} style={{ background: "#171717", borderRadius: 14, padding: "12px 14px" }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 1, marginBottom: 6 }}>{s.l}</div>
-              <div style={{ fontSize: 20, fontWeight: 900, color: s.c, letterSpacing: "-0.03em" }}>{s.v}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", marginTop: 3 }}>{s.sub}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Chart */}
-        <div style={{ background: "#171717", borderRadius: 14, padding: "14px", marginBottom: 14, overflow: "hidden", position: "relative" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Equity Curve</span>
-            <span style={{ fontSize: 11, fontWeight: 600, color: "#10b981" }}>↑ +18.4% this month</span>
-          </div>
-          <svg width="100%" height="70" viewBox="0 0 480 90" preserveAspectRatio="none" style={{ overflow: "visible" }}>
-            <defs>
-              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <polyline points={`${chartPoints[0]} 480,90 0,90`} fill="url(#chartGrad)" stroke="none" />
-            <polyline
-              points={chartPoints[0]}
-              fill="none"
-              stroke="rgba(255,255,255,0.5)"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ strokeDasharray: 1000, strokeDashoffset: 0, animation: "chartDraw 2s ease-out forwards" }}
-            />
-            <circle cx="440" cy="10" r="4" fill="#10b981" opacity="0.9">
-              <animate attributeName="r" values="4;6;4" dur="1.5s" repeatCount="indefinite" />
-              <animate attributeName="opacity" values="0.9;0.4;0.9" dur="1.5s" repeatCount="indefinite" />
-            </circle>
-          </svg>
-        </div>
-
-        {/* Live trades feed */}
-        <div style={{ background: "#171717", borderRadius: 14, overflow: "hidden" }}>
-          <div style={{ padding: "10px 14px", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between" }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 1 }}>Live Trade Feed</span>
-            <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>● Synced</span>
-          </div>
-          {trades.map((t, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.15 + 0.6 }}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 14px", borderBottom: i < trades.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none" }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: t.dir === "BUY" ? "rgba(16,185,129,0.12)" : "rgba(244,63,94,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 9, fontWeight: 900, color: t.dir === "BUY" ? "#10b981" : "#f43f5e" }}>{t.dir}</span>
-                </div>
-                <div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#fff" }}>{t.pair}</div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{t.time}</div>
-                </div>
-              </div>
-              <span style={{ fontSize: 13, fontWeight: 800, color: t.pos ? "#10b981" : "#f43f5e" }}>{t.pnl}</span>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Floating card: Social post */}
-      <motion.div
-        className="hero-card"
-        initial={{ opacity: 0, y: 20, rotate: -2 }}
-        animate={{
-          opacity: 1,
-          y: [-7, 7, -7],
-          rotate: [-2.5, -1, -2.5]
-        }}
-        transition={{
-          opacity: { duration: 0.8, delay: 0.9 },
-          y: { duration: 5.2, repeat: Infinity, ease: "easeInOut" },
-          rotate: { duration: 5.2, repeat: Infinity, ease: "easeInOut" }
-        }}
-        whileHover={{
-          scale: 1.05,
-          y: -12,
-          rotate: 0,
-          boxShadow: "0 28px 50px rgba(0,0,0,0.7), inset -1px 1px 4px rgba(150, 200, 255, 0.45), 0 0 25px rgba(99, 102, 241, 0.35)",
-          transition: { duration: 0.2 }
-        }}
-        style={{
-          position: "absolute", top: -10, right: -30,
-          background: "rgba(14,14,16,0.95)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          borderTopColor: "rgba(150, 200, 255, 0.45)",
-          borderRightColor: "rgba(150, 200, 255, 0.35)",
-          borderRadius: 18, padding: "14px 16px",
-          backdropFilter: "blur(20px)",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset -1px 1px 4px rgba(150, 200, 255, 0.3), 0 0 0 1px rgba(255,255,255,0.04)",
-          width: 195, zIndex: 20, cursor: "pointer", "--rot": "-2deg"
-        } as any}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg, #374151, #6b7280)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 900, color: "#fff" }}>MV</div>
-          <div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: "#fff" }}>Marcus V.</div>
-            <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.4)" }}>@marcus_trades • 2m</div>
-          </div>
-        </div>
-        <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.5, margin: 0 }}>Closed EUR/USD +142 pips. Risk managed the whole way. Love the journal sync 🔥</p>
-        <div style={{ display: "flex", gap: 12, marginTop: 10, color: "rgba(255,255,255,0.3)", fontSize: 10.5, fontWeight: 600 }}>
-          <span>❤️ 47</span><span>💬 12</span><span>🔁 8</span>
-        </div>
-      </motion.div>
-
-      {/* Floating card: Leaderboard badge */}
-      <motion.div
-        className="hero-card-b"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{
-          opacity: 1,
-          y: [8, -8, 8],
-          rotate: [0.8, -0.6, 0.8]
-        }}
-        transition={{
-          opacity: { duration: 0.8, delay: 1.1 },
-          y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-          rotate: { duration: 6, repeat: Infinity, ease: "easeInOut" }
-        }}
-        whileHover={{
-          scale: 1.05,
-          y: -12,
-          rotate: 0,
-          boxShadow: "0 28px 50px rgba(0,0,0,0.7), 0 0 25px rgba(245, 158, 11, 0.35), inset -1px 1px 2px rgba(150,200,255,0.25)",
-          transition: { duration: 0.2 }
-        }}
-        style={{
-          position: "absolute", bottom: 60, right: -20,
-          background: "rgba(14,14,16,0.95)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          borderTopColor: "rgba(150, 200, 255, 0.25)",
-          borderRightColor: "rgba(150, 200, 255, 0.2)",
-          borderRadius: 16, padding: "12px 16px",
-          backdropFilter: "blur(20px)",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset -1px 1px 2px rgba(150,200,255,0.15)",
-          width: 175, zIndex: 20, cursor: "pointer"
-        }}
-      >
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#f59e0b", textTransform: "uppercase", letterSpacing: 1, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
-          <span>🏆</span>
-          <span>Leaderboard</span>
-          <span className="pulse-dot" style={{ width: 5, height: 5, borderRadius: "50%", background: "#f59e0b", marginLeft: "auto" }} />
-        </div>
-        {[
-          { rank: "#1", name: "Elena R.", pnl: "+₹4,820" },
-          { rank: "#2", name: "David M.", pnl: "+₹3,210" },
-          { rank: "#3", name: "You", pnl: "+₹2,847", you: true },
-        ].map((r, i) => (
-          <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <span style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.3)" }}>{r.rank}</span>
-              <span style={{ fontSize: 11, fontWeight: r.you ? 800 : 600, color: r.you ? "#f59e0b" : "rgba(255,255,255,0.7)" }}>{r.name}</span>
-            </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#10b981" }}>{r.pnl}</span>
-          </div>
-        ))}
-      </motion.div>
-
-      {/* Floating card: Risk Guard */}
-      <motion.div
-        className="hero-card-c"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{
-          opacity: 1,
-          y: [-6, 6, -6],
-          rotate: [-1, 0.8, -1]
-        }}
-        transition={{
-          opacity: { duration: 0.8, delay: 1.3 },
-          y: { duration: 5.6, repeat: Infinity, ease: "easeInOut" },
-          rotate: { duration: 5.6, repeat: Infinity, ease: "easeInOut" }
-        }}
-        whileHover={{
-          scale: 1.05,
-          y: -12,
-          rotate: 0,
-          boxShadow: "0 28px 50px rgba(0,0,0,0.7), 0 0 25px rgba(16, 185, 129, 0.35), inset -1px 1px 2px rgba(255,255,255,0.15)",
-          transition: { duration: 0.2 }
-        }}
-        style={{
-          position: "absolute", bottom: 55, left: -20,
-          background: "rgba(14,14,16,0.95)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          borderTopColor: "rgba(255,255,255,0.15)",
-          borderRightColor: "rgba(255,255,255,0.12)",
-          borderRadius: 16, padding: "12px 16px",
-          backdropFilter: "blur(20px)",
-          boxShadow: "0 20px 40px rgba(0,0,0,0.6), inset -1px 1px 1px rgba(255,255,255,0.05)",
-          width: 170, zIndex: 20, cursor: "pointer"
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
-          <Shield size={12} color="#10b981" />
-          <span style={{ fontSize: 10, fontWeight: 700, color: "#10b981", textTransform: "uppercase", letterSpacing: 1 }}>Risk Guard</span>
-          <span className="pulse-dot" style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", marginLeft: "auto" }} />
-        </div>
-        <div style={{ marginBottom: 8 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>Daily Limit</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "#fff" }}>₹500</span>
-          </div>
-          <div style={{ height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 4, overflow: "hidden" }}>
-            <motion.div
-              style={{ height: "100%", width: "34%", background: "linear-gradient(to right, #10b981, rgba(255,255,255,0.4))", borderRadius: 4 }}
-              animate={{ width: ["30%", "36%", "34%"] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            />
-          </div>
-          <div style={{ fontSize: 9, color: "#10b981", marginTop: 4, fontWeight: 600 }}>34% used — Protected ✓</div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ════════════════
-   HERO TRUST SIGNALS
-════════════════ */
-function HeroTrustSignals() {
+  const current = tabStats[activeTab];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.4 }}
-      style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: 20, width: "100%" }}
+      initial={{ opacity: 0, y: 28, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.8, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full max-w-[960px] mx-auto rounded-[22px] bg-white border border-slate-200/90 shadow-[0_32px_90px_-18px_rgba(15,23,42,0.22),0_0_0_1px_rgba(15,23,42,0.04)] overflow-hidden text-left"
     >
-      {/* 4 Feature Items */}
-      <div className="trust-features-grid" style={{ gap: 16 }}>
-        <motion.div whileHover={{ y: -4, scale: 1.02 }} style={{ display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.2s ease", cursor: "pointer" }}>
-          <div style={{ color: "#3b82f6", display: "inline-flex" }}><ShieldDone set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Risk First</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>AI risk guard protects your capital in real-time.</div>
-        </motion.div>
-        <motion.div whileHover={{ y: -4, scale: 1.02 }} style={{ display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.2s ease", cursor: "pointer" }}>
-          <div style={{ color: "#7c3aed", display: "inline-flex" }}><Graph set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Data Driven</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>Advanced analytics for smarter decisions.</div>
-        </motion.div>
-        <motion.div whileHover={{ y: -4, scale: 1.02 }} style={{ display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.2s ease", cursor: "pointer" }}>
-          <div style={{ color: "#8b5cf6", display: "inline-flex" }}><IconlyActivity set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Lightning Fast</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>Blazing fast execution with low latency.</div>
-        </motion.div>
-        <motion.div whileHover={{ y: -4, scale: 1.02 }} style={{ display: "flex", flexDirection: "column", gap: 8, transition: "transform 0.2s ease", cursor: "pointer" }}>
-          <div style={{ color: "#6366f1", display: "inline-flex" }}><TwoUsers set="light" size={18} /></div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Built Together</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>Join a transparent community of traders.</div>
-        </motion.div>
+      {/* Top App Chrome Bar */}
+      <div className="bg-[#0F1219] px-4 sm:px-5 h-12 flex items-center justify-between border-b border-white/[0.08]">
+        <div className="flex items-center gap-2.5">
+          <div className="w-6 h-6 rounded-lg bg-white/10 border border-white/10 flex items-center justify-center overflow-hidden">
+            <img src="/tf-logo.png" alt="TradiFive" className="w-4 h-4 object-contain" />
+          </div>
+          <span className="text-[11px] font-bold tracking-[0.14em] text-white/90 uppercase">
+            TradiFive
+          </span>
+        </div>
+
+        {/* Interactive Center Tabs */}
+        <div className="hidden sm:flex items-center gap-1 bg-white/[0.05] p-1 rounded-lg border border-white/[0.06]">
+          {(["Overview", "Journal", "Risk Guard", "Reports"] as const).map((tab) => {
+            const active = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                  active
+                    ? "bg-[#2563EB] text-white shadow-sm"
+                    : "text-white/60 hover:text-white hover:bg-white/[0.06]"
+                }`}
+              >
+                {tab}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <span className="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 text-[10px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            MT5 Live
+          </span>
+          <div className="w-6 h-6 rounded-full bg-white/[0.08] flex items-center justify-center text-white/60">
+            <Bell size={12} />
+          </div>
+          <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[10px] font-bold text-white flex items-center justify-center">
+            A
+          </div>
+        </div>
       </div>
 
-      {/* Social Proof Card */}
-      <motion.div whileHover={{ y: -3, borderColor: "rgba(255,255,255,0.12)" }} transition={{ duration: 0.2 }} className="flex flex-row items-center justify-between gap-2 sm:gap-4 p-3 sm:p-4 bg-[#171717] border border-white/5 rounded-2xl w-full cursor-pointer">
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div className="text-[10px] sm:text-xs text-white/60 font-medium">Trusted by traders worldwide</div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ display: "flex" }}>
-              {["/avatars/men_1.jpg", "/avatars/women_1.jpg", "/avatars/men_2.jpg", "/avatars/women_2.jpg", "/nikil_avatar.jpg"].map((src, i) => (
-                <div key={i} className="w-5 h-5 sm:w-[26px] sm:h-[26px]" style={{
-                  borderRadius: "50%",
-                  border: "2px solid #0a0a0a",
-                  marginLeft: i === 0 ? 0 : (i === 1 ? -4 : -6), // Slightly tighter overlap on mobile
-                  overflow: "hidden",
-                  zIndex: 5 - i,
-                  position: "relative",
-                  background: "#111"
-                }}>
-                  {/* Using placeholder colors if image missing */}
-                  <img src={src} alt="User" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.8 }} onError={(e) => { e.currentTarget.src = "/default-avatar.svg"; }} />
+      {/* Main Light Workspace Content */}
+      <div className="p-3.5 sm:p-5 bg-[#F8FAFC] space-y-4">
+        {/* Dark Summary Hero Banner inside Frame */}
+        <div
+          className="rounded-2xl p-4 sm:p-5 text-white relative overflow-hidden border border-white/10"
+          style={{
+            background:
+              "radial-gradient(circle at 62% 20%, rgba(37, 99, 235, 0.28) 0%, rgba(15, 23, 42, 0.96) 52%, #090D16 100%)",
+          }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 relative z-10">
+            <div>
+              <h3 className="text-[16px] sm:text-[18px] font-bold tracking-tight text-white">
+                {current.bannerTitle}
+              </h3>
+              <p className="text-[11px] text-slate-400 mt-0.5">{current.bannerSub}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onStart}
+                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-white/10 text-[11px] font-semibold text-white/90 transition-colors cursor-pointer"
+              >
+                Export
+              </button>
+              <button
+                type="button"
+                onClick={onStart}
+                className="px-3.5 py-1.5 rounded-lg bg-white text-slate-900 hover:bg-slate-100 text-[11px] font-bold inline-flex items-center gap-1 transition-colors cursor-pointer"
+              >
+                <Plus size={12} strokeWidth={2.5} />
+                Log trade
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1 relative z-10">
+            {current.kpis.map((kpi) => (
+              <div key={kpi.label}>
+                <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-slate-400">
+                  <span>{kpi.label}</span>
+                  <span className={kpi.deltaPositive ? "text-emerald-400 font-semibold" : "text-rose-400 font-semibold"}>
+                    {kpi.delta}
+                  </span>
                 </div>
-              ))}
-            </div>
-            <div className="px-2 py-1 bg-white/5 rounded-full text-[9px] sm:text-[11px] font-bold text-white tracking-wide">
-              +2.4K
-            </div>
+                <div className="text-[22px] sm:text-[25px] font-bold tracking-tight text-white mt-0.5 tabular-nums">
+                  {kpi.value}
+                </div>
+                <div className="text-[10px] text-slate-400/90 mt-0.5">{kpi.sub}</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        <div className="flex items-center gap-3 sm:gap-4">
-          {/* Divider */}
-          <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.1)" }} />
+        {/* Lower 2-Column Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          {/* Left Summary Column */}
+          <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/80 p-4 flex flex-col justify-between shadow-2xs">
+            <div>
+              <h4 className="text-[13px] font-bold text-slate-900">Account summary</h4>
+              <p className="text-[10.5px] text-slate-400 mt-0.5">Balances, limits and sync status.</p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span className="text-[13px] sm:text-base font-extrabold text-white leading-none">4.9/5</span>
-              <div style={{ display: "flex", gap: 2 }}>
-                {[1, 2, 3, 4, 5].map((s) => <Star key={s} className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="#f59e0b" color="#f59e0b" />)}
+              <div className="mt-4 space-y-3.5">
+                <div>
+                  <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">
+                    Connected Terminal
+                  </div>
+                  <div className="text-[12.5px] font-bold text-slate-800 mt-0.5 tabular-nums">
+                    MT5 · •• 4829
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">Balance</div>
+                    <div className="text-[14px] font-bold text-slate-900 mt-0.5 tabular-nums">$248,400</div>
+                  </div>
+                  <div>
+                    <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">Active Rules</div>
+                    <div className="text-[14px] font-bold text-slate-900 mt-0.5 tabular-nums">6</div>
+                  </div>
+                  <div>
+                    <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">Win Rate</div>
+                    <div className="text-[14px] font-bold text-slate-900 mt-0.5 tabular-nums">68.4%</div>
+                  </div>
+                  <div>
+                    <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">Top Asset</div>
+                    <div className="text-[14px] font-bold text-slate-900 mt-0.5">XAU/USD</div>
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <div className="text-[9.5px] font-bold uppercase tracking-wider text-slate-400">Daily Growth</div>
+                  <div className="text-[13px] font-bold text-emerald-600 mt-0.5 tabular-nums">+8.4% this month</div>
+                </div>
               </div>
             </div>
-            <div className="text-[9px] sm:text-[11px] text-white/50">from 1,200+ reviews</div>
+
+            <div className="mt-5 space-y-2">
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={onStart}
+                  className="py-1.5 px-3 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-semibold text-slate-700 cursor-pointer"
+                >
+                  Sync
+                </button>
+                <button
+                  type="button"
+                  onClick={onStart}
+                  className="py-1.5 px-3 rounded-lg bg-[#2563EB] hover:bg-blue-700 text-[11px] font-bold text-white cursor-pointer"
+                >
+                  ✓ Armed
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={onStart}
+                className="w-full py-2 px-3 rounded-lg bg-[#0F1219] hover:bg-slate-800 text-[11px] font-bold text-white cursor-pointer transition-colors"
+              >
+                Open Full Workspace
+              </button>
+            </div>
+          </div>
+
+          {/* Right Analytics + Activity Column */}
+          <div className="lg:col-span-8 flex flex-col gap-4">
+            {/* Equity vs Target Chart Card */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <div>
+                  <h4 className="text-[13px] font-bold text-slate-900">{current.chartTitle}</h4>
+                  <p className="text-[10.5px] text-slate-400">Daily performance progression</p>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] font-semibold text-slate-500">
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-[#2563EB]" /> TARGET
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500" /> ACTUAL
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-slate-700">
+                    This month
+                  </span>
+                </div>
+              </div>
+
+              <div className="relative h-[145px] w-full">
+                <svg viewBox="0 0 600 140" className="w-full h-full overflow-visible" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="heroCurveFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#6366f1" stopOpacity="0.16" />
+                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.01" />
+                    </linearGradient>
+                    <pattern id="heroChartDots" width="12" height="12" patternUnits="userSpaceOnUse">
+                      <circle cx="1.5" cy="1.5" r="0.8" fill="#cbd5e1" opacity="0.6" />
+                    </pattern>
+                  </defs>
+
+                  <rect x="0" y="10" width="600" height="115" fill="url(#heroChartDots)" rx="6" />
+                  <line x1="0" y1="45" x2="600" y2="45" stroke="#f1f5f9" strokeWidth="1" />
+                  <line x1="0" y1="85" x2="600" y2="85" stroke="#f1f5f9" strokeWidth="1" />
+
+                  {/* Target Pace Line */}
+                  <path
+                    d="M 0,72 Q 160,55 320,42 T 600,16"
+                    fill="none"
+                    stroke="#2563EB"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
+
+                  {/* Actual Equity Area + Curve */}
+                  <path
+                    d="M 0,118 C 70,104 120,82 180,90 C 240,98 300,76 365,64 C 425,52 470,40 520,56 C 555,66 580,44 600,26 L 600,126 L 0,126 Z"
+                    fill="url(#heroCurveFill)"
+                  />
+                  <path
+                    d="M 0,118 C 70,104 120,82 180,90 C 240,98 300,76 365,64 C 425,52 470,40 520,56 C 555,66 580,44 600,26"
+                    fill="none"
+                    stroke="#6366f1"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="520" cy="56" r="4" fill="#0F172A" stroke="#fff" strokeWidth="1.5" />
+                </svg>
+
+                {/* Crisp Dark Floating Tooltip Pill */}
+                <div className="absolute right-[13%] top-[36%] bg-[#0F1219] text-white px-2.5 py-1.5 rounded-lg shadow-lg border border-white/10 pointer-events-none">
+                  <div className="text-[9px] text-slate-400 leading-none">{current.tooltipLabel}</div>
+                  <div className="text-[11.5px] font-bold tabular-nums mt-0.5">{current.tooltipVal}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom 2 Cards: Recent Activity & Recent Trades */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-[12.5px] font-bold text-slate-900">Recent activity</h4>
+                  <button
+                    type="button"
+                    onClick={onStart}
+                    className="text-[10.5px] font-semibold text-[#2563EB] hover:underline cursor-pointer"
+                  >
+                    View all
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {[
+                    { dot: "bg-emerald-500", title: "XAU/USD TP hit", desc: "+$1,240 · NY session breakout", time: "2m" },
+                    { dot: "bg-blue-500", title: "Risk Guard verified", desc: "Daily risk exposure within 0.42%", time: "18m" },
+                    { dot: "bg-amber-500", title: "Tilt shield warning", desc: "Cooldown paused 2nd impulse entry", time: "1h" },
+                  ].map((item) => (
+                    <div key={item.title} className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 min-w-0">
+                        <span className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${item.dot}`} />
+                        <div className="min-w-0">
+                          <div className="text-[11.5px] font-semibold text-slate-800 truncate">{item.title}</div>
+                          <div className="text-[10px] text-slate-400 truncate">{item.desc}</div>
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-slate-400 shrink-0 tabular-nums">{item.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="text-[12.5px] font-bold text-slate-900">Recent executions</h4>
+                  <span className="px-2 py-0.5 rounded-md border border-slate-200 bg-slate-50 text-[10px] font-semibold text-slate-600">
+                    Today
+                  </span>
+                </div>
+                <div className="space-y-2.5">
+                  {[
+                    { iconBg: "bg-emerald-50 text-emerald-600", pair: "XAU/USD", sub: "Long · 2.00 lots", val: "+$1,240.00", pos: true },
+                    { iconBg: "bg-blue-50 text-blue-600", pair: "EUR/USD", sub: "Short · 1.50 lots", val: "+$680.00", pos: true },
+                    { iconBg: "bg-indigo-50 text-indigo-600", pair: "NAS100", sub: "Long · 0.50 lots", val: "+$1,890.00", pos: true },
+                    { iconBg: "bg-rose-50 text-rose-600", pair: "GBP/JPY", sub: "Short · 1.00 lots", val: "-$240.00", pos: false },
+                  ].map((tr) => (
+                    <div key={tr.pair} className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0 ${tr.iconBg}`}>
+                          {tr.pair.slice(0, 2)}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[11.5px] font-bold text-slate-800 truncate">{tr.pair}</div>
+                          <div className="text-[10px] text-slate-400 truncate">{tr.sub}</div>
+                        </div>
+                      </div>
+                      <span className={`text-[11.5px] font-bold tabular-nums shrink-0 ${tr.pos ? "text-slate-900" : "text-rose-600"}`}>
+                        {tr.val}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
@@ -520,168 +540,209 @@ function HeroTrustSignals() {
 /* ════════════════
    HERO
 ════════════════ */
-function Hero({ onStart, onSignIn }: { onStart: () => void; onSignIn: () => void }) {
+function Hero({ onStart }: { onStart: () => void; onSignIn: () => void }) {
+  const navigate = useNavigate();
+  const [aiQuery, setAiQuery] = useState("");
+  const [accountFilter, setAccountFilter] = useState<"All accounts" | "MT5 #4829">("All accounts");
+  const [rangeFilter, setRangeFilter] = useState<"Last 30 days" | "This week">("Last 30 days");
+  const [currencyFilter, setCurrencyFilter] = useState<"USD" | "INR">("USD");
+
+  const handlePromptSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onStart();
+  };
+
   return (
-    <section className="hero-section" style={{ position: 'relative' }}>
-      {/* SideRays background */}
-      <div className="siderays-wrapper" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }}>
-        <SideRays
-          speed={2.5}
-          rayColor1="#EAB308"
-          rayColor2="#96c8ff"
-          intensity={2.8}
-          spread={2.5}
-          origin="top-right"
-          tilt={0}
-          saturation={1.5}
-          blend={0.75}
-          falloff={1.4}
-          opacity={1}
+    <section
+      className="relative w-full overflow-hidden"
+      style={{
+        backgroundColor: "#ffffff",
+      }}
+    >
+      {/* Top Space Sky + Planetary Horizon Background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-[690px] sm:h-[780px] overflow-hidden"
+        style={{ backgroundColor: "#020617" }}
+      >
+        <img
+          src="/hero-space-horizon.jpg"
+          alt=""
+          className="w-full h-full object-cover object-center select-none"
+        />
+        {/* Seamless blend from space horizon glow into crisp pure white below */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-56"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,0.72) 55%, #ffffff 100%)",
+          }}
         />
       </div>
 
-            <PremiumBackground />
+      {/* Centered Hero Stack */}
+      <div className="relative z-10 max-w-[1080px] mx-auto px-4 sm:px-6 pt-28 sm:pt-36 pb-20 flex flex-col items-center text-center">
+        {/* Top Announcement Badge */}
+        <motion.button
+          type="button"
+          onClick={() => navigate("/features/tradifive-ai")}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="inline-flex items-center gap-2 pl-1.5 pr-3 py-1 rounded-full bg-white/10 hover:bg-white/15 border border-white/20 backdrop-blur-md text-[11.5px] font-medium text-white/95 mb-6 cursor-pointer transition-colors"
+        >
+          <span className="px-2 py-0.5 rounded-full bg-white text-slate-900 text-[9.5px] font-extrabold uppercase tracking-wide">
+            NEW
+          </span>
+          <span>Smarter risk &amp; journaling with AI</span>
+          <ChevronRight size={13} className="text-white/75" />
+        </motion.button>
 
-      <div className="hero-container">
-        <div className="hero-grid">
+        {/* Headline + Floating Presence Cursor Tags */}
+        <div className="relative w-full max-w-[860px] mx-auto">
+          {/* Left Floating Cursor Tag */}
+          <motion.div
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0, y: [-3, 3, -3] }}
+            transition={{
+              opacity: { duration: 0.6, delay: 0.4 },
+              y: { duration: 4.5, repeat: Infinity, ease: "easeInOut" },
+            }}
+            className="hidden md:flex items-center gap-1.5 absolute left-2 lg:-left-6 top-[64%] pointer-events-none select-none"
+          >
+            <span className="px-2.5 py-1 rounded-full bg-[#1E40AF]/85 border border-blue-300/35 backdrop-blur-md text-[10.5px] font-semibold text-white shadow-lg">
+              Elena R. · Risk Guard
+            </span>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="-mt-3 text-blue-200 drop-shadow">
+              <path d="M2 2L14 6.5L8.5 8.5L6.5 14L2 2Z" fill="currentColor" stroke="#1e3a8a" strokeWidth="1" />
+            </svg>
+          </motion.div>
 
-          {/* LEFT: Content */}
-          <div className="hero-content-left" style={{ width: "100%", maxWidth: 640, marginTop: "60px" }}>
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              whileHover={{ scale: 1.03 }}
-              className="hero-badge"
-              style={{
-                display: "inline-flex",
-                width: "fit-content",
-                alignItems: "center",
-                gap: 8,
-                background: "#171717",
-                border: "1px solid rgba(99, 102, 241, 0.25)",
-                padding: "6px 16px 6px 8px",
-                borderRadius: "100px",
-                marginBottom: 32,
-                backdropFilter: "blur(20px)",
-                boxShadow: "0 0 20px rgba(99, 102, 241, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
-                cursor: "pointer"
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 14, height: 14, borderRadius: "50%", background: "rgba(99,102,241,0.2)" }}>
-                <div className="pulse-dot" style={{ width: 4, height: 4, borderRadius: "50%", background: "#818cf8" }} />
-              </div>
-              <span className="hero-badge-text" style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.9)", letterSpacing: "0.5px" }}>AI-Powered Trading Ecosystem</span>
-            </motion.div>
+          {/* Right Floating Cursor Tag */}
+          <motion.div
+            initial={{ opacity: 0, x: 16 }}
+            animate={{ opacity: 1, x: 0, y: [3, -3, 3] }}
+            transition={{
+              opacity: { duration: 0.6, delay: 0.5 },
+              y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+            }}
+            className="hidden md:flex items-center gap-1.5 absolute right-2 lg:-right-4 top-[78%] pointer-events-none select-none"
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" className="-mt-3 text-blue-200 drop-shadow scale-x-[-1]">
+              <path d="M2 2L14 6.5L8.5 8.5L6.5 14L2 2Z" fill="currentColor" stroke="#1e3a8a" strokeWidth="1" />
+            </svg>
+            <span className="px-2.5 py-1 rounded-full bg-[#1E40AF]/85 border border-blue-300/35 backdrop-blur-md text-[10.5px] font-semibold text-white shadow-lg">
+              arjun_fx · Journal
+            </span>
+          </motion.div>
 
-            {/* Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.1 }}
-              className="hero-title"
-              style={{ fontSize: "clamp(28px, 4.5vw, 50px)", fontWeight: 900, lineHeight: 1.15, letterSpacing: "-0.04em", marginTop: -8, marginBottom: 20, color: "#fff" }}
-            >
-              <BlurText
-                text={"The Ultimate AI Ecosystem\nfor Modern Traders."}
-                gradient={["#ffffff", "#3b82f6"]}
-              />
-            </motion.h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.08 }}
+            className="text-[36px] sm:text-[54px] lg:text-[66px] font-bold tracking-[-0.035em] leading-[1.05] text-white drop-shadow-[0_2px_20px_rgba(2,6,23,0.35)]"
+          >
+            Your trading edge,
+            <br />
+            finally under control.
+          </motion.h1>
+        </div>
 
-            {/* Subheadline */}
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="hero-desc"
-              style={{ fontSize: 17, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, maxWidth: 540, marginBottom: 40, fontWeight: 400 }}
-            >
-              Tradifive is an AI-powered trading ecosystem that enforces risk rules, builds discipline, and tracks performance — so traders stop blowing accounts and start trading like professionals.
-            </motion.p>
+        {/* Readable Subtitle over Horizon Glow */}
+        <motion.p
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, delay: 0.16 }}
+          className="mt-5 max-w-[540px] text-[14.5px] sm:text-[16px] font-medium leading-relaxed text-slate-800/90"
+          style={{ textShadow: "0 1px 14px rgba(255,255,255,0.85)" }}
+        >
+          Manage risk rules, trade journaling, AI coaching, and live analytics from one intelligent platform built for serious traders.
+        </motion.p>
 
-            {/* CTAs */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.3 }}
-              className="hero-cta-group"
-              style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginBottom: 32, width: "100%" }}
-            >
-              <motion.button
+        {/* Centered Interactive AI Command Bar */}
+        <motion.form
+          onSubmit={handlePromptSubmit}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.65, delay: 0.22 }}
+          className="mt-7 w-full max-w-[560px] rounded-2xl bg-white/95 backdrop-blur-xl border border-slate-200/85 shadow-[0_18px_48px_rgba(15,23,42,0.12)] p-3 text-left"
+        >
+          <div className="px-1.5 pt-0.5 pb-2.5">
+            <input
+              type="text"
+              value={aiQuery}
+              onChange={(e) => setAiQuery(e.target.value)}
+              placeholder='Ask TradiFive AI: "Audit my XAU/USD risk this month"...'
+              className="w-full bg-transparent text-[13.5px] font-medium text-slate-900 placeholder:text-slate-400 outline-none border-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <button
+                type="button"
                 onClick={onStart}
-                className="shimmer-btn-fx"
-                whileHover={{ scale: 1.04, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                style={{
-                  background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                  color: "#60a5fa",
-                  border: "none",
-                  boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 14px rgba(0, 0, 0, 0.5), 0 0 20px rgba(59, 130, 246, 0.25)",
-                  borderRadius: 100,
-                  padding: "13px 26px",
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  transition: "all 0.2s ease",
-                  outline: "none",
-                  whiteSpace: "nowrap"
-                }}
+                aria-label="Add context"
+                className="w-7 h-7 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-600 flex items-center justify-center cursor-pointer transition-colors"
               >
-                <span>Start Free</span>
-                <ArrowRight size={16} />
-              </motion.button>
-              <motion.button
-                onClick={() => {
-                  const el = document.getElementById("features") || document.getElementById("how-it-works") || document.getElementById("problem");
-                  if (el) {
-                    const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                    window.scrollTo({ top: y, behavior: "smooth" });
-                  } else {
-                    onSignIn();
-                  }
-                }}
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98 }}
-                style={{
-                  background: "#171717",
-                  color: "rgba(255, 255, 255, 0.9)",
-                  border: "none",
-                  borderRadius: 100,
-                  padding: "13px 24px",
-                  fontSize: 14,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  boxShadow:
-                    "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)",
-                  transition: "all 0.2s ease",
-                  outline: "none",
-                  whiteSpace: "nowrap"
-                }}
+                <Plus size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/features/tradifive-ai")}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[11px] font-semibold text-slate-700 cursor-pointer transition-colors"
               >
-                <span>Learn More</span>
-              </motion.button>
-            </motion.div>
+                <Sparkles size={11} className="text-[#2563EB]" />
+                <span>TradiFive AI</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setAccountFilter((v) => (v === "All accounts" ? "MT5 #4829" : "All accounts"))}
+                className="px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-600 cursor-pointer transition-colors"
+              >
+                {accountFilter}
+              </button>
+              <button
+                type="button"
+                onClick={() => setRangeFilter((v) => (v === "Last 30 days" ? "This week" : "Last 30 days"))}
+                className="hidden sm:inline-flex px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-600 cursor-pointer transition-colors"
+              >
+                {rangeFilter}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrencyFilter((v) => (v === "USD" ? "INR" : "USD"))}
+                className="px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-[11px] font-medium text-slate-600 cursor-pointer transition-colors"
+              >
+                {currencyFilter}
+              </button>
+            </div>
 
-            {/* Trust Signals (Custom Layout) */}
-            <HeroTrustSignals />
-
-
+            <button
+              type="submit"
+              aria-label="Get started with TradiFive AI"
+              className="w-8 h-8 rounded-full bg-[#2563EB] hover:bg-blue-700 text-white flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(37,99,235,0.35)] cursor-pointer transition-all active:scale-95"
+            >
+              <ArrowRight size={15} />
+            </button>
           </div>
+        </motion.form>
 
-          {/* RIGHT: 3D Dashboard */}
-          <div className="hero-right" style={{ position: "relative", perspective: 1200, transform: "scale(1) translateY(12px)" }}>
-            {/* Glow removed by request */}
-            <HeroDashboard />
-          </div>
+        {/* Centered Dashboard Product Mockup */}
+        <div className="w-full mt-10 sm:mt-12">
+          <HeroDashboard onStart={onStart} />
         </div>
       </div>
+
+      {/* Smooth Gradient Bridge into Dark PlatformPillars Section Below */}
+      <div
+        aria-hidden="true"
+        className="w-full h-24 sm:h-32 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, #ffffff 0%, rgba(241,245,249,0.5) 28%, rgba(15,23,42,0.88) 72%, #000000 100%)",
+        }}
+      />
     </section>
   );
 }
