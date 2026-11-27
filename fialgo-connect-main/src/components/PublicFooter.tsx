@@ -72,37 +72,48 @@ export default function PublicFooter() {
   };
 
   return (
-    <footer className="relative bg-[#07090F] border-t border-white/[0.08] overflow-hidden font-inter select-none z-20">
+    <footer className="relative bg-[#020202] border-t border-white/[0.04] overflow-hidden font-inter select-none z-20">
+
+      {/* Premium Top Border Gradient */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-purple-500/30" />
+
+      {/* Ambient glows behind footer elements */}
+      <div className="absolute top-[-100px] left-[15%] w-[450px] h-[300px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 right-[10%] w-[350px] h-[250px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* Cyber Grid Texture Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.008)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+
       <div className="max-w-7xl mx-auto px-6 sm:px-10 md:px-12 pt-16 pb-8 relative z-10">
 
         {/* Main Grid: Info block + Links block */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-16 border-b border-white/[0.06]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-16 border-b border-white/[0.04]">
 
           {/* Logo & Tagline area */}
           <div className="lg:col-span-4 flex flex-col items-start gap-5">
             <div className="flex items-center gap-3 cursor-pointer group" onClick={scrollToTop}>
-              <img src="/favicon.png" className="h-9 w-auto transition-transform duration-200" alt="Icon" />
+              <img src="/favicon.png" className="h-9 w-auto group-hover:scale-105 transition-transform duration-300" alt="Icon" />
               <img src="/Dark mode logo with white.png" className="h-7 w-auto" alt="TradiFive" />
             </div>
 
             <p className="text-[13px] leading-relaxed text-slate-400 max-w-[280px]">
-              Institutional-grade trade journaling, autonomous risk protection, and verified trader communities.
+              The next-generation social trading platform connecting verified traders globally. Scale, verify, and trade better together.
             </p>
 
             {/* Newsletter Subscription */}
             <div className="w-full max-w-[280px] mt-2 mb-2">
-              <p className="text-[12px] font-medium text-slate-400 mb-3">Stay updated</p>
+              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-3">Stay Updated</p>
               <form onSubmit={handleSubscribe} className="flex items-center relative">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
-                  placeholder="Enter your email" 
-                  className="w-full bg-white/[0.04] border border-white/10 rounded-full py-2.5 pl-4 pr-24 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-white/25 transition-colors"
+                  placeholder="Enter your email"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-full py-2.5 pl-4 pr-24 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.05] transition-all"
                 />
                 <button
                   type="submit"
-                  className="absolute right-1 top-1 bottom-1 px-4 text-[12px] font-semibold rounded-full bg-white text-[#090d16] hover:bg-slate-200 transition-colors cursor-pointer"
+                  className="tactile-blue-pill absolute right-1 top-1 bottom-1 px-4 text-[12px] font-bold rounded-full cursor-pointer"
                 >
                   Subscribe
                 </button>
@@ -112,7 +123,7 @@ export default function PublicFooter() {
             {/* Direct contact link */}
             <a
               href="mailto:hello@tradifive.in"
-              className="inline-flex items-center gap-2 text-[13px] text-slate-300 hover:text-white font-medium transition-colors duration-200"
+              className="inline-flex items-center gap-2 text-[13px] text-indigo-400 hover:text-indigo-300 font-semibold transition-colors duration-200"
             >
               <Mail size={14} />
               hello@tradifive.in
@@ -127,7 +138,7 @@ export default function PublicFooter() {
                     key={soc.label}
                     href={soc.href}
                     title={soc.label}
-                    className="w-9 h-9 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:border-white/20 hover:text-white text-slate-400 flex items-center justify-center transition-colors duration-150"
+                    className="w-9 h-9 rounded-xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-400 text-slate-400 flex items-center justify-center transition-all duration-200"
                   >
                     <Icon size={16} />
                   </a>
@@ -140,7 +151,7 @@ export default function PublicFooter() {
           <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
             {COLS.map((col, idx) => (
               <div key={idx} className="flex flex-col gap-4">
-                <h3 className="text-[12px] font-semibold text-slate-300 leading-none mb-1">
+                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">
                   {col.title}
                 </h3>
                 <ul className="flex flex-col gap-3">
@@ -149,9 +160,14 @@ export default function PublicFooter() {
                       {link.href.startsWith("/") ? (
                         <Link
                           to={link.href}
-                          className="text-[13px] font-normal text-slate-400 hover:text-white inline-flex items-center gap-1.5 transition-colors duration-150 group"
+                          className="text-[13px] font-medium text-slate-400 hover:text-white hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200 group"
                         >
                           <span>{link.label}</span>
+                          {"isNew" in link && link.isNew && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider uppercase">
+                              NEW
+                            </span>
+                          )}
                           {link.href.startsWith("/features") && (
                             <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                           )}
