@@ -16,7 +16,10 @@ import {
   ShieldCheck,
   ChevronDown,
   Sparkles,
-  Send,
+  Paperclip,
+  Lightbulb,
+  AudioLines,
+  ArrowUp,
   X,
 } from "lucide-react";
 import PublicNavbar from "../components/PublicNavbar";
@@ -54,7 +57,7 @@ const AI_PRESETS: Array<{ label: string; prompt: string; reply: string }> = [
 ];
 
 /* ════════════════
-   PROPER AI COACH HERO COMPOSER
+   PROPER AI COACH HERO COMPOSER (Wide Framer-Inspired Card)
 ════════════════ */
 function HeroAICoachBox({ onStart }: { onStart: () => void }) {
   const navigate = useNavigate();
@@ -66,21 +69,23 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
     prompt: string;
     reply: string;
   } | null>(null);
-  const [accountScope, setAccountScope] = useState<"All accounts" | "MT5 #4829">("All accounts");
-  const [rangeScope, setRangeScope] = useState<"Last 30 days" | "This week">("Last 30 days");
+  const [accountScope, setAccountScope] = useState<"All Accounts" | "MT5 #4829" | "Funded 100K">("All Accounts");
+  const [coachMode, setCoachMode] = useState<"TradiFive AI" | "Risk Quant" | "Psychology">("TradiFive AI");
+  const [presetIdx, setPresetIdx] = useState(0);
 
   // Typewriter cycling animation for empty input
   useEffect(() => {
     if (query.length > 0) return;
     const current = AI_PLACEHOLDERS[placeholderIdx];
 
-    const delay = !isDeleting && typedLen === current.length
-      ? 1800
-      : isDeleting && typedLen === 0
-      ? 350
-      : isDeleting
-      ? 22
-      : 42;
+    const delay =
+      !isDeleting && typedLen === current.length
+        ? 1900
+        : isDeleting && typedLen === 0
+        ? 350
+        : isDeleting
+        ? 22
+        : 40;
 
     const timer = setTimeout(() => {
       if (!isDeleting && typedLen < current.length) {
@@ -98,7 +103,9 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
     return () => clearTimeout(timer);
   }, [query, placeholderIdx, typedLen, isDeleting]);
 
-  const handlePresetClick = (preset: (typeof AI_PRESETS)[number]) => {
+  const handleIdeasClick = () => {
+    const preset = AI_PRESETS[presetIdx % AI_PRESETS.length];
+    setPresetIdx((n) => n + 1);
     setQuery(preset.prompt);
     setPreviewReply({ prompt: preset.prompt, reply: preset.reply });
   };
@@ -107,17 +114,17 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
     e.preventDefault();
     const trimmed = query.trim();
     if (!trimmed) {
-      handlePresetClick(AI_PRESETS[0]);
+      handleIdeasClick();
       return;
     }
-    const matched = AI_PRESETS.find(
-      (p) => trimmed.toLowerCase().includes(p.label.toLowerCase().split(" ")[0])
+    const matched = AI_PRESETS.find((p) =>
+      trimmed.toLowerCase().includes(p.label.toLowerCase().split(" ")[0])
     );
     setPreviewReply({
       prompt: trimmed,
       reply:
         matched?.reply ||
-        `Analyzed ${accountScope} (${rangeScope}): Win rate 82%, Profit Factor 2.41, Daily Drawdown 0.8% / 3.0%. Sign in to run live AI diagnostics on your own broker feed.`,
+        `[${coachMode} · ${accountScope}] Analyzed execution context: 82% win rate, 2.23R average reward-to-risk, 0.8% daily drawdown vs 3.0% limit. Create a free account to audit your own MT5 history live.`,
     });
   };
 
@@ -128,34 +135,15 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
       initial={{ opacity: 0, y: 18, scale: 0.985 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.55, delay: 0.18, ease: EASE_OUT }}
-      className="w-full max-w-[600px] mx-auto rounded-[22px] bg-white/95 backdrop-blur-xl border border-slate-200/90 shadow-[0_24px_64px_rgba(15,23,42,0.16),0_0_0_1px_rgba(15,23,42,0.04)] overflow-hidden text-left"
+      className="w-full max-w-[740px] mx-auto rounded-[26px] bg-white/98 backdrop-blur-xl border border-slate-200/90 shadow-[0_24px_64px_rgba(15,23,42,0.13),0_4px_18px_rgba(15,23,42,0.06)] overflow-hidden text-left"
     >
-      {/* Top AI Coach Identity Strip */}
-      <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between gap-2 bg-slate-50/70">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="w-6 h-6 rounded-lg bg-[#0F1219] text-white flex items-center justify-center shrink-0">
-            <Sparkles size={12} strokeWidth={2} />
-          </div>
-          <span className="text-[12px] font-semibold text-slate-900 truncate">
-            TradiFive AI Coach
-          </span>
-          <span className="hidden sm:inline text-[11px] text-slate-400 truncate">
-            · Analytical Quant
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-[10.5px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2 py-0.5 rounded-full shrink-0">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          Live context
-        </div>
-      </div>
-
-      {/* Main Composer Form */}
-      <form onSubmit={handleSubmit} className="p-3.5 sm:p-4 space-y-3">
-        <div className="relative min-h-[26px] flex items-center">
+      <form onSubmit={handleSubmit} className="px-5 pt-5 pb-3.5 space-y-5">
+        {/* Clean Spacious Typing Area with Blue Caret */}
+        <div className="relative min-h-[28px] flex items-center px-0.5">
           {!query && (
-            <div className="pointer-events-none absolute inset-0 flex items-center text-[13.5px] sm:text-[14px] text-slate-400 font-normal truncate pr-2">
+            <div className="pointer-events-none absolute inset-0 flex items-center text-[15px] sm:text-[16px] text-slate-400 font-normal truncate pr-2">
+              <span className="inline-block w-[1.5px] h-5 bg-[#2563EB] mr-0.5 animate-pulse shrink-0" />
               <span>{displayPlaceholder}</span>
-              <span className="inline-block w-[1.5px] h-4 bg-blue-500 ml-0.5 animate-pulse" />
             </div>
           )}
           <input
@@ -163,51 +151,84 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Ask TradiFive AI Coach"
-            className="w-full bg-transparent text-[13.5px] sm:text-[14px] font-medium text-slate-900 outline-none border-none relative z-10"
+            className="w-full bg-transparent text-[15px] sm:text-[16px] font-medium text-slate-900 caret-[#2563EB] outline-none border-none relative z-10"
           />
         </div>
 
-        {/* Bottom Controls: Quick Presets + Context Pills + Consistent Tactile Blue Pill Send */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {AI_PRESETS.map((preset) => (
-              <button
-                key={preset.label}
-                type="button"
-                onClick={() => handlePresetClick(preset)}
-                className="px-2.5 py-1 rounded-full bg-slate-100/90 hover:bg-slate-200/80 border border-slate-200/70 text-[11px] font-medium text-slate-700 transition-colors cursor-pointer"
-              >
-                {preset.label}
-              </button>
-            ))}
+        {/* Minimal Toolbar Matching Reference */}
+        <div className="flex flex-wrap items-center justify-between gap-2.5 pt-0.5">
+          {/* Left Controls: Attach + Scope Select + Blue Ideas Pill */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() =>
-                setAccountScope((s) => (s === "All accounts" ? "MT5 #4829" : "All accounts"))
-              }
-              className="hidden sm:inline-flex px-2.5 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-[11px] font-medium text-slate-500 transition-colors cursor-pointer"
+              onClick={onStart}
+              title="Import trade log or screenshot"
+              className="w-9 h-9 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-slate-600 flex items-center justify-center transition-colors cursor-pointer shrink-0"
             >
-              {accountScope}
+              <Paperclip size={15} strokeWidth={1.85} />
             </button>
+
             <button
               type="button"
               onClick={() =>
-                setRangeScope((s) => (s === "Last 30 days" ? "This week" : "Last 30 days"))
+                setAccountScope((s) =>
+                  s === "All Accounts"
+                    ? "MT5 #4829"
+                    : s === "MT5 #4829"
+                    ? "Funded 100K"
+                    : "All Accounts"
+                )
               }
-              className="hidden md:inline-flex px-2.5 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-[11px] font-medium text-slate-500 transition-colors cursor-pointer"
+              className="h-9 px-3.5 rounded-full border border-slate-200/90 bg-white hover:bg-slate-50 text-[12.5px] font-medium text-slate-700 inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
             >
-              {rangeScope}
+              <span>{accountScope}</span>
+              <ChevronDown size={13} className="text-slate-400" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleIdeasClick}
+              className="h-9 px-3.5 rounded-full bg-[#EAF2FF] hover:bg-[#DCEAFE] text-[12.5px] font-semibold text-[#2563EB] inline-flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <Lightbulb size={14} strokeWidth={2} />
+              <span>Ideas</span>
             </button>
           </div>
 
-          <button
-            type="submit"
-            aria-label="Ask TradiFive AI"
-            className="tactile-blue-pill h-8 px-3.5 rounded-full text-[12px] font-bold inline-flex items-center gap-1.5 shrink-0 cursor-pointer"
-          >
-            <span>Ask AI</span>
-            <Send size={12} strokeWidth={2.2} />
-          </button>
+          {/* Right Controls: Clean AI Engine Selector + Tactile Pill Action */}
+          <div className="flex items-center gap-3 ml-auto">
+            <button
+              type="button"
+              onClick={() =>
+                setCoachMode((m) =>
+                  m === "TradiFive AI"
+                    ? "Risk Quant"
+                    : m === "Risk Quant"
+                    ? "Psychology"
+                    : "TradiFive AI"
+                )
+              }
+              className="hidden sm:inline-flex items-center gap-1.5 px-2 py-1.5 rounded-full hover:bg-slate-100/80 text-[13px] font-medium text-slate-800 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              <Sparkles size={14} className="text-slate-800" />
+              <span>{coachMode}</span>
+              <ChevronDown size={13} className="text-slate-400" />
+            </button>
+
+            <button
+              type="submit"
+              aria-label="Run TradiFive AI Coach"
+              className={`${
+                query.trim().length > 0 ? "tactile-blue-pill" : "tactile-black-pill"
+              } h-9 w-12 rounded-full inline-flex items-center justify-center shrink-0 cursor-pointer`}
+            >
+              {query.trim().length > 0 ? (
+                <ArrowUp size={16} strokeWidth={2.3} />
+              ) : (
+                <AudioLines size={16} strokeWidth={2} />
+              )}
+            </button>
+          </div>
         </div>
       </form>
 
@@ -221,9 +242,9 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
             transition={{ duration: 0.25, ease: EASE_OUT }}
             className="overflow-hidden border-t border-slate-100 bg-slate-50/90"
           >
-            <div className="p-3.5 sm:p-4 space-y-2.5">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-[12px] font-normal text-slate-700 leading-relaxed">
+            <div className="px-5 py-3.5 space-y-2.5">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-[12.5px] font-normal text-slate-700 leading-relaxed">
                   {previewReply.reply}
                 </p>
                 <button
@@ -232,24 +253,24 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
                   className="text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer shrink-0"
                   aria-label="Close preview"
                 >
-                  <X size={13} />
+                  <X size={14} />
                 </button>
               </div>
               <div className="flex items-center justify-between gap-2 pt-0.5">
                 <button
                   type="button"
                   onClick={() => navigate("/features/tradifive-ai")}
-                  className="text-[11px] font-semibold text-blue-600 hover:underline cursor-pointer"
+                  className="text-[11.5px] font-semibold text-blue-600 hover:underline cursor-pointer"
                 >
                   Learn how AI Coach works
                 </button>
                 <button
                   type="button"
                   onClick={onStart}
-                  className="tactile-blue-pill h-7 px-3.5 rounded-full text-[11px] font-bold inline-flex items-center gap-1 cursor-pointer"
+                  className="tactile-blue-pill h-7.5 px-4 py-1 rounded-full text-[11.5px] font-bold inline-flex items-center gap-1 cursor-pointer"
                 >
                   <span>Start Free</span>
-                  <ArrowRight size={11} />
+                  <ArrowRight size={11.5} />
                 </button>
               </div>
             </div>
