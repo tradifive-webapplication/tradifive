@@ -244,15 +244,8 @@ const Dashboard = () => {
   const isBrokerLocked = isStarter || brokerAccountLimit <= 0;
 
   const [pnlRange, setPnlRange] = useState<PnlRange>("all");
-  const demoMode = false;
-
-  useEffect(() => {
-    try {
-      localStorage.removeItem("tf_dashboard_demo_mode");
-    } catch {
-      /* ignore storage error */
-    }
-  }, []);
+  const demoMode =
+    searchParams.get("demo") === "true" || searchParams.get("demo") === "1";
   const [hidePnl, setHidePnl] = useState<boolean>(() => {
     try {
       return localStorage.getItem("tf_dashboard_hide_pnl") === "true";
@@ -337,11 +330,11 @@ const Dashboard = () => {
         {zoneWidgets.length > 0 && (
           <DashboardPinnedRiskWidgets
             activeMarket={activeMarket}
-            isConnected={isConnected}
+            isConnected={effectiveConnected}
             demoMode={demoMode}
-            riskConfig={riskConfig}
-            recentTrades={recentTrades}
-            accountMetrics={accountMetrics}
+            riskConfig={effectiveRiskConfig}
+            recentTrades={activeTrades}
+            accountMetrics={demoData ? { balance: demoData.balance, equity: demoData.equity, server: effectiveBroker } : accountMetrics}
             cardClass={SURFACE_CARD}
             locked={isStarter}
             zone={zone}
@@ -392,26 +385,107 @@ const Dashboard = () => {
     return () => window.removeEventListener("tradifive_xp_update", handleXPUpdate);
   }, []);
 
-  const demoData: { allTrades: any[]; balance: number; equity: number } | null = null;
+  const demoData = useMemo<{ allTrades: any[]; balance: number; equity: number } | null>(() => {
+    if (!demoMode) return null;
 
-  const activeTrades = useMemo(() => recentTrades || [], [recentTrades]);
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    const todayDay = now.getDate();
 
-  const effectiveBalance = balance;
-  const effectiveEquity = equity;
-  const effectiveConnected = isConnected;
-  const effectiveBroker =
-    isConnected && accountMetrics
+    // Deterministic schedule spread across the current month up to today
+    const rawSchedule: Array<{
+      daysAgo: number;
+      hour: number;
+      symbol: string;
+      type: "BUY" | "SELL";
+      lots: number;
+      profit: number;
+      rr: number;
+      discipline: number;
+      durationMins: number;
+    }> = [
+      { daysAgo: 24, hour: 10, symbol: "XAUUSD", type: "BUY", lots: 1.5, profit: 840, rr: 2.1, discipline: 92, durationMins: 42 },
+      { daysAgo: 22, hour: 14, symbol: "EURUSD", type: "SELL", lots: 2.0, profit: 520, rr: 1.8, discipline: 90, durationMins: 35 },
+      { daysAgo: 20, hour: 11, symbol: "NAS100", type: "BUY", lots: 0.8, profit: -280, rr: 0, discipline: 88, durationMins: 19 },
+      { daysAgo: 18, hour: 15, symbol: "XAUUSD", type: "BUY", lots: 1.8, profit: 1180, rr: 2.6, discipline: 95, durationMins: 58 },
+      { daysAgo: 16, hour: 9, symbol: "GBPUSD", type: "BUY", lots: 1.5, profit: 640, rr: 1.9, discipline: 91, durationMins: 44 },
+      { daysAgo: 14, hour: 16, symbol: "XAUUSD", type: "SELL", lots: 2.0, profit: 1420, rr: 2.8, discipline: 96, durationMins: 64 },
+      { daysAgo: 13, hour: 11, symbol: "USDJPY", type: "BUY", lots: 1.2, profit: -310, rr: 0, discipline: 89, durationMins: 24 },
+      { daysAgo: 11, hour: 13, symbol: "EURUSD", type: "BUY", lots: 2.5, profit: 960, rr: 2.2, discipline: 94, durationMins: 51 },
+      { daysAgo: 9, hour: 10, symbol: "XAUUSD", type: "BUY", lots: 2.0, profit: 1340, rr: 2.5, discipline: 95, durationMins: 47 },
+      { daysAgo: 7, hour: 15, symbol: "NAS100", type: "SELL", lots: 1.0, profit: 780, rr: 2.0, discipline: 93, durationMins: 38 },
+      { daysAgo: 6, hour: 12, symbol: "GBPUSD", type: "SELL", lots: 1.4, profit: -240, rr: 0, discipline: 91, durationMins: 22 },
+      { daysAgo: 4, hour: 14, symbol: "XAUUSD", type: "BUY", lots: 2.2, profit: 1560, rr: 2.9, discipline: 97, durationMins: 62 },
+      { daysAgo: 3, hour: 11, symbol: "EURUSD", type: "SELL", lots: 1.8, profit: 690, rr: 1.9, discipline: 94, durationMins: 39 },
+      { daysAgo: 2, hour: 16, symbol: "NAS100", type: "BUY", lots: 1.0, profit: 1120, rr: 2.4, discipline: 96, durationMins: 53 },
+      { daysAgo: 1, hour: 13, symbol: "XAUUSD", type: "BUY", lots: 2.0, profit: 940, rr: 2.1, discipline: 95, durationMins: 41 },
+      { daysAgo: 0, hour: Math.max(8, now.getHours() - 2), symbol: "XAUUSD", type: "BUY", lots: 1.5, profit: 890, rr: 2.3, discipline: 96, durationMins: 36 },
+      { daysAgo: 0, hour: Math.max(9, now.getHours() - 1), symbol: "EURUSD", type: "BUY", lots: 2.0, profit: 480, rr: 1.7, discipline: 94, durationMins: 28 },
+    ];
+
+    const allTrades = rawSchedule.map((item, idx) => {
+      const closedDate = new Date(y, m, todayDay - item.daysAgo, item.hour, 15, 0);
+      if (closedDate.getTime() > now.getTime()) {
+        closedDate.setTime(now.getTime() - (idx + 1) * 1800000);
+      }
+      const openedDate = new Date(closedDate.getTime() - item.durationMins * 60000);
+      return {
+        id: `demo-trade-${idx + 1}`,
+        symbol: item.symbol,
+        trade_type: item.type.toLowerCase(),
+        type: item.type,
+        lot_size: item.lots,
+        volume: item.lots,
+        open_price: item.symbol === "XAUUSD" ? 2642.5 : item.symbol === "NAS100" ? 20840 : 1.0845,
+        close_price: item.symbol === "XAUUSD" ? 2651.2 : item.symbol === "NAS100" ? 20935 : 1.0892,
+        profit: item.profit,
+        status: "closed",
+        is_open: false,
+        is_pending: false,
+        opened_at: openedDate.toISOString(),
+        closed_at: closedDate.toISOString(),
+        created_at: openedDate.toISOString(),
+        risk_reward_ratio: item.rr || undefined,
+        discipline_score: item.discipline,
+      };
+    });
+
+    const netProfit = allTrades.reduce((s, t) => s + t.profit, 0);
+    const startingBalance = 25000;
+    return {
+      allTrades,
+      balance: startingBalance + netProfit,
+      equity: startingBalance + netProfit + 260,
+    };
+  }, [demoMode]);
+
+  const activeTrades = useMemo(
+    () => (demoData ? demoData.allTrades : recentTrades || []),
+    [demoData, recentTrades]
+  );
+
+  const effectiveBalance = demoData ? demoData.balance : balance;
+  const effectiveEquity = demoData ? demoData.equity : equity;
+  const effectiveConnected = isConnected || demoMode;
+  const effectiveBroker = demoMode
+    ? activeMarket === "indian"
+      ? "Zerodha Kite"
+      : "Exness MT5"
+    : isConnected && accountMetrics
       ? accountMetrics.server ||
         accountMetrics.broker_server ||
         accountMetrics.broker ||
         (activeMarket === "indian" ? "Broker API" : "MT5 Server")
       : null;
-  const effectiveDiscipline = avgDisciplineScore;
-  const effectiveDailyXp = dailyXpEarned;
-  const effectiveStreak = gamification.streak;
-  const effectiveLevel = gamification.level;
-  const effectiveRiskConfig = riskConfig;
-  const effectiveTradesToday = tradesToday;
+  const effectiveDiscipline = demoMode ? 94 : avgDisciplineScore;
+  const effectiveDailyXp = demoMode ? 450 : dailyXpEarned;
+  const effectiveStreak = demoMode ? 14 : gamification.streak;
+  const effectiveLevel = demoMode ? 7 : gamification.level;
+  const effectiveRiskConfig = demoMode
+    ? { ...(riskConfig || {}), max_daily_loss_percent: 3.0, max_open_trades: 5 }
+    : riskConfig;
+  const effectiveTradesToday = demoMode ? 2 : tradesToday;
 
   const scopedTrades = useMemo(() => {
     if (pnlRange === "all") return activeTrades;
@@ -603,12 +677,12 @@ const Dashboard = () => {
 
               <div className="flex items-center gap-2.5 shrink-0">
                 {/* Desktop Web App (md+): Compact Account Action Pill right beside Share Profile */}
-                {(activeTrades.length > 0 || isConnected) && (
+                {(activeTrades.length > 0 || effectiveConnected) && (
                   <div className="hidden md:flex items-center gap-3 bg-white dark:bg-[#17171A] rounded-full pl-3.5 pr-1.5 py-1.5 border border-slate-200/75 dark:border-white/[0.08] shadow-[0_2px_10px_rgba(15,23,42,0.04)] dark:shadow-none">
                     <div className="flex items-center gap-2 text-[12px]">
                       <span
                         className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                          isConnected
+                          effectiveConnected
                             ? "bg-emerald-500"
                             : demoMode
                             ? "bg-amber-500"
@@ -616,13 +690,13 @@ const Dashboard = () => {
                         }`}
                       />
                       <span className="font-semibold text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                        {isConnected && effectiveBroker
+                        {effectiveConnected && effectiveBroker
                           ? `${effectiveBroker} · Live`
                           : demoMode
                           ? "Demo Account · Sample Data"
                           : "No Broker Connected"}
                       </span>
-                      {isConnected && effectiveEquity > 0 && (
+                      {effectiveConnected && effectiveEquity > 0 && (
                         <span className="text-slate-400 dark:text-neutral-500 tabular-nums whitespace-nowrap">
                           · Equity{" "}
                           <span
@@ -774,7 +848,7 @@ const Dashboard = () => {
                   <div className="flex items-center gap-2 text-[12px]">
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        isConnected
+                        effectiveConnected
                           ? "bg-emerald-500"
                           : demoMode
                           ? "bg-amber-500"
@@ -782,13 +856,13 @@ const Dashboard = () => {
                       }`}
                     />
                     <span className="font-semibold text-slate-800 dark:text-slate-100">
-                      {isConnected && effectiveBroker
+                      {effectiveConnected && effectiveBroker
                         ? `${effectiveBroker} · Live`
                         : demoMode
                         ? "Demo Account · Sample Data"
                         : "No Broker Connected"}
                     </span>
-                    {isConnected && effectiveEquity > 0 && (
+                    {effectiveConnected && effectiveEquity > 0 && (
                       <span className="text-slate-400 dark:text-neutral-500 tabular-nums">
                         · Equity{" "}
                         <span
