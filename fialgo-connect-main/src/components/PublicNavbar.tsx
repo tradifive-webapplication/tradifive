@@ -243,77 +243,52 @@ export default function PublicNavbar({
     <>
       <style>{`
         .nav-link-item {
-          font-size: 13px;
+          font-size: 13.5px;
           font-weight: 500;
           text-decoration: none;
-          color: rgba(255, 255, 255, 0.65);
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          color: rgba(255, 255, 255, 0.72);
+          transition: color 0.16s ease;
           position: relative;
         }
         .nav-link-item:hover {
-          color: #fff;
-          text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
-          transform: translateY(-1px);
+          color: #ffffff;
         }
         .nav-link-item.active {
-          color: #fff;
-        }
-
-        .ai-nav-btn {
-          box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 12px rgba(168, 85, 247, 0.15) !important;
-          background: linear-gradient(145deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%) !important;
-        }
-        .ai-nav-btn:hover {
-          transform: translateY(-2px) scale(1.02) !important;
-          box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3) !important;
-          background: linear-gradient(145deg, rgba(168, 85, 247, 0.25) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
+          color: #ffffff;
         }
         
         .nav-btn-signin {
-          background: #171717;
+          background: transparent;
           border: none;
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 13px;
-          font-weight: 600;
+          color: rgba(255, 255, 255, 0.82);
+          font-size: 13.5px;
+          font-weight: 500;
           cursor: pointer;
-          padding: 9px 20px;
-          transition: all 0.2s ease;
-          border-radius: 100px;
-          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
+          padding: 8px 14px;
+          transition: color 0.16s ease;
+          border-radius: 999px;
           outline: none;
         }
         .nav-btn-signin:hover {
-          color: #fff;
-          background: #1e1e1e;
-          transform: translateY(-1px);
-          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25);
-        }
-        .nav-btn-signin:active {
-          transform: scale(0.985) !important;
+          color: #ffffff;
         }
         .nav-btn-get-started {
-          padding: 9px 22px;
-          border-radius: 100px;
-          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-          color: #60a5fa;
-          font-weight: 700;
-          font-size: 13px;
+          padding: 8px 18px;
+          border-radius: 999px;
+          background: #ffffff;
+          color: #090d16;
+          font-weight: 600;
+          font-size: 13.5px;
           border: none;
           cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
-          position: relative;
-          overflow: hidden;
+          transition: background-color 0.16s ease, transform 0.15s ease;
           outline: none;
         }
         .nav-btn-get-started:hover {
-          transform: translateY(-1px);
-          background: linear-gradient(135deg, #253347 0%, #131c33 100%);
-          color: #93c5fd;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4);
+          background: #e2e8f0;
         }
         .nav-btn-get-started:active {
-          transform: scale(0.985) !important;
+          transform: scale(0.98);
         }
         @media (max-width: 768px) {
           .public-nav-container { padding: 0 20px !important; }
@@ -443,25 +418,12 @@ export default function PublicNavbar({
               <Link
                 to="/features/tradifive-ai"
                 className={`nav-link-item ${isAiActive ? "active" : ""}`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  color: "rgba(255, 255, 255, 0.85)",
-                  textDecoration: "none",
-                  fontSize: "13.5px",
-                  fontWeight: 500
-                }}
               >
                 <span>TradiFive AI</span>
-                <span style={{ fontSize: 9.5, fontWeight: 700, padding: "1px 6px", borderRadius: 100, background: "rgba(99, 102, 241, 0.2)", color: "#a5b4fc", border: "1px solid rgba(99, 102, 241, 0.35)" }}>
-                  NEW
-                </span>
               </Link>
 
-              <a href={isHome ? "#pricing" : "/#pricing"} onClick={(e) => handleScrollTo(e, "pricing")} className="nav-link-item" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <a href={isHome ? "#pricing" : "/#pricing"} onClick={(e) => handleScrollTo(e, "pricing")} className="nav-link-item">
                 <span>Pricing</span>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "rgba(255,255,255,0.08)", color: "#94a3b8" }}>SOON</span>
               </a>
 
 
