@@ -55,7 +55,7 @@ const SOCIALS = [
   { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com/company/tradifive" },
 ];
 
-export default function PublicFooter() {
+export default function PublicFooter({ lightMode = false }: { lightMode?: boolean }) {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -72,31 +72,50 @@ export default function PublicFooter() {
   };
 
   return (
-    <footer className="relative bg-[#020202] border-t border-white/[0.04] overflow-hidden font-inter select-none z-20">
+    <footer
+      className={`relative overflow-hidden font-inter select-none z-20 ${
+        lightMode
+          ? "bg-[#F8FAFC] border-t border-slate-200/90 text-slate-900"
+          : "bg-[#020202] border-t border-white/[0.04]"
+      }`}
+    >
+      {!lightMode && (
+        <>
+          {/* Premium Top Border Gradient */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-purple-500/30" />
 
-      {/* Premium Top Border Gradient */}
-      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/30 to-purple-500/30" />
+          {/* Ambient glows behind footer elements */}
+          <div className="absolute top-[-100px] left-[15%] w-[450px] h-[300px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
+          <div className="absolute bottom-0 right-[10%] w-[350px] h-[250px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-      {/* Ambient glows behind footer elements */}
-      <div className="absolute top-[-100px] left-[15%] w-[450px] h-[300px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-0 right-[10%] w-[350px] h-[250px] bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
-
-      {/* Cyber Grid Texture Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.008)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+          {/* Cyber Grid Texture Overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.008)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.008)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+        </>
+      )}
 
       <div className="max-w-7xl mx-auto px-6 sm:px-10 md:px-12 pt-16 pb-8 relative z-10">
 
         {/* Main Grid: Info block + Links block */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pb-16 border-b border-white/[0.04]">
+        <div
+          className={`grid grid-cols-1 lg:grid-cols-12 gap-12 pb-16 border-b ${
+            lightMode ? "border-slate-200/80" : "border-white/[0.04]"
+          }`}
+        >
 
           {/* Logo & Tagline area */}
           <div className="lg:col-span-4 flex flex-col items-start gap-5">
             <div className="flex items-center gap-3 cursor-pointer group" onClick={scrollToTop}>
-              <img src="/favicon.png" className="h-9 w-auto group-hover:scale-105 transition-transform duration-300" alt="Icon" />
-              <img src="/Dark mode logo with white.png" className="h-7 w-auto" alt="TradiFive" />
+              {lightMode ? (
+                <img src="/Tradifive_logo1.png" className="h-7 w-auto" alt="TradiFive" />
+              ) : (
+                <>
+                  <img src="/favicon.png" className="h-9 w-auto group-hover:scale-105 transition-transform duration-300" alt="Icon" />
+                  <img src="/Dark mode logo with white.png" className="h-7 w-auto" alt="TradiFive" />
+                </>
+              )}
             </div>
 
-            <p className="text-[13px] leading-relaxed text-slate-400 max-w-[280px]">
+            <p className={`text-[13px] leading-relaxed max-w-[280px] ${lightMode ? "text-slate-600" : "text-slate-400"}`}>
               The next-generation social trading platform connecting verified traders globally. Scale, verify, and trade better together.
             </p>
 
@@ -109,7 +128,11 @@ export default function PublicFooter() {
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   placeholder="Enter your email"
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-full py-2.5 pl-4 pr-24 text-[13px] text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.05] transition-all"
+                  className={`w-full rounded-full py-2.5 pl-4 pr-24 text-[13px] focus:outline-none transition-all ${
+                    lightMode
+                      ? "bg-white border border-slate-200 text-slate-900 placeholder-slate-400 focus:border-blue-500"
+                      : "bg-white/[0.03] border border-white/10 text-white placeholder-slate-500 focus:border-indigo-500/50 focus:bg-white/[0.05]"
+                  }`}
                 />
                 <button
                   type="submit"
@@ -123,7 +146,9 @@ export default function PublicFooter() {
             {/* Direct contact link */}
             <a
               href="mailto:hello@tradifive.in"
-              className="inline-flex items-center gap-2 text-[13px] text-indigo-400 hover:text-indigo-300 font-semibold transition-colors duration-200"
+              className={`inline-flex items-center gap-2 text-[13px] font-semibold transition-colors duration-200 ${
+                lightMode ? "text-blue-600 hover:text-blue-700" : "text-indigo-400 hover:text-indigo-300"
+              }`}
             >
               <Mail size={14} />
               hello@tradifive.in
@@ -138,7 +163,11 @@ export default function PublicFooter() {
                     key={soc.label}
                     href={soc.href}
                     title={soc.label}
-                    className="w-9 h-9 rounded-xl bg-white/[0.02] border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-400 text-slate-400 flex items-center justify-center transition-all duration-200"
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 border ${
+                      lightMode
+                        ? "bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-600"
+                        : "bg-white/[0.02] border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-400 text-slate-400"
+                    }`}
                   >
                     <Icon size={16} />
                   </a>
@@ -151,7 +180,7 @@ export default function PublicFooter() {
           <div className="lg:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-8">
             {COLS.map((col, idx) => (
               <div key={idx} className="flex flex-col gap-4">
-                <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">
+                <h3 className={`text-[10px] font-black uppercase tracking-[0.2em] leading-none mb-1 ${lightMode ? "text-slate-900" : "text-slate-500"}`}>
                   {col.title}
                 </h3>
                 <ul className="flex flex-col gap-3">
@@ -160,11 +189,19 @@ export default function PublicFooter() {
                       {link.href.startsWith("/") ? (
                         <Link
                           to={link.href}
-                          className="text-[13px] font-medium text-slate-400 hover:text-white hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200 group"
+                          className={`text-[13px] font-medium hover:translate-x-1 inline-flex items-center gap-1.5 transition-all duration-200 group ${
+                            lightMode ? "text-slate-600 hover:text-slate-950" : "text-slate-400 hover:text-white"
+                          }`}
                         >
                           <span>{link.label}</span>
                           {"isNew" in link && link.isNew && (
-                            <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider uppercase">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold tracking-wider uppercase border ${
+                                lightMode
+                                  ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                                  : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              }`}
+                            >
                               NEW
                             </span>
                           )}
@@ -175,7 +212,9 @@ export default function PublicFooter() {
                       ) : (
                         <a
                           href={link.href}
-                          className="text-[13px] font-medium text-slate-400 hover:text-white hover:translate-x-1 inline-flex items-center gap-1 transition-all duration-200"
+                          className={`text-[13px] font-medium hover:translate-x-1 inline-flex items-center gap-1 transition-all duration-200 ${
+                            lightMode ? "text-slate-600 hover:text-slate-950" : "text-slate-400 hover:text-white"
+                          }`}
                         >
                           {link.label}
                         </a>
@@ -190,19 +229,29 @@ export default function PublicFooter() {
         </div>
 
         {/* Big Tech Trust Badges & System Status Row */}
-        <div className="pt-8 pb-6 flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.04]">
+        <div
+          className={`pt-8 pb-6 flex flex-wrap items-center justify-between gap-4 border-b ${
+            lightMode ? "border-slate-200/80" : "border-white/[0.04]"
+          }`}
+        >
           <div className="flex items-center gap-4 flex-wrap">
             {/* Live Operational Status */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold border ${
+                lightMode
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                  : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full animate-pulse ${lightMode ? "bg-emerald-500" : "bg-emerald-400"}`}></span>
               All Systems Operational
             </div>
 
             {/* Security Badges */}
-            <span className="text-xs text-slate-500 font-medium hidden sm:inline">•</span>
-            <span className="text-xs text-slate-400 font-medium">Bank-Grade 256-Bit SSL</span>
-            <span className="text-xs text-slate-500 font-medium hidden sm:inline">•</span>
-            <span className="text-xs text-slate-400 font-medium">MetaTrader 5 Bridge Certified</span>
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline">•</span>
+            <span className={`text-xs font-medium ${lightMode ? "text-slate-600" : "text-slate-400"}`}>Bank-Grade 256-Bit SSL</span>
+            <span className="text-xs text-slate-400 font-medium hidden sm:inline">•</span>
+            <span className={`text-xs font-medium ${lightMode ? "text-slate-600" : "text-slate-400"}`}>MetaTrader 5 Bridge Certified</span>
           </div>
 
           <div className="text-xs text-slate-500 font-medium">

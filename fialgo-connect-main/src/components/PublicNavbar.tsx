@@ -1,18 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Ic } from "./Ic";
-import { Download, Menu, X, ArrowRight, Sparkles, ChevronRight, ChevronDown, Tag, Smartphone, Mail, Brain, Cpu, Shield, BookOpen, Users, Radio } from "lucide-react";
-import FeaturesMegaMenu from "./FeaturesMegaMenu";
+import { Menu, X, Sparkles, ChevronRight, ChevronDown, Tag, Smartphone, Mail, Brain, Cpu, Shield, BookOpen, Users, Radio } from "lucide-react";
 
 export default function PublicNavbar({
   onSignIn,
   onSignUp,
-  onDownloadClick
+  onDownloadClick,
+  lightOnScroll = false,
 }: {
   onSignIn?: () => void;
   onSignUp?: () => void;
   onDownloadClick?: () => void;
+  lightOnScroll?: boolean;
 }) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,27 +21,31 @@ export default function PublicNavbar({
   const isAppActive = location.pathname === "/download";
   const isContactActive = location.pathname === "/contact";
   const isAiActive = location.pathname === "/features/tradifive-ai";
+  const isCommunityActive = location.pathname === "/features/community-hub";
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [inDeepDives, setInDeepDives] = useState(false);
   const [isHoveredTop, setIsHoveredTop] = useState(false);
-
-  // Desktop Features Mega Dropdown State
-  const [featuresDropdownOpen, setFeaturesDropdownOpen] = useState(false);
   const [mobileFeaturesOpen, setMobileFeaturesOpen] = useState(true);
-  const [dropdownLeft, setDropdownLeft] = useState<number>(-120);
-  const featuresDropdownRef = useRef<HTMLDivElement>(null);
 
-  const MOBILE_FEATURES = [
+  const MOBILE_FEATURES: Array<{
+    title: string;
+    desc: string;
+    path: string;
+    icon: typeof Cpu;
+    color: string;
+    bgColor: string;
+    borderColor: string;
+    badge?: string;
+  }> = [
     {
-      title: "FiAlgo V1 Auto Trade",
-      desc: "Automated MT5 Gold trading bots",
+      title: "Auto Trade Engine",
+      desc: "Automated MT5 execution & workflows",
       path: "/features/auto-trade",
       icon: Cpu,
       color: "#38bdf8",
       bgColor: "rgba(56, 189, 248, 0.12)",
       borderColor: "rgba(56, 189, 248, 0.25)",
-      badge: "LIVE",
     },
     {
       title: "Social Pulse & Feeds",
@@ -51,7 +55,6 @@ export default function PublicNavbar({
       color: "#818cf8",
       bgColor: "rgba(129, 140, 248, 0.12)",
       borderColor: "rgba(129, 140, 248, 0.25)",
-      badge: "LIVE",
     },
     {
       title: "Risk Guard Protection",
@@ -61,7 +64,6 @@ export default function PublicNavbar({
       color: "#34d399",
       bgColor: "rgba(52, 211, 153, 0.12)",
       borderColor: "rgba(52, 211, 153, 0.25)",
-      badge: "SOON",
     },
     {
       title: "Smart Trade Journal",
@@ -71,7 +73,6 @@ export default function PublicNavbar({
       color: "#f472b6",
       bgColor: "rgba(244, 114, 182, 0.12)",
       borderColor: "rgba(244, 114, 182, 0.25)",
-      badge: "SOON",
     },
     {
       title: "Creator Hub",
@@ -81,7 +82,6 @@ export default function PublicNavbar({
       color: "#fb7185",
       bgColor: "rgba(251, 113, 133, 0.12)",
       borderColor: "rgba(251, 113, 133, 0.25)",
-      badge: "SOON",
     },
     {
       title: "TradiFive AI",
@@ -91,82 +91,10 @@ export default function PublicNavbar({
       color: "#c084fc",
       bgColor: "rgba(192, 132, 252, 0.14)",
       borderColor: "rgba(192, 132, 252, 0.3)",
-      badge: "SOON",
     },
   ];
-  const dropdownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const calculateDropdownPosition = () => {
-    if (!featuresDropdownRef.current) return;
-    const rect = featuresDropdownRef.current.getBoundingClientRect();
-    const dropdownWidth = Math.min(680, window.innerWidth - 32);
-    let offset = Math.round((rect.width - dropdownWidth) / 2);
-    const currentLeftOnScreen = rect.left + offset;
-
-    if (currentLeftOnScreen + dropdownWidth > window.innerWidth - 16) {
-      offset -= (currentLeftOnScreen + dropdownWidth - (window.innerWidth - 16));
-    }
-    if (rect.left + offset < 16) {
-      offset = 16 - rect.left;
-    }
-    setDropdownLeft(offset);
-  };
-
-  const handleFeaturesMouseEnter = () => {
-    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
-    calculateDropdownPosition();
-    setFeaturesDropdownOpen(true);
-  };
-
-  const handleFeaturesMouseLeave = () => {
-    dropdownTimeoutRef.current = setTimeout(() => {
-      setFeaturesDropdownOpen(false);
-    }, 200);
-  };
-
-  const handleToggleFeaturesDropdown = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
-    calculateDropdownPosition();
-    setFeaturesDropdownOpen((prev) => !prev);
-  };
-
-  // Close dropdown on click outside or Escape
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (featuresDropdownRef.current && !featuresDropdownRef.current.contains(e.target as Node)) {
-        setFeaturesDropdownOpen(false);
-      }
-    };
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setFeaturesDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, []);
-
-  // Close dropdown on route change
-  useEffect(() => {
-    setFeaturesDropdownOpen(false);
-  }, [location.pathname]);
-
-  // Recalculate position on resize when open
-  useEffect(() => {
-    if (featuresDropdownOpen) {
-      calculateDropdownPosition();
-      window.addEventListener("resize", calculateDropdownPosition);
-      return () => window.removeEventListener("resize", calculateDropdownPosition);
-    }
-  }, [featuresDropdownOpen]);
-
-  const handleSignIn = (e?: React.MouseEvent) => {
+  const handleSignIn = () => {
     if (onSignIn) {
       onSignIn();
     } else {
@@ -174,7 +102,7 @@ export default function PublicNavbar({
     }
   };
   const handleSignUp = onSignUp || (() => navigate("/login", { state: { mode: "signup" } }));
-  const handleDownload = onDownloadClick || (() => navigate("/download"));
+  void onDownloadClick;
 
   useEffect(() => {
     const h = () => {
@@ -258,6 +186,16 @@ export default function PublicNavbar({
         .nav-link-item.active {
           color: #fff;
         }
+        .nav-light-scrolled .nav-link-item {
+          color: rgba(15, 23, 42, 0.7);
+        }
+        .nav-light-scrolled .nav-link-item:hover {
+          color: #0F172A;
+          text-shadow: none;
+        }
+        .nav-light-scrolled .nav-link-item.active {
+          color: #2563EB;
+        }
 
         .ai-nav-btn {
           box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 12px rgba(168, 85, 247, 0.15) !important;
@@ -316,9 +254,10 @@ export default function PublicNavbar({
           transform: scale(0.985) !important;
         }
         @media (max-width: 768px) {
-          .public-nav-container { padding: 0 20px !important; }
-          .public-nav-logo-icon { height: 28px !important; margin-left: -4px; }
-          .public-nav-logo-text { height: 24px !important; }
+          .public-nav-container { padding: 0 14px !important; gap: 8px !important; }
+          .public-nav-brand, .public-nav-actions { min-width: 0 !important; }
+          .public-nav-logo-icon { height: 26px !important; margin-left: 0; }
+          .public-nav-logo-text { height: 22px !important; }
           .hide-sm { display: none !important; }
           .hide-on-mobile { display: none !important; }
           .show-sm { display: flex !important; }
@@ -329,12 +268,10 @@ export default function PublicNavbar({
             width: 100% !important;
             max-width: 100% !important;
             border-radius: 0 !important;
-            border: none !important;
-            height: 64px !important;
-            background: rgba(10, 10, 10, 0.75) !important;
-            backdrop-filter: blur(24px) !important;
-            -webkit-backdrop-filter: blur(24px) !important;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            border-left: none !important;
+            border-right: none !important;
+            border-top: none !important;
+            height: 60px !important;
           }
         }
       `}</style>
@@ -355,166 +292,134 @@ export default function PublicNavbar({
         />
       )}
 
-      <nav className="public-nav"
+      <nav className={`public-nav ${lightOnScroll && scrolled ? "nav-light-scrolled" : ""}`}
         onMouseEnter={() => setIsHoveredTop(true)}
         onMouseLeave={() => setIsHoveredTop(false)}
         style={{
           position: "fixed",
-          top: 10,
+          top: scrolled ? 12 : 8,
           left: "50%",
           transform: "translateX(-50%) translateY(var(--nav-translate-y, 0%))",
-          ["--nav-translate-y" as any]: inDeepDives && !isHoveredTop && !mobileMenuOpen && !featuresDropdownOpen ? "-120%" : "0%",
-          width: "min(96%, 1280px)",
+          ["--nav-translate-y" as any]: inDeepDives && !isHoveredTop && !mobileMenuOpen ? "-120%" : "0%",
+          width: scrolled ? "min(94%, 1180px)" : "min(96%, 1280px)",
           maxWidth: 1280,
-          height: 64,
+          height: 60,
           borderRadius: scrolled ? 999 : 0,
-          background: !(isHome || isAppActive) ? "rgba(10, 10, 10, 0.88)" : (scrolled ? "rgba(12, 12, 12, 0.72)" : "transparent"),
-          backdropFilter: scrolled || !(isHome || isAppActive) ? "blur(32px) saturate(1.2)" : "none",
-          WebkitBackdropFilter: scrolled || !(isHome || isAppActive) ? "blur(32px) saturate(1.2)" : "none",
-          border: scrolled ? "1px solid rgba(255, 255, 255, 0.06)" : "1px solid transparent",
+          background: lightOnScroll && scrolled
+            ? "rgba(255, 255, 255, 0.88)"
+            : !(isHome || isAppActive)
+              ? "rgba(10, 14, 24, 0.88)"
+              : scrolled
+                ? "rgba(10, 14, 24, 0.82)"
+                : "transparent",
+          backdropFilter: scrolled || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
+          WebkitBackdropFilter: scrolled || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
+          border: scrolled
+            ? lightOnScroll
+              ? "1px solid rgba(15, 23, 42, 0.09)"
+              : "1px solid rgba(255, 255, 255, 0.1)"
+            : "1px solid transparent",
           boxShadow: scrolled
-            ? "0 4px 24px rgba(0, 0, 0, 0.35), 0 0 0 0.5px rgba(255, 255, 255, 0.04) inset, 0 1px 0 rgba(255, 255, 255, 0.04) inset"
+            ? lightOnScroll
+              ? "0 12px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)"
+              : "0 14px 36px rgba(2, 6, 23, 0.28), 0 0 0 0.5px rgba(255, 255, 255, 0.06) inset, 0 1px 0 rgba(255, 255, 255, 0.08) inset"
             : "none",
-          display: "flex", alignItems: "center", justifyContent: "center",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
           zIndex: 1000,
-          transition: "all 0.65s cubic-bezier(0.4, 0, 0.2, 1)"
+          transition: "all 0.45s cubic-bezier(0.22, 1, 0.36, 1)"
         }}>
-        <div className="public-nav-container" style={{ width: "100%", padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
+        <div
+          className="public-nav-container"
+          style={{
+            width: "100%",
+            padding: scrolled ? "0 18px 0 22px" : "0 24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 20,
+          }}
+        >
+          {/* Left: Brand Mark + Wordmark */}
           <div
-            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0 }}
+            className="public-nav-brand"
+            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0, minWidth: 150 }}
             onClick={handleLogoClick}
           >
-            <img className="public-nav-logo-icon" src="/Logo_only.png" style={{ height: 36, width: "auto", flexShrink: 0 }} alt="Icon" />
-            <img className="public-nav-logo-text" src="/Dark mode logo with white.png" style={{ height: 32, width: "auto", flexShrink: 0 }} alt="TradiFive" />
+            {lightOnScroll && scrolled ? (
+              <img className="public-nav-logo-text" src="/Tradifive_logo1.png" style={{ height: 26, width: "auto", flexShrink: 0 }} alt="TradiFive" />
+            ) : (
+              <>
+                <img className="public-nav-logo-icon" src="/Logo_only.png" style={{ height: 32, width: "auto", flexShrink: 0 }} alt="Icon" />
+                <img className="public-nav-logo-text" src="/Dark mode logo with white.png" style={{ height: 28, width: "auto", flexShrink: 0 }} alt="TradiFive" />
+              </>
+            )}
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            <div style={{ display: "flex", gap: 24, alignItems: "center" }} className="hide-sm">
-              {/* Desktop Features Mega Dropdown Trigger */}
-              <div
-                ref={featuresDropdownRef}
-                style={{ position: "relative" }}
-                onMouseEnter={handleFeaturesMouseEnter}
-                onMouseLeave={handleFeaturesMouseLeave}
-              >
-                <button
-                  type="button"
-                  onClick={handleToggleFeaturesDropdown}
-                  className={`nav-link-item ${featuresDropdownOpen || isFeaturesActive ? "active" : ""}`}
-                  style={{
-                    background: featuresDropdownOpen ? "rgba(255, 255, 255, 0.08)" : "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    padding: "6px 12px",
-                    borderRadius: 999,
-                    transition: "all 0.2s cubic-bezier(0.16, 1, 0.3, 1)"
-                  }}
-                  aria-expanded={featuresDropdownOpen}
-                  aria-haspopup="true"
-                >
-                  <span>Features</span>
-                  <ChevronDown
-                    size={14}
-                    style={{
-                      transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-                      transform: featuresDropdownOpen ? "rotate(180deg)" : "rotate(0deg)",
-                      opacity: featuresDropdownOpen ? 1 : 0.65
-                    }}
-                  />
-                </button>
+          {/* Center: Clean LiquidJournal-Style Navigation */}
+          <div
+            className="hide-sm"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 28,
+            }}
+          >
+            <a
+              href={isHome ? "#features" : "/#features"}
+              onClick={(e) => handleScrollTo(e, "features")}
+              className={`nav-link-item ${isFeaturesActive ? "active" : ""}`}
+            >
+              Features
+            </a>
 
-                <FeaturesMegaMenu
-                  isOpen={featuresDropdownOpen}
-                  dropdownLeft={dropdownLeft}
-                  onClose={() => setFeaturesDropdownOpen(false)}
-                  onNavigate={(path) => {
-                    setFeaturesDropdownOpen(false);
-                    navigate(path);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  onMouseEnter={() => {
-                    if (dropdownTimeoutRef.current) clearTimeout(dropdownTimeoutRef.current);
-                  }}
-                  onMouseLeave={handleFeaturesMouseLeave}
-                />
-              </div>
+            <Link
+              to="/features/tradifive-ai"
+              className={`nav-link-item ${isAiActive ? "active" : ""}`}
+            >
+              TradiFive AI
+            </Link>
 
-              <Link
-                to="/features/tradifive-ai"
-                className={`nav-link-item ${isAiActive ? "active" : ""}`}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  color: "rgba(255, 255, 255, 0.85)",
-                  textDecoration: "none",
-                  fontSize: "13.5px",
-                  fontWeight: 500
-                }}
-              >
-                <span>TradiFive AI</span>
-                <span style={{ fontSize: 9.5, fontWeight: 700, padding: "1px 6px", borderRadius: 100, background: "rgba(99, 102, 241, 0.2)", color: "#a5b4fc", border: "1px solid rgba(99, 102, 241, 0.35)" }}>
-                  NEW
-                </span>
-              </Link>
+            <Link
+              to="/features/community-hub"
+              className={`nav-link-item ${isCommunityActive ? "active" : ""}`}
+            >
+              Community
+            </Link>
 
-              <a href={isHome ? "#pricing" : "/#pricing"} onClick={(e) => handleScrollTo(e, "pricing")} className="nav-link-item" style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                <span>Pricing</span>
-                <span style={{ fontSize: 9, fontWeight: 700, padding: "1px 5px", borderRadius: 4, background: "rgba(255,255,255,0.08)", color: "#94a3b8" }}>SOON</span>
-              </a>
+            <a
+              href={isHome ? "#pricing" : "/#pricing"}
+              onClick={(e) => handleScrollTo(e, "pricing")}
+              className="nav-link-item"
+            >
+              Pricing
+            </a>
 
+            <Link
+              to="/download"
+              className={`nav-link-item ${isAppActive ? "active" : ""}`}
+            >
+              App
+            </Link>
 
-              <Link
-                to="/download"
-                className={`nav-link-item ${isAppActive ? "active" : ""}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 5
-                }}
-              >
-                <span>App</span>
-                {isAppActive && (
-                  <div style={{
-                    position: "absolute",
-                    bottom: -8,
-                    left: 0,
-                    right: 0,
-                    height: 2,
-                    background: "#6366f1",
-                    borderRadius: 2
-                  }} />
-                )}
-              </Link>
+            <Link
+              to="/contact"
+              className={`nav-link-item ${isContactActive ? "active" : ""}`}
+            >
+              Contact
+            </Link>
+          </div>
 
-              <Link
-                to="/contact"
-                className={`nav-link-item ${isContactActive ? "active" : ""}`}
-              >
-                <span>Contact</span>
-                {isContactActive && (
-                  <div style={{
-                    position: "absolute",
-                    bottom: -8,
-                    left: 0,
-                    right: 0,
-                    height: 2,
-                    background: "#6366f1",
-                    borderRadius: 2
-                  }} />
-                )}
-              </Link>
-            </div>
-
-            <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.15)" }} className="hide-sm hide-on-mobile" />
-
-            {/* Desktop Auth Buttons */}
+          {/* Right: Tactile Action Pills & Mobile Hamburger */}
+          <div
+            className="public-nav-actions"
+            style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, minWidth: 150 }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }} className="hide-on-mobile hide-sm">
               <button
-                onClick={(e) => handleSignIn(e)}
+                onClick={handleSignIn}
                 className="tactile-black-pill rounded-full px-4 py-2 text-[13px] font-semibold cursor-pointer"
               >
                 Sign In
@@ -527,16 +432,29 @@ export default function PublicNavbar({
               </button>
             </div>
 
-            {/* Mobile Hamburger Icon */}
-            <div className="show-sm" style={{ display: "none", alignItems: "center" }}>
+            {/* Mobile Quick Action + Hamburger */}
+            <div className="show-sm" style={{ display: "none", alignItems: "center", gap: 8 }}>
+              <button
+                onClick={handleSignUp}
+                className="tactile-blue-pill rounded-full px-3.5 py-1.5 text-[11.5px] font-bold cursor-pointer whitespace-nowrap"
+              >
+                Get Started
+              </button>
               <button
                 onClick={() => setMobileMenuOpen(true)}
-                style={{ background: "transparent", border: "none", color: "#fff", cursor: "pointer", padding: "8px", display: "flex" }}
+                aria-label="Open menu"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: lightOnScroll && scrolled ? "#0F172A" : "#fff",
+                  cursor: "pointer",
+                  padding: "6px",
+                  display: "flex",
+                }}
               >
-                <Menu size={26} />
+                <Menu size={24} />
               </button>
             </div>
-
           </div>
         </div>
       </nav>
