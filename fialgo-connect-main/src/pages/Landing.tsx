@@ -3406,84 +3406,183 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
           </div>
         </div>
 
-        {/* Cleanly Docked Summary Card Below Workspace Frame (Zero Overlap) */}
-        <div className="relative z-20 mt-4 sm:mt-5 max-w-[780px] mx-auto pb-6 sm:pb-10">
-          <div className="rounded-[20px] sm:rounded-[24px] bg-white border border-[#E4E4E4] shadow-[0_24px_60px_-15px_rgba(15,23,42,0.14)] p-4 sm:p-6">
+        {/* Frosted Bento Summary Card Below Workspace Frame */}
+        <div className="relative z-20 mt-5 sm:mt-6 max-w-[880px] mx-auto pb-6 sm:pb-10">
+          <div className="relative overflow-hidden rounded-[24px_14px_24px_14px] sm:rounded-[28px_16px_28px_16px] bg-white/90 backdrop-blur-xl border border-white/90 ring-1 ring-slate-200/75 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.14)] p-4 sm:p-6">
+            {/* Subtle decorative curly ribbon flourish */}
+            <svg
+              viewBox="0 0 80 28"
+              fill="none"
+              aria-hidden="true"
+              className="pointer-events-none absolute top-3 right-5 w-16 h-6 opacity-30"
+            >
+              <path
+                d="M 4 22 C 18 4, 34 4, 42 14 C 48 22, 38 26, 33 20 C 29 14, 38 6, 56 10 C 66 12, 72 17, 76 14"
+                stroke="#2563EB"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            </svg>
+
             <AnimatePresence mode="wait">
               <motion.div
                 key={active.id}
-                initial={{ opacity: 0, y: 6 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2, ease: EASE_OUT }}
-                className="grid grid-cols-1 sm:grid-cols-12 gap-6"
+                transition={{ duration: 0.22, ease: EASE_OUT }}
+                className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-stretch"
               >
-                {/* Left KPI + Segmented Bar */}
-                <div className="sm:col-span-5 sm:border-r sm:border-slate-100 sm:pr-5">
-                  <h3 className="text-[19px] font-bold tracking-tight text-slate-900">
-                    {active.label}
-                  </h3>
-                  <p className="text-[12.5px] font-medium text-slate-500 mt-0.5">
-                    {active.taglineLead}
-                    <span className="text-[#2563EB] font-semibold">{active.taglineAccent}</span>
-                  </p>
-
-                  <div className="mt-4">
-                    <div className="text-[10.5px] font-medium text-slate-400">
-                      {active.metricLabel}
+                {/* Left: Module Header + Dual KPI Cards */}
+                <div className="lg:col-span-5 flex flex-col justify-between lg:border-r lg:border-slate-200/70 lg:pr-6">
+                  <div className="flex items-start gap-3">
+                    <span className="w-10 h-10 rounded-[14px_6px_14px_6px] bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] text-white inline-flex items-center justify-center shrink-0 shadow-[0_8px_18px_-4px_rgba(37,99,235,0.45)]">
+                      <active.icon className="w-[18px] h-[18px]" />
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="text-[19px] sm:text-[20px] font-bold tracking-tight text-slate-950 leading-tight">
+                        {active.label}
+                      </h3>
+                      <p className="text-[12.5px] font-medium text-slate-500 mt-0.5">
+                        {active.taglineLead}
+                        <span className="text-[#2563EB] font-semibold">{active.taglineAccent}</span>
+                      </p>
                     </div>
-                    <div className="text-[20px] font-extrabold tracking-tight text-slate-900 tabular-nums mt-0.5">
-                      {active.metricValue}
-                    </div>
-                    <div className="text-[10.5px] text-slate-500">{active.metricSub}</div>
                   </div>
 
-                  <div className="mt-4">
-                    <div className="text-[10.5px] font-medium text-slate-400">
-                      {active.scoreLabel}
+                  <div className="mt-4 space-y-2.5">
+                    {/* Hero Metric Tile */}
+                    <div className="rounded-2xl bg-[#F8FAFF] border border-slate-200/80 px-3.5 py-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10.5px] font-semibold uppercase tracking-wider text-slate-400">
+                          {active.metricLabel}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[9.5px] font-semibold text-emerald-700">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          Live snapshot
+                        </span>
+                      </div>
+                      <div className="flex items-baseline justify-between gap-2 mt-1">
+                        <span className="text-[22px] font-extrabold tracking-tight text-slate-950 tabular-nums">
+                          {active.metricValue}
+                        </span>
+                        <span className="text-[11px] font-medium text-slate-500 truncate">
+                          {active.metricSub}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-[16px] font-extrabold text-slate-900 tabular-nums mt-0.5">
-                      {active.scoreValue}
-                    </div>
-                    {/* Segmented Tick Progress Bar */}
-                    <div className="flex items-center gap-[2.5px] mt-1.5" aria-hidden="true">
-                      {Array.from({ length: totalTicks }).map((_, idx) => (
-                        <span
-                          key={idx}
-                          className={`h-2.5 w-[3.5px] rounded-[1px] transition-colors ${idx < activeTicks ? "bg-[#2563EB]" : "bg-slate-200"
+
+                    {/* Score Meter Tile */}
+                    <div className="rounded-2xl bg-white/95 border border-slate-200/80 px-3.5 py-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10.5px] font-semibold uppercase tracking-wider text-slate-400">
+                          {active.scoreLabel}
+                        </span>
+                        <span className="text-[13px] font-extrabold text-slate-950 tabular-nums">
+                          {active.scoreValue}
+                          <span className="text-[10.5px] font-semibold text-slate-400"> / 100</span>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-[2.5px] mt-2" aria-hidden="true">
+                        {Array.from({ length: totalTicks }).map((_, idx) => (
+                          <span
+                            key={idx}
+                            className={`h-2.5 flex-1 rounded-[1.5px] transition-colors ${
+                              idx < activeTicks ? "bg-[#2563EB]" : "bg-slate-200/85"
                             }`}
-                        />
-                      ))}
+                          />
+                        ))}
+                      </div>
+                      <div className="text-[10.5px] text-slate-500 mt-2">{active.scoreNote}</div>
                     </div>
-                    <div className="text-[10px] text-slate-500 mt-1.5">{active.scoreNote}</div>
                   </div>
                 </div>
 
-                {/* Right Bullets + Action */}
-                <div className="sm:col-span-7 flex flex-col justify-between">
-                  <ul className="space-y-3">
-                    {active.bullets.map((b, i) => (
-                      <li
-                        key={i}
-                        className="flex items-start gap-3 text-[13px] leading-snug text-slate-700"
-                      >
-                        <span className="mt-[9px] w-3 h-[1.5px] bg-[#2563EB] shrink-0" />
-                        <span>
-                          {b.before}
-                          <span className="text-[#2563EB] font-semibold">{b.accent}</span>
-                          {b.after}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Right: 2x2 Capability Bento + Module Stepper & CTA */}
+                <div className="lg:col-span-7 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-3 pr-14 sm:pr-0">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                        Inside {active.label}
+                      </span>
+                      {/* Inline Quick Module Stepper */}
+                      <div className="inline-flex items-center gap-1 rounded-full bg-slate-100/80 border border-slate-200/70 p-0.5">
+                        <button
+                          type="button"
+                          aria-label="Previous module"
+                          onClick={() => {
+                            const i = SESSION_MODULES.findIndex((m) => m.id === active.id);
+                            const prev = SESSION_MODULES[(i - 1 + SESSION_MODULES.length) % SESSION_MODULES.length];
+                            setActiveId(prev.id);
+                          }}
+                          className="w-5 h-5 rounded-full inline-flex items-center justify-center text-slate-500 hover:text-slate-950 hover:bg-white transition-colors cursor-pointer"
+                        >
+                          <ChevronLeft className="w-3 h-3" />
+                        </button>
+                        <div className="flex items-center gap-1 px-1">
+                          {SESSION_MODULES.map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              aria-label={`View ${m.label}`}
+                              onClick={() => setActiveId(m.id)}
+                              className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                                m.id === active.id
+                                  ? "w-4 bg-[#2563EB]"
+                                  : "w-1.5 bg-slate-300 hover:bg-slate-400"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Next module"
+                          onClick={() => {
+                            const i = SESSION_MODULES.findIndex((m) => m.id === active.id);
+                            const next = SESSION_MODULES[(i + 1) % SESSION_MODULES.length];
+                            setActiveId(next.id);
+                          }}
+                          className="w-5 h-5 rounded-full inline-flex items-center justify-center text-slate-500 hover:text-slate-950 hover:bg-white transition-colors cursor-pointer"
+                        >
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
 
-                  <div className="mt-5 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {active.bullets.map((b, i) => (
+                        <div
+                          key={i}
+                          className="group rounded-[16px_8px_16px_8px] bg-white/90 border border-slate-200/75 p-3 shadow-[0_2px_10px_rgba(15,23,42,0.03)] hover:border-[#93C5FD] hover:shadow-[0_8px_20px_-8px_rgba(37,99,235,0.2)] transition-all"
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <span className="w-5 h-5 rounded-[7px_3px_7px_3px] bg-[#2563EB]/10 text-[#2563EB] text-[10px] font-bold inline-flex items-center justify-center shrink-0 mt-0.5 tabular-nums">
+                              0{i + 1}
+                            </span>
+                            <p className="text-[12.5px] leading-snug text-slate-600">
+                              {b.before}
+                              <span className="text-[#2563EB] font-semibold">{b.accent}</span>
+                              {b.after}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Cohesive Action Footer */}
+                  <div className="mt-4 pt-3.5 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-3">
+                    <div className="inline-flex items-center gap-2 text-[11.5px] font-medium text-slate-500">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <span>Included free across MT5 &amp; broker sync</span>
+                    </div>
+
                     <button
                       type="button"
                       onClick={onStart}
-                      className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-slate-900 hover:text-[#2563EB] border-b border-slate-900 hover:border-[#2563EB] pb-0.5 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-2 rounded-[16px_7px_16px_7px] bg-slate-950 hover:bg-[#2563EB] text-white px-4 py-2 text-[12.5px] font-semibold shadow-[0_8px_20px_-6px_rgba(15,23,42,0.35)] hover:shadow-[0_10px_24px_-6px_rgba(37,99,235,0.45)] transition-all cursor-pointer"
                     >
-                      <span>Sign up to try it</span>
+                      <span>Try {active.label} free</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
