@@ -6,6 +6,8 @@ import {
   AnimatePresence,
   useInView,
   animate,
+  useScroll,
+  useTransform,
 } from "framer-motion";
 import {
   Users,
@@ -2012,28 +2014,49 @@ const SESSION_MODULES: SessionModuleSpec[] = [
 function OneSessionShowcase({ onStart }: { onStart: () => void }) {
   const [activeId, setActiveId] = useState<SessionModuleId>("dashboard");
   const [liveTick, setLiveTick] = useState(0);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const showcaseInView = useInView(sectionRef, { once: true, amount: 0.22 });
+  const [rollPct, setRollPct] = useState(0);
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
+  const mountainY = useTransform(scrollYProgress, [0, 0.5, 1], [56, 0, -24]);
+  const mountainScale = useTransform(scrollYProgress, [0, 0.45, 1], [1.12, 1.0, 1.03]);
 
   useEffect(() => {
+    if (!showcaseInView) return;
+    const ctrl = animate(0, 1, {
+      duration: 1.45,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setRollPct(v),
+    });
+    return () => ctrl.stop();
+  }, [showcaseInView]);
+
+  useEffect(() => {
+    if (!showcaseInView) return;
     const id = window.setInterval(() => {
       setLiveTick((t) => (t + 1) % 6);
-    }, 1600);
+    }, 1500);
     return () => window.clearInterval(id);
-  }, []);
+  }, [showcaseInView]);
 
   const pnlOffsets = [0, 18, 44, 28, 62, 36];
   const liveDelta = pnlOffsets[liveTick];
-  const liveNetPnl = 12530 + liveDelta;
-  const liveEquity = 37790 + liveDelta;
+  const liveNetPnl = Math.round((12530 + liveDelta) * rollPct);
+  const liveEquity = Math.round((37790 + liveDelta) * rollPct);
   const liveXau = (2648.4 + liveTick * 0.35).toFixed(2);
   const liveNas = (20942.5 + liveTick * 2.25).toFixed(1);
   const liveEur = (1.0542 + (liveTick % 3) * 0.0002).toFixed(4);
-  const liveGoalProfit = 1840 + liveDelta;
-  const liveGoalPct = Math.min(92, Math.round((liveGoalProfit / 2500) * 100));
-  const liveOpenLots = (1.2 + (liveTick % 4) * 0.08).toFixed(2);
-  const liveLotPct = Math.round((Number(liveOpenLots) / 2.0) * 100);
-  const liveDdPct = (0.78 + (liveTick % 3) * 0.04).toFixed(2);
-  const liveShieldScore = 88 + (liveTick % 2);
-  const liveXauRow = 1640 + liveDelta;
+  const liveGoalProfit = Math.round((1840 + liveDelta) * rollPct);
+  const liveGoalPct = Math.min(92, Math.round(((1840 + liveDelta) / 2500) * 100 * rollPct));
+  const liveOpenLots = ((1.2 + (liveTick % 4) * 0.08) * rollPct).toFixed(2);
+  const liveLotPct = Math.round((Number(1.2 + (liveTick % 4) * 0.08) / 2.0) * 100 * rollPct);
+  const liveDdPct = ((0.78 + (liveTick % 3) * 0.04) * rollPct).toFixed(2);
+  const liveShieldScore = Math.round((88 + (liveTick % 2)) * rollPct);
+  const liveXauRow = Math.round((1640 + liveDelta) * rollPct);
 
   const active = SESSION_MODULES.find((m) => m.id === activeId) || SESSION_MODULES[0];
   const leftModules = SESSION_MODULES.slice(0, 3);
@@ -2044,7 +2067,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
 
   const dashDonutRadius = 17;
   const dashDonutCirc = 2 * Math.PI * dashDonutRadius;
-  const dashDonutOffset = dashDonutCirc - 0.82 * dashDonutCirc;
+  const dashDonutOffset = dashDonutCirc - 0.82 * rollPct * dashDonutCirc;
 
   const curlyConnectorPaths = [
     {
@@ -2214,6 +2237,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
 
   return (
     <section
+      ref={sectionRef}
       id="features"
       className="relative bg-white text-slate-900 pt-16 sm:pt-24 pb-10 sm:pb-16 overflow-hidden"
     >
@@ -2225,25 +2249,28 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
         </p>
       </div>
 
-      {/* Atmospheric Photorealistic Alpine Mountains & Soaring Eagle Backdrop */}
+      {/* Single Unified Scroll-Parallax Mountain Canyon & Soaring Eagle Backdrop */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 bottom-0 overflow-hidden select-none"
       >
-        <motion.img
-          src="/workspace-sky-bg.jpg"
-          alt=""
-          initial={{ opacity: 0, scale: 1.03 }}
-          whileInView={{ opacity: 0.96, scale: 1 }}
-          viewport={{ once: true, amount: 0.1 }}
-          transition={{ duration: 1.05, ease: EASE_OUT }}
-          className="w-full h-full object-cover object-[50%_38%]"
-        />
+        <motion.div
+          style={{ y: mountainY, scale: mountainScale }}
+          className="absolute inset-0 will-change-transform"
+        >
+          <img
+            src="/workspace-sky-bg.jpg"
+            alt=""
+            className="w-full h-full object-cover object-center opacity-96"
+          />
+        </motion.div>
+
+        {/* Subtle Center Mist Halo & Top/Bottom Page Transitions */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.72) 8%, rgba(255,255,255,0.16) 22%, rgba(255,255,255,0) 36%, rgba(255,255,255,0) 82%, #ffffff 100%)",
+              "radial-gradient(ellipse 52% 48% at 50% 44%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 75%), linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.68) 7%, rgba(255,255,255,0.08) 18%, rgba(255,255,255,0) 32%, rgba(255,255,255,0) 84%, #ffffff 100%)",
           }}
         />
       </div>
@@ -2800,7 +2827,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                       />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-                                      <span className="text-[9.5px] font-bold font-mono">82%</span>
+                                      <span className="text-[9.5px] font-bold font-mono tabular-nums">{Math.round(82 * rollPct)}%</span>
                                       <span className="text-[6.5px] font-semibold text-slate-400">WIN</span>
                                     </div>
                                   </div>
@@ -2811,9 +2838,9 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                               <div className="lg:col-span-7 flex flex-col gap-1.5">
                                 <div className="grid grid-cols-3 gap-1.5">
                                   {[
-                                    { label: "Avg RR", val: (2.23 + (liveTick % 3) * 0.01).toFixed(2) + "R" },
-                                    { label: "Profit Factor", val: (16.1 + liveTick * 0.04).toFixed(2) },
-                                    { label: "Avg W / L", val: `$${954 + Math.round(liveDelta / 4)} / $277` },
+                                    { label: "Avg RR", val: ((2.23 + (liveTick % 3) * 0.01) * rollPct).toFixed(2) + "R" },
+                                    { label: "Profit Factor", val: ((16.1 + liveTick * 0.04) * rollPct).toFixed(2) },
+                                    { label: "Avg W / L", val: `$${Math.round((954 + Math.round(liveDelta / 4)) * rollPct)} / $${Math.round(277 * rollPct)}` },
                                   ].map((m) => (
                                     <div
                                       key={m.label}
@@ -2868,8 +2895,8 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     strokeWidth="1.8"
                                     strokeLinecap="round"
                                     initial={{ pathLength: 0 }}
-                                    animate={{ pathLength: 1 }}
-                                    transition={{ duration: 1.0, ease: EASE_OUT }}
+                                    animate={{ pathLength: showcaseInView ? 1 : 0 }}
+                                    transition={{ duration: 1.25, ease: EASE_OUT }}
                                   />
                                   <circle cx="176" cy="8" r="2.8" fill="#2563EB" />
                                 </svg>
@@ -2898,14 +2925,14 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     strokeWidth="1.8"
                                     strokeLinecap="round"
                                     initial={{ pathLength: 0 }}
-                                    animate={{ pathLength: 1 }}
-                                    transition={{ duration: 1.0, ease: EASE_OUT }}
+                                    animate={{ pathLength: showcaseInView ? 1 : 0 }}
+                                    transition={{ duration: 1.25, ease: EASE_OUT }}
                                   />
                                   <circle cx="176" cy="10" r="2.8" fill="#2563EB" />
                                 </svg>
                                 <div className="flex justify-between text-[8px] pt-1 border-t border-slate-100 dark:border-white/[0.06]">
                                   <span className="text-slate-400">Start $25k</span>
-                                  <span className="font-bold text-[#2563EB] font-mono tabular-nums">${(37530 + liveDelta).toLocaleString()} (+50.{(1 + (liveTick % 2))}%)</span>
+                                  <span className="font-bold text-[#2563EB] font-mono tabular-nums">${Math.round((37530 + liveDelta) * rollPct).toLocaleString()} (+{(50.1 * rollPct).toFixed(1)}%)</span>
                                 </div>
                               </div>
 
@@ -2916,7 +2943,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     <div className="text-[9px] font-bold uppercase tracking-wider">TradiFive Score</div>
                                     <div className="text-[7.5px] text-slate-400">17 trades scored</div>
                                   </div>
-                                  <span className="text-[16px] font-bold font-mono tabular-nums leading-none">{81 + (liveTick % 2)}</span>
+                                  <span className="text-[16px] font-bold font-mono tabular-nums leading-none">{Math.round((81 + (liveTick % 2)) * rollPct)}</span>
                                 </div>
                                 <div className="flex items-center justify-center my-0.5">
                                   <svg viewBox="0 0 120 68" className="w-24 h-12">
@@ -4996,6 +5023,30 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
    HOW IT WORKS
 ════════════════ */
 function HowItWorks() {
+  const workflowRef = useRef<HTMLElement | null>(null);
+  const inView = useInView(workflowRef, { once: true, amount: 0.18 });
+  const [activeStep, setActiveStep] = useState(0);
+  const [manualStep, setManualStep] = useState<number | null>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: workflowRef,
+    offset: ["start 80%", "end 38%"],
+  });
+  const lineScaleX = useTransform(scrollYProgress, [0.05, 0.85], [0, 1]);
+
+  useEffect(() => {
+    const unsub = scrollYProgress.on("change", (v) => {
+      if (manualStep !== null) return;
+      if (v >= 0.72) setActiveStep(3);
+      else if (v >= 0.48) setActiveStep(2);
+      else if (v >= 0.24) setActiveStep(1);
+      else setActiveStep(0);
+    });
+    return () => unsub();
+  }, [scrollYProgress, manualStep]);
+
+  const currentStep = manualStep ?? activeStep;
+
   const STEPS = [
     {
       num: "01",
@@ -5004,6 +5055,7 @@ function HowItWorks() {
       desc: "Set up your verified trader profile and workspace preferences in under a minute.",
       meta: "Setup · 60s",
       previewTitle: "@disciplined_trader",
+      previewSub: "Verified trader identity",
       previewStatus: "Ready",
     },
     {
@@ -5013,6 +5065,7 @@ function HowItWorks() {
       desc: "Link any MT5 account via read/execute bridge while keeping 100% of funds on your broker.",
       meta: "MT5 bridge · 4ms",
       previewTitle: "MetaTrader 5 Bridge",
+      previewSub: "Exness #40892 · Zero custody",
       previewStatus: "Synced",
     },
     {
@@ -5022,6 +5075,7 @@ function HowItWorks() {
       desc: "Configure daily loss caps and max trade rules. Breaches trigger an automatic cooldown lock.",
       meta: "Autonomous guard",
       previewTitle: "Drawdown Shield · 3.0%",
+      previewSub: "Max 5 trades · 15m cooldown",
       previewStatus: "Armed",
     },
     {
@@ -5031,67 +5085,191 @@ function HowItWorks() {
       desc: "Follow verified traders, subscribe to broadcast channels, and compete on live leaderboards.",
       meta: "Verified network",
       previewTitle: "Broadcast Channels",
+      previewSub: "4,820+ verified traders",
       previewStatus: "Active",
     },
   ];
 
   return (
-    <section id="how-it-works" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
-      <div className="max-w-[1160px] mx-auto">
+    <section
+      ref={workflowRef}
+      id="how-it-works"
+      className="py-20 sm:py-28 px-4 sm:px-7 relative bg-white overflow-hidden"
+    >
+      <div className="max-w-[1180px] mx-auto">
         <SectionHeader
           badge="Workflow"
           icon={Globe}
           tone="blue"
           title="From setup to consistent execution"
           subtitle="in four structured steps."
-          description="Journaling, risk enforcement, AI review, and community accountability working from one unified feed."
-          className="mb-14"
+          description="Scroll through each step — journaling, risk enforcement, AI review, and community accountability come online in sequence."
+          className="mb-10 sm:mb-12"
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Scroll-Driven Horizontal Step Pipeline (Desktop) */}
+        <div className="hidden lg:block relative max-w-[960px] mx-auto mb-9 px-6">
+          <div className="relative h-[3px] w-full rounded-full bg-slate-200/80 overflow-hidden">
+            <motion.div
+              style={{
+                scaleX: manualStep !== null ? (manualStep + 1) / 4 : lineScaleX,
+                transformOrigin: "left",
+              }}
+              className="absolute inset-0 bg-gradient-to-r from-[#2563EB] via-[#3B82F6] to-emerald-500 rounded-full"
+            />
+          </div>
+
+          <div className="flex items-center justify-between -mt-[17px] relative z-10">
+            {STEPS.map((step, i) => {
+              const isReached = i <= currentStep;
+              const isCurrent = i === currentStep;
+              return (
+                <button
+                  key={step.num}
+                  type="button"
+                  onClick={() => setManualStep(manualStep === i ? null : i)}
+                  className="group flex flex-col items-center gap-1.5 cursor-pointer"
+                >
+                  <span
+                    className={`w-8 h-8 rounded-[12px_5px_12px_5px] text-[11px] font-mono font-bold inline-flex items-center justify-center border transition-all duration-300 ${
+                      isCurrent
+                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-[0_8px_22px_-4px_rgba(37,99,235,0.5)] scale-110"
+                        : isReached
+                        ? "bg-blue-50 border-[#2563EB] text-[#2563EB]"
+                        : "bg-white border-slate-200 text-slate-400 group-hover:border-slate-300"
+                    }`}
+                  >
+                    {i < currentStep ? <Check size={13} strokeWidth={2.6} /> : step.num}
+                  </span>
+                  <span
+                    className={`text-[10.5px] font-semibold transition-colors ${
+                      isCurrent ? "text-[#2563EB]" : isReached ? "text-slate-700" : "text-slate-400"
+                    }`}
+                  >
+                    Step {step.num}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 4 Sequential Step Bento Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {STEPS.map((step, i) => {
             const Icon = step.icon;
+            const isCurrent = i === currentStep;
+            const isReached = i <= currentStep;
+
             return (
               <motion.div
                 key={step.num}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.06, ease: EASE_OUT }}
-                className="border-t-2 border-[#E4E4E4] hover:border-[#2563EB] pt-6 flex flex-col justify-between gap-7 transition-colors duration-200"
+                initial={{ opacity: 0, y: 26 }}
+                animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 26 }}
+                transition={{ duration: 0.48, delay: i * 0.22, ease: EASE_OUT }}
+                onClick={() => setManualStep(manualStep === i ? null : i)}
+                className={`group relative rounded-[22px_10px_22px_10px] p-5 border flex flex-col justify-between gap-5 transition-all duration-300 cursor-pointer ${
+                  isCurrent
+                    ? "bg-gradient-to-b from-[#F5F8FF] to-white border-[#2563EB] shadow-[0_20px_44px_-16px_rgba(37,99,235,0.28)] ring-2 ring-[#2563EB]/12 -translate-y-1"
+                    : isReached
+                    ? "bg-white border-blue-200/80 shadow-[0_10px_28px_-12px_rgba(15,23,42,0.08)] hover:border-[#2563EB]/60"
+                    : "bg-slate-50/60 border-[#E4E4E4] opacity-75 hover:opacity-100 hover:bg-white hover:border-slate-300"
+                }`}
               >
+                {/* Top Header Strip */}
                 <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="inline-flex items-center gap-2.5">
-                      <span className="text-[12px] font-mono font-semibold text-slate-400 tabular-nums">
-                        {step.num}
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="inline-flex items-center gap-2">
+                      <span
+                        className={`w-9 h-9 rounded-[12px_5px_12px_5px] inline-flex items-center justify-center transition-colors ${
+                          isCurrent
+                            ? "bg-[#2563EB] text-white shadow-[0_6px_14px_rgba(37,99,235,0.35)]"
+                            : isReached
+                            ? "bg-blue-50 text-[#2563EB]"
+                            : "bg-slate-100 text-slate-600"
+                        }`}
+                      >
+                        <Icon size={16} strokeWidth={2} />
                       </span>
-                      <Icon size={16} strokeWidth={1.7} className="text-slate-700" />
+                      <span
+                        className={`text-[10.5px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                          isCurrent
+                            ? "bg-blue-50 border-blue-200 text-[#2563EB]"
+                            : "bg-white border-slate-200 text-slate-400"
+                        }`}
+                      >
+                        Step {step.num}
+                      </span>
                     </div>
-                    <span className="text-[11.5px] font-mono text-slate-400">
-                      {step.meta}
-                    </span>
+                    <span className="text-[10.5px] font-mono text-slate-400">{step.meta}</span>
                   </div>
 
-                  <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-2 leading-snug">
+                  <h3 className="text-[16.5px] font-bold tracking-[-0.015em] text-slate-950 mb-1.5 leading-snug">
                     {step.title}
                   </h3>
-                  <p className="text-[13.5px] text-slate-500 leading-relaxed">
-                    {step.desc}
-                  </p>
+                  <p className="text-[13px] text-slate-500 leading-relaxed">{step.desc}</p>
                 </div>
 
-                <div className="border-t border-[#E4E4E4]/75 pt-3 flex items-center justify-between gap-2 text-[12px]">
-                  <span className="font-medium text-slate-700 truncate">
-                    {step.previewTitle}
-                  </span>
-                  <span className="font-mono font-medium text-emerald-700 shrink-0">
-                    {step.previewStatus}
-                  </span>
+                {/* Bespoke Step Miniature Live Widget */}
+                <div
+                  className={`rounded-[14px_6px_14px_6px] p-3 border transition-colors ${
+                    isCurrent
+                      ? "bg-white border-blue-200/80 shadow-xs"
+                      : "bg-slate-50/90 border-slate-200/70"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11.5px] font-bold text-slate-900 truncate">
+                      {step.previewTitle}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-700 shrink-0">
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${
+                          isCurrent ? "animate-pulse" : ""
+                        }`}
+                      />
+                      {step.previewStatus}
+                    </span>
+                  </div>
+                  <div className="text-[10.5px] text-slate-400 mt-1 truncate font-medium">
+                    {step.previewSub}
+                  </div>
                 </div>
               </motion.div>
             );
           })}
+        </div>
+
+        {/* Active Step Scroll Status Indicator Bar */}
+        <div className="mt-7 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 px-4 py-2.5 text-[12px]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="px-2 py-0.5 rounded-full bg-[#2563EB] text-white font-mono text-[10.5px] font-bold shrink-0">
+              {STEPS[currentStep].num} / 04
+            </span>
+            <span className="font-semibold text-slate-900 truncate">
+              {STEPS[currentStep].title}
+            </span>
+            <span className="hidden md:inline text-slate-400 truncate">
+              — {STEPS[currentStep].previewSub}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {STEPS.map((s, idx) => (
+              <button
+                key={s.num}
+                type="button"
+                aria-label={`Jump to step ${s.num}`}
+                onClick={() => setManualStep(manualStep === idx ? null : idx)}
+                className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                  idx === currentStep
+                    ? "w-6 bg-[#2563EB]"
+                    : idx < currentStep
+                    ? "w-3 bg-blue-300"
+                    : "w-1.5 bg-slate-300"
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </section>
