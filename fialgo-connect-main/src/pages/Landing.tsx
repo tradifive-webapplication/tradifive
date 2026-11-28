@@ -60,6 +60,7 @@ import PublicFooter from "../components/PublicFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
 import BlurText from "@/components/ui/BlurText";
+import { MT5_BROKER_LOGOS } from "@/components/MT5BrokerLogos";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -1555,8 +1556,36 @@ function HeroDashboard({ onStart }: { onStart: () => void }) {
 /* ════════════════
    HERO
 ════════════════ */
+const HERO_HEADLINES = [
+  {
+    line1: "Your edge isn't luck.",
+    lightPrefix: "It's",
+    accent: "discipline.",
+  },
+  {
+    line1: "The market isn't beating you.",
+    lightPrefix: "Your",
+    accent: "habits are.",
+  },
+  {
+    line1: "You don't need another strategy.",
+    lightPrefix: "You need",
+    accent: "self-control.",
+  },
+];
+
 function Hero({ onStart }: { onStart: () => void; onSignIn: () => void }) {
   const navigate = useNavigate();
+  const [headlineIndex, setHeadlineIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setHeadlineIndex((prev) => (prev + 1) % HERO_HEADLINES.length);
+    }, 4200);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const activeHeadline = HERO_HEADLINES[headlineIndex];
 
   return (
     <section
@@ -1750,61 +1779,65 @@ function Hero({ onStart }: { onStart: () => void; onSignIn: () => void }) {
           <ArrowRight size={12} className="text-white/80 shrink-0" />
         </motion.button>
 
-        {/* React Bits BlurText Editorial Headline (Bold + Thin Weight Contrast) */}
-        <div className="min-h-[76px] sm:min-h-[136px] lg:min-h-[154px] flex items-center justify-center w-full">
-          <h1
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[54px] lg:text-[64px] tracking-[-0.035em] leading-[1.1] sm:leading-[1.08] text-white max-w-[900px] drop-shadow-[0_6px_26px_rgba(1,3,10,0.65)] flex flex-col items-center"
-          >
-            <BlurText
-              as="span"
-              text="Your edge isn't luck."
-              effect="blur"
-              animateBy="words"
-              direction="top"
-              staggerFrom="start"
-              trigger="load"
-              delay={120}
-              stepDuration={0.35}
-              blur={10}
-              distance={42}
-              className="justify-center font-bold tracking-[-0.038em] text-white"
-            />
+        {/* React Bits BlurText Editorial Headline (Bold + Thin Weight Contrast, Cycles 3 Headlines) */}
+        <div className="min-h-[84px] sm:min-h-[126px] lg:min-h-[144px] flex items-center justify-center w-full">
+          <AnimatePresence mode="wait">
+            <motion.h1
+              key={headlineIndex}
+              exit={{ opacity: 0, filter: "blur(8px)", y: -10, transition: { duration: 0.28, ease: EASE_OUT } }}
+              style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+              className="text-[24px] sm:text-[46px] lg:text-[56px] tracking-[-0.035em] leading-[1.12] sm:leading-[1.08] text-white max-w-[1040px] drop-shadow-[0_6px_26px_rgba(1,3,10,0.65)] flex flex-col items-center"
+            >
+              <BlurText
+                as="span"
+                text={activeHeadline.line1}
+                effect="blur"
+                animateBy="words"
+                direction="top"
+                staggerFrom="start"
+                trigger="load"
+                delay={105}
+                stepDuration={0.35}
+                blur={10}
+                distance={42}
+                className="justify-center font-bold tracking-[-0.038em] text-white"
+              />
 
-            <span className="inline-flex flex-wrap items-baseline justify-center gap-x-[0.26em] -mt-0.5 sm:-mt-1">
-              <BlurText
-                as="span"
-                text="It's"
-                effect="blur"
-                animateBy="words"
-                direction="top"
-                staggerFrom="start"
-                trigger="load"
-                delay={120}
-                initialDelay={340}
-                stepDuration={0.35}
-                blur={10}
-                distance={42}
-                className="justify-center font-extralight tracking-[-0.03em] text-blue-100/85"
-              />
-              <BlurText
-                as="span"
-                text="discipline."
-                effect="blur"
-                animateBy="words"
-                direction="top"
-                staggerFrom="start"
-                trigger="load"
-                delay={120}
-                initialDelay={460}
-                stepDuration={0.35}
-                blur={10}
-                distance={42}
-                className="justify-center font-semibold tracking-[-0.03em]"
-                pieceClassName="bg-gradient-to-b from-white via-white to-blue-200 bg-clip-text text-transparent"
-              />
-            </span>
-          </h1>
+              <span className="inline-flex flex-wrap items-baseline justify-center gap-x-[0.26em] -mt-0.5 sm:-mt-1">
+                <BlurText
+                  as="span"
+                  text={activeHeadline.lightPrefix}
+                  effect="blur"
+                  animateBy="words"
+                  direction="top"
+                  staggerFrom="start"
+                  trigger="load"
+                  delay={105}
+                  initialDelay={320}
+                  stepDuration={0.35}
+                  blur={10}
+                  distance={42}
+                  className="justify-center font-extralight tracking-[-0.03em] text-blue-100/85"
+                />
+                <BlurText
+                  as="span"
+                  text={activeHeadline.accent}
+                  effect="blur"
+                  animateBy="words"
+                  direction="top"
+                  staggerFrom="start"
+                  trigger="load"
+                  delay={105}
+                  initialDelay={430}
+                  stepDuration={0.35}
+                  blur={10}
+                  distance={42}
+                  className="justify-center font-semibold tracking-[-0.03em]"
+                  pieceClassName="bg-gradient-to-b from-white via-white to-blue-200 bg-clip-text text-transparent"
+                />
+              </span>
+            </motion.h1>
+          </AnimatePresence>
         </div>
 
         {/* Attractive High-Contrast Subheadline */}
@@ -2585,20 +2618,6 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
 /* ════════════════
    CONNECTED MT5 BROKERS STRIP
 ════════════════ */
-const MT5_BROKERS = [
-  { name: "Exness", tier: "ECN / Raw" },
-  { name: "IC Markets", tier: "True ECN" },
-  { name: "Pepperstone", tier: "Razor MT5" },
-  { name: "XM Global", tier: "Ultra Low" },
-  { name: "FP Markets", tier: "Raw MT5" },
-  { name: "Tickmill", tier: "Pro Account" },
-  { name: "Vantage", tier: "RAW ECN" },
-  { name: "Eightcap", tier: "MT5 Desk" },
-  { name: "FTMO", tier: "Prop Desk" },
-  { name: "FundedNext", tier: "Prop Desk" },
-  { name: "FXPro", tier: "cTrader / MT5" },
-];
-
 function PlatformPillars() {
   return (
     <section className="py-10 sm:py-12 overflow-hidden relative bg-white border-y border-slate-100">
@@ -2609,20 +2628,13 @@ function PlatformPillars() {
       </div>
       <div className="pillar-mask max-w-[1280px] mx-auto">
         <div className="br-track items-center">
-          {[...MT5_BROKERS, ...MT5_BROKERS].map((broker, i) => (
+          {[...MT5_BROKER_LOGOS, ...MT5_BROKER_LOGOS].map((broker, i) => (
             <div
-              key={`${broker.name}-${i}`}
-              className="inline-flex items-baseline gap-2 px-6 sm:px-8 py-1.5 shrink-0 select-none border-r border-slate-200/70 last:border-r-0"
+              key={`${broker.id}-${i}`}
+              title={broker.name}
+              className="inline-flex items-center px-7 sm:px-9 py-1.5 shrink-0 select-none opacity-75 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-300 border-r border-slate-100"
             >
-              <span
-                style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-                className="text-[16px] sm:text-[17px] font-bold tracking-[-0.03em] text-slate-800"
-              >
-                {broker.name}
-              </span>
-              <span className="text-[10.5px] font-mono font-medium uppercase tracking-wider text-slate-400">
-                MT5
-              </span>
+              {broker.render()}
             </div>
           ))}
         </div>
