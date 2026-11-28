@@ -5030,15 +5030,15 @@ function HowItWorks() {
 
   const { scrollYProgress } = useScroll({
     target: workflowRef,
-    offset: ["start 80%", "end 38%"],
+    offset: ["start 78%", "end 38%"],
   });
-  const lineScaleX = useTransform(scrollYProgress, [0.05, 0.85], [0, 1]);
+  const ribbonProgress = useTransform(scrollYProgress, [0.06, 0.84], [0.08, 1]);
 
   useEffect(() => {
     const unsub = scrollYProgress.on("change", (v) => {
       if (manualStep !== null) return;
-      if (v >= 0.72) setActiveStep(3);
-      else if (v >= 0.48) setActiveStep(2);
+      if (v >= 0.7) setActiveStep(3);
+      else if (v >= 0.46) setActiveStep(2);
       else if (v >= 0.24) setActiveStep(1);
       else setActiveStep(0);
     });
@@ -5051,44 +5051,154 @@ function HowItWorks() {
     {
       num: "01",
       icon: Users,
-      title: "Create your account",
-      desc: "Set up your verified trader profile and workspace preferences in under a minute.",
-      meta: "Setup · 60s",
-      previewTitle: "@disciplined_trader",
-      previewSub: "Verified trader identity",
-      previewStatus: "Ready",
+      title: "Open your workspace",
+      desc: "Set up your trader profile, currency base, and session clock in under a minute.",
+      stagger: "lg:mt-6",
+      nodeX: 138,
+      nodeY: 66,
     },
     {
       num: "02",
       icon: Layers,
-      title: "Connect your broker",
-      desc: "Link any MT5 account via read/execute bridge while keeping 100% of funds on your broker.",
-      meta: "MT5 bridge · 4ms",
-      previewTitle: "MetaTrader 5 Bridge",
-      previewSub: "Exness #40892 · Zero custody",
-      previewStatus: "Synced",
+      title: "Link your MT5 bridge",
+      desc: "Stream every execution at 4ms latency while keeping 100% of capital on your broker.",
+      stagger: "lg:mt-0",
+      nodeX: 412,
+      nodeY: 26,
     },
     {
       num: "03",
       icon: ShieldCheck,
-      title: "Activate Risk Guard",
-      desc: "Configure daily loss caps and max trade rules. Breaches trigger an automatic cooldown lock.",
-      meta: "Autonomous guard",
-      previewTitle: "Drawdown Shield · 3.0%",
-      previewSub: "Max 5 trades · 15m cooldown",
-      previewStatus: "Armed",
+      title: "Arm Risk Guard",
+      desc: "Set daily drawdown ceilings and trade-count limits that lock tilt before losses compound.",
+      stagger: "lg:mt-7",
+      nodeX: 698,
+      nodeY: 68,
     },
     {
       num: "04",
       icon: Globe,
-      title: "Join the community",
-      desc: "Follow verified traders, subscribe to broadcast channels, and compete on live leaderboards.",
-      meta: "Verified network",
-      previewTitle: "Broadcast Channels",
-      previewSub: "4,820+ verified traders",
-      previewStatus: "Active",
+      title: "Trade alongside pros",
+      desc: "Publish broker-verified receipts, follow disciplined desks, and climb clean leaderboards.",
+      stagger: "lg:mt-1",
+      nodeX: 978,
+      nodeY: 28,
     },
   ];
+
+  const curlyWavePath =
+    "M 138 66 C 215 66, 240 16, 275 24 C 302 30, 288 54, 268 46 C 248 38, 282 14, 345 20 C 378 23, 396 26, 412 26 C 485 26, 512 80, 555 72 C 585 66, 570 42, 550 50 C 530 58, 568 82, 634 74 C 668 70, 684 68, 698 68 C 772 68, 800 18, 842 26 C 870 32, 856 54, 836 46 C 818 38, 852 16, 915 24 C 948 28, 964 28, 978 28";
+
+  const renderStepArtifact = (idx: number, isCurrent: boolean) => {
+    if (idx === 0) {
+      return (
+        <div className="rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-3 space-y-2">
+          <div className="flex items-center gap-2.5">
+            <span className="w-7 h-7 rounded-full bg-slate-900 text-white text-[10px] font-bold inline-flex items-center justify-center shrink-0">
+              NH
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="text-[11.5px] font-semibold text-slate-900 leading-tight truncate">
+                Nikhil Harake
+              </div>
+              <div className="text-[10px] text-slate-400 font-mono truncate">
+                @nikhil_harake · USD
+              </div>
+            </div>
+            <span
+              className={`w-2 h-2 rounded-full ${
+                isCurrent ? "bg-emerald-500 animate-pulse" : "bg-emerald-500"
+              }`}
+            />
+          </div>
+          <div className="flex items-center justify-between pt-2 border-t border-slate-200/70 text-[10px] text-slate-500 font-medium">
+            <span>Auto-Journal</span>
+            <span className="text-slate-900 font-semibold">Enabled ✓</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (idx === 1) {
+      return (
+        <div className="rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-3 space-y-2.5">
+          <div className="flex items-center justify-between gap-1.5">
+            <span className="px-2 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-800 shadow-2xs">
+              Exness MT5
+            </span>
+            <svg viewBox="0 0 64 22" fill="none" className="flex-1 h-5 overflow-visible" aria-hidden="true">
+              <path
+                d="M 2 14 C 14 2, 24 22, 32 11 C 40 0, 50 20, 62 9"
+                stroke="#CBD5E1"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <motion.path
+                d="M 2 14 C 14 2, 24 22, 32 11 C 40 0, 50 20, 62 9"
+                stroke="#2563EB"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeDasharray="3 4"
+                animate={{ strokeDashoffset: [0, -14] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "linear" }}
+              />
+            </svg>
+            <span className="px-2 py-1 rounded-lg bg-slate-900 text-white text-[10px] font-bold">
+              TradiFive
+            </span>
+          </div>
+          <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/70 text-[10px] text-slate-500 font-mono">
+            <span>Read · Execute</span>
+            <span className="text-[#2563EB] font-semibold">4ms · Non-custodial</span>
+          </div>
+        </div>
+      );
+    }
+
+    if (idx === 2) {
+      return (
+        <div className="rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-3 space-y-2">
+          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-700">
+            <span>Drawdown Ceiling</span>
+            <span className="font-mono text-emerald-600">0.8% / 3.0%</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-slate-200/90 overflow-hidden">
+            <motion.div
+              animate={{ width: isCurrent ? "32%" : "27%" }}
+              transition={{ duration: 0.6 }}
+              className="h-full rounded-full bg-emerald-500"
+            />
+          </div>
+          <div className="flex items-center justify-between pt-1 border-t border-slate-200/70 text-[10px] text-slate-500">
+            <span>Trade Slots</span>
+            <span className="inline-flex items-center gap-1">
+              {[0, 1, 2, 3, 4].map((slot) => (
+                <span
+                  key={slot}
+                  className={`w-2 h-2 rounded-full ${
+                    slot < 2 ? "bg-[#2563EB]" : "bg-slate-200 border border-slate-300"
+                  }`}
+                />
+              ))}
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-3 space-y-2">
+        <div className="flex items-center justify-between text-[10.5px]">
+          <span className="font-semibold text-slate-900 truncate">Arjun M. · XAU/USD</span>
+          <span className="font-mono font-bold text-emerald-600">+2.4R</span>
+        </div>
+        <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/70 text-[10px] text-slate-500">
+          <span>Verified MT5 Receipt</span>
+          <span className="font-mono font-semibold text-slate-900">Rank #12</span>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <section
@@ -5096,180 +5206,145 @@ function HowItWorks() {
       id="how-it-works"
       className="py-20 sm:py-28 px-4 sm:px-7 relative bg-white overflow-hidden"
     >
-      <div className="max-w-[1180px] mx-auto">
+      <div className="max-w-[1160px] mx-auto">
         <SectionHeader
           badge="Workflow"
           icon={Globe}
           tone="blue"
           title="From setup to consistent execution"
-          subtitle="in four structured steps."
-          description="Scroll through each step — journaling, risk enforcement, AI review, and community accountability come online in sequence."
+          subtitle="in four natural steps."
+          description="Scroll down to follow the workflow — each stage activates in sequence, with zero clutter."
           className="mb-10 sm:mb-12"
         />
 
-        {/* Scroll-Driven Horizontal Step Pipeline (Desktop) */}
-        <div className="hidden lg:block relative max-w-[960px] mx-auto mb-9 px-6">
-          <div className="relative h-[3px] w-full rounded-full bg-slate-200/80 overflow-hidden">
-            <motion.div
-              style={{
-                scaleX: manualStep !== null ? (manualStep + 1) / 4 : lineScaleX,
-                transformOrigin: "left",
-              }}
-              className="absolute inset-0 bg-gradient-to-r from-[#2563EB] via-[#3B82F6] to-emerald-500 rounded-full"
-            />
-          </div>
+        {/* Handwritten Curly Ribbon Trajectory Connecting Steps 01 → 04 */}
+        <div className="hidden lg:block relative max-w-[1120px] mx-auto -mb-2">
+          <svg viewBox="0 0 1120 92" fill="none" className="w-full h-[84px] overflow-visible" aria-hidden="true">
+            <defs>
+              <linearGradient id="workflowCurlyInk" x1="120" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#2563EB" />
+                <stop offset="62%" stopColor="#3B82F6" />
+                <stop offset="100%" stopColor="#10B981" />
+              </linearGradient>
+            </defs>
 
-          <div className="flex items-center justify-between -mt-[17px] relative z-10">
-            {STEPS.map((step, i) => {
+            {/* Base Slate Hairline Wave */}
+            <path
+              d={curlyWavePath}
+              stroke="#E2E8F0"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+
+            {/* Soft Ambient Halo Underlay */}
+            <motion.path
+              d={curlyWavePath}
+              stroke="rgba(37, 99, 235, 0.14)"
+              strokeWidth="7"
+              strokeLinecap="round"
+              style={{
+                pathLength: manualStep !== null ? (manualStep + 1) / 4 : ribbonProgress,
+              }}
+            />
+
+            {/* Animated Crisp Inked Curly Line */}
+            <motion.path
+              d={curlyWavePath}
+              stroke="url(#workflowCurlyInk)"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              style={{
+                pathLength: manualStep !== null ? (manualStep + 1) / 4 : ribbonProgress,
+              }}
+            />
+
+            {/* Waypoint Anchors along the Curve */}
+            {STEPS.map((s, i) => {
               const isReached = i <= currentStep;
               const isCurrent = i === currentStep;
               return (
-                <button
-                  key={step.num}
-                  type="button"
+                <g
+                  key={s.num}
                   onClick={() => setManualStep(manualStep === i ? null : i)}
-                  className="group flex flex-col items-center gap-1.5 cursor-pointer"
+                  className="cursor-pointer"
                 >
-                  <span
-                    className={`w-8 h-8 rounded-[12px_5px_12px_5px] text-[11px] font-mono font-bold inline-flex items-center justify-center border transition-all duration-300 ${
-                      isCurrent
-                        ? "bg-[#2563EB] border-[#2563EB] text-white shadow-[0_8px_22px_-4px_rgba(37,99,235,0.5)] scale-110"
-                        : isReached
-                        ? "bg-blue-50 border-[#2563EB] text-[#2563EB]"
-                        : "bg-white border-slate-200 text-slate-400 group-hover:border-slate-300"
-                    }`}
-                  >
-                    {i < currentStep ? <Check size={13} strokeWidth={2.6} /> : step.num}
-                  </span>
-                  <span
-                    className={`text-[10.5px] font-semibold transition-colors ${
-                      isCurrent ? "text-[#2563EB]" : isReached ? "text-slate-700" : "text-slate-400"
-                    }`}
-                  >
-                    Step {step.num}
-                  </span>
-                </button>
+                  {isCurrent && (
+                    <circle
+                      cx={s.nodeX}
+                      cy={s.nodeY}
+                      r="14"
+                      fill="rgba(37, 99, 235, 0.14)"
+                    />
+                  )}
+                  <circle
+                    cx={s.nodeX}
+                    cy={s.nodeY}
+                    r={isCurrent ? "7.5" : "5.5"}
+                    fill={isReached ? "#2563EB" : "#FFFFFF"}
+                    stroke={isReached ? "#2563EB" : "#CBD5E1"}
+                    strokeWidth="2"
+                  />
+                  <circle
+                    cx={s.nodeX}
+                    cy={s.nodeY}
+                    r="2.2"
+                    fill="#FFFFFF"
+                  />
+                </g>
               );
             })}
-          </div>
+          </svg>
         </div>
 
-        {/* 4 Sequential Step Bento Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Staggered Human-Crafted Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6 items-start">
           {STEPS.map((step, i) => {
-            const Icon = step.icon;
             const isCurrent = i === currentStep;
             const isReached = i <= currentStep;
 
             return (
               <motion.div
                 key={step.num}
-                initial={{ opacity: 0, y: 26 }}
-                animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 26 }}
-                transition={{ duration: 0.48, delay: i * 0.22, ease: EASE_OUT }}
+                initial={{ opacity: 0, y: 24 }}
+                animate={inView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
+                transition={{ duration: 0.5, delay: i * 0.2, ease: EASE_OUT }}
                 onClick={() => setManualStep(manualStep === i ? null : i)}
-                className={`group relative rounded-[22px_10px_22px_10px] p-5 border flex flex-col justify-between gap-5 transition-all duration-300 cursor-pointer ${
+                className={`${step.stagger} group relative rounded-2xl p-5 border flex flex-col justify-between gap-5 transition-all duration-300 cursor-pointer ${
                   isCurrent
-                    ? "bg-gradient-to-b from-[#F5F8FF] to-white border-[#2563EB] shadow-[0_20px_44px_-16px_rgba(37,99,235,0.28)] ring-2 ring-[#2563EB]/12 -translate-y-1"
+                    ? "bg-white border-slate-900/15 ring-1 ring-[#2563EB]/35 shadow-[0_24px_48px_-18px_rgba(37,99,235,0.22),0_4px_12px_-4px_rgba(15,23,42,0.06)] -translate-y-1"
                     : isReached
-                    ? "bg-white border-blue-200/80 shadow-[0_10px_28px_-12px_rgba(15,23,42,0.08)] hover:border-[#2563EB]/60"
-                    : "bg-slate-50/60 border-[#E4E4E4] opacity-75 hover:opacity-100 hover:bg-white hover:border-slate-300"
+                    ? "bg-white border-slate-200/90 shadow-[0_10px_28px_-14px_rgba(15,23,42,0.07)] hover:border-slate-300"
+                    : "bg-[#FAFAFC] border-slate-200/75 opacity-80 hover:opacity-100 hover:bg-white"
                 }`}
               >
-                {/* Top Header Strip */}
+                {/* Clean Editorial Header (Numeral + Hairline Accent) */}
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-4">
-                    <div className="inline-flex items-center gap-2">
-                      <span
-                        className={`w-9 h-9 rounded-[12px_5px_12px_5px] inline-flex items-center justify-center transition-colors ${
-                          isCurrent
-                            ? "bg-[#2563EB] text-white shadow-[0_6px_14px_rgba(37,99,235,0.35)]"
-                            : isReached
-                            ? "bg-blue-50 text-[#2563EB]"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        <Icon size={16} strokeWidth={2} />
-                      </span>
-                      <span
-                        className={`text-[10.5px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border ${
-                          isCurrent
-                            ? "bg-blue-50 border-blue-200 text-[#2563EB]"
-                            : "bg-white border-slate-200 text-slate-400"
-                        }`}
-                      >
-                        Step {step.num}
-                      </span>
-                    </div>
-                    <span className="text-[10.5px] font-mono text-slate-400">{step.meta}</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <span
+                      className={`text-[12px] font-mono font-semibold tracking-wider transition-colors ${
+                        isCurrent ? "text-[#2563EB]" : isReached ? "text-slate-700" : "text-slate-400"
+                      }`}
+                    >
+                      {step.num}
+                    </span>
+                    <span
+                      className={`h-[1.5px] transition-all duration-300 rounded-full ${
+                        isCurrent ? "w-8 bg-[#2563EB]" : isReached ? "w-5 bg-slate-300" : "w-4 bg-slate-200"
+                      }`}
+                    />
                   </div>
 
-                  <h3 className="text-[16.5px] font-bold tracking-[-0.015em] text-slate-950 mb-1.5 leading-snug">
+                  <h3 className="text-[16px] font-semibold tracking-[-0.02em] text-slate-950 mb-1.5 leading-snug">
                     {step.title}
                   </h3>
                   <p className="text-[13px] text-slate-500 leading-relaxed">{step.desc}</p>
                 </div>
 
-                {/* Bespoke Step Miniature Live Widget */}
-                <div
-                  className={`rounded-[14px_6px_14px_6px] p-3 border transition-colors ${
-                    isCurrent
-                      ? "bg-white border-blue-200/80 shadow-xs"
-                      : "bg-slate-50/90 border-slate-200/70"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11.5px] font-bold text-slate-900 truncate">
-                      {step.previewTitle}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-700 shrink-0">
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full bg-emerald-500 ${
-                          isCurrent ? "animate-pulse" : ""
-                        }`}
-                      />
-                      {step.previewStatus}
-                    </span>
-                  </div>
-                  <div className="text-[10.5px] text-slate-400 mt-1 truncate font-medium">
-                    {step.previewSub}
-                  </div>
-                </div>
+                {/* Bespoke Product UI Snapshot Inside Each Card */}
+                {renderStepArtifact(i, isCurrent)}
               </motion.div>
             );
           })}
-        </div>
-
-        {/* Active Step Scroll Status Indicator Bar */}
-        <div className="mt-7 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#F8FAFC] border border-slate-200/80 px-4 py-2.5 text-[12px]">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="px-2 py-0.5 rounded-full bg-[#2563EB] text-white font-mono text-[10.5px] font-bold shrink-0">
-              {STEPS[currentStep].num} / 04
-            </span>
-            <span className="font-semibold text-slate-900 truncate">
-              {STEPS[currentStep].title}
-            </span>
-            <span className="hidden md:inline text-slate-400 truncate">
-              — {STEPS[currentStep].previewSub}
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {STEPS.map((s, idx) => (
-              <button
-                key={s.num}
-                type="button"
-                aria-label={`Jump to step ${s.num}`}
-                onClick={() => setManualStep(manualStep === idx ? null : idx)}
-                className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                  idx === currentStep
-                    ? "w-6 bg-[#2563EB]"
-                    : idx < currentStep
-                    ? "w-3 bg-blue-300"
-                    : "w-1.5 bg-slate-300"
-                }`}
-              />
-            ))}
-          </div>
         </div>
       </div>
     </section>
@@ -5320,70 +5395,81 @@ const TESTIS = [
     name: "Priya Mehra",
     role: "Day Trader, Pune",
     init: "PM",
+    broker: "Exness MT5 · XAU/USD",
+    proof: "42% → 67% Win Rate",
+    metricLabel: "8-Week Verified",
     text: "Seeing real verified P&Ls from other traders keeps me accountable. My win rate jumped from 42% to 67% in two months.",
   },
   {
     name: "Rahul Sharma",
     role: "IIT Delhi Graduate",
     init: "RS",
+    broker: "Zerodha · NIFTY 50",
+    proof: "19d Clean Streak",
+    metricLabel: "0 Tilt Breaches",
     text: "Risk Guard stopped me from revenge trading after a bad morning session. Saved my account more than once.",
   },
   {
     name: "Kavita Trivedi",
     role: "Swing Trader, Mumbai",
     init: "KT",
+    broker: "FundedNext · EUR/USD",
+    proof: "Rank #1 Nov Cup",
+    metricLabel: "Funded Qualified",
     text: "Won the November trading competition and qualified for a funded account. The leaderboard keeps your focus sharp daily.",
   },
   {
     name: "Arjun Das",
     role: "Software Engineer, Bengaluru",
     init: "AD",
+    broker: "IC Markets · NAS100",
+    proof: "2.4x Profit Factor",
+    metricLabel: "Auto-Synced",
     text: "Auto-Sync Journal eliminated manual logging. The AI coach spotted that I was overleveraging on Mondays.",
   },
   {
     name: "Sneha Kapoor",
     role: "Forex Trader, Hyderabad",
     init: "SK",
+    broker: "Pepperstone · GBP/USD",
+    proof: "96 / 100 Discipline",
+    metricLabel: "MT5 Verified",
     text: "Following verified setups from disciplined traders taught me more than any course. Zero noise.",
   },
   {
     name: "Vikram Singh",
     role: "Business Owner, Delhi",
     init: "VS",
+    broker: "Vantage · XAU/USD",
+    proof: "+$4,120 / Mo",
+    metricLabel: "Live Feed Link",
     text: "Everyone here connects live MT5 accounts so results are verifiable. No fake gurus, no edited screenshots.",
   },
 ];
 
-const STATS = [
-  { val: "12,400+", label: "Active traders" },
-  { val: "₹2.8M", label: "Competition prizes" },
-  { val: "94%", label: "Rule adherence" },
-  { val: "40+", label: "MT5 brokers" },
-];
-
-const COMMUNITY_PILLARS = [
-  {
-    title: "Pulse feed",
-    desc: "Share verified setups, profit milestones, and reviews in real time.",
-  },
-  {
-    title: "Signal channels",
-    desc: "Subscribe to broker-verified broadcast desks with structured trade alerts.",
-  },
-  {
-    title: "Direct messages",
-    desc: "Collaborate 1-on-1 with trading mentors inside one unified workspace.",
-  },
-  {
-    title: "Webinar rooms",
-    desc: "Join live session breakdowns hosted by vetted disciplined performers.",
-  },
-];
-
 function Social() {
+  const proofRef = useRef<HTMLElement | null>(null);
+  const inView = useInView(proofRef, { once: true, amount: 0.2 });
+  const [countPct, setCountPct] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const ctrl = animate(0, 1, {
+      duration: 1.35,
+      ease: [0.16, 1, 0.3, 1],
+      onUpdate: (v) => setCountPct(v),
+    });
+    return () => ctrl.stop();
+  }, [inView]);
+
+  const activeTraders = Math.round(12400 * countPct).toLocaleString();
+  const prizePool = (2.8 * countPct).toFixed(1);
+  const ruleAdherence = Math.round(94 * countPct);
+  const brokerCount = Math.round(40 * countPct);
+
   return (
-    <section id="wall-of-fame" className="py-20 sm:py-24 relative overflow-hidden bg-white">
-      <div className="max-w-[1160px] mx-auto px-4 sm:px-7">
+    <section ref={proofRef} id="wall-of-fame" className="py-20 sm:py-28 relative overflow-hidden bg-white">
+      <div className="max-w-[1180px] mx-auto px-4 sm:px-7">
         <SectionHeader
           badge="Community & Proof"
           icon={Users}
@@ -5391,74 +5477,252 @@ function Social() {
           title="Traders who chose"
           subtitle="to grow together."
           inlineSubtitle
-          description="Share verified setups, compete on rule-weighted leaderboards, and connect with disciplined traders worldwide."
-          className="mb-12"
+          description="Share broker-verified executions, compete on rule-weighted leaderboards, and connect with disciplined traders worldwide."
+          className="mb-12 sm:mb-14"
         />
 
-        {/* Combined Metrics + Community Highlights Architectural Matrix */}
-        <div className="rounded-2xl border border-[#E4E4E4] bg-[#E4E4E4] overflow-hidden mb-14">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px">
-            {STATS.map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05, ease: EASE_OUT }}
-                className="bg-white p-6 sm:p-7 text-center"
-              >
-                <div className="text-[28px] sm:text-[32px] font-bold text-slate-950 tracking-[-0.025em] tabular-nums leading-none">
-                  {s.val}
+        {/* Editorial Proof Bento Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 mb-12">
+          {/* Left Featured Card: Live Rule-Weighted Leaderboard + Scroll Telemetry */}
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5, ease: EASE_OUT }}
+            className="lg:col-span-5 relative overflow-hidden rounded-[24px] bg-[#0B0F19] text-white p-6 flex flex-col justify-between gap-6 border border-slate-800/80 shadow-[0_24px_54px_-18px_rgba(11,15,25,0.45)]"
+          >
+            {/* Subtle Radial Accent & Decorative Curly Wave */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-20 -right-16 w-60 h-60 rounded-full bg-blue-600/20 blur-3xl"
+            />
+            <svg
+              viewBox="0 0 120 36"
+              fill="none"
+              aria-hidden="true"
+              className="pointer-events-none absolute top-4 right-5 w-20 h-6 opacity-35"
+            >
+              <path
+                d="M 4 28 C 24 4, 48 32, 68 12 C 82 -2, 98 22, 116 8"
+                stroke="#60A5FA"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            <div className="relative z-10 flex items-start justify-between gap-4">
+              <div>
+                <div className="text-[11px] font-mono uppercase tracking-widest text-blue-400 font-semibold">
+                  Verified Execution Network
                 </div>
-                <div className="text-[13px] font-medium text-slate-500 mt-2.5">
-                  {s.label}
+                <div className="mt-2 flex items-baseline gap-2.5">
+                  <span className="text-[36px] sm:text-[42px] font-bold tracking-tight tabular-nums leading-none">
+                    {activeTraders}+
+                  </span>
+                  <span className="text-[12.5px] font-medium text-slate-400">
+                    active traders
+                  </span>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px border-t border-[#E4E4E4]">
-            {COMMUNITY_PILLARS.map((item) => (
-              <div key={item.title} className="bg-[#FAFBFB] p-5 sm:p-6">
-                <h3 className="text-[14.5px] font-semibold text-slate-900 mb-1">
-                  {item.title}
-                </h3>
+              </div>
+              <div className="text-right">
+                <div className="text-[20px] font-bold font-mono text-emerald-400 tabular-nums leading-none">
+                  {ruleAdherence}%
+                </div>
+                <div className="text-[10.5px] text-slate-400 mt-1">Rule adherence</div>
+              </div>
+            </div>
+
+            {/* Live Rule-Weighted Standings */}
+            <div className="relative z-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between text-[10.5px] font-mono text-slate-400">
+                <span>LIVE RULE LEADERBOARD</span>
+                <span className="inline-flex items-center gap-1.5 text-emerald-400">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Synced
+                </span>
+              </div>
+              {[
+                { rank: "01", name: "Nikhil H.", pair: "XAU/USD · 14d Clean", score: "94 Score", pnl: "+$12,530" },
+                { rank: "02", name: "Arjun Mehta", pair: "XAU/USD · NY Sweep", score: "91% Win", pnl: "+$9,480" },
+                { rank: "03", name: "Kavita T.", pair: "EUR/USD · Prop Desk", score: "89 Score", pnl: "+$7,820" },
+              ].map((row) => (
+                <div
+                  key={row.rank}
+                  className="flex items-center justify-between gap-2 rounded-xl bg-white/[0.03] px-3 py-2 text-[11.5px] border border-white/[0.05]"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="font-mono text-[10.5px] text-slate-500 font-semibold">{row.rank}</span>
+                    <div className="min-w-0">
+                      <div className="font-semibold text-white truncate">{row.name}</div>
+                      <div className="text-[10px] text-slate-400 truncate">{row.pair}</div>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-mono font-bold text-emerald-400">{row.pnl}</div>
+                    <div className="text-[9.5px] text-slate-400">{row.score}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Right 2x2 Community Pillar Bento Cards */}
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 1: Pulse Feed */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.05, ease: EASE_OUT }}
+              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[15px] font-bold text-slate-950">Pulse feed</span>
+                  <span className="font-mono text-[11.5px] font-bold text-[#2563EB] tabular-nums">
+                    ₹{prizePool}M prizes
+                  </span>
+                </div>
                 <p className="text-[12.5px] text-slate-500 leading-relaxed">
-                  {item.desc}
+                  Share broker-verified setups, profit milestones, and session reviews in real time.
                 </p>
               </div>
-            ))}
+              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between text-[10.5px]">
+                <span className="font-semibold text-slate-800 truncate">✓ XAU/USD Long · MT5 Receipt</span>
+                <span className="font-mono font-bold text-emerald-600 shrink-0">+2.4R</span>
+              </div>
+            </motion.div>
+
+            {/* 2: Signal Channels */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.12, ease: EASE_OUT }}
+              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[15px] font-bold text-slate-950">Signal channels</span>
+                  <span className="font-mono text-[11.5px] font-bold text-slate-900 tabular-nums">
+                    {brokerCount}+ brokers
+                  </span>
+                </div>
+                <p className="text-[12.5px] text-slate-500 leading-relaxed">
+                  Subscribe to audited broadcast desks with structured entries, stops, and rule checks.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between gap-2 text-[10.5px]">
+                <span className="text-slate-500 truncate">IC Markets · Exness · Pepperstone</span>
+                <span className="w-2 h-2 rounded-full bg-[#2563EB] shrink-0" />
+              </div>
+            </motion.div>
+
+            {/* 3: Direct Messages */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.18, ease: EASE_OUT }}
+              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[15px] font-bold text-slate-950">Direct messages</span>
+                  <span className="text-[11px] font-mono text-slate-400">1-on-1 desks</span>
+                </div>
+                <p className="text-[12.5px] text-slate-500 leading-relaxed">
+                  Review executions privately with mentors and accountability partners inside your workspace.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between text-[10.5px]">
+                <span className="text-slate-600 truncate">&ldquo;Halved risk before CPI.&rdquo;</span>
+                <span className="text-[#2563EB] font-semibold shrink-0">Logged ✓</span>
+              </div>
+            </motion.div>
+
+            {/* 4: Webinar Rooms */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.45, delay: 0.24, ease: EASE_OUT }}
+              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[15px] font-bold text-slate-950">Webinar rooms</span>
+                  <span className="text-[11px] font-mono text-emerald-600 font-semibold">Live weekly</span>
+                </div>
+                <p className="text-[12.5px] text-slate-500 leading-relaxed">
+                  Join live tape breakdowns and prop-firm reviews hosted by vetted disciplined traders.
+                </p>
+              </div>
+              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between text-[10.5px]">
+                <div className="flex -space-x-1.5">
+                  {["NH", "PM", "KT"].map((a) => (
+                    <span
+                      key={a}
+                      className="w-5 h-5 rounded-full bg-slate-900 text-white text-[8px] font-bold border border-white inline-flex items-center justify-center"
+                    >
+                      {a}
+                    </span>
+                  ))}
+                </div>
+                <span className="text-slate-600 font-medium">NY Open Breakdown</span>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
 
+      {/* Upgraded Verified Proof Cards Marquee (Pause on Hover) */}
       <div
         className="relative w-full overflow-hidden flex"
         style={{
           WebkitMaskImage:
-            "linear-gradient(to right, transparent, black 16%, black 84%, transparent)",
+            "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
           maskImage:
-            "linear-gradient(to right, transparent, black 16%, black 84%, transparent)",
+            "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
         }}
       >
-        <div className="testimonials-track flex gap-5 py-2">
+        <div className="testimonials-track flex gap-4 sm:gap-5 py-3 hover:[animation-play-state:paused]">
           {[...TESTIS, ...TESTIS].map((t, i) => (
             <div
               key={i}
-              className="w-[320px] shrink-0 rounded-2xl bg-white border border-[#E4E4E4] shadow-[0_6px_24px_-14px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between gap-6"
+              className="w-[336px] sm:w-[360px] shrink-0 rounded-2xl bg-white border border-slate-200/90 shadow-[0_12px_32px_-16px_rgba(15,23,42,0.09)] p-5 flex flex-col justify-between gap-4 hover:border-blue-300/80 transition-colors"
             >
-              <p className="text-[14px] text-slate-600 leading-relaxed font-normal">
+              {/* Top Verified Broker & Proof Metric Strip */}
+              <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                <span className="text-[10.5px] font-mono text-slate-400 truncate">
+                  {t.broker}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-mono font-bold text-emerald-700 shrink-0">
+                  {t.proof}
+                </span>
+              </div>
+
+              {/* Quote Body */}
+              <p className="text-[13.5px] text-slate-700 leading-relaxed font-normal">
                 &ldquo;{t.text}&rdquo;
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center text-[11px] font-bold text-[#2563EB] shrink-0">
-                  {t.init}
-                </div>
-                <div>
-                  <div className="text-[13.5px] font-semibold text-slate-900">
-                    {t.name}
+
+              {/* Author + Verified Tag Footer */}
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0">
+                    {t.init}
                   </div>
-                  <div className="text-[12px] text-slate-500">{t.role}</div>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-semibold text-slate-950 truncate">
+                      {t.name}
+                    </div>
+                    <div className="text-[11px] text-slate-500 truncate">{t.role}</div>
+                  </div>
                 </div>
+                <span className="text-[10px] font-semibold text-[#2563EB] shrink-0">
+                  {t.metricLabel} ✓
+                </span>
               </div>
             </div>
           ))}
