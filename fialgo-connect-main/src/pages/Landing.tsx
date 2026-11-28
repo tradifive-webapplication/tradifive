@@ -2078,17 +2078,65 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
       {/* Main Content Container */}
       <div className="relative z-10 max-w-[1220px] mx-auto px-4 sm:px-8">
         {/* Centered Header + Segmented Toggle */}
-        <div className="text-center max-w-[600px] mx-auto mb-7 sm:mb-12">
+        <div className="text-center max-w-[660px] mx-auto mb-7 sm:mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.4, ease: EASE_OUT }}
+            className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1 rounded-full bg-white border border-[#E4E4E4] shadow-[0_2px_10px_-3px_rgba(15,23,42,0.08)] mb-3.5"
+          >
+            <span className="w-5 h-5 rounded-full bg-blue-50 border border-blue-200/70 flex items-center justify-center text-[#2563EB]">
+              <LayoutGrid size={11} strokeWidth={2.2} />
+            </span>
+            <span className="text-[12px] font-semibold tracking-[-0.01em] text-slate-900">
+              Inside the workspace
+            </span>
+          </motion.div>
+
           <h2
             style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[48px] font-bold tracking-[-0.035em] leading-[1.08] text-slate-900"
+            className="text-[28px] sm:text-[46px] font-bold tracking-[-0.035em] leading-[1.08] text-slate-950"
           >
-            One workspace for{" "}
-            <span className="block text-slate-400 font-light">the whole session.</span>
+            <BlurText
+              as="span"
+              text="One workspace"
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              trigger="view"
+              threshold={0.05}
+              delay={55}
+              stepDuration={0.3}
+              blur={8}
+              distance={22}
+              className="justify-center font-bold tracking-[-0.035em] text-slate-950"
+            />
+            <BlurText
+              as="span"
+              text="for your entire trading session."
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              trigger="view"
+              threshold={0.05}
+              delay={55}
+              initialDelay={180}
+              stepDuration={0.3}
+              blur={8}
+              distance={22}
+              className="justify-center font-normal tracking-[-0.03em] text-slate-400 mt-0.5"
+            />
           </h2>
-          <p className="mt-2.5 sm:mt-3 text-[13.5px] sm:text-[15px] text-slate-500">
-            Pick a part to see it in the app.
-          </p>
+          <motion.p
+            initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
+            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.5, delay: 0.24, ease: EASE_OUT }}
+            className="mt-3 sm:mt-3.5 text-[14px] sm:text-[15.5px] font-normal text-slate-600 leading-relaxed"
+          >
+            Inspect how auto-journaling, autonomous Risk Guard, and AI session coaching stay synced live.
+          </motion.p>
 
           {/* View Switcher Pill */}
           <div className="mt-4 sm:mt-5 inline-flex items-center p-1 rounded-full bg-slate-100 border border-slate-200/90 shadow-inner">
@@ -2644,149 +2692,188 @@ function PlatformPillars() {
 }
 
 /* ════════════════
+   REUSABLE SCROLL SECTION HEADER (BOXED BADGE + BLURTEXT + SUBHEADER)
+════════════════ */
+function SectionHeader({
+  badge,
+  icon: Icon,
+  tone = "blue",
+  title,
+  subtitle,
+  description,
+  align = "center",
+  className = "",
+  inlineSubtitle = false,
+  action,
+}: {
+  badge: string;
+  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
+  tone?: "blue" | "rose" | "emerald";
+  title: string;
+  subtitle: string;
+  description?: string;
+  align?: "center" | "left";
+  className?: string;
+  inlineSubtitle?: boolean;
+  action?: React.ReactNode;
+}) {
+  const toneStyles = {
+    blue: "bg-blue-50 border-blue-200/70 text-[#2563EB]",
+    rose: "bg-rose-50 border-rose-200/70 text-rose-600",
+    emerald: "bg-emerald-50 border-emerald-200/70 text-emerald-700",
+  }[tone];
+
+  const isCenter = align === "center";
+
+  return (
+    <div className={`${isCenter ? "text-center flex flex-col items-center" : "text-left"} ${className}`}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.25 }}
+        transition={{ duration: 0.4, ease: EASE_OUT }}
+        className={`inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1 rounded-full bg-white border border-[#E4E4E4] shadow-[0_2px_10px_-3px_rgba(15,23,42,0.08)] mb-4 ${
+          isCenter ? "mx-auto" : ""
+        }`}
+      >
+        <span className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${toneStyles}`}>
+          <Icon size={11} strokeWidth={2.2} />
+        </span>
+        <span className="text-[12px] font-semibold tracking-[-0.01em] text-slate-900">
+          {badge}
+        </span>
+      </motion.div>
+
+      <h2
+        style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+        className={`text-[28px] sm:text-[42px] font-bold tracking-[-0.035em] leading-[1.1] text-slate-950 ${
+          isCenter ? "max-w-[780px] mx-auto" : ""
+        }`}
+      >
+        {inlineSubtitle ? (
+          <span
+            className={`inline-flex flex-wrap items-baseline gap-x-[0.26em] ${
+              isCenter ? "justify-center" : "justify-start"
+            }`}
+          >
+            <BlurText
+              as="span"
+              text={title}
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              trigger="view"
+              threshold={0.05}
+              delay={55}
+              stepDuration={0.3}
+              blur={8}
+              distance={22}
+              className={`${isCenter ? "justify-center" : "justify-start"} font-bold tracking-[-0.035em] text-slate-950`}
+            />
+            <BlurText
+              as="span"
+              text={subtitle}
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              trigger="view"
+              threshold={0.05}
+              delay={55}
+              initialDelay={180}
+              stepDuration={0.3}
+              blur={8}
+              distance={22}
+              className={`${isCenter ? "justify-center" : "justify-start"} font-normal tracking-[-0.03em] text-slate-400`}
+            />
+          </span>
+        ) : (
+          <>
+            <BlurText
+              as="span"
+              text={title}
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              trigger="view"
+              threshold={0.05}
+              delay={55}
+              stepDuration={0.3}
+              blur={8}
+              distance={22}
+              className={`${isCenter ? "justify-center" : "justify-start"} font-bold tracking-[-0.035em] text-slate-950`}
+            />
+            <BlurText
+              as="span"
+              text={subtitle}
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              trigger="view"
+              threshold={0.05}
+              delay={55}
+              initialDelay={200}
+              stepDuration={0.3}
+              blur={8}
+              distance={22}
+              className={`${isCenter ? "justify-center" : "justify-start"} font-normal tracking-[-0.03em] text-slate-400 mt-1`}
+            />
+          </>
+        )}
+      </h2>
+
+      {description && (
+        <motion.p
+          initial={{ opacity: 0, y: 12, filter: "blur(6px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.5, delay: 0.24, ease: EASE_OUT }}
+          className={`text-[15px] sm:text-[16px] font-normal text-slate-600 leading-[1.6] mt-4 ${
+            isCenter ? "max-w-[590px] mx-auto" : ""
+          }`}
+        >
+          {description}
+        </motion.p>
+      )}
+
+      {action && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.45, delay: 0.3, ease: EASE_OUT }}
+          className="mt-7"
+        >
+          {action}
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+/* ════════════════
    WHY TRADIFIVE
 ════════════════ */
 function WhyTradiFive() {
   return (
     <section id="why-tradifive" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[1160px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE_OUT }}
-          viewport={{ once: true, amount: 0.15 }}
-          className="flex flex-col items-center text-center"
-        >
-          <span className="text-[13px] font-semibold text-[#2563EB] mb-3">
-            Why TradiFive
-          </span>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[44px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
-          >
-            Trading is more than charts —
-            <span className="block font-extralight text-slate-500 mt-1">
-              it comes down to psychology &amp; discipline.
-            </span>
-          </h2>
-          <p className="text-[14.5px] sm:text-[15.5px] font-light text-slate-500 max-w-[580px] mx-auto leading-relaxed mb-12">
-            Every component inside TradiFive connects your broker feed, automated journal memory, Risk Guard limits, and AI coaching in real time.
-          </p>
+        <SectionHeader
+          badge="Why TradiFive"
+          icon={Layers}
+          tone="blue"
+          title="Trading is more than charts —"
+          subtitle="it comes down to psychology & discipline."
+          description="Every system in TradiFive links your live MT5 feed, automated journal memory, Risk Guard limits, and AI coaching in one loop."
+          className="mb-12"
+        />
 
-          <div className="w-full text-left">
-            <AgentBentoGrid />
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-/* ════════════════
-   BENEFITS
-════════════════ */
-function BenefitsSection() {
-  const BENEFITS = [
-    {
-      icon: Zap,
-      badge: "4ms Broker Sync",
-      title: "Zero manual journaling",
-      desc: "Every fill, stop loss, take profit, and risk ratio syncs automatically from MT5 — zero spreadsheet upkeep required.",
-    },
-    {
-      icon: ShieldCheck,
-      badge: "Autonomous Guardrails",
-      title: "Protect hard-won equity",
-      desc: "Set daily drawdown limits and consecutive-loss lockouts once. Risk Guard steps in before an emotional spiral starts.",
-    },
-    {
-      icon: Target,
-      badge: "Expectancy Radar",
-      title: "Trade only your A+ edge",
-      desc: "Instantly isolate which pairs, sessions, and setups drive net profits — and cut the setups quietly draining your account.",
-    },
-    {
-      icon: BrainLikePlaceholder,
-      badge: "AI Session Coach",
-      title: "Pinpoint blind spots early",
-      desc: "TradiFive AI audits your exact timing, tilt loops, and sizing drift into plain-English daily coaching briefs.",
-    },
-    {
-      icon: Users,
-      badge: "Verified Network",
-      title: "Signal without the hype",
-      desc: "Follow traders with broker-authenticated track records and compete inside structured discipline-weighted challenges.",
-    },
-    {
-      icon: FileText,
-      badge: "Desk Statements",
-      title: "Prop-ready performance proof",
-      desc: "Generate clean equity statements and verifiable public profile links ready for mentors, funds, or prop evaluations.",
-    },
-  ];
-
-  return (
-    <section id="benefits" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
-      <div className="max-w-[1160px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="text-center mb-14"
-        >
-          <p className="text-[13px] font-semibold text-[#2563EB] mb-3">Benefits</p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[44px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
-          >
-            Built for traders who
-            <span className="block font-extralight text-slate-500 mt-1">
-              treat consistency like capital.
-            </span>
-          </h2>
-          <p className="text-[14.5px] sm:text-[15.5px] font-light text-slate-500 max-w-[560px] mx-auto leading-relaxed">
-            Replace guesswork and fragmented tools with one disciplined loop built to compound your real edge.
-          </p>
-        </motion.div>
-
-        <div className="rounded-2xl border border-slate-200 bg-slate-200 overflow-hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px">
-          {BENEFITS.map((item, idx) => {
-            const Icon = item.icon;
-            return (
-              <motion.div
-                key={item.title}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: idx * 0.04, ease: EASE_OUT }}
-                className="bg-white hover:bg-[#FAFBFD] p-7 sm:p-8 flex flex-col justify-between gap-7 transition-colors duration-200"
-              >
-                <div>
-                  <div className="flex items-center justify-between gap-3 mb-6">
-                    <Icon size={19} strokeWidth={1.7} className="text-[#2563EB]" />
-                    <span className="text-[11px] font-mono font-medium text-slate-400 tracking-tight">
-                      {item.badge}
-                    </span>
-                  </div>
-                  <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-2">
-                    {item.title}
-                  </h3>
-                  <p className="text-[13.5px] text-slate-500 leading-relaxed font-normal">
-                    {item.desc}
-                  </p>
-                </div>
-              </motion.div>
-            );
-          })}
+        <div className="w-full text-left">
+          <AgentBentoGrid />
         </div>
       </div>
     </section>
   );
 }
-
-/* Reuses Sparkles visually cleanly for AI Coach Benefit icon */
-const BrainLikePlaceholder = Sparkles;
 
 /* ════════════════
    THE PROBLEM
@@ -2822,34 +2909,29 @@ function ProblemSection() {
   return (
     <section id="problem" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[1160px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="lg:col-span-5 lg:sticky lg:top-28"
-        >
-          <p className="text-[13px] font-semibold text-rose-600 mb-3">
-            The problem
-          </p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
+        <div className="lg:col-span-5 lg:sticky lg:top-28">
+          <SectionHeader
+            badge="The problem"
+            icon={AlertTriangle}
+            tone="rose"
+            align="left"
+            title="Most traders don't lack setups —"
+            subtitle="they lose to unguarded behavior."
+            description="Charts only show price. The real capital leaks happen in execution discipline right between setups."
+            className="mb-6"
+          />
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.25 }}
+            transition={{ duration: 0.45, delay: 0.3, ease: EASE_OUT }}
+            className="border-l-2 border-rose-500/80 pl-4 py-0.5 text-[13px] text-slate-600 leading-relaxed"
           >
-            Most traders don&apos;t lack setups —
-            <span className="block font-extralight text-slate-500 mt-1">
-              they lose to unguarded behavior.
-            </span>
-          </h2>
-          <p className="text-[14.5px] sm:text-[15px] font-light text-slate-500 leading-relaxed mb-6">
-            Charts only show price. The real capital leaks happen in execution discipline right between setups.
-          </p>
-          <div className="border-l-2 border-rose-500/80 pl-4 py-0.5 text-[13px] text-slate-600 leading-relaxed">
             Across MT5 retail &amp; prop accounts, over 70% of monthly equity drawdowns occur during unscheduled post-loss sessions.
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
-        <div className="lg:col-span-7 border-t border-slate-200">
+        <div className="lg:col-span-7 border-t border-[#E4E4E4]">
           {PROBLEMS.map((p, idx) => (
             <motion.div
               key={p.num}
@@ -2857,7 +2939,7 @@ function ProblemSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
-              className="py-6 sm:py-7 border-b border-slate-200 flex items-start gap-5 sm:gap-7"
+              className="py-6 sm:py-7 border-b border-[#E4E4E4] flex items-start gap-5 sm:gap-7"
             >
               <span className="text-[13px] font-mono font-semibold text-slate-400 pt-0.5 tabular-nums shrink-0">
                 {p.num}
@@ -2921,30 +3003,17 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
   return (
     <section id="solution" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[1160px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
-          transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12"
-        >
-          <div className="max-w-[600px]">
-            <p className="text-[13px] font-semibold text-emerald-600 mb-3">
-              The solution
-            </p>
-            <h2
-              style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-              className="text-[28px] sm:text-[42px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-3"
-            >
-              One disciplined workspace
-              <span className="block font-extralight text-slate-500 mt-1">
-                closing every leak automatically.
-              </span>
-            </h2>
-            <p className="text-[14.5px] sm:text-[15.5px] font-light text-slate-500 leading-relaxed">
-              TradiFive enforces your rules at the broker edge, logs every execution automatically, and coaches you back to peak form.
-            </p>
-          </div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+          <SectionHeader
+            badge="The solution"
+            icon={CheckCircle2}
+            tone="emerald"
+            align="left"
+            title="One disciplined workspace"
+            subtitle="closing every leak automatically."
+            description="TradiFive enforces your rules at the broker edge, logs every execution automatically, and coaches you back to peak form."
+            className="max-w-[620px]"
+          />
           <button
             type="button"
             onClick={onStart}
@@ -2953,9 +3022,9 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
             <span>Experience the Solution Free</span>
             <ArrowRight size={14} strokeWidth={2.2} />
           </button>
-        </motion.div>
+        </div>
 
-        <div className="rounded-2xl bg-[#F8FAFC] border border-slate-200/90 p-2.5 sm:p-3.5">
+        <div className="rounded-2xl bg-[#E4E4E4]/45 border border-[#E4E4E4] p-2.5 sm:p-3.5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3.5">
             {SOLUTIONS.map((s, idx) => {
               const Icon = s.icon;
@@ -2966,10 +3035,10 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
-                  className="rounded-xl bg-white border border-slate-200/80 p-6 sm:p-7 flex flex-col justify-between gap-6"
+                  className="rounded-xl bg-white border border-[#E4E4E4] p-6 sm:p-7 flex flex-col justify-between gap-6"
                 >
                   <div>
-                    <div className="flex items-center justify-between gap-3 mb-5 pb-3.5 border-b border-slate-100">
+                    <div className="flex items-center justify-between gap-3 mb-5 pb-3.5 border-b border-[#E4E4E4]/70">
                       <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
                         <Icon size={15} strokeWidth={1.8} className="text-slate-700" />
                         <span>Addresses <span className="text-slate-800 font-medium">{s.problemRef}</span></span>
@@ -3041,27 +3110,15 @@ function HowItWorks() {
   return (
     <section id="how-it-works" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[1160px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="text-center mb-14"
-        >
-          <p className="text-[13px] font-semibold text-[#2563EB] mb-3">Workflow</p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[30px] sm:text-[42px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
-          >
-            From setup to consistent execution{" "}
-            <span className="block font-extralight text-slate-500 mt-1">
-              in four structured steps.
-            </span>
-          </h2>
-          <p className="text-[15px] text-slate-500 max-w-[520px] mx-auto leading-relaxed">
-            Journaling, risk enforcement, AI review, and community accountability working from one unified feed.
-          </p>
-        </motion.div>
+        <SectionHeader
+          badge="Workflow"
+          icon={Globe}
+          tone="blue"
+          title="From setup to consistent execution"
+          subtitle="in four structured steps."
+          description="Journaling, risk enforcement, AI review, and community accountability working from one unified feed."
+          className="mb-14"
+        />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {STEPS.map((step, i) => {
@@ -3073,7 +3130,7 @@ function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.06, ease: EASE_OUT }}
-                className="border-t-2 border-slate-200 hover:border-[#2563EB] pt-6 flex flex-col justify-between gap-7 transition-colors duration-200"
+                className="border-t-2 border-[#E4E4E4] hover:border-[#2563EB] pt-6 flex flex-col justify-between gap-7 transition-colors duration-200"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
@@ -3096,7 +3153,7 @@ function HowItWorks() {
                   </p>
                 </div>
 
-                <div className="border-t border-slate-100 pt-3 flex items-center justify-between gap-2 text-[12px]">
+                <div className="border-t border-[#E4E4E4]/75 pt-3 flex items-center justify-between gap-2 text-[12px]">
                   <span className="font-medium text-slate-700 truncate">
                     {step.previewTitle}
                   </span>
@@ -3122,27 +3179,15 @@ function Pricing({ onStart }: { onStart: () => void }) {
   return (
     <section id="pricing" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[1180px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="text-center mb-12"
-        >
-          <p className="text-[13px] font-semibold text-[#2563EB] mb-3">Pricing</p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[30px] sm:text-[42px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
-          >
-            Simple, predictable plans
-            <span className="block font-extralight text-slate-500 mt-1">
-              invest in your edge.
-            </span>
-          </h2>
-          <p className="text-[15.5px] text-slate-500 max-w-[580px] mx-auto leading-relaxed">
-            Start free with core trade journaling and discipline tracking. Upgrade anytime as your capital scales.
-          </p>
-        </motion.div>
+        <SectionHeader
+          badge="Pricing"
+          icon={Crown}
+          tone="blue"
+          title="Simple, predictable plans"
+          subtitle="built to scale with your edge."
+          description="Start free with core trade journaling and discipline tracking. Upgrade anytime as your capital scales."
+          className="mb-12"
+        />
 
         <div className="relative z-10 w-full">
           <PricingCards
@@ -3162,7 +3207,7 @@ function Pricing({ onStart }: { onStart: () => void }) {
 }
 
 /* ════════════════
-   SOCIAL PROOF
+   COMMUNITY & SOCIAL PROOF
 ════════════════ */
 const TESTIS = [
   {
@@ -3210,40 +3255,73 @@ const STATS = [
   { val: "40+", label: "MT5 brokers" },
 ];
 
+const COMMUNITY_PILLARS = [
+  {
+    title: "Pulse feed",
+    desc: "Share verified setups, profit milestones, and reviews in real time.",
+  },
+  {
+    title: "Signal channels",
+    desc: "Subscribe to broker-verified broadcast desks with structured trade alerts.",
+  },
+  {
+    title: "Direct messages",
+    desc: "Collaborate 1-on-1 with trading mentors inside one unified workspace.",
+  },
+  {
+    title: "Webinar rooms",
+    desc: "Join live session breakdowns hosted by vetted disciplined performers.",
+  },
+];
+
 function Social() {
   return (
     <section id="wall-of-fame" className="py-20 sm:py-24 relative overflow-hidden bg-white">
       <div className="max-w-[1160px] mx-auto px-4 sm:px-7">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
-          {STATS.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.05, ease: EASE_OUT }}
-              className="rounded-2xl bg-white border border-slate-200/90 shadow-2xs p-6 text-center"
-            >
-              <div className="text-[28px] sm:text-[32px] font-bold text-slate-900 tracking-[-0.02em] tabular-nums leading-none">
-                {s.val}
-              </div>
-              <div className="text-[13px] font-medium text-slate-500 mt-2.5">
-                {s.label}
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <SectionHeader
+          badge="Community & Proof"
+          icon={Users}
+          tone="blue"
+          title="Traders who chose"
+          subtitle="to grow together."
+          inlineSubtitle
+          description="Share verified setups, compete on rule-weighted leaderboards, and connect with disciplined traders worldwide."
+          className="mb-12"
+        />
 
-        <div className="text-center mb-12">
-          <p className="text-[13px] font-semibold text-[#2563EB] mb-3">
-            From the community
-          </p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[38px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900"
-          >
-            Traders who chose <span className="font-extralight text-slate-500">to grow together.</span>
-          </h2>
+        {/* Combined Metrics + Community Highlights Architectural Matrix */}
+        <div className="rounded-2xl border border-[#E4E4E4] bg-[#E4E4E4] overflow-hidden mb-14">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px">
+            {STATS.map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.05, ease: EASE_OUT }}
+                className="bg-white p-6 sm:p-7 text-center"
+              >
+                <div className="text-[28px] sm:text-[32px] font-bold text-slate-950 tracking-[-0.025em] tabular-nums leading-none">
+                  {s.val}
+                </div>
+                <div className="text-[13px] font-medium text-slate-500 mt-2.5">
+                  {s.label}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px border-t border-[#E4E4E4]">
+            {COMMUNITY_PILLARS.map((item) => (
+              <div key={item.title} className="bg-[#FAFBFB] p-5 sm:p-6">
+                <h3 className="text-[14.5px] font-semibold text-slate-900 mb-1">
+                  {item.title}
+                </h3>
+                <p className="text-[12.5px] text-slate-500 leading-relaxed">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -3260,7 +3338,7 @@ function Social() {
           {[...TESTIS, ...TESTIS].map((t, i) => (
             <div
               key={i}
-              className="w-[320px] shrink-0 rounded-2xl bg-white border border-slate-200/90 shadow-[0_6px_24px_-14px_rgba(15,23,42,0.08)] p-6 flex flex-col justify-between gap-6"
+              className="w-[320px] shrink-0 rounded-2xl bg-white border border-[#E4E4E4] shadow-[0_6px_24px_-14px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between gap-6"
             >
               <p className="text-[14px] text-slate-600 leading-relaxed font-normal">
                 &ldquo;{t.text}&rdquo;
@@ -3332,8 +3410,8 @@ function FAQItem({
       onClick={() => setOpen(isOpen ? null : i)}
       className={`rounded-2xl border p-5 sm:p-6 cursor-pointer transition-colors duration-150 ${
         isOpen
-          ? "bg-[#F8FAFC] border-blue-200 shadow-sm"
-          : "bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs"
+          ? "bg-[#E4E4E4]/30 border-blue-300 shadow-xs"
+          : "bg-white border-[#E4E4E4] hover:border-slate-300 shadow-2xs"
       }`}
     >
       <div className="flex justify-between items-center gap-4">
@@ -3355,7 +3433,7 @@ function FAQItem({
             transition={{ duration: 0.22, ease: EASE_OUT }}
             className="overflow-hidden"
           >
-            <div className="pt-4 mt-4 border-t border-slate-200/80 text-[14px] text-slate-600 leading-relaxed">
+            <div className="pt-4 mt-4 border-t border-[#E4E4E4] text-[14px] text-slate-600 leading-relaxed">
               {f.a}
             </div>
           </motion.div>
@@ -3370,20 +3448,16 @@ function FAQ() {
   return (
     <section className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[780px] mx-auto">
-        <div className="text-center mb-12">
-          <p className="text-[13px] font-semibold text-[#2563EB] mb-3">
-            Frequently asked questions
-          </p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[38px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900"
-          >
-            Answers for <span className="font-extralight text-slate-500">serious traders.</span>
-          </h2>
-          <p className="text-[15px] text-slate-500 mt-3">
-            Security, broker integrations, and platform mechanics.
-          </p>
-        </div>
+        <SectionHeader
+          badge="FAQ"
+          icon={Info}
+          tone="blue"
+          title="Answers for"
+          subtitle="serious traders."
+          inlineSubtitle
+          description="Security, broker integrations, and platform mechanics."
+          className="mb-12"
+        />
 
         <div className="grid gap-3">
           {FAQS.map((f, i) => (
@@ -3396,251 +3470,21 @@ function FAQ() {
 }
 
 /* ════════════════
-   COMMUNITY NETWORK
-════════════════ */
-function CommunityNetwork({ onStart }: { onStart: () => void }) {
-  const innerRing = Array.from({ length: 6 }).map((_, i) => ({
-    id: i + 1,
-    angle: (i / 6) * 360,
-    r: 135,
-    avatar: ((i * 3) % 15) + 1,
-    gender: i % 2 === 0 ? "men" : "women",
-  }));
-  const outerRing = Array.from({ length: 6 }).map((_, i) => ({
-    id: i + 7,
-    angle: (i / 6) * 360 + 30,
-    r: 250,
-    avatar: ((i * 5 + 2) % 15) + 1,
-    gender: i % 2 === 0 ? "men" : "women",
-  }));
-  const allNodes = [...innerRing, ...outerRing];
-  const cx = 340;
-  const cy = 300;
-  const toXY = (angle: number, r: number) => ({
-    x: cx + r * Math.cos(((angle - 90) * Math.PI) / 180),
-    y: cy + r * Math.sin(((angle - 90) * Math.PI) / 180),
-  });
-
-  const benefits = [
-    {
-      title: "Pulse feed",
-      desc: "Share verified trade setups, profit milestones, and market reviews with followers in real time.",
-    },
-    {
-      title: "Signal channels",
-      desc: "Subscribe to verified trader broadcast rooms with structured execution alerts pushed to your workspace.",
-    },
-    {
-      title: "Direct messages",
-      desc: "Collaborate 1-on-1 with mentors and trading partners inside your workspace.",
-    },
-    {
-      title: "Webinar rooms",
-      desc: "Join live breakdown sessions hosted by verified traders to review setups and risk strategy.",
-    },
-  ];
-
-  return (
-    <section className="py-20 sm:py-24 px-4 sm:px-7 relative overflow-hidden bg-white">
-      <div className="max-w-[1160px] mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="text-center mb-16"
-        >
-          <p className="text-[13px] font-semibold text-[#2563EB] mb-3">
-            Global network
-          </p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[30px] sm:text-[46px] font-bold tracking-[-0.03em] leading-[1.1] text-slate-900 max-w-[780px] mx-auto mb-5"
-          >
-            Thousands of traders use TradiFive
-            <span className="block font-extralight text-slate-500 mt-1">
-              to learn, verify, and grow together.
-            </span>
-          </h2>
-          <p className="text-[16px] text-slate-500 max-w-[540px] mx-auto leading-relaxed mb-8">
-            Share verified setups, learn from live market sessions, and connect directly with disciplined traders worldwide.
-          </p>
-          <button
-            type="button"
-            onClick={onStart}
-            className="tactile-blue-pill h-11 px-7 rounded-full text-[14px] font-bold inline-flex items-center gap-2 cursor-pointer"
-          >
-            <span>Join the Community</span>
-            <ArrowRight size={15} strokeWidth={2.2} />
-          </button>
-        </motion.div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Clean Architectural Orbital Network */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55, ease: EASE_OUT }}
-            className="relative w-full aspect-[680/600] max-w-[560px] mx-auto"
-          >
-            <svg viewBox="0 0 680 600" className="w-full h-full">
-              <motion.circle
-                cx={cx}
-                cy={cy}
-                r={135}
-                fill="none"
-                stroke="rgba(15,23,42,0.12)"
-                strokeWidth="1"
-                strokeDasharray="4 8"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-                style={{ transformOrigin: "center" }}
-              />
-              <motion.circle
-                cx={cx}
-                cy={cy}
-                r={250}
-                fill="none"
-                stroke="rgba(15,23,42,0.07)"
-                strokeWidth="1"
-                strokeDasharray="4 12"
-                animate={{ rotate: -360 }}
-                transition={{ duration: 85, repeat: Infinity, ease: "linear" }}
-                style={{ transformOrigin: "center" }}
-              />
-
-              {innerRing.map((n) => {
-                const p = toXY(n.angle, n.r);
-                return (
-                  <line
-                    key={`spoke-${n.id}`}
-                    x1={cx}
-                    y1={cy}
-                    x2={p.x}
-                    y2={p.y}
-                    stroke="rgba(37,99,235,0.28)"
-                    strokeWidth="1"
-                  />
-                );
-              })}
-
-              {outerRing.map((n) => {
-                const outer = toXY(n.angle, n.r);
-                const nearestInner = innerRing.reduce((best, inn) => {
-                  const diff = Math.abs((inn.angle - n.angle + 360) % 360);
-                  const prevDiff = Math.abs((best.angle - n.angle + 360) % 360);
-                  return diff < prevDiff ? inn : best;
-                });
-                const inner = toXY(nearestInner.angle, nearestInner.r);
-                return (
-                  <line
-                    key={`outer-conn-${n.id}`}
-                    x1={outer.x}
-                    y1={outer.y}
-                    x2={inner.x}
-                    y2={inner.y}
-                    stroke="rgba(15,23,42,0.10)"
-                    strokeWidth="1"
-                  />
-                );
-              })}
-
-              {allNodes.map((n) => {
-                const p = toXY(n.angle, n.r);
-                const size = n.r === 135 ? 38 : 30;
-                return (
-                  <g key={n.id}>
-                    <clipPath id={`clip-${n.id}`}>
-                      <circle cx={p.x} cy={p.y} r={size} />
-                    </clipPath>
-                    <image
-                      href={`/avatars/${n.gender}_${n.avatar}.jpg`}
-                      x={p.x - size}
-                      y={p.y - size}
-                      width={size * 2}
-                      height={size * 2}
-                      clipPath={`url(#clip-${n.id})`}
-                      preserveAspectRatio="xMidYMid slice"
-                    />
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r={size}
-                      fill="none"
-                      stroke="rgba(15,23,42,0.16)"
-                      strokeWidth="1.5"
-                    />
-                  </g>
-                );
-              })}
-
-              <circle
-                cx={cx}
-                cy={cy}
-                r={44}
-                fill="#FFFFFF"
-                stroke="rgba(15,23,42,0.14)"
-                strokeWidth="1.5"
-              />
-              <image href="/tf-logo.png" x={cx - 22} y={cy - 22} width="44" height="44" />
-            </svg>
-          </motion.div>
-
-          {/* 4 Structured Feature Rows */}
-          <div className="flex flex-col gap-4">
-            {benefits.map((b, i) => (
-              <motion.div
-                key={b.title}
-                initial={{ opacity: 0, x: 16 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.06, ease: EASE_OUT }}
-                className="rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.08)] p-6 transition-colors duration-150"
-              >
-                <h3 className="text-[16px] font-semibold text-slate-900 mb-1.5">
-                  {b.title}
-                </h3>
-                <p className="text-[14px] text-slate-500 leading-relaxed">
-                  {b.desc}
-                </p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/* ════════════════
    CLOSING CTA
 ════════════════ */
 function CTA({ onStart }: { onStart: () => void }) {
   return (
     <section className="py-24 sm:py-28 px-4 sm:px-7 relative bg-white">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.45, ease: EASE_OUT }}
-        className="max-w-[680px] mx-auto text-center"
-      >
-        <p className="text-[13px] font-semibold text-[#2563EB] mb-3">
-          Start your workspace
-        </p>
-        <h2
-          style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-          className="text-[32px] sm:text-[48px] font-bold tracking-[-0.03em] leading-[1.08] text-slate-900 mb-5"
-        >
-          Become the trader
-          <span className="block font-extralight text-slate-500 mt-1">
-            you set out to be.
-          </span>
-        </h2>
-        <p className="text-[16px] text-slate-500 leading-relaxed max-w-[540px] mx-auto mb-9">
-          Join TradiFive for automated trade journaling, autonomous Risk Guard, AI coaching, and verified community feedback.
-        </p>
+      <div className="max-w-[700px] mx-auto text-center">
+        <SectionHeader
+          badge="Start your workspace"
+          icon={Sparkles}
+          tone="blue"
+          title="Become the trader"
+          subtitle="you set out to be."
+          description="Join TradiFive for automated trade journaling, autonomous Risk Guard, AI coaching, and verified community feedback."
+          className="mb-9"
+        />
 
         <div className="flex flex-wrap items-center justify-center gap-3 mb-7">
           <button
@@ -3657,7 +3501,7 @@ function CTA({ onStart }: { onStart: () => void }) {
               const el = document.getElementById("problem");
               el?.scrollIntoView({ behavior: "smooth" });
             }}
-            className="h-11 px-6 rounded-full text-[14px] font-semibold inline-flex items-center bg-white border border-slate-200 text-slate-800 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+            className="h-11 px-6 rounded-full text-[14px] font-semibold inline-flex items-center bg-white border border-[#E4E4E4] text-slate-800 hover:bg-slate-50 shadow-2xs transition-colors cursor-pointer"
           >
             Explore Capabilities
           </button>
@@ -3666,7 +3510,7 @@ function CTA({ onStart }: { onStart: () => void }) {
         <p className="text-[12px] font-medium text-slate-500">
           No credit card required · Free community access · Cancel anytime
         </p>
-      </motion.div>
+      </div>
     </section>
   );
 }
@@ -3674,7 +3518,7 @@ function CTA({ onStart }: { onStart: () => void }) {
 function Sep() {
   return (
     <div className="w-full max-w-[1160px] mx-auto px-4 sm:px-7">
-      <div className="h-px w-full bg-slate-200/80" />
+      <div className="h-px w-full bg-[#E4E4E4]" />
     </div>
   );
 }
@@ -3761,10 +3605,7 @@ export default function TradiFive() {
       <main style={{ position: "relative", zIndex: 1 }}>
         <Hero onStart={handleStart} onSignIn={handleSignIn} />
         <PlatformPillars />
-        <Sep />
         <WhyTradiFive />
-        <Sep />
-        <BenefitsSection />
         <Sep />
         <ProblemSection />
         <Sep />
@@ -3773,8 +3614,6 @@ export default function TradiFive() {
         <OneSessionShowcase onStart={handleStart} />
         <Sep />
         <HowItWorks />
-        <Sep />
-        <CommunityNetwork onStart={handleStart} />
         <Sep />
         <Social />
         <Sep />

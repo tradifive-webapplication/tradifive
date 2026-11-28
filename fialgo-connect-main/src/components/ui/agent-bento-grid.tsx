@@ -39,17 +39,17 @@ export function FeatCard({ title, description, children, className = "" }: FeatC
       viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "group relative flex flex-col gap-2.5 overflow-hidden rounded-[20px] p-5 sm:p-6",
-        "bg-white border border-slate-200/90 hover:border-slate-300 transition-colors duration-200",
-        "shadow-[0_6px_24px_-14px_rgba(15,23,42,0.08)]",
+        "group relative flex flex-col gap-2 overflow-hidden rounded-[20px] p-5",
+        "bg-white border border-[#E4E4E4] hover:border-slate-300 transition-colors duration-200",
+        "shadow-[0_6px_24px_-14px_rgba(15,23,42,0.06)]",
         className
       )}
     >
-      <div className="z-10 flex flex-col gap-1">
-        <h3 className="font-semibold text-slate-900 text-[15px] tracking-tight">{title}</h3>
-        <p className="text-slate-500 text-[12.5px] leading-relaxed max-w-[95%]">{description}</p>
+      <div className="z-10 flex flex-col gap-1 shrink-0">
+        <h3 className="font-semibold text-slate-950 text-[15px] tracking-[-0.01em]">{title}</h3>
+        <p className="text-slate-600 text-[12.5px] leading-[1.45] line-clamp-2">{description}</p>
       </div>
-      <div className="relative mt-1.5 flex-1 w-full rounded-[14px] overflow-hidden border border-slate-200/80 bg-[#F8FAFC] p-2.5">
+      <div className="relative mt-1.5 flex-1 min-h-0 w-full rounded-[14px] overflow-hidden border border-[#E4E4E4] bg-[#E4E4E4]/45 p-2.5">
         {children}
       </div>
     </motion.div>
@@ -62,8 +62,8 @@ export function FeatCard({ title, description, children, className = "" }: FeatC
 
 type ActiveStep = "request" | "router" | "agent" | "memory" | "tools" | "response";
 
-const VW = 320;
-const VH = 220;
+const VW = 300;
+const VH = 190;
 
 interface NodeConfig {
   id: string;
@@ -75,11 +75,11 @@ interface NodeConfig {
 }
 
 const NODES: NodeConfig[] = [
-  { id: "A", x: 52, y: 110, icon: ChatCircle, label: "MT5 FEED", type: "box" },
-  { id: "Router", x: 126, y: 110, type: "circle" },
-  { id: "C", x: 200, y: 110, icon: Brain, label: "TRADIFIVE", type: "box" },
-  { id: "B", x: 278, y: 48, icon: Database, label: "JOURNAL", type: "box" },
-  { id: "D", x: 278, y: 172, icon: TerminalWindow, label: "AI COACH", type: "box" },
+  { id: "A", x: 46, y: 95, icon: ChatCircle, label: "MT5 FEED", type: "box" },
+  { id: "Router", x: 118, y: 95, type: "circle" },
+  { id: "C", x: 190, y: 95, icon: Brain, label: "TRADIFIVE", type: "box" },
+  { id: "B", x: 262, y: 42, icon: Database, label: "JOURNAL", type: "box" },
+  { id: "D", x: 262, y: 148, icon: TerminalWindow, label: "AI COACH", type: "box" },
 ];
 
 interface FlowPath {
@@ -92,37 +92,37 @@ interface FlowPath {
 const PATHS: FlowPath[] = [
   {
     id: "a-to-router",
-    d: "M 80 110 L 114 110",
+    d: "M 76 95 L 106 95",
     activeSteps: ["request"],
     colorClass: "text-sky-600",
   },
   {
     id: "router-to-agent",
-    d: "M 138 110 L 172 110",
+    d: "M 130 95 L 160 95",
     activeSteps: ["agent"],
     colorClass: "text-blue-600",
   },
   {
     id: "agent-to-memory",
-    d: "M 200 82 L 200 48 L 250 48",
+    d: "M 190 67 L 190 42 L 232 42",
     activeSteps: ["memory"],
     colorClass: "text-indigo-600",
   },
   {
     id: "agent-to-tools",
-    d: "M 200 138 L 200 172 L 250 172",
+    d: "M 190 123 L 190 148 L 232 148",
     activeSteps: ["tools"],
     colorClass: "text-emerald-600",
   },
   {
     id: "response-flow-1",
-    d: "M 172 110 L 138 110",
+    d: "M 160 95 L 130 95",
     activeSteps: ["response"],
     colorClass: "text-blue-600",
   },
   {
     id: "response-flow-2",
-    d: "M 114 110 L 80 110",
+    d: "M 106 95 L 76 95",
     activeSteps: ["response"],
     colorClass: "text-sky-600",
   },
@@ -196,7 +196,7 @@ export function Card1() {
       <svg className="absolute inset-0 w-full h-full" aria-hidden>
         <defs>
           <pattern id="light-clean-grid" width="16" height="16" patternUnits="userSpaceOnUse">
-            <circle cx="1.5" cy="1.5" r="0.8" fill="currentColor" className="text-slate-200" />
+            <circle cx="1.5" cy="1.5" r="0.85" fill="currentColor" className="text-[#E4E4E4]" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#light-clean-grid)" />
@@ -209,10 +209,10 @@ export function Card1() {
         preserveAspectRatio="xMidYMid meet"
         aria-hidden
       >
-        <path d="M 80 110 L 114 110" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
-        <path d="M 138 110 L 172 110" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
-        <path d="M 200 82 L 200 48 L 250 48" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
-        <path d="M 200 138 L 200 172 L 250 172" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
+        <path d="M 76 95 L 106 95" fill="none" stroke="currentColor" className="text-[#E4E4E4]" strokeWidth="1.5" />
+        <path d="M 130 95 L 160 95" fill="none" stroke="currentColor" className="text-[#E4E4E4]" strokeWidth="1.5" />
+        <path d="M 190 67 L 190 42 L 232 42" fill="none" stroke="currentColor" className="text-[#E4E4E4]" strokeWidth="1.5" />
+        <path d="M 190 123 L 190 148 L 232 148" fill="none" stroke="currentColor" className="text-[#E4E4E4]" strokeWidth="1.5" />
 
         {PATHS.map((p) => {
           const isActive = p.activeSteps.includes(step);
@@ -333,7 +333,7 @@ export function Card2() {
           return (
             <div key={i} className="flex-1 h-[70px] relative select-none">
               <div
-                className="absolute inset-0 rounded-xl border border-slate-200/90 bg-white text-slate-200/70"
+                className="absolute inset-0 rounded-xl border border-[#E4E4E4] bg-white text-[#E4E4E4]"
                 style={{
                   backgroundImage:
                     "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
@@ -341,7 +341,7 @@ export function Card2() {
               />
 
               <motion.div
-                className="absolute inset-0 w-full h-full rounded-xl bg-white border border-slate-200 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.12)] px-3 py-2.5 hover:border-blue-300 transition-colors duration-200 flex items-center justify-between gap-2 cursor-pointer"
+                className="absolute inset-0 w-full h-full rounded-xl bg-white border border-[#E4E4E4] shadow-[0_4px_14px_-6px_rgba(15,23,42,0.1)] px-3 py-2.5 hover:border-blue-300 transition-colors duration-200 flex items-center justify-between gap-2 cursor-pointer"
                 animate={{
                   x: isActive ? "0.35rem" : "0rem",
                   y: isActive ? "-0.35rem" : "0rem",
@@ -420,7 +420,7 @@ export function Card2() {
         {bars.map((h, i) => (
           <div
             key={i}
-            className="flex-1 h-full rounded-[10px] border border-slate-200/80 relative overflow-hidden bg-white text-slate-200/75"
+            className="flex-1 h-full rounded-[10px] border border-[#E4E4E4] relative overflow-hidden bg-white text-[#E4E4E4]"
             style={{
               backgroundImage:
                 "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
@@ -699,7 +699,7 @@ export function Card4() {
   );
 
   return (
-    <div className="w-full h-full flex gap-4 bg-white rounded-[10px] border border-slate-200/70 p-3">
+    <div className="w-full h-full flex gap-4 bg-white rounded-[10px] border border-[#E4E4E4] p-3">
       {/* Left panel: Behavior Memory Indexes */}
       <div className="flex-1 flex flex-col min-w-0 pr-1">
         <p className="text-[8.5px] font-mono uppercase tracking-widest text-slate-400 mb-3">
@@ -722,7 +722,7 @@ export function Card4() {
                   className={`relative flex shrink-0 items-center justify-center w-[32px] h-[32px] rounded-[9px] border transition-all duration-400 ${
                     isActive
                       ? `${c.buttonBg} ${c.buttonBorder} text-white shadow-xs`
-                      : "bg-[#F8FAFC] border-slate-200 text-slate-500"
+                      : "bg-[#F5F5F5] border-[#E4E4E4] text-slate-500"
                   }`}
                 >
                   <Icon size={15} weight={isActive ? "fill" : "regular"} className="relative z-10" />
@@ -736,7 +736,7 @@ export function Card4() {
                   {ns.name}
                 </span>
 
-                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden relative">
+                <div className="flex-1 h-1.5 bg-[#E4E4E4]/65 rounded-full overflow-hidden relative">
                   <motion.div
                     className={`absolute left-0 top-0 bottom-0 rounded-full bg-gradient-to-r ${c.bar}`}
                     initial={{ width: "0%" }}
@@ -760,7 +760,7 @@ export function Card4() {
           })}
         </div>
 
-        <div className="flex items-center justify-between pt-2.5 mt-auto border-t border-slate-100">
+        <div className="flex items-center justify-between pt-2.5 mt-auto border-t border-[#E4E4E4]/70">
           <span className="text-[9px] font-mono text-emerald-700 font-medium">
             LIVE AUDIT ACTIVE
           </span>
@@ -769,7 +769,7 @@ export function Card4() {
       </div>
 
       {/* Subtle Divider */}
-      <div className="w-px bg-slate-200/80 self-stretch shrink-0 hidden sm:block" />
+      <div className="w-px bg-[#E4E4E4] self-stretch shrink-0 hidden sm:block" />
 
       {/* Right panel: AI Coaching Findings */}
       <div className="w-[185px] shrink-0 hidden sm:flex flex-col">
@@ -783,7 +783,7 @@ export function Card4() {
             return (
               <motion.div
                 key={`${q.ns}-${q.q}-${qi}`}
-                className="rounded-lg border border-slate-200/90 bg-[#F8FAFC] px-2.5 py-1.5"
+                className="rounded-lg border border-[#E4E4E4] bg-[#F8F8F8] px-2.5 py-1.5"
                 initial={{ opacity: 0, y: -6 }}
                 animate={{
                   opacity: qi === 0 ? 1 : qi === 1 ? 0.85 : qi === 2 ? 0.55 : 0.3,
@@ -862,7 +862,7 @@ export function Card5() {
         {tools.map((t, i) => (
           <motion.div
             key={i}
-            className="relative rounded-[12px] border border-slate-200/90 bg-white hover:border-blue-300 transition-colors duration-200 flex flex-col justify-between p-2.5 group"
+            className="relative rounded-[12px] border border-[#E4E4E4] bg-white hover:border-blue-300 transition-colors duration-200 flex flex-col justify-between p-2.5 group"
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -889,7 +889,7 @@ export function Card5() {
               <span className="text-[10px] font-mono font-semibold text-slate-800 tracking-tight truncate">
                 {t.name}
               </span>
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden relative">
+              <div className="w-full h-1.5 bg-[#E4E4E4]/65 rounded-full overflow-hidden relative">
                 <motion.div
                   className={`absolute left-0 top-0 bottom-0 rounded-full ${t.barColor}`}
                   initial={{ width: "0%" }}
@@ -916,7 +916,7 @@ const CARDS = [
       "Every fill is automatically imported, tagged, and analyzed. Spot setup edges without manual spreadsheet upkeep.",
     visual: <Card1 />,
     colSpan: "lg:col-span-1",
-    height: "h-[300px]",
+    height: "h-[352px]",
   },
   {
     title: "Autonomous Risk Protection",
@@ -924,7 +924,7 @@ const CARDS = [
       "Enforce daily loss caps and max drawdown rules at the broker edge. TradiFive prevents emotional spirals in real time.",
     visual: <Card2 />,
     colSpan: "lg:col-span-1",
-    height: "h-[300px]",
+    height: "h-[352px]",
   },
   {
     title: "Verified Execution Feed",
@@ -932,7 +932,7 @@ const CARDS = [
       "Follow broker-verified track records, subscribe to disciplined desks, and benchmark live execution metrics.",
     visual: <Card3 />,
     colSpan: "lg:col-span-1",
-    height: "h-[300px]",
+    height: "h-[352px]",
   },
   {
     title: "Personal AI Mentor",
@@ -940,7 +940,7 @@ const CARDS = [
       "Receive behavioral coaching, tilt diagnostics, and session-by-session reviews built directly from your MT5 history.",
     visual: <Card4 />,
     colSpan: "lg:col-span-2",
-    height: "h-[300px]",
+    height: "h-[352px]",
   },
   {
     title: "Unified Trading Telemetry",
@@ -948,7 +948,7 @@ const CARDS = [
       "Monitor broker latency, drawdown buffers, discipline scoring, and expectancy from one clean workspace.",
     visual: <Card5 />,
     colSpan: "lg:col-span-1",
-    height: "h-[300px]",
+    height: "h-[352px]",
   },
 ];
 
