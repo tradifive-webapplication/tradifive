@@ -1933,7 +1933,7 @@ const SESSION_MODULES: SessionModuleSpec[] = [
   },
   {
     id: "community",
-    label: "Home & Community",
+    label: "Community",
     taglineLead: "Verified traders, ",
     taglineAccent: "zero noise.",
     icon: Users,
@@ -2011,18 +2011,177 @@ const SESSION_MODULES: SessionModuleSpec[] = [
 
 function OneSessionShowcase({ onStart }: { onStart: () => void }) {
   const [activeId, setActiveId] = useState<SessionModuleId>("dashboard");
-  const [viewMode, setViewMode] = useState<"classic" | "custom">("classic");
 
   const active = SESSION_MODULES.find((m) => m.id === activeId) || SESSION_MODULES[0];
   const leftModules = SESSION_MODULES.slice(0, 3);
   const rightModules = SESSION_MODULES.slice(3, 6);
   const totalTicks = 24;
   const activeTicks = Math.round((active.scoreValue / 100) * totalTicks);
-  const isDarkFocus = viewMode === "custom";
+  const isDarkFocus = false;
 
   const dashDonutRadius = 17;
   const dashDonutCirc = 2 * Math.PI * dashDonutRadius;
   const dashDonutOffset = dashDonutCirc - 0.82 * dashDonutCirc;
+
+  const curlyConnectorPaths = [
+    {
+      path: "M 2 20 C 11 20, 13 5, 22 6 C 28 7, 26 19, 19 16 C 14 14, 19 8, 29 12 C 36 15, 40 21, 45 21",
+      endY: 21,
+    },
+    {
+      path: "M 2 18 C 11 5, 17 31, 25 18 C 32 7, 38 25, 45 18",
+      endY: 18,
+    },
+    {
+      path: "M 2 16 C 11 16, 13 31, 22 30 C 28 29, 26 17, 19 20 C 14 22, 19 28, 29 24 C 36 21, 40 15, 45 15",
+      endY: 15,
+    },
+  ];
+
+  const renderCurlyConnector = (rowIdx: number, isSelected: boolean, side: "left" | "right") => {
+    const spec = curlyConnectorPaths[rowIdx] || curlyConnectorPaths[1];
+    return (
+      <svg
+        viewBox="0 0 48 36"
+        fill="none"
+        aria-hidden="true"
+        className={`w-[48px] h-[36px] shrink-0 overflow-visible ${side === "right" ? "-scale-x-100" : ""}`}
+      >
+        <path
+          d={spec.path}
+          stroke={isSelected ? "rgba(37, 99, 235, 0.22)" : "#CBD5E1"}
+          strokeWidth={isSelected ? "3.2" : "1.45"}
+          strokeLinecap="round"
+        />
+        {isSelected && (
+          <motion.path
+            key={`${side}-${rowIdx}-active`}
+            d={spec.path}
+            stroke="#2563EB"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            initial={{ pathLength: 0.15, opacity: 0.6 }}
+            animate={{ pathLength: 1, opacity: 1 }}
+            transition={{ duration: 0.45, ease: EASE_OUT }}
+          />
+        )}
+        {isSelected && (
+          <motion.path
+            d={spec.path}
+            stroke="#93C5FD"
+            strokeWidth="1.25"
+            strokeLinecap="round"
+            strokeDasharray="3 7"
+            animate={{ strokeDashoffset: [0, -20] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "linear" }}
+          />
+        )}
+        {isSelected && (
+          <circle cx="45" cy={spec.endY} r="5.5" fill="rgba(37, 99, 235, 0.16)" />
+        )}
+        <circle
+          cx="45"
+          cy={spec.endY}
+          r={isSelected ? "3.1" : "2.6"}
+          fill={isSelected ? "#2563EB" : "#FFFFFF"}
+          stroke={isSelected ? "#2563EB" : "#CBD5E1"}
+          strokeWidth="1.5"
+        />
+      </svg>
+    );
+  };
+
+  const renderCurlyButton = (
+    mod: (typeof SESSION_MODULES)[number],
+    side: "left" | "right" | "mobile"
+  ) => {
+    const Icon = mod.icon;
+    const isSelected = mod.id === activeId;
+    const isRight = side === "right";
+    const isMobile = side === "mobile";
+    const pillCorners = isRight
+      ? "rounded-[9px_22px_9px_22px]"
+      : isMobile
+      ? "rounded-[18px_8px_18px_8px]"
+      : "rounded-[22px_9px_22px_9px]";
+    const badgeCorners = isRight
+      ? "rounded-[5px_12px_5px_12px]"
+      : "rounded-[12px_5px_12px_5px]";
+
+    return (
+      <motion.button
+        key={mod.id}
+        type="button"
+        whileHover={{ y: -2 }}
+        whileTap={{ y: 0 }}
+        animate={isSelected ? { y: -2 } : { y: 0 }}
+        transition={{ type: "spring", stiffness: 420, damping: 26 }}
+        onClick={() => setActiveId(mod.id)}
+        className={`group relative z-10 overflow-hidden inline-flex items-center justify-start gap-2.5 border transition-colors duration-200 cursor-pointer shrink-0 ${pillCorners} ${
+          isMobile ? "w-full h-[42px] px-2.5" : "w-[152px] h-[44px] pl-2 pr-3"
+        } ${
+          isSelected
+            ? "bg-gradient-to-br from-white via-[#F4F8FF] to-[#EBF2FF] border-[#2563EB] shadow-[0_12px_26px_-6px_rgba(37,99,235,0.34),inset_0_1px_0_rgba(255,255,255,0.95)] ring-2 ring-[#2563EB]/15"
+            : "bg-white/95 border-[#DDE3EE] shadow-[0_6px_18px_rgba(15,23,42,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] hover:border-[#93C5FD] hover:bg-white hover:shadow-[0_10px_24px_rgba(37,99,235,0.12)]"
+        }`}
+      >
+        {/* Decorative calligraphic curl corner accent */}
+        <svg
+          viewBox="0 0 18 14"
+          fill="none"
+          aria-hidden="true"
+          className={`pointer-events-none absolute top-1 ${
+            isRight ? "left-1.5 -scale-x-100" : "right-1.5"
+          } w-3.5 h-2.5 transition-opacity ${
+            isSelected ? "opacity-90" : "opacity-35 group-hover:opacity-65"
+          }`}
+        >
+          <path
+            d="M 2 10 C 5 2, 11 2, 13 6 C 14 8, 12 10, 10 9 C 8.5 8.2, 9.5 6, 12.5 5.5"
+            stroke={isSelected ? "#2563EB" : "#94A3B8"}
+            strokeWidth="1.25"
+            strokeLinecap="round"
+          />
+        </svg>
+
+        <span className="relative inline-flex items-center justify-center shrink-0">
+          {isSelected && (
+            <svg
+              viewBox="0 0 34 34"
+              fill="none"
+              aria-hidden="true"
+              className="pointer-events-none absolute -inset-[3px] w-[34px] h-[34px]"
+            >
+              <path
+                d="M 5 17 C 5 8, 13 4, 21 5 C 28 6, 30 14, 29 21"
+                stroke="#60A5FA"
+                strokeWidth="1.2"
+                strokeLinecap="round"
+                strokeDasharray="2.5 3.5"
+              />
+            </svg>
+          )}
+          <span
+            className={`w-7 h-7 ${badgeCorners} inline-flex items-center justify-center transition-all duration-200 ${
+              isSelected
+                ? "bg-[#2563EB] text-white shadow-[0_4px_12px_rgba(37,99,235,0.42)]"
+                : "bg-slate-900 text-white group-hover:bg-[#2563EB] group-hover:rotate-3"
+            }`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+          </span>
+        </span>
+
+        <span
+          className={`text-[12px] font-semibold whitespace-nowrap truncate ${
+            isSelected ? "text-[#2563EB]" : "text-slate-800"
+          }`}
+        >
+          {mod.label}
+        </span>
+      </motion.button>
+    );
+  };
 
   return (
     <section
@@ -2037,48 +2196,31 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
         </p>
       </div>
 
-      {/* Subtle Cool Alpine Mist Silhouettes Flanking Margins */}
+      {/* Atmospheric Soaring Eagle Above Alpine Clouds Backdrop */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-[140px] bottom-[90px] overflow-hidden select-none"
+        className="pointer-events-none absolute inset-x-0 top-[20px] bottom-[40px] overflow-hidden select-none"
       >
-        <svg
-          viewBox="0 0 1440 640"
-          preserveAspectRatio="xMidYMid slice"
-          className="w-full h-full opacity-[0.42]"
-        >
-          <defs>
-            <linearGradient id="mistRidgeLeft" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#cbd5e1" stopOpacity="0.65" />
-              <stop offset="55%" stopColor="#e2e8f0" stopOpacity="0.32" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="mistRidgeRight" x1="1" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#bfdbfe" stopOpacity="0.48" />
-              <stop offset="50%" stopColor="#e2e8f0" stopOpacity="0.32" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="mistFadeV" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-              <stop offset="22%" stopColor="#ffffff" stopOpacity="0" />
-              <stop offset="76%" stopColor="#ffffff" stopOpacity="0" />
-              <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
-            </linearGradient>
-          </defs>
-          <path
-            d="M-40,640 L-40,340 L110,210 L215,295 L320,370 L460,520 L460,640 Z"
-            fill="url(#mistRidgeLeft)"
-          />
-          <path
-            d="M1480,640 L1480,310 L1320,185 L1210,280 L1085,365 L960,540 L960,640 Z"
-            fill="url(#mistRidgeRight)"
-          />
-          <rect width="1440" height="640" fill="url(#mistFadeV)" />
-        </svg>
+        <motion.img
+          src="/workspace-sky-bg.jpg"
+          alt=""
+          initial={{ opacity: 0, scale: 1.03 }}
+          whileInView={{ opacity: 0.9, scale: 1 }}
+          viewport={{ once: true, amount: 0.1 }}
+          transition={{ duration: 1.05, ease: EASE_OUT }}
+          className="w-full h-full object-cover object-[50%_28%]"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.18) 14%, rgba(255,255,255,0) 45%, rgba(255,255,255,0.22) 84%, #ffffff 100%)",
+          }}
+        />
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 max-w-[1320px] mx-auto px-4 sm:px-8">
+      <div className="relative z-10 max-w-[1290px] mx-auto px-4 sm:px-8">
         {/* Centered Header + Segmented Toggle */}
         <div className="text-center max-w-[660px] mx-auto mb-7 sm:mb-10">
           <motion.div
@@ -2139,126 +2281,26 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
           >
             Click any tool button on the side to switch the live TradiFive web app preview between Dashboard, Journal, Risk Guard, and AI Coach.
           </motion.p>
-
-          {/* Classic Light / Focused Dark Switcher Pill */}
-          <div className="mt-4 inline-flex items-center p-1 rounded-full bg-slate-100 border border-[#E4E4E4] shadow-inner">
-            {(
-              [
-                { id: "classic", label: "Classic Light" },
-                { id: "custom", label: "Focused Dark" },
-              ] as const
-            ).map((tab) => {
-              const isSelected = viewMode === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setViewMode(tab.id)}
-                  className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? "bg-[#2563EB] text-white shadow-[0_3px_10px_rgba(37,99,235,0.35)]"
-                      : "text-slate-600 hover:text-slate-900"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Mobile Quick Module Selector */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:hidden gap-2 max-w-[480px] mx-auto mb-5">
-          {SESSION_MODULES.map((mod) => {
-            const Icon = mod.icon;
-            const isSelected = mod.id === activeId;
-            return (
-              <motion.button
-                key={mod.id}
-                type="button"
-                whileTap={{ scale: 0.96 }}
-                animate={isSelected ? { scale: 1.03, y: -2 } : { scale: 1, y: 0 }}
-                transition={{ type: "spring", stiffness: 420, damping: 26 }}
-                onClick={() => setActiveId(mod.id)}
-                className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[12px] font-semibold transition-colors cursor-pointer ${
-                  isSelected
-                    ? "bg-white text-slate-950 border-[#2563EB] shadow-[0_10px_24px_-6px_rgba(37,99,235,0.28)]"
-                    : "bg-white/95 text-slate-600 border-[#E4E4E4] hover:border-slate-300"
-                }`}
-              >
-                <span
-                  className={`w-6 h-6 rounded-lg inline-flex items-center justify-center shrink-0 transition-colors ${
-                    isSelected ? "bg-[#2563EB] text-white" : "bg-slate-900 text-white"
-                  }`}
-                >
-                  <Icon className="w-3.5 h-3.5" />
-                </span>
-                <span className="truncate">{mod.label}</span>
-              </motion.button>
-            );
-          })}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:hidden gap-2.5 max-w-[500px] mx-auto mb-5">
+          {SESSION_MODULES.map((mod) => renderCurlyButton(mod, "mobile"))}
         </div>
 
         {/* Desktop 3-Column Interactive Showcase */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-[178px_1fr_178px] items-center gap-4 lg:gap-0">
-          {/* Left Floating Pills Column — Click to POP + Switch Page */}
+        <div className="relative grid grid-cols-1 lg:grid-cols-[200px_1fr_200px] items-center gap-4 lg:gap-0">
+          {/* Left Floating Curly Pills Column — Uniform Fixed Size on Click */}
           <div className="hidden lg:flex flex-col justify-center gap-12 z-20 pr-0">
-            {leftModules.map((mod) => {
-              const Icon = mod.icon;
-              const isSelected = mod.id === activeId;
-              return (
-                <div key={mod.id} className="relative flex items-center justify-end">
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: isSelected ? 1.09 : 1.04, x: isSelected ? 8 : 3 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={isSelected ? { scale: 1.08, x: 8 } : { scale: 1, x: 0 }}
-                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                    onClick={() => setActiveId(mod.id)}
-                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-colors duration-200 cursor-pointer ${
-                      isSelected
-                        ? "border-[#2563EB] shadow-[0_14px_30px_-6px_rgba(37,99,235,0.34)] ring-2 ring-[#2563EB]/15"
-                        : "border-[#E4E4E4] shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
-                    }`}
-                  >
-                    <span
-                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${
-                        isSelected
-                          ? "bg-[#2563EB] text-white shadow-[0_4px_12px_rgba(37,99,235,0.4)]"
-                          : "bg-slate-900 text-white group-hover:bg-[#2563EB]"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </span>
-                    <span
-                      className={`text-[12.5px] font-semibold whitespace-nowrap ${
-                        isSelected ? "text-[#2563EB]" : "text-slate-800"
-                      }`}
-                    >
-                      {mod.label}
-                    </span>
-                  </motion.button>
-                  {/* Connector hairline + node */}
-                  <div className="flex items-center shrink-0">
-                    <div
-                      className={`w-6 h-[1.5px] transition-colors ${
-                        isSelected ? "bg-[#2563EB]" : "bg-[#E4E4E4]"
-                      }`}
-                    />
-                    <span
-                      className={`w-2 h-2 rounded-full border-[1.5px] transition-all ${
-                        isSelected
-                          ? "bg-[#2563EB] border-[#2563EB] scale-125 shadow-[0_0_0_4px_rgba(37,99,235,0.18)]"
-                          : "bg-white border-slate-300"
-                      }`}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+            {leftModules.map((mod, idx) => (
+              <div key={mod.id} className="relative flex items-center justify-end">
+                {renderCurlyButton(mod, "left")}
+                {renderCurlyConnector(idx, mod.id === activeId, "left")}
+              </div>
+            ))}
           </div>
 
-          {/* Center Window: Authentic Non-Interactive TradiFive Web App Shell (Matches HeroDashboard Pic 2) */}
+          {/* Center Window: Authentic Non-Interactive TradiFive Web App Shell (Uniform Locked Size) */}
           <div className="relative z-10 w-full mx-auto">
             <div
               className={`pointer-events-none select-none rounded-[20px] sm:rounded-[24px] p-1.5 sm:p-2 border shadow-[0_24px_68px_-20px_rgba(15,23,42,0.18)] transition-colors duration-300 ${
@@ -2268,9 +2310,9 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
               }`}
               aria-hidden="true"
             >
-              {/* Inner TradiFive Multi-Panel Shell */}
+              {/* Inner TradiFive Multi-Panel Shell (Fixed Height lg:h-[436px] so tabs never resize) */}
               <div
-                className={`rounded-[15px] sm:rounded-[18px] border p-1.5 sm:p-2 flex gap-2 overflow-hidden transition-colors duration-300 ${
+                className={`rounded-[15px] sm:rounded-[18px] border p-1.5 sm:p-2 flex gap-2 lg:h-[436px] overflow-hidden transition-colors duration-300 ${
                   isDarkFocus
                     ? "bg-[#0D0E12] border-white/[0.08]"
                     : "bg-[#F2F4F8] border-slate-200/80"
@@ -2584,7 +2626,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   <div className="p-2.5 sm:p-3.5 pb-3.5">
                     <AnimatePresence mode="wait">
                       <motion.div
-                        key={`${active.id}-${viewMode}`}
+                        key={active.id}
                         initial={{ opacity: 0, y: 8, scale: 0.99 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -6, scale: 0.99 }}
@@ -3353,61 +3395,14 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
             </div>
           </div>
 
-          {/* Right Floating Pills Column — Click to POP + Switch Page */}
+          {/* Right Floating Curly Pills Column — Uniform Fixed Size on Click */}
           <div className="hidden lg:flex flex-col justify-center gap-12 z-20 pl-0">
-            {rightModules.map((mod) => {
-              const Icon = mod.icon;
-              const isSelected = mod.id === activeId;
-              return (
-                <div key={mod.id} className="relative flex items-center justify-start">
-                  {/* Connector node + hairline */}
-                  <div className="flex items-center shrink-0">
-                    <span
-                      className={`w-2 h-2 rounded-full border-[1.5px] transition-all ${
-                        isSelected
-                          ? "bg-[#2563EB] border-[#2563EB] scale-125 shadow-[0_0_0_4px_rgba(37,99,235,0.18)]"
-                          : "bg-white border-slate-300"
-                      }`}
-                    />
-                    <div
-                      className={`w-6 h-[1.5px] transition-colors ${
-                        isSelected ? "bg-[#2563EB]" : "bg-[#E4E4E4]"
-                      }`}
-                    />
-                  </div>
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: isSelected ? 1.09 : 1.04, x: isSelected ? -8 : -3 }}
-                    whileTap={{ scale: 0.95 }}
-                    animate={isSelected ? { scale: 1.08, x: -8 } : { scale: 1, x: 0 }}
-                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
-                    onClick={() => setActiveId(mod.id)}
-                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-colors duration-200 cursor-pointer ${
-                      isSelected
-                        ? "border-[#2563EB] shadow-[0_14px_30px_-6px_rgba(37,99,235,0.34)] ring-2 ring-[#2563EB]/15"
-                        : "border-[#E4E4E4] shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
-                    }`}
-                  >
-                    <span
-                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${
-                        isSelected
-                          ? "bg-[#2563EB] text-white shadow-[0_4px_12px_rgba(37,99,235,0.4)]"
-                          : "bg-slate-900 text-white group-hover:bg-[#2563EB]"
-                      }`}
-                    >
-                      <Icon className="w-3.5 h-3.5" />
-                    </span>
-                    <span
-                      className={`text-[12.5px] font-semibold whitespace-nowrap ${
-                        isSelected ? "text-[#2563EB]" : "text-slate-800"
-                      }`}
-                    >
-                      {mod.label}
-                    </span>
-                  </motion.button>
-                </div>
-              );
-            })}
+            {rightModules.map((mod, idx) => (
+              <div key={mod.id} className="relative flex items-center justify-start">
+                {renderCurlyConnector(idx, mod.id === activeId, "right")}
+                {renderCurlyButton(mod, "right")}
+              </div>
+            ))}
           </div>
         </div>
 
