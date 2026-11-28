@@ -3,16 +3,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
+  Check,
   CheckCircle2,
   Lock,
   Layers,
   Sparkles,
   ShieldCheck,
-  Activity,
   FileWarning,
   TrendingDown,
-  Zap,
-  RotateCcw,
 } from "lucide-react";
 import BlurText from "@/components/ui/BlurText";
 
@@ -319,24 +317,53 @@ export function ProblemSection() {
   return (
     <section
       id="problem"
-      className="py-20 sm:py-24 px-4 sm:px-7 relative bg-[#070B14] text-white overflow-hidden"
+      className="py-20 sm:py-24 px-4 sm:px-7 relative bg-[#060913] text-white overflow-hidden"
     >
-      {/* Subtle architectural dark grid + radial depth */}
+      {/* Architectural Blueprint Dot + Vertical Column Grid */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-30"
+        className="pointer-events-none absolute inset-0 opacity-35"
         style={{
           backgroundImage:
-            "radial-gradient(rgba(148,163,184,0.16) 1px, transparent 1px)",
-          backgroundSize: "24px 24px",
+            "radial-gradient(rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to right, rgba(255,255,255,0.025) 1px, transparent 1px)",
+          backgroundSize: "24px 24px, 140px 140px",
+        }}
+      />
+      {/* Faint Drawdown Contour Curves + Crimson / Indigo Backlighting */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 1440 520"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-0 w-full h-full opacity-45"
+      >
+        <path
+          d="M -60 190 C 240 160, 420 260, 680 230 C 920 205, 1140 360, 1500 320"
+          fill="none"
+          stroke="rgba(244,63,94,0.18)"
+          strokeWidth="1.5"
+          strokeDasharray="6 6"
+        />
+        <path
+          d="M -60 340 C 280 280, 520 390, 820 340 C 1080 295, 1280 410, 1500 390"
+          fill="none"
+          stroke="rgba(59,130,246,0.14)"
+          strokeWidth="1.2"
+        />
+      </svg>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-28 right-[-8%] w-[560px] h-[560px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(244,63,94,0.15) 0%, transparent 65%)",
         }}
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-24 right-[-10%] w-[520px] h-[520px] rounded-full"
+        className="pointer-events-none absolute -bottom-32 left-[-10%] w-[520px] h-[520px] rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(244,63,94,0.12) 0%, transparent 65%)",
+            "radial-gradient(circle, rgba(37,99,235,0.12) 0%, transparent 68%)",
         }}
       />
 
@@ -514,57 +541,70 @@ export function ProblemSection() {
 /* ════════════════
    THE SOLUTION (INTERACTIVE PROTECTION STAGE + ARCHITECTURAL DECK)
 ════════════════ */
-const SOLUTIONS = [
-  {
-    icon: Lock,
-    problemRef: "Revenge trading",
-    title: "Hard Cooldown Circuit Breaker",
-    desc: "When daily loss or drawdown limits trigger, Risk Guard locks execution automatically so one red trade never compounds.",
-    metric: "Auto-arms at cap",
-    eventTitle: "Order Blocked · 4.0L XAUUSD",
-    eventSub: "Daily limit -1.5% reached · 14h cooldown locked",
-  },
-  {
-    icon: Layers,
-    problemRef: "Manual spreadsheets",
-    title: "Instant Broker-Verified Journal",
-    desc: "Every MT5 position streams directly into structured setup, R-multiple, and MAE/MFE attribution with zero typing.",
-    metric: "100% fill accuracy",
-    eventTitle: "MT5 Auto-Synced · +1.8R",
-    eventSub: "Entry, SL, TP, and session context saved in 4ms",
-  },
-  {
-    icon: Sparkles,
-    problemRef: "Delayed feedback",
-    title: "Live Behavioral AI Coaching",
-    desc: "Detect tilt windows, post-loss risk spikes, and session edges early — with plain-English pre-session guardrails.",
-    metric: "Real-time memory",
-    eventTitle: "AI Alert · NY Open Edge",
-    eventSub: "First 2 trades generate +89% of your monthly P&L",
-  },
-  {
-    icon: CheckCircle2,
-    problemRef: "Inconsistent scaling",
-    title: "Unified TradiFive Discipline Score",
-    desc: "Benchmark win rate, profit factor, consistency, and rule adherence in one live score ready for prop desks.",
-    metric: "Scale on proof",
-    eventTitle: "Discipline Score · 96/100",
-    eventSub: "14 consecutive clean days · Verified MT5 equity",
-  },
-];
-
 export function SolutionSection({ onStart }: { onStart: () => void }) {
-  const [selectedSol, setSelectedSol] = useState(0);
-  const [shieldSimulated, setShieldSimulated] = useState(true);
+  const [simulatedLock, setSimulatedLock] = useState(false);
 
-  const activeSol = SOLUTIONS[selectedSol];
+  const donutSize = 74;
+  const strokeWidth = 6.5;
+  const radius = (donutSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - 0.78);
 
   return (
     <section
       id="solution"
-      className="py-20 sm:py-24 px-4 sm:px-7 relative bg-[#F5F6F8] border-y border-[#E4E4E4]"
+      className="py-20 sm:py-24 px-4 sm:px-7 relative bg-[#F4F6FA] border-y border-[#E4E4E4] overflow-hidden"
     >
-      <div className="max-w-[1160px] mx-auto">
+      {/* Subtle architectural grid & ascending equity watermark curves on the backside */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-65"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(228,228,228,0.55) 1px, transparent 1px), linear-gradient(to bottom, rgba(228,228,228,0.55) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+          maskImage: "radial-gradient(ellipse 80% 75% at 50% 50%, black 40%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(ellipse 80% 75% at 50% 50%, black 40%, transparent 100%)",
+        }}
+      />
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 1440 520"
+        preserveAspectRatio="none"
+        className="pointer-events-none absolute inset-0 w-full h-full opacity-55"
+      >
+        <path
+          d="M -60 410 C 260 390, 480 280, 760 250 C 1020 220, 1220 120, 1500 85"
+          fill="none"
+          stroke="rgba(16,185,129,0.22)"
+          strokeWidth="1.6"
+        />
+        <path
+          d="M -60 450 C 310 420, 560 340, 860 310 C 1100 285, 1300 185, 1500 155"
+          fill="none"
+          stroke="rgba(37,99,235,0.16)"
+          strokeWidth="1.25"
+          strokeDasharray="5 6"
+        />
+      </svg>
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 left-[-6%] w-[460px] h-[460px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(16,185,129,0.09) 0%, transparent 65%)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-24 right-[-6%] w-[480px] h-[480px] rounded-full"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(37,99,235,0.09) 0%, transparent 65%)",
+        }}
+      />
+
+      <div className="max-w-[1160px] mx-auto relative z-10">
         {/* Scroll-Animated Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
@@ -625,7 +665,7 @@ export function SolutionSection({ onStart }: { onStart: () => void }) {
               transition={{ duration: 0.5, delay: 0.24, ease: EASE_OUT }}
               className="text-[15px] sm:text-[16px] font-normal text-slate-600 leading-[1.6] mt-4 max-w-[580px]"
             >
-              TradiFive enforces your rules at the broker edge, logs every execution automatically, and shields hard-won gains.
+              Inside the TradiFive web app, real-time Risk Guard lockouts, broker-verified trade cards, AI debriefs, and P&amp;L telemetry work together automatically.
             </motion.p>
           </div>
 
@@ -634,212 +674,344 @@ export function SolutionSection({ onStart }: { onStart: () => void }) {
             onClick={onStart}
             className="tactile-blue-pill h-10 px-6 rounded-full text-[13px] font-bold inline-flex items-center gap-2 cursor-pointer shrink-0 self-start md:self-auto"
           >
-            <span>Experience the Solution Free</span>
+            <span>Open Live Workspace Free</span>
             <ArrowRight size={14} strokeWidth={2.2} />
           </button>
         </div>
 
-        {/* Unified White + #E4E4E4 Architectural Solution Workbench */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-          {/* Left: Live Interactive Protection Simulator */}
-          <div className="lg:col-span-6 rounded-2xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between shadow-[0_14px_38px_-18px_rgba(15,23,42,0.1)]">
-            <div>
-              {/* Mode Toggle Bar */}
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-[#E4E4E4]">
-                <div className="flex items-center gap-2">
-                  <Activity size={15} className="text-[#2563EB]" />
-                  <span className="text-[12.5px] font-semibold text-slate-900">
-                    Equity Curve Impact
+        {/* 2x2 Showcase Box Containing Actual Real Cards From Inside TradiFive Web User App */}
+        <div className="rounded-2xl bg-[#E4E4E4]/55 border border-[#E4E4E4] p-3 sm:p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+            {/* REAL APP CARD 1: Risk Guard Protocol Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-5"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500">
+                    <Lock size={13.5} className="text-slate-700" />
+                    Addresses <strong className="text-slate-800 font-semibold">Revenge trading</strong>
+                  </span>
+                  <span className="text-[11px] font-mono font-medium text-emerald-700">
+                    Auto-arms at cap
                   </span>
                 </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-950 mb-1">
+                  Risk Guard Protection Card
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Live account drawdown shield directly from the TradiFive Risk Guard dashboard.
+                </p>
 
-                <div className="inline-flex items-center p-0.5 rounded-full bg-[#F5F6F8] border border-[#E4E4E4]">
-                  <button
-                    type="button"
-                    onClick={() => setShieldSimulated(false)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
-                      !shieldSimulated
-                        ? "bg-white text-rose-600 border border-[#E4E4E4] shadow-2xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    Unguarded
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShieldSimulated(true)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-all cursor-pointer ${
-                      shieldSimulated
-                        ? "bg-[#2563EB] text-white shadow-xs"
-                        : "text-slate-500 hover:text-slate-800"
-                    }`}
-                  >
-                    TradiFive Protected
-                  </button>
-                </div>
-              </div>
-
-              {/* Dual Contrast SVG Curve */}
-              <div className="rounded-xl bg-[#FAFAFB] border border-[#E4E4E4] p-3.5 mb-4">
-                <svg viewBox="0 0 420 165" className="w-full h-[155px] overflow-visible">
-                  <defs>
-                    <linearGradient id="solSafeGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#10B981" stopOpacity="0.22" />
-                      <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-
-                  <line x1="0" y1="50" x2="420" y2="50" stroke="#E4E4E4" strokeDasharray="3 4" />
-                  <line x1="0" y1="95" x2="420" y2="95" stroke="#E4E4E4" />
-                  <line x1="0" y1="120" x2="420" y2="120" stroke="#93C5FD" strokeDasharray="4 4" />
-
-                  <text x="4" y="44" fill="#059669" fontSize="9" fontFamily="monospace">+6.8% PROTECTED</text>
-                  <text x="4" y="114" fill="#2563EB" fontSize="9" fontFamily="monospace">-1.5% GUARD FLOOR</text>
-
-                  {/* Baseline crashed unguarded path (always subtle reference, bold if Unguarded active) */}
-                  <motion.path
-                    d="M 12 95 C 55 88, 95 66, 145 58 C 165 56, 175 112, 195 118 L 245 104 L 305 144 L 406 154"
-                    fill="none"
-                    stroke={shieldSimulated ? "#CBD5E1" : "#E11D48"}
-                    strokeWidth={shieldSimulated ? "1.6" : "2.5"}
-                    strokeDasharray={shieldSimulated ? "4 4" : "0"}
-                    animate={{ opacity: shieldSimulated ? 0.8 : 1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-
-                  {/* TradiFive Protected Equity Curve */}
-                  {shieldSimulated && (
-                    <>
-                      <motion.path
-                        d="M 12 95 C 55 88, 95 66, 145 58 L 185 116 L 235 116 C 285 95, 340 58, 406 38 L 406 155 L 12 155 Z"
-                        fill="url(#solSafeGrad)"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.4 }}
-                      />
-                      <motion.path
-                        d="M 12 95 C 55 88, 95 66, 145 58 L 185 116 L 235 116 C 285 95, 340 58, 406 38"
-                        fill="none"
-                        stroke="#059669"
-                        strokeWidth="2.6"
-                        strokeLinecap="round"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.85, ease: EASE_OUT }}
-                      />
-                      {/* Flat Cooldown Highlight Pill on chart */}
-                      <rect x="184" y="109" width="52" height="14" rx="4" fill="#EFF6FF" stroke="#2563EB" strokeWidth="1" />
-                      <text x="210" y="119" textAnchor="middle" fill="#1D4ED8" fontSize="8" fontWeight="bold" fontFamily="monospace">
-                        LOCKED
-                      </text>
-                      <circle cx="406" cy="38" r="4.5" fill="#059669" stroke="#FFFFFF" strokeWidth="2" />
-                    </>
-                  )}
-                </svg>
-              </div>
-            </div>
-
-            {/* Live Active Intercept / Sync Readout */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${selectedSol}-${shieldSimulated}`}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease: EASE_OUT }}
-                className={`rounded-xl border p-3.5 flex items-center justify-between gap-3 ${
-                  shieldSimulated
-                    ? "bg-emerald-50/60 border-emerald-200"
-                    : "bg-rose-50/70 border-rose-200"
-                }`}
-              >
-                <div className="min-w-0">
-                  <div
-                    className={`text-[12.5px] font-semibold truncate ${
-                      shieldSimulated ? "text-emerald-900" : "text-rose-900"
-                    }`}
-                  >
-                    {shieldSimulated
-                      ? activeSol.eventTitle
-                      : "Protection Disabled · Drawdown Uncapped"}
-                  </div>
-                  <div
-                    className={`text-[11.5px] truncate mt-0.5 ${
-                      shieldSimulated ? "text-emerald-700" : "text-rose-700"
-                    }`}
-                  >
-                    {shieldSimulated
-                      ? activeSol.eventSub
-                      : "Switch back to TradiFive Protected to preview automated Risk Guard lock."}
-                  </div>
-                </div>
-                {!shieldSimulated ? (
-                  <button
-                    type="button"
-                    onClick={() => setShieldSimulated(true)}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-rose-200 text-[11px] font-semibold text-slate-800 hover:bg-slate-50 shrink-0 cursor-pointer"
-                  >
-                    <RotateCcw size={11} />
-                    <span>Arm Guard</span>
-                  </button>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-emerald-200 text-[11px] font-mono font-semibold text-emerald-700 shrink-0">
-                    <Zap size={11} />
-                    <span>ACTIVE</span>
-                  </span>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-
-          {/* Right: 4 Architectural Solution Cards */}
-          <div className="lg:col-span-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            {SOLUTIONS.map((s, idx) => {
-              const Icon = s.icon;
-              const isSelected = idx === selectedSol;
-              return (
-                <button
-                  key={s.title}
-                  type="button"
-                  onClick={() => {
-                    setSelectedSol(idx);
-                    setShieldSimulated(true);
-                  }}
-                  className={`text-left rounded-2xl border p-5 sm:p-6 flex flex-col justify-between gap-5 transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? "bg-white border-emerald-500/50 shadow-[0_12px_30px_-14px_rgba(16,185,129,0.2)]"
-                      : "bg-white border-[#E4E4E4] hover:border-slate-300"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-[#E4E4E4]/75">
+                {/* Embedded Real Web App Card: Risk Guard */}
+                <div className="rounded-[16px] bg-[#FAFAFC] border border-[#E4E4E4] p-4 space-y-3.5 shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
                       <span
-                        className={`w-8 h-8 rounded-lg border flex items-center justify-center ${
-                          isSelected
-                            ? "bg-emerald-600 border-emerald-700 text-white"
-                            : "bg-[#F5F6F8] border-[#E4E4E4] text-slate-700"
+                        className={`w-2 h-2 rounded-full ${
+                          simulatedLock ? "bg-rose-500" : "bg-emerald-500"
                         }`}
+                      />
+                      <span className="text-[12.5px] font-semibold text-slate-900">
+                        Exness MT5 · Drawdown Shield
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setSimulatedLock((v) => !v)}
+                      className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-semibold border transition-colors cursor-pointer ${
+                        simulatedLock
+                          ? "bg-rose-50 border-rose-200 text-rose-700"
+                          : "bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100/60"
+                      }`}
+                    >
+                      {simulatedLock ? "LOCKED · 14H" : "ARMED · TEST CAP"}
+                    </button>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-mono mb-1.5">
+                      <span className="text-slate-500">Daily Loss Buffer (Max -3.0%)</span>
+                      <span className={simulatedLock ? "text-rose-600 font-bold" : "text-slate-800 font-semibold"}>
+                        {simulatedLock ? "-3.0% Hit ($1,500)" : "-0.4% Used (-$200)"}
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-[#E4E4E4] overflow-hidden">
+                      <motion.div
+                        animate={{ width: simulatedLock ? "100%" : "18%" }}
+                        transition={{ duration: 0.45, ease: EASE_OUT }}
+                        className={`h-full rounded-full ${
+                          simulatedLock ? "bg-rose-500" : "bg-emerald-500"
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 pt-0.5">
+                    {[
+                      { k: "Max Open", v: "5 Trades" },
+                      { k: "Streak Stop", v: "2 Losses" },
+                      { k: "Action", v: simulatedLock ? "Blocked" : "Enforced" },
+                    ].map((stat) => (
+                      <div
+                        key={stat.k}
+                        className="rounded-lg bg-white border border-[#E4E4E4] px-2.5 py-2 text-center"
                       >
-                        <Icon size={15} strokeWidth={1.9} />
+                        <div className="text-[10px] text-slate-400">{stat.k}</div>
+                        <div
+                          className={`text-[11.5px] font-semibold mt-0.5 ${
+                            stat.k === "Action" && simulatedLock
+                              ? "text-rose-600"
+                              : "text-slate-900"
+                          }`}
+                        >
+                          {stat.v}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* REAL APP CARD 2: Smart Journal Auto-Sync Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.05, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-5"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500">
+                    <Layers size={13.5} className="text-slate-700" />
+                    Addresses <strong className="text-slate-800 font-semibold">Manual spreadsheets</strong>
+                  </span>
+                  <span className="text-[11px] font-mono font-medium text-emerald-700">
+                    100% fill accuracy
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-950 mb-1">
+                  Smart Journal Synced Fills
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Real closed executions synced directly from MetaTrader 5 with R-multiples and setup tags.
+                </p>
+
+                {/* Embedded Real Web App Card: Recent Fills Table */}
+                <div className="rounded-[16px] bg-[#FAFAFC] border border-[#E4E4E4] overflow-hidden shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
+                  <div className="px-4 py-2.5 bg-white border-b border-[#E4E4E4] flex items-center justify-between text-[11px] font-mono">
+                    <span className="text-slate-700 font-semibold">MT5 Bridge · Verified Fills</span>
+                    <span className="text-emerald-600 font-medium">4ms Auto-Sync</span>
+                  </div>
+                  <div className="divide-y divide-[#E4E4E4]/80 text-[12px]">
+                    {[
+                      { pair: "XAU/USD", side: "BUY 1.25L", setup: "NY Open Sweep", rr: "+2.4R", pnl: "+$1,480", win: true },
+                      { pair: "EUR/USD", side: "SELL 2.00L", setup: "London OB", rr: "+1.8R", pnl: "+$960", win: true },
+                      { pair: "NAS100", side: "BUY 0.50L", setup: "FVG Retest", rr: "-1.0R", pnl: "-$310", win: false },
+                    ].map((row) => (
+                      <div
+                        key={row.pair}
+                        className="px-4 py-2.5 flex items-center justify-between gap-2 bg-white/75"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold ${
+                              row.win
+                                ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                                : "bg-rose-50 text-rose-600 border border-rose-200/80"
+                            }`}
+                          >
+                            {row.rr}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900 truncate">
+                              {row.pair}{" "}
+                              <span className="text-[11px] font-normal text-slate-400">
+                                · {row.side}
+                              </span>
+                            </div>
+                            <div className="text-[10.5px] text-slate-500 truncate">{row.setup}</div>
+                          </div>
+                        </div>
+                        <span
+                          className={`font-mono font-bold tabular-nums shrink-0 ${
+                            row.win ? "text-emerald-600" : "text-rose-500"
+                          }`}
+                        >
+                          {row.pnl}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* REAL APP CARD 3: Pre-Market Plan + AI Session Debrief Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-5"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500">
+                    <Sparkles size={13.5} className="text-slate-700" />
+                    Addresses <strong className="text-slate-800 font-semibold">Delayed feedback</strong>
+                  </span>
+                  <span className="text-[11px] font-mono font-medium text-emerald-700">
+                    Real-time pattern memory
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-950 mb-1">
+                  TradiFive AI Debrief &amp; Plan
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Authentic pre-market checklist &amp; AI behavioral coach widget inside your daily dashboard.
+                </p>
+
+                {/* Embedded Real Web App Card: Pre-Market Plan + AI Coach */}
+                <div className="space-y-2.5">
+                  <div className="rounded-[15px] bg-white border border-[#E4E4E4] px-4 py-2.5 shadow-[0_2px_10px_rgba(15,23,42,0.03)] flex items-center justify-between text-[12px]">
+                    <span className="flex items-center gap-2 font-semibold text-slate-800">
+                      <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center">
+                        <Check size={10} strokeWidth={3} />
                       </span>
-                      <span className="text-[11px] font-mono font-medium text-emerald-700">
-                        {s.metric}
+                      <span>
+                        Pre-market plan active ·{" "}
+                        <span className="text-slate-500 font-medium">Bullish bias</span>
                       </span>
+                    </span>
+                    <ArrowRight size={13} className="text-slate-400" />
+                  </div>
+
+                  <div className="rounded-[16px] bg-[#FAFAFC] border border-[#E4E4E4] p-4 shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#2563EB]">
+                        <Sparkles size={12.5} />
+                        TradiFive AI · Session Debrief
+                      </span>
+                      <span className="text-[10.5px] font-mono text-slate-400">NY Session</span>
+                    </div>
+                    <p className="text-[12px] leading-relaxed text-slate-700">
+                      &ldquo;Your discipline held at <strong className="text-slate-950">94/100</strong> this week.
+                      Sticking to the first 2 NY Open setups generated{" "}
+                      <strong className="text-emerald-700">+89% of monthly gains</strong> with zero revenge fills.&rdquo;
+                    </p>
+                    <div className="mt-3 pt-2.5 border-t border-[#E4E4E4]/80 flex items-center justify-between text-[11px]">
+                      <span className="text-slate-500">Focus: Hold winners to 2.0R</span>
+                      <span className="font-mono font-semibold text-emerald-700">14-day streak</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* REAL APP CARD 4: Net Cumulative P&L + Win Rate Ring + 3-Metric Row (Exact Dashboard.tsx Hero Card) */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.15, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-5"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-slate-500">
+                    <CheckCircle2 size={13.5} className="text-slate-700" />
+                    Addresses <strong className="text-slate-800 font-semibold">Inconsistent scaling</strong>
+                  </span>
+                  <span className="text-[11px] font-mono font-medium text-emerald-700">
+                    Scale on verified proof
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-950 mb-1">
+                  Net P&amp;L &amp; Edge Telemetry
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Live win-rate donut, cumulative P&amp;L, and RR telemetry straight from the user dashboard.
+                </p>
+
+                {/* Embedded Real Web App Card: Exact Dashboard.tsx Top Metrics */}
+                <div className="space-y-2.5">
+                  <div className="rounded-[16px] bg-[#FAFAFC] border border-[#E4E4E4] p-4 flex items-center justify-between gap-4 shadow-[0_2px_10px_rgba(15,23,42,0.03)]">
+                    <div>
+                      <div className="text-[11px] font-medium text-slate-500">Net Cumulative P&amp;L</div>
+                      <div className="text-[26px] font-bold text-slate-950 tracking-[-0.03em] tabular-nums leading-tight mt-0.5">
+                        +$8,420.50
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 text-[11px]">
+                        <span className="px-2 py-0.5 rounded-full bg-white border border-[#E4E4E4] font-semibold text-slate-800 tabular-nums">
+                          14W / 4L
+                        </span>
+                        <span className="text-slate-500 font-medium tabular-nums">18 closed trades</span>
+                      </div>
                     </div>
 
-                    <div className="text-[11px] font-medium text-slate-400 mb-1">
-                      Fixes {s.problemRef}
+                    <div className="relative w-[74px] h-[74px] shrink-0">
+                      <svg width={donutSize} height={donutSize} viewBox={`0 0 ${donutSize} ${donutSize}`} className="-rotate-90">
+                        <circle
+                          cx={donutSize / 2}
+                          cy={donutSize / 2}
+                          r={radius}
+                          fill="none"
+                          stroke="#E4E4E4"
+                          strokeWidth={strokeWidth}
+                        />
+                        <motion.circle
+                          cx={donutSize / 2}
+                          cy={donutSize / 2}
+                          r={radius}
+                          fill="none"
+                          stroke="#10B981"
+                          strokeWidth={strokeWidth}
+                          strokeLinecap="round"
+                          strokeDasharray={circumference}
+                          initial={{ strokeDashoffset: circumference }}
+                          whileInView={{ strokeDashoffset: dashOffset }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.9, ease: EASE_OUT }}
+                        />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-[13.5px] font-bold text-slate-950 leading-none tabular-nums">
+                          78%
+                        </span>
+                        <span className="text-[8.5px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
+                          Win
+                        </span>
+                      </div>
                     </div>
-                    <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-950 mb-2 leading-snug">
-                      {s.title}
-                    </h3>
-                    <p className="text-[13px] text-slate-500 leading-relaxed font-normal">
-                      {s.desc}
-                    </p>
                   </div>
-                </button>
-              );
-            })}
+
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { label: "Avg RR", value: "2.15R" },
+                      { label: "Profit Factor", value: "2.48" },
+                      { label: "Avg W / L", value: "$740 / $290" },
+                    ].map((m) => (
+                      <div
+                        key={m.label}
+                        className="rounded-[12px] bg-white border border-[#E4E4E4] px-2.5 py-2.5 text-center shadow-[0_2px_8px_rgba(15,23,42,0.03)]"
+                      >
+                        <div className="text-[10px] font-medium text-slate-400">{m.label}</div>
+                        <div className="text-[13px] font-bold text-slate-900 mt-0.5 tabular-nums truncate">
+                          {m.value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
