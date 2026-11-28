@@ -2883,9 +2883,32 @@ function ProblemSection() {
   ];
 
   return (
-    <section id="problem" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
-      <div className="max-w-[1160px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        <div className="lg:col-span-5 lg:sticky lg:top-28">
+    <section id="problem" className="py-24 sm:py-28 px-4 sm:px-7 relative bg-white overflow-hidden">
+      {/* Seamless alpine mountain backdrop dissolving top & bottom into crisp white */}
+      <div className="pointer-events-none absolute inset-0 select-none" aria-hidden="true">
+        <img
+          src="/problem-mountain-bg.jpg"
+          alt=""
+          className="w-full h-full object-cover object-[35%_52%] opacity-[0.58] sm:opacity-[0.65] scale-[1.03]"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.42) 18%, rgba(255,255,255,0.08) 54%, rgba(255,255,255,0.82) 86%, #ffffff 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to right, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.34) 36%, rgba(255,255,255,0.72) 66%, rgba(255,255,255,0.9) 100%)",
+          }}
+        />
+      </div>
+
+      <div className="max-w-[1160px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
+        <div className="lg:col-span-5 lg:sticky lg:top-28 lg:rounded-2xl lg:bg-white/55 lg:backdrop-blur-[6px] lg:p-6 lg:-ml-6 lg:border lg:border-white/80">
           <SectionHeader
             badge="The problem"
             icon={AlertTriangle}
@@ -2901,13 +2924,13 @@ function ProblemSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.45, delay: 0.3, ease: EASE_OUT }}
-            className="border-l-2 border-rose-500/80 pl-4 py-0.5 text-[13px] text-slate-600 leading-relaxed"
+            className="border-l-2 border-rose-500/80 pl-4 py-0.5 text-[13px] text-slate-700 leading-relaxed"
           >
             Across MT5 retail &amp; prop accounts, over 70% of monthly equity drawdowns occur during unscheduled post-loss sessions.
           </motion.div>
         </div>
 
-        <div className="lg:col-span-7 border-t border-[#E4E4E4]">
+        <div className="lg:col-span-7 rounded-2xl bg-white/82 backdrop-blur-md border border-[#E4E4E4] px-5 sm:px-8 divide-y divide-[#E4E4E4] shadow-[0_18px_48px_-22px_rgba(15,23,42,0.1)]">
           {PROBLEMS.map((p, idx) => (
             <motion.div
               key={p.num}
@@ -2915,9 +2938,9 @@ function ProblemSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
-              className="py-6 sm:py-7 border-b border-[#E4E4E4] flex items-start gap-5 sm:gap-7"
+              className="py-6 sm:py-7 flex items-start gap-5 sm:gap-7 group"
             >
-              <span className="text-[13px] font-mono font-semibold text-slate-400 pt-0.5 tabular-nums shrink-0">
+              <span className="text-[13px] font-mono font-semibold text-slate-400 pt-0.5 tabular-nums shrink-0 group-hover:text-rose-500 transition-colors">
                 {p.num}
               </span>
               <div className="flex-1 min-w-0">
@@ -2929,7 +2952,7 @@ function ProblemSection() {
                     {p.impact}
                   </span>
                 </div>
-                <p className="text-[13.5px] text-slate-500 leading-relaxed font-normal">
+                <p className="text-[13.5px] text-slate-600 leading-relaxed font-normal">
                   {p.desc}
                 </p>
               </div>
@@ -2952,89 +2975,89 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
   const tradesLeft = Math.max(0, tradeCap - tradesUsed);
   const tradesBreached = tradesUsed >= tradeCap;
 
-  const donutSize = 72;
-  const strokeWidth = 6.5;
+  const donutSize = 60;
+  const strokeWidth = 5.5;
   const radius = (donutSize - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const dashOffset = circumference * (1 - 0.78);
 
   return (
-    <section id="solution" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
+    <section id="solution" className="py-14 sm:py-16 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[1160px] mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-8">
           <SectionHeader
             badge="The solution"
             icon={CheckCircle2}
             tone="emerald"
             align="left"
-            title="One disciplined workspace"
-            subtitle="closing every leak automatically."
-            description="TradiFive enforces your rules at the broker edge, logs every execution automatically, and coaches you back to peak form."
-            className="max-w-[620px]"
+            title="One simple workspace"
+            subtitle="built from real trading tools."
+            description="Every rule limit, auto-synced trade, AI review, and P&L stat works together automatically."
+            className="max-w-[600px]"
           />
           <button
             type="button"
             onClick={onStart}
             className="tactile-blue-pill h-10 px-6 rounded-full text-[13px] font-bold inline-flex items-center gap-2 cursor-pointer shrink-0 self-start md:self-auto"
           >
-            <span>Experience the Solution Free</span>
+            <span>Try TradiFive Free</span>
             <ArrowRight size={14} strokeWidth={2.2} />
           </button>
         </div>
 
-        <div className="rounded-2xl bg-[#E4E4E4]/45 border border-[#E4E4E4] p-2.5 sm:p-3.5">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 sm:gap-3.5">
-            {/* CARD 1: Real Risk Guard "Daily Trade Limit" Web App Card */}
+        <div className="rounded-2xl bg-[#E4E4E4]/45 border border-[#E4E4E4] p-2 sm:p-2.5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-2.5">
+            {/* CARD 1: Risk Guard — Daily Trade Limit */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, ease: EASE_OUT }}
-              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+              className="rounded-xl bg-white border border-[#E4E4E4] p-4 flex flex-col justify-between gap-2.5"
             >
               <div>
-                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
-                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
-                    <Lock size={15} strokeWidth={1.8} className="text-slate-700" />
-                    <span>Addresses <span className="text-slate-800 font-medium">Revenge trading</span></span>
+                <div className="flex items-center justify-between gap-3 mb-2 pb-2 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-1.5 text-[11.5px] text-slate-500">
+                    <Lock size={13.5} strokeWidth={1.8} className="text-slate-700" />
+                    <span>Stops <span className="text-slate-800 font-medium">overtrading</span></span>
                   </div>
-                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
-                    Auto-arms at cap
+                  <span className="text-[11px] font-mono font-semibold text-emerald-700">
+                    Risk Guard
                   </span>
                 </div>
-                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
-                  Hard Cooldown Circuit Breaker
+                <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-900 mb-0.5">
+                  Daily Trade Limit
                 </h3>
-                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
-                  Stop overtrading automatically once your daily order cap or drawdown limit hits.
+                <p className="text-[12.5px] text-slate-500 leading-snug">
+                  Pick your max trades per day so you never take extra emotional trades after a win or loss.
                 </p>
               </div>
 
               {/* Actual Real Web App Card: Risk Guard Daily Trade Limit */}
-              <div className="p-3.5 rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)] space-y-3">
-                <div className="flex items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5 min-w-0">
+              <div className="p-3 rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <div
-                      className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-colors ${
+                      className={`w-6 h-6 rounded-[8px] flex items-center justify-center shrink-0 transition-colors ${
                         tradeLimitActive
                           ? "bg-blue-50 text-[#2563EB]"
                           : "bg-slate-100 text-slate-500"
                       }`}
                     >
-                      <ShieldCheck size={14} strokeWidth={2} />
+                      <ShieldCheck size={13} strokeWidth={2} />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-[13px] font-semibold text-slate-900 truncate leading-tight">
+                      <div className="text-[12.5px] font-semibold text-slate-900 truncate leading-tight">
                         Daily Trade Limit
                       </div>
-                      <div className="text-[10.5px] text-slate-400 truncate mt-0.5 leading-tight">
+                      <div className="text-[10px] text-slate-400 truncate leading-tight">
                         Stop overtrading after max orders per day
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums ${
+                      className={`px-2 py-0.5 rounded-full text-[10.5px] font-semibold tabular-nums ${
                         tradeLimitActive
                           ? "bg-blue-50 text-[#2563EB]"
                           : "bg-slate-100 text-slate-500"
@@ -3046,11 +3069,11 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                   </div>
                 </div>
 
-                <div className="space-y-1.5 pt-0.5">
-                  <div className="flex items-center justify-between text-[10.5px]">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[10px]">
                     <span className="font-semibold text-slate-700 inline-flex items-center gap-1.5 tabular-nums">
                       <span>Today: {tradesUsed} / {tradeCap}</span>
-                      <span className="px-1.5 py-[0.5px] rounded text-[8.5px] font-bold uppercase bg-emerald-100 text-emerald-700">
+                      <span className="px-1.5 py-[0.5px] rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700">
                         LIVE
                       </span>
                     </span>
@@ -3071,11 +3094,11 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                   />
                 </div>
 
-                <div className="flex items-center justify-between gap-3 pt-0.5">
-                  <span className="text-[11px] font-medium text-slate-500">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10.5px] font-medium text-slate-500">
                     Max trades per day
                   </span>
-                  <div className="flex items-center gap-1.5 w-[132px]">
+                  <div className="flex items-center gap-1 w-[112px]">
                     <button
                       type="button"
                       onClick={() => {
@@ -3083,17 +3106,17 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                         setTradeCap(next);
                         if (tradesUsed > next) setTradesUsed(next);
                       }}
-                      className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold text-slate-700 cursor-pointer"
+                      className="tactile-white-pill w-6 h-6 rounded-[7px] flex items-center justify-center text-[12px] font-bold text-slate-700 cursor-pointer"
                     >
                       -
                     </button>
-                    <span className="flex-1 text-center px-2 py-1 rounded-[8px] bg-[#F8FAFC] border border-[#E4E4E4] text-[12px] font-bold text-slate-900 tabular-nums">
+                    <span className="flex-1 text-center px-1.5 py-0.5 rounded-[7px] bg-[#F8FAFC] border border-[#E4E4E4] text-[11.5px] font-bold text-slate-900 tabular-nums">
                       {tradeCap}
                     </span>
                     <button
                       type="button"
                       onClick={() => setTradeCap((v) => Math.min(10, v + 1))}
-                      className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold text-slate-700 cursor-pointer"
+                      className="tactile-white-pill w-6 h-6 rounded-[7px] flex items-center justify-center text-[12px] font-bold text-slate-700 cursor-pointer"
                     >
                       +
                     </button>
@@ -3102,58 +3125,58 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
               </div>
             </motion.div>
 
-            {/* CARD 2: Real Smart Journal MT5 Synced Trades Card */}
+            {/* CARD 2: Smart Journal — Auto-Synced Trades */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.05, ease: EASE_OUT }}
-              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+              className="rounded-xl bg-white border border-[#E4E4E4] p-4 flex flex-col justify-between gap-2.5"
             >
               <div>
-                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
-                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
-                    <Layers size={15} strokeWidth={1.8} className="text-slate-700" />
-                    <span>Addresses <span className="text-slate-800 font-medium">Manual spreadsheets</span></span>
+                <div className="flex items-center justify-between gap-3 mb-2 pb-2 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-1.5 text-[11.5px] text-slate-500">
+                    <Layers size={13.5} strokeWidth={1.8} className="text-slate-700" />
+                    <span>No <span className="text-slate-800 font-medium">manual logging</span></span>
                   </div>
-                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
-                    100% fill accuracy
+                  <span className="text-[11px] font-mono font-semibold text-emerald-700">
+                    Smart Journal
                   </span>
                 </div>
-                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
-                  Instant Broker-Verified Journal
+                <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-900 mb-0.5">
+                  Auto-Synced Trade Journal
                 </h3>
-                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
-                  Every MT5 position streams directly into structured setup and R-multiple records automatically.
+                <p className="text-[12.5px] text-slate-500 leading-snug">
+                  Every trade from your MT5 account saves automatically with pair, setup tag, and profit.
                 </p>
               </div>
 
-              {/* Actual Real Web App Card: MT5 Synced Journal Table */}
-              <div className="rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)] overflow-hidden">
-                <div className="px-3.5 py-2.5 border-b border-[#E4E4E4]/80 flex items-center justify-between gap-2 bg-[#FAFAFC]">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-[7px] bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                      <BookOpen size={13} strokeWidth={2} />
+              {/* Actual Real Web App Card: MT5 Synced Trades Table */}
+              <div className="rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] overflow-hidden">
+                <div className="px-3 py-1.5 border-b border-[#E4E4E4]/80 flex items-center justify-between gap-2 bg-[#FAFAFC]">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-[6px] bg-blue-50 text-[#2563EB] flex items-center justify-center">
+                      <BookOpen size={11.5} strokeWidth={2} />
                     </div>
-                    <span className="text-[12.5px] font-semibold text-slate-900">
-                      Recent Synced Fills
+                    <span className="text-[12px] font-semibold text-slate-900">
+                      Recent Trades
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase">
-                    Exness MT5 · Live
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold uppercase">
+                    MT5 · Auto-Synced
                   </span>
                 </div>
 
-                <div className="divide-y divide-[#E4E4E4]/70 text-[11.5px]">
+                <div className="divide-y divide-[#E4E4E4]/70 text-[11px]">
                   {[
                     { pair: "XAU/USD", lot: "1.25L", setup: "NY Open Sweep", rr: "+2.4R", pnl: "+$1,480", win: true },
                     { pair: "EUR/USD", lot: "2.00L", setup: "London OB", rr: "+1.8R", pnl: "+$960", win: true },
                     { pair: "NAS100", lot: "0.50L", setup: "FVG Retest", rr: "-1.0R", pnl: "-$310", win: false },
                   ].map((row) => (
-                    <div key={row.pair} className="px-3.5 py-2.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2.5 min-w-0">
+                    <div key={row.pair} className="px-3 py-1.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold ${
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
                             row.win
                               ? "bg-emerald-50 text-emerald-700"
                               : "bg-rose-50 text-rose-600"
@@ -3161,12 +3184,9 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                         >
                           {row.rr}
                         </span>
-                        <div className="min-w-0">
-                          <div className="font-semibold text-slate-900 truncate">
-                            {row.pair}{" "}
-                            <span className="text-[10.5px] font-normal text-slate-400">· {row.lot}</span>
-                          </div>
-                          <div className="text-[10px] text-slate-500 truncate">{row.setup}</div>
+                        <div className="min-w-0 truncate">
+                          <span className="font-semibold text-slate-900">{row.pair}</span>{" "}
+                          <span className="text-[10px] text-slate-400">· {row.lot} · {row.setup}</span>
                         </div>
                       </div>
                       <span
@@ -3182,35 +3202,35 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
               </div>
             </motion.div>
 
-            {/* CARD 3: Real Pre-Market Plan + AI Session Debrief Card */}
+            {/* CARD 3: TradiFive AI — Pre-Market Plan & Session Debrief */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.1, ease: EASE_OUT }}
-              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+              className="rounded-xl bg-white border border-[#E4E4E4] p-4 flex flex-col justify-between gap-2.5"
             >
               <div>
-                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
-                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
-                    <Sparkles size={15} strokeWidth={1.8} className="text-slate-700" />
-                    <span>Addresses <span className="text-slate-800 font-medium">Delayed feedback</span></span>
+                <div className="flex items-center justify-between gap-3 mb-2 pb-2 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-1.5 text-[11.5px] text-slate-500">
+                    <Sparkles size={13.5} strokeWidth={1.8} className="text-slate-700" />
+                    <span>Clear <span className="text-slate-800 font-medium">daily feedback</span></span>
                   </div>
-                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
-                    Real-time pattern memory
+                  <span className="text-[11px] font-mono font-semibold text-emerald-700">
+                    TradiFive AI
                   </span>
                 </div>
-                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
-                  Live Behavioral AI Coaching
+                <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-900 mb-0.5">
+                  Pre-Market Plan &amp; AI Coach
                 </h3>
-                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
-                  Spot tilt windows and post-loss sizing drift immediately inside your daily session brief.
+                <p className="text-[12.5px] text-slate-500 leading-snug">
+                  Write your plan before opening a trade and get simple AI feedback after every session.
                 </p>
               </div>
 
               {/* Actual Real Web App Cards: Pre-market Plan + AI Session Debrief */}
-              <div className="space-y-2.5">
-                <div className="px-3.5 py-2.5 rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] flex items-center justify-between text-[12px]">
+              <div className="space-y-2">
+                <div className="px-3 py-2 rounded-[12px] bg-white border border-[#E4E4E4] shadow-[0_2px_6px_rgba(15,23,42,0.03)] flex items-center justify-between text-[11.5px]">
                   <span className="flex items-center gap-2 font-semibold text-slate-800">
                     <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center">
                       <Check size={10} strokeWidth={3} />
@@ -3220,67 +3240,62 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                       <span className="text-slate-500 font-medium">Bullish bias</span>
                     </span>
                   </span>
-                  <ArrowRight size={13} className="text-slate-400" />
+                  <ArrowRight size={12.5} className="text-slate-400" />
                 </div>
 
-                <div className="p-3.5 rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)]">
-                  <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#2563EB]">
-                      <Sparkles size={12.5} />
+                <div className="p-3 rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-[#2563EB]">
+                      <Sparkles size={11.5} />
                       TradiFive AI · Session Debrief
                     </span>
-                    <span className="text-[10.5px] font-mono text-slate-400">NY Session</span>
+                    <span className="text-[10px] font-mono text-slate-400">NY Session</span>
                   </div>
-                  <p className="text-[12px] leading-relaxed text-slate-700">
-                    &ldquo;Your discipline held at <strong className="text-slate-900">94/100</strong> this week.
-                    Sticking to the first 2 NY Open setups generated{" "}
-                    <strong className="text-emerald-600">+89% of monthly gains</strong> with zero revenge entries.&rdquo;
+                  <p className="text-[11.5px] leading-snug text-slate-700">
+                    &ldquo;Your discipline held at <strong className="text-slate-900">94/100</strong>.
+                    Your first 2 NY Open setups made <strong className="text-emerald-600">+89% of gains</strong> with zero revenge trades.&rdquo;
                   </p>
-                  <div className="mt-2.5 pt-2 border-t border-[#E4E4E4]/70 flex items-center justify-between text-[10.5px]">
-                    <span className="text-slate-500 font-medium">Rule: Hold winners to 2.0R</span>
-                    <span className="font-mono font-semibold text-emerald-600">14 clean days</span>
-                  </div>
                 </div>
               </div>
             </motion.div>
 
-            {/* CARD 4: Real Net Cumulative P&L + Win Rate Donut + 3-Metric Row from Dashboard.tsx */}
+            {/* CARD 4: Live Dashboard — Net Cumulative P&L & Win Rate */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: 0.15, ease: EASE_OUT }}
-              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+              className="rounded-xl bg-white border border-[#E4E4E4] p-4 flex flex-col justify-between gap-2.5"
             >
               <div>
-                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
-                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
-                    <CheckCircle2 size={15} strokeWidth={1.8} className="text-slate-700" />
-                    <span>Addresses <span className="text-slate-800 font-medium">Inconsistent scaling</span></span>
+                <div className="flex items-center justify-between gap-3 mb-2 pb-2 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-1.5 text-[11.5px] text-slate-500">
+                    <CheckCircle2 size={13.5} strokeWidth={1.8} className="text-slate-700" />
+                    <span>All stats <span className="text-slate-800 font-medium">in one place</span></span>
                   </div>
-                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
-                    Scale on verified proof
+                  <span className="text-[11px] font-mono font-semibold text-emerald-700">
+                    Dashboard
                   </span>
                 </div>
-                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
-                  Unified TradiFive Discipline Score
+                <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-900 mb-0.5">
+                  Net P&amp;L &amp; Win Rate Tracker
                 </h3>
-                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
-                  Benchmark win rate, profit factor, avg R, and cumulative edge inside one live dashboard.
+                <p className="text-[12.5px] text-slate-500 leading-snug">
+                  Track your total profit, win rate, average reward-to-risk, and profit factor at a glance.
                 </p>
               </div>
 
-              {/* Actual Real Web App Card: Dashboard Net P&L + Win Ring + Telemetry */}
-              <div className="space-y-2.5">
-                <div className="p-3.5 rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)] flex items-center justify-between gap-4">
+              {/* Actual Real Web App Card: Dashboard Net Cumulative P&L + Win Ring + 3-Metric Row */}
+              <div className="space-y-2">
+                <div className="p-3 rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-[11px] font-medium text-slate-500">
+                    <div className="text-[10.5px] font-medium text-slate-500">
                       Net Cumulative P&amp;L
                     </div>
-                    <div className="text-[24px] font-bold text-slate-950 tracking-[-0.03em] tabular-nums leading-tight mt-0.5">
+                    <div className="text-[20px] font-bold text-slate-950 tracking-[-0.03em] tabular-nums leading-tight mt-0.5">
                       +$8,420.50
                     </div>
-                    <div className="mt-2 flex items-center gap-2 text-[11px]">
+                    <div className="mt-1 flex items-center gap-1.5 text-[10.5px]">
                       <span className="px-2 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E4E4E4] font-semibold text-slate-700 tabular-nums">
                         14W / 4L
                       </span>
@@ -3290,7 +3305,7 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                     </div>
                   </div>
 
-                  <div className="relative w-[72px] h-[72px] shrink-0">
+                  <div className="relative w-[60px] h-[60px] shrink-0">
                     <svg width={donutSize} height={donutSize} viewBox={`0 0 ${donutSize} ${donutSize}`} className="-rotate-90">
                       <circle
                         cx={donutSize / 2}
@@ -3313,17 +3328,17 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-[13px] font-bold text-slate-900 leading-none tabular-nums">
+                      <span className="text-[12px] font-bold text-slate-900 leading-none tabular-nums">
                         78%
                       </span>
-                      <span className="text-[8.5px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
+                      <span className="text-[7.5px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
                         Win
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-1.5">
                   {[
                     { label: "Avg RR", value: "2.15R" },
                     { label: "Profit Factor", value: "2.48" },
@@ -3331,10 +3346,10 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                   ].map((m) => (
                     <div
                       key={m.label}
-                      className="px-2.5 py-2.5 rounded-[13px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] text-center"
+                      className="px-2 py-1.5 rounded-[11px] bg-white border border-[#E4E4E4] text-center"
                     >
-                      <div className="text-[10px] font-medium text-slate-400">{m.label}</div>
-                      <div className="text-[13px] font-bold text-slate-900 mt-0.5 tabular-nums truncate">
+                      <div className="text-[9.5px] font-medium text-slate-400">{m.label}</div>
+                      <div className="text-[12px] font-bold text-slate-900 tabular-nums truncate">
                         {m.value}
                       </div>
                     </div>
