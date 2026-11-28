@@ -2546,13 +2546,13 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
 
                 {/* Right Bullets + Action */}
                 <div className="sm:col-span-7 flex flex-col justify-between">
-                  <ul className="space-y-2.5">
+                  <ul className="space-y-3">
                     {active.bullets.map((b, i) => (
                       <li
                         key={i}
-                        className="flex items-start gap-2.5 text-[12.5px] leading-snug text-slate-700"
+                        className="flex items-start gap-3 text-[13px] leading-snug text-slate-700"
                       >
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#2563EB] shrink-0" />
+                        <span className="mt-[9px] w-3 h-[1.5px] bg-[#2563EB] shrink-0" />
                         <span>
                           {b.before}
                           <span className="text-[#2563EB] font-semibold">{b.accent}</span>
@@ -2583,36 +2583,46 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
 }
 
 /* ════════════════
-   PLATFORM PILLARS TICKER
+   CONNECTED MT5 BROKERS STRIP
 ════════════════ */
-const CORE_FEATURES = [
-  "Social trading feed",
-  "Live competitions",
-  "Autonomous Risk Guard",
-  "Automated trade journal",
-  "FiAlgo engine",
-  "Real-time leaderboards",
-  "MT5 broker bridge",
-  "Verified track records",
+const MT5_BROKERS = [
+  { name: "Exness", tier: "ECN / Raw" },
+  { name: "IC Markets", tier: "True ECN" },
+  { name: "Pepperstone", tier: "Razor MT5" },
+  { name: "XM Global", tier: "Ultra Low" },
+  { name: "FP Markets", tier: "Raw MT5" },
+  { name: "Tickmill", tier: "Pro Account" },
+  { name: "Vantage", tier: "RAW ECN" },
+  { name: "Eightcap", tier: "MT5 Desk" },
+  { name: "FTMO", tier: "Prop Desk" },
+  { name: "FundedNext", tier: "Prop Desk" },
+  { name: "FXPro", tier: "cTrader / MT5" },
 ];
 
 function PlatformPillars() {
   return (
-    <section className="py-10 sm:py-12 overflow-hidden relative bg-white">
+    <section className="py-10 sm:py-12 overflow-hidden relative bg-white border-y border-slate-100">
       <div className="text-center mb-6 px-4">
-        <p className="text-[13px] font-medium text-slate-500">
-          Infrastructure engineered for disciplined execution
+        <p className="text-[12.5px] font-medium tracking-[-0.01em] text-slate-400">
+          Direct MetaTrader 5 connectivity across 40+ global brokers &amp; prop desks
         </p>
       </div>
-      <div className="pillar-mask">
-        <div className="br-track">
-          {[...CORE_FEATURES, ...CORE_FEATURES].map((label, i) => (
+      <div className="pillar-mask max-w-[1280px] mx-auto">
+        <div className="br-track items-center">
+          {[...MT5_BROKERS, ...MT5_BROKERS].map((broker, i) => (
             <div
-              key={i}
-              className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-slate-200/90 bg-[#F8FAFC] text-[13px] font-medium text-slate-700 shadow-2xs shrink-0"
+              key={`${broker.name}-${i}`}
+              className="inline-flex items-baseline gap-2 px-6 sm:px-8 py-1.5 shrink-0 select-none border-r border-slate-200/70 last:border-r-0"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-              <span>{label}</span>
+              <span
+                style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+                className="text-[16px] sm:text-[17px] font-bold tracking-[-0.03em] text-slate-800"
+              >
+                {broker.name}
+              </span>
+              <span className="text-[10.5px] font-mono font-medium uppercase tracking-wider text-slate-400">
+                MT5
+              </span>
             </div>
           ))}
         </div>
@@ -2728,28 +2738,26 @@ function BenefitsSection() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="rounded-2xl border border-slate-200 bg-slate-200 overflow-hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px">
           {BENEFITS.map((item, idx) => {
             const Icon = item.icon;
             return (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: idx * 0.05, ease: EASE_OUT }}
-                className="rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.08)] p-6 flex flex-col justify-between gap-5 transition-colors duration-200"
+                transition={{ duration: 0.4, delay: idx * 0.04, ease: EASE_OUT }}
+                className="bg-white hover:bg-[#FAFBFD] p-7 sm:p-8 flex flex-col justify-between gap-7 transition-colors duration-200"
               >
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-5">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center justify-center text-[#2563EB]">
-                      <Icon size={18} strokeWidth={1.75} />
-                    </div>
-                    <span className="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-600">
+                  <div className="flex items-center justify-between gap-3 mb-6">
+                    <Icon size={19} strokeWidth={1.7} className="text-[#2563EB]" />
+                    <span className="text-[11px] font-mono font-medium text-slate-400 tracking-tight">
                       {item.badge}
                     </span>
                   </div>
-                  <h3 className="text-[17px] font-semibold text-slate-900 mb-2">
+                  <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-2">
                     {item.title}
                   </h3>
                   <p className="text-[13.5px] text-slate-500 leading-relaxed font-normal">
@@ -2801,58 +2809,56 @@ function ProblemSection() {
 
   return (
     <section id="problem" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
-      <div className="max-w-[1160px] mx-auto">
+      <div className="max-w-[1160px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="text-center mb-14"
+          className="lg:col-span-5 lg:sticky lg:top-28"
         >
           <p className="text-[13px] font-semibold text-rose-600 mb-3">
             The problem
           </p>
           <h2
             style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[44px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
+            className="text-[28px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
           >
             Most traders don&apos;t lack setups —
             <span className="block font-extralight text-slate-500 mt-1">
               they lose to unguarded behavior.
             </span>
           </h2>
-          <p className="text-[14.5px] sm:text-[15.5px] font-light text-slate-500 max-w-[560px] mx-auto leading-relaxed">
+          <p className="text-[14.5px] sm:text-[15px] font-light text-slate-500 leading-relaxed mb-6">
             Charts only show price. The real capital leaks happen in execution discipline right between setups.
           </p>
+          <div className="border-l-2 border-rose-500/80 pl-4 py-0.5 text-[13px] text-slate-600 leading-relaxed">
+            Across MT5 retail &amp; prop accounts, over 70% of monthly equity drawdowns occur during unscheduled post-loss sessions.
+          </div>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="lg:col-span-7 border-t border-slate-200">
           {PROBLEMS.map((p, idx) => (
             <motion.div
               key={p.num}
-              initial={{ opacity: 0, y: 14 }}
+              initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.45, delay: idx * 0.06, ease: EASE_OUT }}
-              className="rounded-2xl bg-white border border-slate-200/90 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.07)] p-6 sm:p-7 flex flex-col justify-between gap-4"
+              transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
+              className="py-6 sm:py-7 border-b border-slate-200 flex items-start gap-5 sm:gap-7"
             >
-              <div className="flex items-center justify-between gap-3">
-                <div className="inline-flex items-center gap-2.5">
-                  <span className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
-                    <AlertTriangle size={15} strokeWidth={1.8} />
-                  </span>
-                  <span className="text-[11px] font-mono font-semibold text-slate-400">
-                    GAP {p.num}
+              <span className="text-[13px] font-mono font-semibold text-slate-400 pt-0.5 tabular-nums shrink-0">
+                {p.num}
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1.5">
+                  <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900">
+                    {p.title}
+                  </h3>
+                  <span className="text-[11.5px] font-medium text-rose-600 shrink-0">
+                    {p.impact}
                   </span>
                 </div>
-                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600">
-                  {p.impact}
-                </span>
-              </div>
-              <div>
-                <h3 className="text-[17px] font-semibold text-slate-900 mb-2">
-                  {p.title}
-                </h3>
                 <p className="text-[13.5px] text-slate-500 leading-relaxed font-normal">
                   {p.desc}
                 </p>
@@ -2908,69 +2914,69 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.15 }}
           transition={{ duration: 0.45, ease: EASE_OUT }}
-          className="text-center mb-14"
+          className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12"
         >
-          <p className="text-[13px] font-semibold text-emerald-600 mb-3">
-            The solution
-          </p>
-          <h2
-            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[44px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-4"
-          >
-            One disciplined workspace
-            <span className="block font-extralight text-slate-500 mt-1">
-              closing every leak automatically.
-            </span>
-          </h2>
-          <p className="text-[14.5px] sm:text-[15.5px] font-light text-slate-500 max-w-[580px] mx-auto leading-relaxed mb-7">
-            TradiFive enforces your rules at the broker edge, logs every execution automatically, and coaches you back to peak form.
-          </p>
+          <div className="max-w-[600px]">
+            <p className="text-[13px] font-semibold text-emerald-600 mb-3">
+              The solution
+            </p>
+            <h2
+              style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+              className="text-[28px] sm:text-[42px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900 mb-3"
+            >
+              One disciplined workspace
+              <span className="block font-extralight text-slate-500 mt-1">
+                closing every leak automatically.
+              </span>
+            </h2>
+            <p className="text-[14.5px] sm:text-[15.5px] font-light text-slate-500 leading-relaxed">
+              TradiFive enforces your rules at the broker edge, logs every execution automatically, and coaches you back to peak form.
+            </p>
+          </div>
           <button
             type="button"
             onClick={onStart}
-            className="tactile-blue-pill h-10 px-6 rounded-full text-[13px] font-bold inline-flex items-center gap-2 cursor-pointer"
+            className="tactile-blue-pill h-10 px-6 rounded-full text-[13px] font-bold inline-flex items-center gap-2 cursor-pointer shrink-0 self-start md:self-auto"
           >
             <span>Experience the Solution Free</span>
             <ArrowRight size={14} strokeWidth={2.2} />
           </button>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {SOLUTIONS.map((s, idx) => {
-            const Icon = s.icon;
-            return (
-              <motion.div
-                key={s.title}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: idx * 0.06, ease: EASE_OUT }}
-                className="rounded-2xl bg-white border border-emerald-200/80 hover:border-emerald-300 shadow-[0_8px_26px_-14px_rgba(16,185,129,0.16)] p-6 sm:p-7 flex flex-col justify-between gap-4 transition-colors duration-200"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="inline-flex items-center gap-2.5">
-                    <span className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
-                      <Icon size={16} strokeWidth={1.8} />
-                    </span>
-                    <span className="text-[11px] font-medium text-slate-500">
-                      Fixes <span className="text-slate-800 font-semibold">{s.problemRef}</span>
-                    </span>
+        <div className="rounded-2xl bg-[#F8FAFC] border border-slate-200/90 p-2.5 sm:p-3.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3.5">
+            {SOLUTIONS.map((s, idx) => {
+              const Icon = s.icon;
+              return (
+                <motion.div
+                  key={s.title}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
+                  className="rounded-xl bg-white border border-slate-200/80 p-6 sm:p-7 flex flex-col justify-between gap-6"
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-3 mb-5 pb-3.5 border-b border-slate-100">
+                      <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
+                        <Icon size={15} strokeWidth={1.8} className="text-slate-700" />
+                        <span>Addresses <span className="text-slate-800 font-medium">{s.problemRef}</span></span>
+                      </div>
+                      <span className="text-[11.5px] font-mono font-medium text-emerald-700">
+                        {s.metric}
+                      </span>
+                    </div>
+                    <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-2">
+                      {s.title}
+                    </h3>
+                    <p className="text-[13.5px] text-slate-500 leading-relaxed font-normal">
+                      {s.desc}
+                    </p>
                   </div>
-                  <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700">
-                    {s.metric}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="text-[17px] font-semibold text-slate-900 mb-2">
-                    {s.title}
-                  </h3>
-                  <p className="text-[13.5px] text-slate-500 leading-relaxed font-normal">
-                    {s.desc}
-                  </p>
-                </div>
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
@@ -2989,7 +2995,6 @@ function HowItWorks() {
       desc: "Set up your verified trader profile and workspace preferences in under a minute.",
       meta: "Setup · 60s",
       previewTitle: "@disciplined_trader",
-      previewSub: "Pro workspace initialized",
       previewStatus: "Ready",
     },
     {
@@ -2999,7 +3004,6 @@ function HowItWorks() {
       desc: "Link any MT5 account via read/execute bridge while keeping 100% of funds on your broker.",
       meta: "MT5 bridge · 4ms",
       previewTitle: "MetaTrader 5 Bridge",
-      previewSub: "Capital stays isolated at broker",
       previewStatus: "Synced",
     },
     {
@@ -3007,9 +3011,8 @@ function HowItWorks() {
       icon: ShieldCheck,
       title: "Activate Risk Guard",
       desc: "Configure daily loss caps and max trade rules. Breaches trigger an automatic cooldown lock.",
-      meta: "Autonomous protection",
-      previewTitle: "Drawdown Shield",
-      previewSub: "Max daily loss limit 3.0%",
+      meta: "Autonomous guard",
+      previewTitle: "Drawdown Shield · 3.0%",
       previewStatus: "Armed",
     },
     {
@@ -3019,7 +3022,6 @@ function HowItWorks() {
       desc: "Follow verified traders, subscribe to broadcast channels, and compete on live leaderboards.",
       meta: "Verified network",
       previewTitle: "Broadcast Channels",
-      previewSub: "Verified live track records",
       previewStatus: "Active",
     },
   ];
@@ -3049,51 +3051,32 @@ function HowItWorks() {
           </p>
         </motion.div>
 
-        {/* Minimal Animated Desktop Step Rail */}
-        <div className="hidden lg:block relative mb-6 px-10">
-          <div className="absolute top-[18px] left-16 right-16 h-px bg-slate-200" />
-          <div className="grid grid-cols-4 relative z-10">
-            {STEPS.map((step, i) => (
-              <motion.div
-                key={step.num}
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.35, delay: i * 0.08, ease: EASE_OUT }}
-                className="flex justify-center"
-              >
-                <div className="w-9 h-9 rounded-full bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-[12px] font-semibold text-slate-700 tabular-nums">
-                  {step.num}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-
-        {/* 4 Clean Step Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {STEPS.map((step, i) => {
             const Icon = step.icon;
             return (
               <motion.div
                 key={step.num}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 14 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: i * 0.07, ease: EASE_OUT }}
-                className="rounded-2xl bg-white border border-slate-200/90 hover:border-blue-300 shadow-[0_6px_24px_-12px_rgba(15,23,42,0.08)] hover:-translate-y-0.5 p-6 flex flex-col justify-between gap-6 transition-[border-color,transform] duration-200"
+                transition={{ duration: 0.4, delay: i * 0.06, ease: EASE_OUT }}
+                className="border-t-2 border-slate-200 hover:border-[#2563EB] pt-6 flex flex-col justify-between gap-7 transition-colors duration-200"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-700">
-                      <Icon size={18} strokeWidth={1.6} />
+                    <div className="inline-flex items-center gap-2.5">
+                      <span className="text-[12px] font-mono font-semibold text-slate-400 tabular-nums">
+                        {step.num}
+                      </span>
+                      <Icon size={16} strokeWidth={1.7} className="text-slate-700" />
                     </div>
-                    <span className="text-[12px] font-medium text-slate-400 tabular-nums">
+                    <span className="text-[11.5px] font-mono text-slate-400">
                       {step.meta}
                     </span>
                   </div>
 
-                  <h3 className="text-[17px] font-semibold text-slate-900 mb-2 leading-snug">
+                  <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-2 leading-snug">
                     {step.title}
                   </h3>
                   <p className="text-[13.5px] text-slate-500 leading-relaxed">
@@ -3101,19 +3084,13 @@ function HowItWorks() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-[#F8FAFC] border border-slate-200/80 p-3.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[12.5px] font-semibold text-slate-800 truncate">
-                      {step.previewTitle}
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 shrink-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      {step.previewStatus}
-                    </span>
-                  </div>
-                  <p className="text-[11.5px] text-slate-500 mt-1 truncate">
-                    {step.previewSub}
-                  </p>
+                <div className="border-t border-slate-100 pt-3 flex items-center justify-between gap-2 text-[12px]">
+                  <span className="font-medium text-slate-700 truncate">
+                    {step.previewTitle}
+                  </span>
+                  <span className="font-mono font-medium text-emerald-700 shrink-0">
+                    {step.previewStatus}
+                  </span>
                 </div>
               </motion.div>
             );
