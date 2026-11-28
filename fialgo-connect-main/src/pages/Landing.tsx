@@ -2049,8 +2049,14 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
       >
         <path
           d={spec.path}
-          stroke={isSelected ? "rgba(37, 99, 235, 0.22)" : "#CBD5E1"}
-          strokeWidth={isSelected ? "3.2" : "1.45"}
+          stroke={isSelected ? "rgba(255, 255, 255, 0.85)" : "rgba(255, 255, 255, 0.72)"}
+          strokeWidth={isSelected ? "4.5" : "3"}
+          strokeLinecap="round"
+        />
+        <path
+          d={spec.path}
+          stroke={isSelected ? "rgba(37, 99, 235, 0.25)" : "rgba(71, 85, 105, 0.45)"}
+          strokeWidth={isSelected ? "3.2" : "1.55"}
           strokeLinecap="round"
         />
         {isSelected && (
@@ -2196,31 +2202,31 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
         </p>
       </div>
 
-      {/* Atmospheric Soaring Eagle Above Alpine Clouds Backdrop */}
+      {/* Atmospheric Photorealistic Alpine Mountains & Soaring Eagle Backdrop */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-[20px] bottom-[40px] overflow-hidden select-none"
+        className="pointer-events-none absolute inset-x-0 top-0 bottom-0 overflow-hidden select-none"
       >
         <motion.img
           src="/workspace-sky-bg.jpg"
           alt=""
           initial={{ opacity: 0, scale: 1.03 }}
-          whileInView={{ opacity: 0.9, scale: 1 }}
+          whileInView={{ opacity: 0.96, scale: 1 }}
           viewport={{ once: true, amount: 0.1 }}
           transition={{ duration: 1.05, ease: EASE_OUT }}
-          className="w-full h-full object-cover object-[50%_28%]"
+          className="w-full h-full object-cover object-[50%_38%]"
         />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.18) 14%, rgba(255,255,255,0) 45%, rgba(255,255,255,0.22) 84%, #ffffff 100%)",
+              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.72) 8%, rgba(255,255,255,0.16) 22%, rgba(255,255,255,0) 36%, rgba(255,255,255,0) 82%, #ffffff 100%)",
           }}
         />
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 max-w-[1290px] mx-auto px-4 sm:px-8">
+      <div className="relative z-10 max-w-[1320px] mx-auto px-4 sm:px-8">
         {/* Centered Header + Segmented Toggle */}
         <div className="text-center max-w-[660px] mx-auto mb-7 sm:mb-10">
           <motion.div
@@ -2269,7 +2275,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
               stepDuration={0.3}
               blur={8}
               distance={22}
-              className="justify-center font-normal tracking-[-0.03em] text-slate-400 mt-0.5"
+              className="justify-center font-normal tracking-[-0.03em] text-slate-600 mt-0.5"
             />
           </h2>
           <motion.p
@@ -2277,7 +2283,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
             whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5, delay: 0.24, ease: EASE_OUT }}
-            className="mt-3 text-[14px] sm:text-[15.5px] font-normal text-slate-600 leading-relaxed"
+            className="mt-3 text-[14px] sm:text-[15.5px] font-normal text-slate-700 leading-relaxed"
           >
             Click any tool button on the side to switch the live TradiFive web app preview between Dashboard, Journal, Risk Guard, and AI Coach.
           </motion.p>
