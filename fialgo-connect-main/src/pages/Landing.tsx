@@ -2011,6 +2011,29 @@ const SESSION_MODULES: SessionModuleSpec[] = [
 
 function OneSessionShowcase({ onStart }: { onStart: () => void }) {
   const [activeId, setActiveId] = useState<SessionModuleId>("dashboard");
+  const [liveTick, setLiveTick] = useState(0);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setLiveTick((t) => (t + 1) % 6);
+    }, 1600);
+    return () => window.clearInterval(id);
+  }, []);
+
+  const pnlOffsets = [0, 18, 44, 28, 62, 36];
+  const liveDelta = pnlOffsets[liveTick];
+  const liveNetPnl = 12530 + liveDelta;
+  const liveEquity = 37790 + liveDelta;
+  const liveXau = (2648.4 + liveTick * 0.35).toFixed(2);
+  const liveNas = (20942.5 + liveTick * 2.25).toFixed(1);
+  const liveEur = (1.0542 + (liveTick % 3) * 0.0002).toFixed(4);
+  const liveGoalProfit = 1840 + liveDelta;
+  const liveGoalPct = Math.min(92, Math.round((liveGoalProfit / 2500) * 100));
+  const liveOpenLots = (1.2 + (liveTick % 4) * 0.08).toFixed(2);
+  const liveLotPct = Math.round((Number(liveOpenLots) / 2.0) * 100);
+  const liveDdPct = (0.78 + (liveTick % 3) * 0.04).toFixed(2);
+  const liveShieldScore = 88 + (liveTick % 2);
+  const liveXauRow = 1640 + liveDelta;
 
   const active = SESSION_MODULES.find((m) => m.id === activeId) || SESSION_MODULES[0];
   const leftModules = SESSION_MODULES.slice(0, 3);
@@ -2707,12 +2730,12 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                               }`}
                             >
                               <span className="inline-flex items-center gap-1 font-semibold">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                 Exness MT5 · Live
                               </span>
                               <span className="text-slate-300">|</span>
-                              <span className="font-mono text-slate-400">
-                                Equity <strong className={isDarkFocus ? "text-white" : "text-slate-800"}>$37,790</strong>
+                              <span className="font-mono text-slate-400 tabular-nums">
+                                Equity <strong className={isDarkFocus ? "text-white" : "text-slate-800"}>${liveEquity.toLocaleString()}</strong>
                               </span>
                               <span className="px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10 font-semibold">
                                 + Log trade
@@ -2727,7 +2750,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                           )}
                         </div>
 
-                        {/* ── VIEW 1: EXACT PIC 2 DASHBOARD ── */}
+                        {/* ── VIEW 1: EXACT PIC 2 DASHBOARD (LIVE RUNNING NUMBERS & ANIMATED CURVES) ── */}
                         {active.id === "dashboard" && (
                           <>
                             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-center">
@@ -2740,9 +2763,12 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     <span className="px-1.5 py-0.5 text-slate-500">7D</span>
                                     <span className="px-1.5 py-0.5 text-slate-500">1M</span>
                                   </div>
-                                  <div className="text-[9px] font-medium text-slate-400">Net P&amp;L · All time</div>
-                                  <div className="text-[24px] sm:text-[26px] font-bold tracking-tight text-[#2563EB] leading-none mt-0.5 font-mono tabular-nums">
-                                    +$12,530
+                                  <div className="text-[9px] font-medium text-slate-400 flex items-center gap-1">
+                                    <span>Net P&amp;L · All time</span>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  </div>
+                                  <div className="text-[24px] sm:text-[26px] font-bold tracking-tight text-[#2563EB] leading-none mt-0.5 font-mono tabular-nums transition-all duration-500">
+                                    +${liveNetPnl.toLocaleString()}
                                   </div>
                                   <div className="text-[9px] text-slate-500 mt-1 font-medium">
                                     14W / 3L · 17 closed trades
@@ -2759,7 +2785,19 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                   <div className="relative w-11 h-11 shrink-0 flex items-center justify-center">
                                     <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
                                       <circle cx="22" cy="22" r={dashDonutRadius} fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.12)" : "#E2E8F0"} strokeWidth="4" />
-                                      <circle cx="22" cy="22" r={dashDonutRadius} fill="none" stroke="#2563EB" strokeWidth="4" strokeLinecap="round" strokeDasharray={dashDonutCirc} strokeDashoffset={dashDonutOffset} />
+                                      <motion.circle
+                                        cx="22"
+                                        cy="22"
+                                        r={dashDonutRadius}
+                                        fill="none"
+                                        stroke="#2563EB"
+                                        strokeWidth="4"
+                                        strokeLinecap="round"
+                                        strokeDasharray={dashDonutCirc}
+                                        initial={{ strokeDashoffset: dashDonutCirc }}
+                                        animate={{ strokeDashoffset: dashDonutOffset }}
+                                        transition={{ duration: 0.9, ease: EASE_OUT }}
+                                      />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
                                       <span className="text-[9.5px] font-bold font-mono">82%</span>
@@ -2773,9 +2811,9 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                               <div className="lg:col-span-7 flex flex-col gap-1.5">
                                 <div className="grid grid-cols-3 gap-1.5">
                                   {[
-                                    { label: "Avg RR", val: "2.23R" },
-                                    { label: "Profit Factor", val: "16.10" },
-                                    { label: "Avg W / L", val: "$954.29 / $276.67" },
+                                    { label: "Avg RR", val: (2.23 + (liveTick % 3) * 0.01).toFixed(2) + "R" },
+                                    { label: "Profit Factor", val: (16.1 + liveTick * 0.04).toFixed(2) },
+                                    { label: "Avg W / L", val: `$${954 + Math.round(liveDelta / 4)} / $277` },
                                   ].map((m) => (
                                     <div
                                       key={m.label}
@@ -2784,7 +2822,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                       }`}
                                     >
                                       <div className="text-[8.5px] text-slate-400 font-medium">{m.label}</div>
-                                      <div className="text-[11px] sm:text-[12px] font-bold font-mono mt-0.5 truncate">{m.val}</div>
+                                      <div className="text-[11px] sm:text-[12px] font-bold font-mono tabular-nums mt-0.5 truncate">{m.val}</div>
                                     </div>
                                   ))}
                                 </div>
@@ -2794,7 +2832,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                   }`}
                                 >
                                   <span className="inline-flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                     Start today&apos;s pre-market plan
                                   </span>
                                   <ArrowRight size={10.5} className="text-slate-400" />
@@ -2813,7 +2851,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     </div>
                                     <div className="text-[8px] text-slate-400">Closed trade equity curve</div>
                                   </div>
-                                  <span className="font-bold text-[#2563EB] font-mono">+$12,530</span>
+                                  <span className="font-bold text-[#2563EB] font-mono tabular-nums">+${liveNetPnl.toLocaleString()}</span>
                                 </div>
                                 <svg viewBox="0 0 180 64" className="w-full h-14 my-1 overflow-visible">
                                   <defs>
@@ -2823,7 +2861,17 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     </linearGradient>
                                   </defs>
                                   <path d="M4,56 L30,48 L52,50 L74,40 L96,30 L118,34 L142,20 L166,12 L176,8 L176,56 Z" fill="url(#showcasePnlG)" />
-                                  <path d="M4,56 L30,48 L52,50 L74,40 L96,30 L118,34 L142,20 L166,12 L176,8" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" />
+                                  <motion.path
+                                    d="M4,56 L30,48 L52,50 L74,40 L96,30 L118,34 L142,20 L166,12 L176,8"
+                                    fill="none"
+                                    stroke="#2563EB"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 1.0, ease: EASE_OUT }}
+                                  />
+                                  <circle cx="176" cy="8" r="2.8" fill="#2563EB" />
                                 </svg>
                                 <div className="flex justify-between text-[8px] text-slate-400 pt-1 border-t border-slate-100 dark:border-white/[0.06]">
                                   <span>Win rate <strong className={isDarkFocus ? "text-white" : "text-slate-700"}>82%</strong></span>
@@ -2843,11 +2891,21 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                 <svg viewBox="0 0 180 64" className="w-full h-14 my-1 overflow-visible">
                                   <line x1="4" y1="46" x2="176" y2="46" stroke="#94A3B8" strokeWidth="1" strokeDasharray="3 3" />
                                   <path d="M4,46 L34,40 L64,41 L94,32 L124,25 L154,18 L176,10 L176,56 L4,56 Z" fill="url(#showcasePnlG)" />
-                                  <path d="M4,46 L34,40 L64,41 L94,32 L124,25 L154,18 L176,10" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" />
+                                  <motion.path
+                                    d="M4,46 L34,40 L64,41 L94,32 L124,25 L154,18 L176,10"
+                                    fill="none"
+                                    stroke="#2563EB"
+                                    strokeWidth="1.8"
+                                    strokeLinecap="round"
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 1.0, ease: EASE_OUT }}
+                                  />
+                                  <circle cx="176" cy="10" r="2.8" fill="#2563EB" />
                                 </svg>
                                 <div className="flex justify-between text-[8px] pt-1 border-t border-slate-100 dark:border-white/[0.06]">
                                   <span className="text-slate-400">Start $25k</span>
-                                  <span className="font-bold text-[#2563EB] font-mono">$37,530 (+50.1%)</span>
+                                  <span className="font-bold text-[#2563EB] font-mono tabular-nums">${(37530 + liveDelta).toLocaleString()} (+50.{(1 + (liveTick % 2))}%)</span>
                                 </div>
                               </div>
 
@@ -2858,12 +2916,21 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     <div className="text-[9px] font-bold uppercase tracking-wider">TradiFive Score</div>
                                     <div className="text-[7.5px] text-slate-400">17 trades scored</div>
                                   </div>
-                                  <span className="text-[16px] font-bold font-mono leading-none">81</span>
+                                  <span className="text-[16px] font-bold font-mono tabular-nums leading-none">{81 + (liveTick % 2)}</span>
                                 </div>
                                 <div className="flex items-center justify-center my-0.5">
                                   <svg viewBox="0 0 120 68" className="w-24 h-12">
                                     <polygon points="60,8 92,26 80,58 40,58 28,26" fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.14)" : "#E2E8F0"} strokeWidth="1" />
-                                    <polygon points="60,18 86,30 76,54 44,54 39,30" fill={isDarkFocus ? "rgba(37,99,235,0.22)" : "rgba(15,23,42,0.12)"} stroke={isDarkFocus ? "#3B82F6" : "#0F172A"} strokeWidth="1.4" />
+                                    <motion.polygon
+                                      points="60,18 86,30 76,54 44,54 39,30"
+                                      fill={isDarkFocus ? "rgba(37,99,235,0.22)" : "rgba(37,99,235,0.12)"}
+                                      stroke={isDarkFocus ? "#3B82F6" : "#2563EB"}
+                                      strokeWidth="1.4"
+                                      initial={{ scale: 0.7, opacity: 0.4 }}
+                                      animate={{ scale: 1, opacity: 1 }}
+                                      transition={{ duration: 0.7, ease: EASE_OUT }}
+                                      style={{ transformOrigin: "60px 36px" }}
+                                    />
                                   </svg>
                                 </div>
                                 <div className="flex justify-between text-[8px] pt-1 border-t border-slate-100 dark:border-white/[0.06]">
@@ -2877,7 +2944,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                             <div className="grid grid-cols-12 gap-2">
                               <div className={`col-span-4 rounded-[12px] border p-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                                 <div className="flex items-center justify-between text-[8.5px] font-bold mb-1.5">
-                                  <span>P&amp;L calendar <span className="text-emerald-600 font-mono">+$12,530</span></span>
+                                  <span>P&amp;L calendar <span className="text-emerald-600 font-mono tabular-nums">+${liveNetPnl.toLocaleString()}</span></span>
                                   <span className="text-slate-400">Nov 2026</span>
                                 </div>
                                 <div className="grid grid-cols-7 gap-0.5">
@@ -2929,11 +2996,15 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     <span className="px-1 rounded bg-emerald-500/15 text-emerald-600 text-[7px]">Active</span>
                                   </div>
                                   <div>
-                                    <div className="text-[13px] font-bold font-mono leading-none">0.8%</div>
+                                    <div className="text-[13px] font-bold font-mono tabular-nums leading-none">{liveDdPct}%</div>
                                     <div className="text-[7.5px] text-slate-400 mt-0.5">/ 3.0% limit</div>
                                   </div>
                                   <div className="h-1 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
-                                    <div className="h-full w-[27%] bg-emerald-500 rounded-full" />
+                                    <motion.div
+                                      animate={{ width: `${Math.round((Number(liveDdPct) / 3.0) * 100)}%` }}
+                                      transition={{ duration: 0.45 }}
+                                      className="h-full bg-emerald-500 rounded-full"
+                                    />
                                   </div>
                                 </div>
 
@@ -2943,7 +3014,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     <span className="px-1 rounded bg-amber-500/15 text-amber-600 text-[7px]">Lv 7</span>
                                   </div>
                                   <div>
-                                    <div className="text-[13px] font-bold font-mono leading-none">94</div>
+                                    <div className="text-[13px] font-bold font-mono tabular-nums leading-none">{94 + (liveTick % 2)}</div>
                                     <div className="text-[7.5px] text-slate-400 mt-0.5">/ 100 score</div>
                                   </div>
                                   <div className="text-[7.5px] text-emerald-600 font-semibold">14d streak</div>
@@ -2953,66 +3024,74 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                           </>
                         )}
 
-                        {/* ── VIEW 2: EXACT WEB APP JOURNAL PAGE (5 Metrics + Bento Charts + Symbol Attribution + Ledger) ── */}
+                        {/* ── VIEW 2: EXACT WEB APP JOURNAL PAGE (5 Live Metrics + Animated Bento Charts + Symbol Attribution + Running Ledger) ── */}
                         {active.id === "journal" && (
                           <div className="space-y-2">
                             {/* Top 5 Draggable Metric Cards Row (matches JournalMetrics.tsx) */}
                             <div className="grid grid-cols-5 gap-1.5">
                               {[
-                                { label: "Net P&L", value: "+$12,530", sub: "+50.1% ROI", tone: "text-emerald-600" },
+                                { label: "Net P&L", value: `+$${liveNetPnl.toLocaleString()}`, sub: `+50.${1 + (liveTick % 2)}% ROI`, tone: "text-emerald-600" },
                                 { label: "Win Rate", value: "82.4%", sub: "14W · 3L · 0E", tone: "text-[#2563EB]" },
-                                { label: "Profit Factor", value: "16.10", sub: "17 closed trades", tone: "" },
-                                { label: "Avg Win / Loss", value: "$954 / $277", sub: "3.45 ratio", tone: "" },
-                                { label: "Day Streak", value: "+6 Days", sub: "Best +$1,640", tone: "text-emerald-600" },
+                                { label: "Profit Factor", value: (16.1 + liveTick * 0.04).toFixed(2), sub: "17 closed trades", tone: "" },
+                                { label: "Avg Win / Loss", value: `$${954 + Math.round(liveDelta / 4)} / $277`, sub: "3.45 ratio", tone: "" },
+                                { label: "Day Streak", value: "+6 Days", sub: `Best +$${liveXauRow.toLocaleString()}`, tone: "text-emerald-600" },
                               ].map((stat) => (
                                 <div key={stat.label} className={`rounded-[11px] p-2 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                                   <div className="text-[7.5px] font-medium text-slate-400 truncate">{stat.label}</div>
-                                  <div className={`text-[11px] font-bold font-mono mt-0.5 truncate ${stat.tone}`}>{stat.value}</div>
+                                  <div className={`text-[11px] font-bold font-mono tabular-nums mt-0.5 truncate ${stat.tone}`}>{stat.value}</div>
                                   <div className="text-[7px] text-slate-400 mt-0.5 truncate">{stat.sub}</div>
                                 </div>
                               ))}
                             </div>
 
-                            {/* Middle Bento Row: Net Daily P&L Bars + Symbol Performance + Long/Short */}
+                            {/* Middle Bento Row: Animated Net Daily P&L Bars + Symbol Performance + Long/Short */}
                             <div className="grid grid-cols-12 gap-2">
-                              {/* Net Daily P&L Bar Chart */}
                               <div className={`col-span-5 rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                                 <div className="flex items-center justify-between text-[9px] font-bold mb-1.5">
                                   <span>Net Daily P&amp;L</span>
-                                  <span className="text-emerald-600 font-mono">14 green days</span>
+                                  <span className="text-emerald-600 font-mono inline-flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    14 green days
+                                  </span>
                                 </div>
                                 <div className="grid grid-cols-10 items-end gap-1 h-16 pt-2">
                                   {[
                                     { h: 42, win: true }, { h: 74, win: true }, { h: 24, win: false },
                                     { h: 60, win: true }, { h: 86, win: true }, { h: 50, win: true },
-                                    { h: 96, win: true }, { h: 20, win: false }, { h: 66, win: true }, { h: 88, win: true },
+                                    { h: 96, win: true }, { h: 20, win: false }, { h: 66, win: true }, { h: Math.min(98, 86 + (liveTick % 4) * 3), win: true },
                                   ].map((b, i) => (
                                     <div key={i} className="h-full flex items-end">
-                                      <div
+                                      <motion.div
+                                        initial={{ height: 0 }}
+                                        animate={{ height: `${b.h}%` }}
+                                        transition={{ duration: 0.45, delay: i * 0.03, ease: EASE_OUT }}
                                         className={`w-full rounded-t ${b.win ? "bg-emerald-500/85" : "bg-rose-500/80"}`}
-                                        style={{ height: `${b.h}%` }}
                                       />
                                     </div>
                                   ))}
                                 </div>
                               </div>
 
-                              {/* Performance by Symbol + Long vs Short Split (matches Journal.tsx lines 656-779) */}
                               <div className={`col-span-7 rounded-[12px] p-2.5 border flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                                 <div className="text-[9px] font-bold mb-1.5">Performance by symbol &amp; direction</div>
                                 <div className="space-y-1.5">
                                   {[
-                                    { sym: "XAUUSD", info: "8t · 88%", pnl: "+$7,420", w: "88%" },
+                                    { sym: "XAUUSD", info: "8t · 88%", pnl: `+$${(7420 + liveDelta).toLocaleString()}`, w: "88%" },
                                     { sym: "NAS100", info: "5t · 80%", pnl: "+$3,610", w: "62%" },
                                     { sym: "EURUSD", info: "4t · 75%", pnl: "+$1,500", w: "38%" },
-                                  ].map((r) => (
+                                  ].map((r, idx) => (
                                     <div key={r.sym}>
                                       <div className="flex justify-between text-[8px] mb-0.5">
                                         <span><strong>{r.sym}</strong> <span className="text-slate-400">{r.info}</span></span>
-                                        <span className="font-mono font-bold text-emerald-600">{r.pnl}</span>
+                                        <span className="font-mono font-bold text-emerald-600 tabular-nums">{r.pnl}</span>
                                       </div>
                                       <div className="h-1 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
-                                        <div className="h-full rounded-full bg-emerald-500" style={{ width: r.w }} />
+                                        <motion.div
+                                          initial={{ width: 0 }}
+                                          animate={{ width: r.w }}
+                                          transition={{ duration: 0.65, delay: idx * 0.08, ease: EASE_OUT }}
+                                          className="h-full rounded-full bg-emerald-500"
+                                        />
                                       </div>
                                     </div>
                                   ))}
@@ -3020,7 +3099,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                 <div className="grid grid-cols-2 gap-1.5 mt-1.5 pt-1.5 border-t border-slate-100 dark:border-white/[0.06] text-[8px]">
                                   <div className={`rounded px-2 py-1 ${isDarkFocus ? "bg-white/[0.03]" : "bg-slate-50"}`}>
                                     <span className="text-slate-400 font-semibold">LONGS (12): </span>
-                                    <strong className="text-emerald-600 font-mono">+$9,120</strong>
+                                    <strong className="text-emerald-600 font-mono tabular-nums">+${(9120 + liveDelta).toLocaleString()}</strong>
                                   </div>
                                   <div className={`rounded px-2 py-1 ${isDarkFocus ? "bg-white/[0.03]" : "bg-slate-50"}`}>
                                     <span className="text-slate-400 font-semibold">SHORTS (5): </span>
@@ -3030,11 +3109,11 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                               </div>
                             </div>
 
-                            {/* Bottom Ledger Strip */}
+                            {/* Bottom Live Ledger Strip */}
                             <div className={`rounded-[12px] border overflow-hidden ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                               <div className={`divide-y ${isDarkFocus ? "divide-white/[0.06]" : "divide-[#E4E4E4]/70"}`}>
                                 {[
-                                  { pair: "XAU/USD", dir: "BUY", lot: "1.50L", tag: "NY Break & Retest", r: "+2.4R", pnl: "+$1,640", good: true },
+                                  { pair: "XAU/USD", dir: "BUY", lot: "1.50L", tag: "NY Break & Retest · Live", r: "+2.4R", pnl: `+$${liveXauRow.toLocaleString()}`, good: true },
                                   { pair: "NAS100", dir: "SELL", lot: "1.00L", tag: "London Sweep", r: "+1.8R", pnl: "+$1,210", good: true },
                                   { pair: "EUR/USD", dir: "BUY", lot: "2.00L", tag: "Pre-News Fade", r: "-0.8R", pnl: "-$240", good: false },
                                 ].map((row) => (
@@ -3057,27 +3136,30 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                           </div>
                         )}
 
-                        {/* ── VIEW 3: EXACT HOME & COMMUNITY PAGE INTERFACE (Matches Home.tsx 3-Column Bento) ── */}
+                        {/* ── VIEW 3: EXACT HOME & COMMUNITY PAGE INTERFACE (LIVE MARKET QUOTES + VERIFIED FEED) ── */}
                         {active.id === "community" && (
                           <div className="grid grid-cols-12 gap-2 items-start">
-                            {/* Left: My Watchlist + Forex Factory News (exact Home.tsx left column) */}
+                            {/* Left: My Watchlist (Live Ticking Prices) + Forex Factory News */}
                             <div className="col-span-3 space-y-2 hidden sm:block">
                               <div className={`rounded-[13px] p-2.5 border space-y-1.5 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                                 <div className="flex items-center justify-between text-[9px] font-bold">
-                                  <span>My Watchlist</span>
+                                  <span className="inline-flex items-center gap-1">
+                                    My Watchlist
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  </span>
                                   <span className="px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-[7.5px]">+ Add</span>
                                 </div>
                                 {[
-                                  { sym: "XAU/USD", sub: "Gold Spot", p: "2,648.40", chg: "+1.24%", up: true },
-                                  { sym: "NAS100", sub: "Index", p: "20,942.5", chg: "+0.82%", up: true },
-                                  { sym: "EUR/USD", sub: "Forex Spot", p: "1.0542", chg: "-0.18%", up: false },
+                                  { sym: "XAU/USD", sub: "Gold Spot", p: liveXau, chg: `+1.${24 + liveTick}%`, up: true },
+                                  { sym: "NAS100", sub: "Index", p: liveNas, chg: `+0.${82 + (liveTick % 4)}%`, up: true },
+                                  { sym: "EUR/USD", sub: "Forex Spot", p: liveEur, chg: "-0.18%", up: false },
                                 ].map((w) => (
                                   <div key={w.sym} className="flex items-center justify-between text-[8px]">
                                     <div>
                                       <span className="font-bold block leading-tight">{w.sym}</span>
                                       <span className="text-[7px] text-slate-400">{w.sub}</span>
                                     </div>
-                                    <div className="text-right font-mono">
+                                    <div className="text-right font-mono tabular-nums">
                                       <span className="block font-bold leading-tight">{w.p}</span>
                                       <span className={w.up ? "text-emerald-600 font-bold" : "text-rose-500 font-bold"}>{w.chg}</span>
                                     </div>
@@ -3106,7 +3188,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                               </div>
                             </div>
 
-                            {/* Center: Search Pill + Verified Trader Feed Posts (exact Home.tsx FeedCard style) */}
+                            {/* Center: Search Pill + Verified Trader Feed Posts */}
                             <div className="col-span-12 sm:col-span-6 space-y-2">
                               <div className={`rounded-full px-3 py-1.5 border flex items-center justify-between text-[8.5px] ${isDarkFocus ? "bg-[#17171A] border-white/[0.08] text-neutral-400" : "bg-white border-[#E4E4E4] text-slate-400"}`}>
                                 <span className="inline-flex items-center gap-1.5 truncate">
@@ -3123,8 +3205,8 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                   badge: "XAU/USD LONG +2.4R",
                                   text: "NY Open liquidity sweep above 2,640 held structure. Risk Guard locked my 1/1 target at +$1,640.",
                                   setupPill: "NY Open Sweep · Exness MT5 Verified",
-                                  likes: "128",
-                                  comments: "24",
+                                  likes: 128 + liveTick,
+                                  comments: 24 + (liveTick % 2),
                                 },
                                 {
                                   author: "Sara Kapoor",
@@ -3132,8 +3214,8 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                   badge: "NAS100 · +$1,210",
                                   text: "Followed pre-market bullish bias and stepped away at 11:30 AM EST. 14 clean days with zero tilt.",
                                   setupPill: "London OB · Rule Score 96/100",
-                                  likes: "94",
-                                  comments: "16",
+                                  likes: 94 + (liveTick % 3),
+                                  comments: 16,
                                 },
                               ].map((post) => (
                                 <div key={post.handle} className={`rounded-[13px] p-2.5 border space-y-1.5 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
@@ -3159,7 +3241,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                                     <span className="font-mono">+2.4R</span>
                                   </div>
                                   <div className="flex items-center justify-between text-[7.5px] text-slate-400 pt-0.5">
-                                    <span className="inline-flex items-center gap-2.5">
+                                    <span className="inline-flex items-center gap-2.5 font-mono tabular-nums">
                                       <span>♥ {post.likes}</span>
                                       <span>💬 {post.comments}</span>
                                     </span>
@@ -3169,18 +3251,18 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                               ))}
                             </div>
 
-                            {/* Right: Followers + Winning Streaks + Top Disciplined (exact Home.tsx right column) */}
+                            {/* Right: Followers + Winning Streaks + Top Disciplined */}
                             <div className="col-span-3 space-y-2 hidden sm:block">
                               <div className={`rounded-[13px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                                 <div className="text-[8.5px] text-slate-400">Verified Network</div>
-                                <div className="text-[13px] font-bold font-mono mt-0.5">1,482 Followers</div>
-                                <div className="text-[7.5px] text-emerald-600 font-semibold mt-0.5">+38 new this week</div>
+                                <div className="text-[13px] font-bold font-mono tabular-nums mt-0.5">{(1482 + liveTick).toLocaleString()} Followers</div>
+                                <div className="text-[7.5px] text-emerald-600 font-semibold mt-0.5">+{38 + (liveTick % 4)} new this week</div>
                               </div>
 
                               <div className={`rounded-[13px] p-2.5 border space-y-1.5 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
                                 <div className="text-[9px] font-bold">Top Disciplined</div>
                                 {[
-                                  { n: "Nikhil H.", sub: "42 trades", s: "94 Score" },
+                                  { n: "Nikhil H.", sub: "42 trades", s: `${94 + (liveTick % 2)} Score` },
                                   { n: "Arjun M.", sub: "31 trades", s: "91% Win" },
                                   { n: "Sara K.", sub: "28 trades", s: "89 Score" },
                                 ].map((t) => (
@@ -3205,190 +3287,453 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                           </div>
                         )}
 
-                        {/* ── VIEW 4: EXACT RISK GUARD WEB USER APP PAGE (Goals Strip + 3 Category Tabs + Protection Cards + Radial Gauge) ── */}
+                        {/* ── VIEW 4: EXACT WEB USER APP RISK GUARD (Goal Strip + 3 Category Tabs + Gauge Card + Slots Card + Right Account Shield Panel) ── */}
                         {active.id === "risk-guard" && (
                           <div className="space-y-2">
-                            {/* Profit Goal Progress & Star Milestones (exact RiskGuard.tsx lines 2360-2485) */}
-                            <div className={`rounded-[12px] p-2.5 border space-y-1.5 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                            {/* Profit Goal Progress & Star Milestones (exact RiskGuard.tsx) */}
+                            <div className="rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] space-y-1.5">
                               <div className="flex items-center justify-between text-[8.5px]">
-                                <span className="font-bold">Profit Goal Milestones · <span className="text-emerald-600 font-mono">+$1,840 / $2,500</span></span>
-                                <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-[#2563EB] font-bold text-[7.5px]">★ +250 XP Claimable</span>
+                                <span className="font-bold inline-flex items-center gap-1.5">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  Profit Goal Milestones ·{" "}
+                                  <span className="text-emerald-600 font-mono tabular-nums">+${liveGoalProfit.toLocaleString()} / $2,500</span>
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200/70 font-bold text-[7.5px]">
+                                  ★ Claim +250 XP
+                                </span>
                               </div>
-                              <div className="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
-                                <div className="h-full w-[74%] rounded-full bg-gradient-to-r from-[#2563EB] to-emerald-500" />
+                              <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                <motion.div
+                                  animate={{ width: `${liveGoalPct}%` }}
+                                  transition={{ duration: 0.5, ease: EASE_OUT }}
+                                  className="h-full rounded-full bg-[#2563EB]"
+                                />
                               </div>
                               <div className="flex items-center justify-between text-[7.5px] font-semibold text-slate-400">
-                                <span>★ $0</span>
+                                <span className="text-[#2563EB]">★ $0</span>
                                 <span className="text-[#2563EB]">★ +$625</span>
                                 <span className="text-[#2563EB]">★ +$1,250</span>
                                 <span className="text-emerald-600">★ +$1,875</span>
                                 <span>+$2,500 Goal</span>
                               </div>
-                              <div className="grid grid-cols-3 gap-1 pt-1 text-[8px] font-semibold text-center">
-                                <div className={`py-1 rounded-md ${isDarkFocus ? "bg-[#26262B] text-white" : "bg-slate-100 text-slate-900"}`}>Trading Control · 4</div>
-                                <div className="py-1 text-slate-400">Risk Management · 3</div>
-                                <div className="py-1 text-slate-400">Behaviour &amp; Discipline · 3</div>
-                              </div>
                             </div>
 
-                            {/* Protection Rules Grid + Account Protection Shield */}
-                            <div className="grid grid-cols-12 gap-2">
-                              <div className="col-span-8 space-y-2">
-                                <div className={`rounded-[12px] p-2.5 border space-y-1.5 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                                  <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5">
-                                      <ShieldCheck size={12} className="text-[#2563EB]" />
-                                      <span className="text-[10.5px] font-bold">Daily Trade Limit</span>
-                                    </div>
-                                    <span className="px-1.5 py-0.5 rounded-full bg-blue-500/10 text-[#2563EB] text-[8.5px] font-bold">2 / 5 · Armed</span>
+                            {/* Main 2-Column Workspace: Left Rule Cards + Tabs | Right Account Shield Panel (exact RiskGuard.tsx) */}
+                            <div className="grid grid-cols-12 gap-2 items-stretch">
+                              <div className="col-span-8 flex flex-col gap-2">
+                                {/* 3 Category Tabs (matches RiskGuard.tsx) */}
+                                <div className="grid grid-cols-3 p-0.5 rounded-[10px] bg-slate-200/80 border border-slate-200/70 text-[8px] font-semibold text-center">
+                                  <div className="py-1 px-1 rounded-[8px] bg-white text-slate-900 shadow-xs inline-flex items-center justify-center gap-1">
+                                    <span className="truncate">Trading Control</span>
+                                    <span className="px-1 rounded-full bg-blue-50 text-[#2563EB] text-[7px] font-bold">4</span>
                                   </div>
-                                  <TradeSlotsBlobStrip total={5} completed={2} interactive={false} />
+                                  <div className="py-1 px-1 text-slate-500 inline-flex items-center justify-center gap-1">
+                                    <span className="truncate">Risk Management</span>
+                                    <span className="px-1 rounded-full bg-slate-300/60 text-slate-600 text-[7px] font-bold">3</span>
+                                  </div>
+                                  <div className="py-1 px-1 text-slate-500 inline-flex items-center justify-center gap-1">
+                                    <span className="truncate">Behaviour</span>
+                                    <span className="px-1 rounded-full bg-slate-300/60 text-slate-600 text-[7px] font-bold">3</span>
+                                  </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2">
-                                  {/* Drawdown Depth Radial Gauge Card */}
-                                  <div className={`rounded-[12px] p-2.5 border flex items-center justify-between gap-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                                    <div>
-                                      <div className="text-[9.5px] font-bold">Drawdown Guard</div>
-                                      <div className="text-[12px] font-bold font-mono text-emerald-600 mt-0.5">0.8% <span className="text-[8px] text-slate-400">/ 3.0%</span></div>
-                                      <div className="text-[7.5px] text-slate-400 mt-0.5">Daily · Weekly · Monthly</div>
+                                <div className="grid grid-cols-2 gap-2 flex-1">
+                                  {/* Max Lot Size Card with Ruler Dial Gauge (exact RiskGuard.tsx lines 2525-2597) */}
+                                  <div className="rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] flex flex-col justify-between">
+                                    <div className="flex items-center justify-between gap-1">
+                                      <div className="flex items-center gap-1.5 min-w-0">
+                                        <span className="w-5 h-5 rounded-lg bg-blue-50 text-[#2563EB] inline-flex items-center justify-center shrink-0">
+                                          <Layers size={10} />
+                                        </span>
+                                        <div className="min-w-0">
+                                          <div className="text-[9.5px] font-bold leading-tight truncate">Max Lot Size</div>
+                                          <div className="text-[7px] text-slate-400 truncate">Hard cap per trade</div>
+                                        </div>
+                                      </div>
+                                      <span className="w-6 h-3.5 rounded-full bg-[#2563EB] p-0.5 inline-flex justify-end items-center shrink-0">
+                                        <span className="w-2.5 h-2.5 rounded-full bg-white" />
+                                      </span>
                                     </div>
-                                    <svg viewBox="0 0 44 44" className="w-9 h-9 shrink-0 -rotate-90">
-                                      <circle cx="22" cy="22" r="16" fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.12)" : "#E2E8F0"} strokeWidth="4" />
-                                      <circle cx="22" cy="22" r="16" fill="none" stroke="#10B981" strokeWidth="4" strokeDasharray="100" strokeDashoffset="74" strokeLinecap="round" />
-                                    </svg>
+
+                                    {/* Mini Ruler Dial Gauge */}
+                                    <div className="flex items-center gap-2 my-1">
+                                      <div className="relative w-16 h-12 shrink-0 flex items-center justify-center">
+                                        <svg viewBox="0 0 80 56" className="w-16 h-12">
+                                          <path d="M 10 46 A 30 30 0 1 1 70 46" fill="none" stroke="#E2E8F0" strokeWidth="5" strokeLinecap="round" strokeDasharray="2 3" />
+                                          <motion.path
+                                            d="M 10 46 A 30 30 0 1 1 70 46"
+                                            fill="none"
+                                            stroke="#2563EB"
+                                            strokeWidth="5"
+                                            strokeLinecap="round"
+                                            strokeDasharray="130"
+                                            animate={{ strokeDashoffset: Math.max(20, 130 - liveLotPct * 1.1) }}
+                                            transition={{ duration: 0.5 }}
+                                          />
+                                        </svg>
+                                        <div className="absolute inset-x-0 bottom-1 text-center">
+                                          <span className="text-[11px] font-extrabold font-mono text-slate-900 tabular-nums">{liveLotPct}%</span>
+                                        </div>
+                                      </div>
+                                      <div className="flex-1 min-w-0 space-y-1 text-[7.5px]">
+                                        <div className="flex justify-between">
+                                          <span className="text-slate-400">Lock Set</span>
+                                          <strong className="font-mono">2.00 L</strong>
+                                        </div>
+                                        <div className="flex justify-between">
+                                          <span className="px-1 rounded bg-emerald-100 text-emerald-700 font-bold text-[6.5px] uppercase">Live</span>
+                                          <strong className="font-mono text-[#2563EB] tabular-nums">{liveOpenLots} L</strong>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <div className="text-[7.5px] text-slate-500 pt-1 border-t border-slate-100 flex justify-between">
+                                      <span>Martingale Guard</span>
+                                      <strong className="text-emerald-600">Armed</strong>
+                                    </div>
                                   </div>
 
-                                  {/* Daily Profit Target Milestone Card */}
-                                  <div className={`rounded-[12px] p-2.5 border flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                                    <div className="flex items-center justify-between text-[9.5px] font-bold">
-                                      <span>Daily Profit Target</span>
-                                      <span className="text-emerald-600">+$2.5k</span>
+                                  {/* Daily Trade Limit + Drawdown Card */}
+                                  <div className="flex flex-col gap-2">
+                                    <div className="rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] space-y-1.5">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1.5">
+                                          <ShieldCheck size={11} className="text-[#2563EB]" />
+                                          <span className="text-[9.5px] font-bold">Daily Trade Limit</span>
+                                        </div>
+                                        <span className="px-1.5 py-0.5 rounded-full bg-blue-50 text-[#2563EB] text-[7.5px] font-bold">2 / 5</span>
+                                      </div>
+                                      <TradeSlotsBlobStrip total={5} completed={2} interactive={false} />
                                     </div>
-                                    <div className="text-[7.5px] text-slate-400 mt-0.5 mb-1.5">+$660 left to lock green day</div>
-                                    <div className="h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
-                                      <div className="h-full w-[74%] bg-emerald-500 rounded-full" />
+
+                                    <div className="rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] flex-1 flex flex-col justify-between">
+                                      <div className="flex items-center justify-between text-[9px] font-bold">
+                                        <span>Drawdown Guard</span>
+                                        <span className="text-emerald-600 font-mono tabular-nums">{liveDdPct}% / 3.0%</span>
+                                      </div>
+                                      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden my-1">
+                                        <motion.div
+                                          animate={{ width: `${Math.round((Number(liveDdPct) / 3.0) * 100)}%` }}
+                                          transition={{ duration: 0.45 }}
+                                          className="h-full rounded-full bg-emerald-500"
+                                        />
+                                      </div>
+                                      <div className="flex justify-between text-[7.5px] text-slate-400">
+                                        <span>Floor: <strong className="text-slate-700">$35,500</strong></span>
+                                        <span className="text-emerald-600 font-semibold">Cooldown 15m</span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className={`col-span-4 rounded-[12px] p-2.5 border flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                                <div>
-                                  <div className="flex items-center justify-between text-[9.5px] font-bold mb-1">
-                                    <span>Account Protection</span>
-                                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 text-[7.5px]">ARMED</span>
-                                  </div>
-                                  <div className="text-[8px] text-slate-400">Hard Equity Floor</div>
-                                  <div className="text-[15px] font-bold font-mono text-[#2563EB] mt-0.5">$35,500</div>
+                              {/* Right Column: Account Shield Panel (exact RiskGuard.tsx lines 4937-5060!) */}
+                              <div className="col-span-4 rounded-[12px] border bg-white border-[#E4E4E4] flex flex-col justify-between overflow-hidden">
+                                <div className="px-2.5 pt-2 pb-1 flex items-center justify-between gap-1">
+                                  <span className="text-[10px] font-bold text-slate-900">Account Shield</span>
+                                  <span className="inline-flex items-center gap-1 text-[8px] font-semibold text-emerald-600">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    Strong Shield
+                                  </span>
                                 </div>
-                                <div className="space-y-1 text-[8px] pt-2 border-t border-slate-100 dark:border-white/[0.06]">
-                                  <div className="flex justify-between"><span className="text-slate-400">Max Risk</span><strong>0.5% / trade</strong></div>
-                                  <div className="flex justify-between"><span className="text-slate-400">Cooldown</span><strong>15m post-loss</strong></div>
-                                  <div className="flex justify-between"><span className="text-slate-400">News Lock</span><strong className="text-emerald-600">CPI 13:30</strong></div>
+
+                                <div className="px-2.5 flex flex-col items-center">
+                                  <div className="relative w-24 h-14 flex items-center justify-center">
+                                    <svg viewBox="0 0 100 62" className="w-24 h-14">
+                                      <path d="M 12 52 A 38 38 0 1 1 88 52" fill="none" stroke="#E2E8F0" strokeWidth="6" strokeLinecap="round" strokeDasharray="2 3.5" />
+                                      <motion.path
+                                        d="M 12 52 A 38 38 0 1 1 88 52"
+                                        fill="none"
+                                        stroke="#10B981"
+                                        strokeWidth="6"
+                                        strokeLinecap="round"
+                                        strokeDasharray="165"
+                                        initial={{ strokeDashoffset: 165 }}
+                                        animate={{ strokeDashoffset: Math.round(165 * (1 - liveShieldScore / 100)) }}
+                                        transition={{ duration: 0.7, ease: EASE_OUT }}
+                                      />
+                                    </svg>
+                                    <div className="absolute inset-x-0 bottom-0.5 text-center leading-tight">
+                                      <div className="text-[13px] font-extrabold font-mono text-slate-900 tabular-nums">{liveShieldScore}%</div>
+                                      <div className="text-[7px] text-slate-400 font-semibold">10/16 rules</div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* 3-Pillar Progress List */}
+                                <div className="px-2.5 py-1.5 border-t border-slate-100 space-y-1.5 text-[7.5px]">
+                                  {[
+                                    { title: "Trading Control", count: "4/4", w: "100%", bar: "bg-[#2563EB]" },
+                                    { title: "Risk & Capital", count: "3/6", w: "50%", bar: "bg-emerald-500" },
+                                    { title: "Behaviour Control", count: "3/7", w: "43%", bar: "bg-indigo-500" },
+                                  ].map((pillar) => (
+                                    <div key={pillar.title}>
+                                      <div className="flex justify-between font-semibold mb-0.5">
+                                        <span className="text-slate-700">{pillar.title}</span>
+                                        <span className="text-slate-400 font-mono">{pillar.count}</span>
+                                      </div>
+                                      <div className="h-1 rounded-full bg-slate-100 overflow-hidden">
+                                        <motion.div
+                                          initial={{ width: 0 }}
+                                          animate={{ width: pillar.w }}
+                                          transition={{ duration: 0.6, ease: EASE_OUT }}
+                                          className={`h-full rounded-full ${pillar.bar}`}
+                                        />
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* 2x2 Safety Checks Matrix */}
+                                <div className="px-2.5 py-1.5 border-t border-slate-100 grid grid-cols-2 gap-1 text-[7.5px] font-semibold text-slate-700">
+                                  {["Capital safe", "Lots capped", "Tilt blocked", "Auto-stop on"].map((chk) => (
+                                    <span key={chk} className="inline-flex items-center gap-1 truncate">
+                                      <CheckCircle2 size={8.5} className="text-emerald-500 shrink-0" />
+                                      <span className="truncate">{chk}</span>
+                                    </span>
+                                  ))}
                                 </div>
                               </div>
                             </div>
                           </div>
                         )}
 
-                        {/* ── VIEW 5: REAL REPORTS & STATEMENTS INTERFACE ── */}
+                        {/* ── VIEW 5: REAL REPORTS & STATEMENTS INTERFACE (KPI Strip + Equity AreaChart + Audited Statement Rows) ── */}
                         {active.id === "reports" && (
-                          <div className="space-y-2.5">
-                            <div className={`rounded-[13px] p-3 border flex items-center justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div>
-                                <div className="text-[11px] font-bold">November 2026 Verified Statement</div>
-                                <div className="text-[9.5px] text-slate-400 mt-0.5">Start $25,000.00 → Equity $37,530.00 (+50.1%)</div>
-                              </div>
-                              <span className="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-[#2563EB] text-[9.5px] font-bold">
-                                Broker Verified
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-7 gap-1">
+                          <div className="space-y-2">
+                            {/* Top 4 KPI Summary Cards */}
+                            <div className="grid grid-cols-4 gap-1.5">
                               {[
-                                "+$620", "+$1.1k", "-$280", "+$940", "+$1.4k", "+$750", "+$1.6k",
-                                "+$890", "+$1.5k", "-$240", "+$980", "+$1.2k", "+$650", "+$1.4k",
-                              ].map((val, idx) => (
-                                <div
-                                  key={idx}
-                                  className={`rounded-lg py-2 text-center text-[8px] font-bold border ${
-                                    val.startsWith("-")
-                                      ? "bg-rose-500/10 border-rose-500/25 text-rose-500"
-                                      : "bg-emerald-500/10 border-emerald-500/25 text-emerald-600"
-                                  }`}
-                                >
-                                  {val}
+                                { label: "Verified Net P&L", val: `+$${liveNetPnl.toLocaleString()}`, sub: "17 broker-synced trades", tone: "text-[#2563EB]" },
+                                { label: "Return on Capital", val: `+50.${1 + (liveTick % 2)}%`, sub: "$25,000 → $37,530", tone: "text-emerald-600" },
+                                { label: "Profit Factor", val: (16.1 + liveTick * 0.04).toFixed(2), sub: "82.4% win rate", tone: "text-slate-900" },
+                                { label: "Audited Docs", val: "4 Ready", sub: "PDF · CSV · Public link", tone: "text-slate-900" },
+                              ].map((k) => (
+                                <div key={k.label} className="rounded-[11px] p-2 border bg-white border-[#E4E4E4]">
+                                  <div className="text-[7.5px] font-medium text-slate-400 truncate">{k.label}</div>
+                                  <div className={`text-[11px] font-extrabold font-mono tabular-nums mt-0.5 ${k.tone}`}>{k.val}</div>
+                                  <div className="text-[7px] text-slate-400 mt-0.5 truncate">{k.sub}</div>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Middle: Audited Equity Curve + Daily Heatmap Strip */}
+                            <div className="grid grid-cols-12 gap-2">
+                              <div className="col-span-7 rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] flex flex-col justify-between">
+                                <div className="flex items-center justify-between text-[9px] font-bold">
+                                  <span>Verified Growth Curve · Nov 2026</span>
+                                  <span className="px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[7.5px] font-bold inline-flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                    Exness Audited
+                                  </span>
+                                </div>
+                                <svg viewBox="0 0 240 62" className="w-full h-14 my-1 overflow-visible">
+                                  <defs>
+                                    <linearGradient id="reportCurveG" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="0%" stopColor="#10B981" stopOpacity="0.24" />
+                                      <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                                    </linearGradient>
+                                  </defs>
+                                  <path d="M4,54 L36,46 L68,48 L100,36 L132,29 L164,21 L196,15 L234,7 L234,58 L4,58 Z" fill="url(#reportCurveG)" />
+                                  <motion.path
+                                    d="M4,54 L36,46 L68,48 L100,36 L132,29 L164,21 L196,15 L234,7"
+                                    fill="none"
+                                    stroke="#10B981"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 0.9, ease: EASE_OUT }}
+                                  />
+                                  <circle cx="234" cy="7" r="3" fill="#10B981" />
+                                </svg>
+                                <div className="flex justify-between text-[7.5px] text-slate-400 border-t border-slate-100 pt-1">
+                                  <span>Max Drawdown: <strong className="text-slate-700">1.1%</strong></span>
+                                  <span>Sharpe: <strong className="text-emerald-600">2.84</strong></span>
+                                  <span>Verified Hash: <strong className="font-mono">#TF-94A2</strong></span>
+                                </div>
+                              </div>
+
+                              <div className="col-span-5 rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] flex flex-col justify-between">
+                                <div className="flex items-center justify-between text-[9px] font-bold mb-1">
+                                  <span>14-Day P&amp;L Matrix</span>
+                                  <span className="text-[#2563EB] font-mono">86% Green</span>
+                                </div>
+                                <div className="grid grid-cols-7 gap-1">
+                                  {[
+                                    "+$620", "+$1.1k", "-$280", "+$940", "+$1.4k", "+$750", "+$1.6k",
+                                    "+$890", "+$1.5k", "-$240", "+$980", "+$1.2k", "+$650", `+$${(liveXauRow / 1000).toFixed(2)}k`,
+                                  ].map((val, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={`rounded py-1.5 text-center text-[6.5px] font-bold border tabular-nums ${
+                                        val.startsWith("-")
+                                          ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
+                                          : "bg-emerald-500/10 border-emerald-500/20 text-emerald-700"
+                                      }`}
+                                    >
+                                      {val}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Bottom Export Statements List */}
+                            <div className="rounded-[12px] border bg-white border-[#E4E4E4] divide-y divide-slate-100">
+                              {[
+                                { name: "November 2026 Audit Statement", meta: "Monthly Statements · Exness MT5 Verified", fmt: "PDF", size: "420 KB", pnl: `+$${liveNetPnl.toLocaleString()}` },
+                                { name: "Prop Challenge Review Ledger", meta: "Audit Statements · 17 Closed Fills", fmt: "XLSX", size: "184 KB", pnl: "Rule Score 94%" },
+                              ].map((doc) => (
+                                <div key={doc.name} className="px-2.5 py-1.5 flex items-center justify-between text-[8.5px]">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="px-1.5 py-0.5 rounded bg-blue-50 text-[#2563EB] font-bold text-[7px]">{doc.fmt}</span>
+                                    <div className="min-w-0">
+                                      <div className="font-bold text-slate-900 truncate">{doc.name}</div>
+                                      <div className="text-[7px] text-slate-400 truncate">{doc.meta} · {doc.size}</div>
+                                    </div>
+                                  </div>
+                                  <span className="font-mono font-bold text-emerald-600 tabular-nums shrink-0">{doc.pnl}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
                         )}
 
-                        {/* ── VIEW 6: EXACT TRADI FIVE AI COACH WEB APP PAGE (Sessions Rail + Coach Stream + Prompt Bar) ── */}
+                        {/* ── VIEW 6: EXACT TRADI FIVE AI COACH WEB APP PAGE (AI Console Left Drawer + Live Consultation + Quick Audit Prompt Cards + Input Console) ── */}
                         {active.id === "ai-coach" && (
                           <div className="grid grid-cols-12 gap-2 items-stretch">
-                            {/* Left Session History Rail (matches TradifiveAI.tsx left drawer) */}
-                            <div className={`col-span-4 rounded-[12px] p-2.5 border flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="space-y-1.5">
-                                <div className="rounded-lg px-2 py-1.5 bg-[#2563EB] text-white text-[8.5px] font-bold text-center">
-                                  + New AI Session
+                            {/* Left AI Console Sidebar (exact TradifiveAI.tsx lines 1468-1643) */}
+                            <div className="col-span-4 rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] flex flex-col justify-between">
+                              <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="inline-flex items-center gap-1.5 text-[8.5px] font-bold text-slate-500 uppercase tracking-wider">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                                    AI Console
+                                  </span>
+                                  <span className="text-[7.5px] text-emerald-600 font-semibold">Live</span>
                                 </div>
-                                <div className="text-[7.5px] font-semibold text-slate-400 uppercase tracking-wider pt-1">
-                                  Recent Threads
+
+                                <div className="w-full py-1.5 px-2.5 rounded-xl bg-blue-600 text-white text-[9px] font-bold flex items-center gap-1.5 shadow-xs">
+                                  <Plus size={11} strokeWidth={2.5} />
+                                  <span>New Chat</span>
                                 </div>
-                                {[
-                                  { t: "NY Open Profit Audit", active: true },
-                                  { t: "Revenge Trigger Check", active: false },
-                                  { t: "XAU/USD Lot Sizing", active: false },
-                                ].map((item) => (
-                                  <div
-                                    key={item.t}
-                                    className={`px-2 py-1.5 rounded-lg text-[8.5px] font-semibold truncate ${
-                                      item.active
-                                        ? isDarkFocus
-                                          ? "bg-white/[0.08] text-white"
-                                          : "bg-blue-50 text-[#2563EB]"
-                                        : "text-slate-400"
-                                    }`}
-                                  >
-                                    {item.t}
+
+                                <div>
+                                  <div className="text-[7.5px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                                    Recent Audits
                                   </div>
-                                ))}
+                                  <div className="space-y-1">
+                                    {[
+                                      { title: "NY Open Profit Audit", sub: "+89% gains · $11,150", active: true },
+                                      { title: "Drawdown Risk Check", sub: `${liveDdPct}% daily buffer`, active: false },
+                                      { title: "Optimal Lot Sizing", sub: `0.5% cap = ${liveOpenLots}L`, active: false },
+                                    ].map((sess) => (
+                                      <div
+                                        key={sess.title}
+                                        className={`px-2 py-1.5 rounded-lg border text-left ${
+                                          sess.active
+                                            ? "bg-slate-100/90 border-slate-200/80 text-slate-900"
+                                            : "border-transparent text-slate-500"
+                                        }`}
+                                      >
+                                        <div className="text-[8.5px] font-semibold truncate">{sess.title}</div>
+                                        <div className="text-[7px] text-slate-400 truncate font-mono tabular-nums">{sess.sub}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06] text-[7.5px] text-slate-400">
-                                Guardrails Synced: <strong className="text-emerald-600">3.0% DD · 15m Lock</strong>
+
+                              {/* Sidebar Footer: Active MT5 Bridge Card (exact TradifiveAI.tsx lines 1600-1623) */}
+                              <div className="pt-2 border-t border-slate-100 space-y-1">
+                                <div className="flex items-center gap-1 text-[7.5px] font-bold text-slate-400 uppercase tracking-wider">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                  <span>Active MT5 Bridge</span>
+                                </div>
+                                <div className="rounded-lg p-1.5 border border-slate-200/80 bg-[#F8FAFC] flex items-center justify-between gap-1">
+                                  <div className="min-w-0">
+                                    <div className="text-[8.5px] font-bold text-slate-800 truncate">Exness MT5</div>
+                                    <div className="text-[7px] text-slate-400 font-mono">MT5 #40892</div>
+                                  </div>
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-50 border border-emerald-500/20 text-emerald-600 text-[7px] font-bold uppercase">
+                                    Live
+                                  </span>
+                                </div>
                               </div>
                             </div>
 
-                            {/* Right AI Conversation Panel (matches TradifiveAI.tsx chat view) */}
-                            <div className={`col-span-8 rounded-[12px] p-2.5 border flex flex-col justify-between gap-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="space-y-2">
+                            {/* Right Main Coach Workspace (Live Streamed Audit + 2x2 Prompt Cards + Real Input Console) */}
+                            <div className="col-span-8 flex flex-col justify-between gap-1.5">
+                              {/* Live AI Conversation Cards */}
+                              <div className="rounded-[12px] p-2.5 border bg-white border-[#E4E4E4] space-y-1.5">
                                 <div className="flex justify-end">
-                                  <div className="rounded-2xl rounded-tr-sm px-2.5 py-1.5 bg-[#2563EB] text-white text-[9px] font-medium max-w-[85%]">
-                                    Where did my clean profits come from this week?
+                                  <div className="rounded-xl rounded-tr-sm px-2.5 py-1 bg-blue-600 text-white text-[8.5px] font-medium">
+                                    Audit my NY Open performance &amp; lock optimal sizing
                                   </div>
                                 </div>
 
-                                <div className={`rounded-2xl rounded-tl-sm p-2.5 border space-y-1.5 ${isDarkFocus ? "bg-white/[0.03] border-white/[0.07]" : "bg-[#F8FAFC] border-slate-200/80"}`}>
-                                  <div className="flex items-center justify-between text-[8.5px] font-bold text-[#2563EB]">
-                                    <span className="inline-flex items-center gap-1">
-                                      <Sparkles size={10} /> TradiFive AI · Strict Guard
+                                <div className="rounded-xl rounded-tl-sm p-2 border bg-[#F8FAFC] border-slate-200/80 space-y-1.5">
+                                  <div className="flex items-center justify-between text-[8px]">
+                                    <span className="font-bold text-blue-600 inline-flex items-center gap-1">
+                                      <Sparkles size={9.5} /> TradiFive AI · Analytical Quant
                                     </span>
-                                    <span className="text-emerald-600 font-mono">94/100 Discipline</span>
+                                    <span className="inline-flex items-center gap-1 text-emerald-600 font-mono font-bold tabular-nums">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                                      Synced · +${liveNetPnl.toLocaleString()}
+                                    </span>
                                   </div>
-                                  <p className={`text-[9px] leading-relaxed ${isDarkFocus ? "text-neutral-300" : "text-slate-700"}`}>
-                                    Sticking to your first 2 NY Open setups generated <strong className="text-emerald-600">+89% of gains ($11,150)</strong> with zero revenge trades. Keep hard stop at 2.0R before scaling.
+                                  <p className="text-[8px] leading-relaxed text-slate-700">
+                                    Your first 2 NY Open fills produced <strong className="text-slate-900">+89% of gains (${(11150 + liveDelta).toLocaleString()})</strong> with 0 tilt. Cap lot exposure at <strong className="font-mono text-blue-600">{liveOpenLots}L</strong> before CPI.
                                   </p>
-                                  <div className="flex items-center gap-1.5 pt-0.5 text-[7.5px]">
-                                    <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 font-bold">14d Clean Streak</span>
-                                    <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-[#2563EB] font-bold">Rule: Max 2 NY trades</span>
+                                  <div className="rounded-lg border border-slate-200/80 overflow-hidden text-[7.5px]">
+                                    <div className="grid grid-cols-3 bg-slate-100/80 px-2 py-0.5 font-bold text-slate-500 uppercase">
+                                      <span>Window</span>
+                                      <span>Win Rate</span>
+                                      <span className="text-right">Avg R / P&amp;L</span>
+                                    </div>
+                                    <div className="grid grid-cols-3 px-2 py-1 bg-white font-medium text-slate-700 border-t border-slate-100">
+                                      <span>NY Open (8–11a)</span>
+                                      <span className="text-emerald-600 font-bold">88.2%</span>
+                                      <span className="text-right font-mono font-bold text-emerald-600 tabular-nums">+2.4R</span>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className={`rounded-full px-3 py-1.5 border flex items-center justify-between text-[8.5px] ${isDarkFocus ? "bg-[#121318] border-white/[0.08] text-neutral-400" : "bg-[#F8FAFC] border-slate-200 text-slate-400"}`}>
-                                <span>Ask TradiFive AI about your MT5 trades or risk plan…</span>
-                                <span className="w-5 h-5 rounded-full bg-[#2563EB] text-white flex items-center justify-center text-[9px] font-bold">↑</span>
+                              {/* Compact 2x2 Quick Audit Chips (matches TradifiveAI.tsx lines 1688-1742) */}
+                              <div className="grid grid-cols-2 gap-1.5">
+                                {[
+                                  { title: "Audit Recent Trades", sub: "Win-rate & setup leaks", icon: TrendingUp, tone: "bg-blue-50 text-blue-600" },
+                                  { title: "Drawdown Risk Check", sub: `Buffer ${liveDdPct}% / 3.0%`, icon: ShieldCheck, tone: "bg-emerald-50 text-emerald-600" },
+                                ].map((c) => (
+                                  <div key={c.title} className="rounded-[10px] p-1.5 border bg-white border-[#E4E4E4] flex items-center gap-2">
+                                    <span className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 ${c.tone}`}>
+                                      <c.icon size={11} />
+                                    </span>
+                                    <div className="min-w-0">
+                                      <div className="text-[8px] font-bold text-slate-900 truncate">{c.title}</div>
+                                      <div className="text-[7px] text-slate-400 truncate font-mono tabular-nums">{c.sub}</div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Authentic Input Console Card (matches TradifiveAI.tsx lines 1215-1378) */}
+                              <div className="rounded-[12px] p-2 border bg-white border-[#E4E4E4] space-y-1.5">
+                                <div className="flex items-center justify-between text-[7.5px]">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold tabular-nums">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                                    Credits: {10 - (liveTick % 2)} / 10
+                                  </span>
+                                  <span className="font-bold text-blue-600 inline-flex items-center gap-0.5">
+                                    <Zap size={9} className="fill-current" /> Upgrade plan
+                                  </span>
+                                </div>
+                                <div className="rounded-lg bg-slate-50 border border-slate-200/80 px-2.5 py-1.5 flex items-center justify-between text-[8px] text-slate-400">
+                                  <span className="truncate">Ask your AI Coach about trades, risk, or psychology...</span>
+                                  <span className="w-5 h-5 rounded-lg bg-blue-600 text-white inline-flex items-center justify-center font-bold shrink-0">↑</span>
+                                </div>
                               </div>
                             </div>
                           </div>
