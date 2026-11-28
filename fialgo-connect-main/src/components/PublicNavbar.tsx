@@ -1,7 +1,82 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Sparkles, ChevronRight, ChevronDown, Tag, Smartphone, Mail, Brain, Cpu, Shield, BookOpen, Users, Radio } from "lucide-react";
+import {
+  Menu,
+  X,
+  ArrowRight,
+  ChevronRight,
+  ChevronDown,
+  Tag,
+  Smartphone,
+  Mail,
+  Brain,
+  Cpu,
+  Shield,
+  BookOpen,
+  Users,
+  Radio,
+  LayoutGrid,
+} from "lucide-react";
+
+interface PublicNavbarProps {
+  onSignIn?: () => void;
+  onSignUp?: () => void;
+  onDownloadClick?: () => void;
+  lightOnScroll?: boolean;
+  alwaysLight?: boolean;
+}
+
+const PRODUCT_ITEMS = [
+  {
+    title: "Smart Trade Journal",
+    desc: "Automated MT5 sync & 40+ edge metrics",
+    path: "/features/smart-journal",
+    icon: BookOpen,
+    tint: "text-blue-600 bg-blue-50 border-blue-200/70",
+    darkTint: "text-sky-400 bg-sky-500/10 border-sky-400/20",
+  },
+  {
+    title: "Risk Guard",
+    desc: "Daily drawdown kill-switch & lockouts",
+    path: "/features/risk-guard",
+    icon: Shield,
+    tint: "text-emerald-700 bg-emerald-50 border-emerald-200/70",
+    darkTint: "text-emerald-400 bg-emerald-500/10 border-emerald-400/20",
+  },
+  {
+    title: "TradiFive AI",
+    desc: "Behavioral session coaching & tilt audits",
+    path: "/features/tradifive-ai",
+    icon: Brain,
+    tint: "text-indigo-600 bg-indigo-50 border-indigo-200/70",
+    darkTint: "text-indigo-400 bg-indigo-500/10 border-indigo-400/20",
+  },
+  {
+    title: "Auto Trade Engine",
+    desc: "Rule-enforced MT5 execution workflows",
+    path: "/features/auto-trade",
+    icon: Cpu,
+    tint: "text-sky-700 bg-sky-50 border-sky-200/70",
+    darkTint: "text-cyan-400 bg-cyan-500/10 border-cyan-400/20",
+  },
+  {
+    title: "Community Hub",
+    desc: "Verified track records & competitions",
+    path: "/features/community-hub",
+    icon: Users,
+    tint: "text-slate-700 bg-slate-100 border-slate-200",
+    darkTint: "text-slate-300 bg-white/10 border-white/15",
+  },
+  {
+    title: "Creator Channels",
+    desc: "Broadcast desks & structured alerts",
+    path: "/features/channels",
+    icon: Radio,
+    tint: "text-rose-600 bg-rose-50 border-rose-200/70",
+    darkTint: "text-rose-400 bg-rose-500/10 border-rose-400/20",
+  },
+];
 
 export default function PublicNavbar({
   onSignIn,
@@ -9,115 +84,40 @@ export default function PublicNavbar({
   onDownloadClick,
   lightOnScroll = false,
   alwaysLight = false,
-}: {
-  onSignIn?: () => void;
-  onSignUp?: () => void;
-  onDownloadClick?: () => void;
-  lightOnScroll?: boolean;
-  alwaysLight?: boolean;
-}) {
+}: PublicNavbarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
-  const isFeaturesActive = location.pathname === "/" && location.hash === "#features";
-  const isJournalActive = location.pathname === "/features/smart-journal";
-  const isRiskGuardActive = location.pathname === "/features/risk-guard";
+  const isProductRoute = location.pathname.startsWith("/features/");
+  const isCommunityActive = location.pathname === "/features/community-hub";
+  const isAiActive = location.pathname === "/features/tradifive-ai";
   const isAppActive = location.pathname === "/download";
   const isContactActive = location.pathname === "/contact";
-  const isAiActive = location.pathname === "/features/tradifive-ai";
-  const isCommunityActive = location.pathname === "/features/community-hub";
+
   const [scrolled, setScrolled] = useState(false);
   const [inLightZone, setInLightZone] = useState(alwaysLight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [productMenuOpen, setProductMenuOpen] = useState(false);
   const [inDeepDives, setInDeepDives] = useState(false);
   const [isHoveredTop, setIsHoveredTop] = useState(false);
   const [mobileFeaturesOpen, setMobileFeaturesOpen] = useState(true);
-
-  const MOBILE_FEATURES: Array<{
-    title: string;
-    desc: string;
-    path: string;
-    icon: typeof Cpu;
-    color: string;
-    bgColor: string;
-    borderColor: string;
-    badge?: string;
-  }> = [
-    {
-      title: "Auto Trade Engine",
-      desc: "Automated MT5 execution & workflows",
-      path: "/features/auto-trade",
-      icon: Cpu,
-      color: "#38bdf8",
-      bgColor: "rgba(56, 189, 248, 0.12)",
-      borderColor: "rgba(56, 189, 248, 0.25)",
-    },
-    {
-      title: "Social Pulse & Feeds",
-      desc: "Verified social trader network",
-      path: "/features/community-hub",
-      icon: Users,
-      color: "#818cf8",
-      bgColor: "rgba(129, 140, 248, 0.12)",
-      borderColor: "rgba(129, 140, 248, 0.25)",
-    },
-    {
-      title: "Risk Guard Protection",
-      desc: "Drawdown kill-switch & daily limits",
-      path: "/features/risk-guard",
-      icon: Shield,
-      color: "#34d399",
-      bgColor: "rgba(52, 211, 153, 0.12)",
-      borderColor: "rgba(52, 211, 153, 0.25)",
-    },
-    {
-      title: "Smart Trade Journal",
-      desc: "Auto broker sync & 40+ metrics",
-      path: "/features/smart-journal",
-      icon: BookOpen,
-      color: "#f472b6",
-      bgColor: "rgba(244, 114, 182, 0.12)",
-      borderColor: "rgba(244, 114, 182, 0.25)",
-    },
-    {
-      title: "Creator Hub",
-      desc: "Broadcast rooms & verified signals",
-      path: "/features/channels",
-      icon: Radio,
-      color: "#fb7185",
-      bgColor: "rgba(251, 113, 133, 0.12)",
-      borderColor: "rgba(251, 113, 133, 0.25)",
-    },
-    {
-      title: "TradiFive AI",
-      desc: "AI trading engine & market copilot",
-      path: "/features/tradifive-ai",
-      icon: Brain,
-      color: "#c084fc",
-      bgColor: "rgba(192, 132, 252, 0.14)",
-      borderColor: "rgba(192, 132, 252, 0.3)",
-    },
-  ];
+  const closeTimeoutRef = useRef<number | null>(null);
 
   const handleSignIn = () => {
-    if (onSignIn) {
-      onSignIn();
-    } else {
-      navigate("/login", { state: { mode: "login" } });
-    }
+    if (onSignIn) onSignIn();
+    else navigate("/login", { state: { mode: "login" } });
   };
   const handleSignUp = onSignUp || (() => navigate("/login", { state: { mode: "signup" } }));
   void onDownloadClick;
 
   useEffect(() => {
-    const h = () => {
+    const onScroll = () => {
       const y = window.scrollY;
-      setScrolled(y > 20);
+      setScrolled(y > 24);
 
       if (alwaysLight) {
         setInLightZone(true);
       } else if (lightOnScroll) {
-        // Flip navbar to White Mode only when the white HeroDashboard scrolls up to the navbar
         const whiteAnchor = document.getElementById("hero-white-zone");
         if (whiteAnchor) {
           setInLightZone(whiteAnchor.getBoundingClientRect().top <= 84);
@@ -134,44 +134,40 @@ export default function PublicNavbar({
       let isActive = false;
       if (deepDives) {
         const rect = deepDives.getBoundingClientRect();
-        // active when deep-dives has reached top of viewport and is still scrolling
         if (rect.top <= 0 && rect.bottom > 0) isActive = true;
       }
       if (hideNavZone) {
         const rect = hideNavZone.getBoundingClientRect();
-        // active when the image starts taking up space in the viewport
         if (rect.top <= window.innerHeight * 0.7 && rect.bottom > 0) isActive = true;
       }
       setInDeepDives(isActive);
     };
-    window.addEventListener("scroll", h, { passive: true });
-    window.addEventListener("resize", h, { passive: true });
-    h(); // initial check
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    onScroll();
     return () => {
-      window.removeEventListener("scroll", h);
-      window.removeEventListener("resize", h);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     };
   }, [alwaysLight, lightOnScroll]);
 
   useEffect(() => {
-    // Preload the heavy login page chunk in the background 1 second after navbar mount
     const timer = setTimeout(() => {
-      import("../pages/Login").catch(() => { });
+      import("../pages/Login").catch(() => {});
     }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
-  // Prevent scroll when mobile menu is open
   useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
+    document.body.style.overflow = mobileMenuOpen ? "hidden" : "auto";
+    return () => {
       document.body.style.overflow = "auto";
-    }
-    return () => { document.body.style.overflow = "auto"; };
+    };
   }, [mobileMenuOpen]);
 
   const handleLogoClick = () => {
+    setProductMenuOpen(false);
     if (isHome) {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
@@ -180,724 +176,519 @@ export default function PublicNavbar({
   };
 
   const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    setProductMenuOpen(false);
     if (isHome) {
       e.preventDefault();
       const element = document.getElementById(id);
       if (element) {
-        const y = element.getBoundingClientRect().top + window.scrollY - 100;
+        const y = element.getBoundingClientRect().top + window.scrollY - 96;
         window.scrollTo({ top: y, behavior: "smooth" });
       }
       setMobileMenuOpen(false);
     }
   };
 
+  const openMenu = () => {
+    if (closeTimeoutRef.current) window.clearTimeout(closeTimeoutRef.current);
+    setProductMenuOpen(true);
+  };
+
+  const scheduleCloseMenu = () => {
+    if (closeTimeoutRef.current) window.clearTimeout(closeTimeoutRef.current);
+    closeTimeoutRef.current = window.setTimeout(() => setProductMenuOpen(false), 140);
+  };
+
+  const hidden = inDeepDives && !isHoveredTop && !mobileMenuOpen;
+
+  const navLinkClass = (active: boolean) =>
+    `px-3 py-1.5 rounded-full text-[13px] font-medium transition-colors duration-150 ${
+      inLightZone
+        ? active
+          ? "text-[#2563EB] bg-blue-50/70"
+          : "text-slate-600 hover:text-slate-950 hover:bg-slate-100/80"
+        : active
+        ? "text-white bg-white/12"
+        : "text-slate-300 hover:text-white hover:bg-white/[0.08]"
+    }`;
+
   return (
     <>
-      <style>{`
-        .nav-link-item {
-          font-size: 13px;
-          font-weight: 500;
-          text-decoration: none;
-          color: rgba(255, 255, 255, 0.65);
-          transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          position: relative;
-        }
-        .nav-link-item:hover {
-          color: #fff;
-          text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
-          transform: translateY(-1px);
-        }
-        .nav-link-item.active {
-          color: #fff;
-        }
-        .nav-light-scrolled .nav-link-item {
-          color: rgba(15, 23, 42, 0.7);
-        }
-        .nav-light-scrolled .nav-link-item:hover {
-          color: #0F172A;
-          text-shadow: none;
-        }
-        .nav-light-scrolled .nav-link-item.active {
-          color: #2563EB;
-        }
-
-        .ai-nav-btn {
-          box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.3), 0 0 12px rgba(168, 85, 247, 0.15) !important;
-          background: linear-gradient(145deg, rgba(168, 85, 247, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%) !important;
-        }
-        .ai-nav-btn:hover {
-          transform: translateY(-2px) scale(1.02) !important;
-          box-shadow: inset 0 0 0 1px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.3) !important;
-          background: linear-gradient(145deg, rgba(168, 85, 247, 0.25) 0%, rgba(99, 102, 241, 0.1) 100%) !important;
-        }
-        
-        .nav-btn-signin {
-          background: #171717;
-          border: none;
-          color: rgba(255, 255, 255, 0.9);
-          font-size: 13px;
-          font-weight: 600;
-          cursor: pointer;
-          padding: 9px 20px;
-          transition: all 0.2s ease;
-          border-radius: 100px;
-          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2);
-          outline: none;
-        }
-        .nav-btn-signin:hover {
-          color: #fff;
-          background: #1e1e1e;
-          transform: translateY(-1px);
-          box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25);
-        }
-        .nav-btn-signin:active {
-          transform: scale(0.985) !important;
-        }
-        .nav-btn-get-started {
-          padding: 9px 22px;
-          border-radius: 100px;
-          background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-          color: #60a5fa;
-          font-weight: 700;
-          font-size: 13px;
-          border: none;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 2px 6px rgba(0, 0, 0, 0.3);
-          position: relative;
-          overflow: hidden;
-          outline: none;
-        }
-        .nav-btn-get-started:hover {
-          transform: translateY(-1px);
-          background: linear-gradient(135deg, #253347 0%, #131c33 100%);
-          color: #93c5fd;
-          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4);
-        }
-        .nav-btn-get-started:active {
-          transform: scale(0.985) !important;
-        }
-        @media (max-width: 1024px) {
-          .public-nav-container { padding: 0 14px !important; gap: 8px !important; }
-          .public-nav-brand, .public-nav-actions { min-width: 0 !important; }
-          .public-nav-logo-icon { height: 26px !important; margin-left: 0; }
-          .public-nav-logo-text { height: 22px !important; }
-          .hide-sm { display: none !important; }
-          .hide-on-mobile { display: none !important; }
-          .show-sm { display: flex !important; }
-          .public-nav {
-            top: 0 !important;
-            left: 0 !important;
-            transform: translateY(var(--nav-translate-y, 0%)) !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            border-radius: 0 !important;
-            border-left: none !important;
-            border-right: none !important;
-            border-top: none !important;
-            height: 60px !important;
-          }
-        }
-      `}</style>
-      {/* Invisible hover trigger zone at the top of the screen */}
       {inDeepDives && !mobileMenuOpen && (
         <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "20px",
-            background: "transparent",
-            zIndex: 999,
-            pointerEvents: "auto"
-          }}
+          className="fixed top-0 left-0 right-0 h-5 z-[999]"
           onMouseEnter={() => setIsHoveredTop(true)}
         />
       )}
 
-      <nav className={`public-nav ${inLightZone ? "nav-light-scrolled" : ""}`}
+      {/* Outer fixed wrapper creates smooth full-bleed top bar -> centered capsule transition */}
+      <div
         onMouseEnter={() => setIsHoveredTop(true)}
-        onMouseLeave={() => setIsHoveredTop(false)}
-        style={{
-          position: "fixed",
-          top: scrolled ? 12 : 8,
-          left: "50%",
-          transform: "translateX(-50%) translateY(var(--nav-translate-y, 0%))",
-          ["--nav-translate-y" as any]: inDeepDives && !isHoveredTop && !mobileMenuOpen ? "-120%" : "0%",
-          width: scrolled ? "min(94%, 1200px)" : "min(96%, 1280px)",
-          maxWidth: 1280,
-          height: 60,
-          borderRadius: scrolled ? 999 : 0,
-          background: inLightZone
-            ? scrolled
-              ? "rgba(255, 255, 255, 0.90)"
-              : "rgba(255, 255, 255, 0.72)"
-            : scrolled
-              ? "rgba(8, 12, 22, 0.78)"
-              : !(isHome || isAppActive)
-                ? "rgba(8, 12, 22, 0.85)"
-                : "transparent",
-          backdropFilter: scrolled || inLightZone || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
-          WebkitBackdropFilter: scrolled || inLightZone || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
-          border: scrolled
-            ? inLightZone
-              ? "1px solid rgba(15, 23, 42, 0.09)"
-              : "1px solid rgba(255, 255, 255, 0.12)"
-            : inLightZone
-              ? "1px solid rgba(15, 23, 42, 0.05)"
-              : "1px solid transparent",
-          boxShadow: scrolled
-            ? inLightZone
-              ? "0 12px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92)"
-              : "0 14px 36px rgba(2, 6, 23, 0.35), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
-            : "none",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000,
-          transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)"
-        }}>
-        <div
-          className="public-nav-container"
-          style={{
-            width: "100%",
-            padding: scrolled ? "0 18px 0 22px" : "0 24px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-          }}
+        onMouseLeave={() => {
+          setIsHoveredTop(false);
+          scheduleCloseMenu();
+        }}
+        className={`fixed inset-x-0 z-[1000] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          scrolled ? "lg:pt-3 lg:px-4" : "lg:pt-0 lg:px-0"
+        } ${hidden ? "-translate-y-[120%]" : "translate-y-0"}`}
+        style={{ top: 0 }}
+      >
+        <nav
+          className={`mx-auto transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+            scrolled
+              ? "max-w-[1140px] lg:rounded-full"
+              : "max-w-full lg:rounded-none"
+          } ${
+            inLightZone
+              ? scrolled
+                ? "bg-white/92 backdrop-blur-xl border-b lg:border border-[#E4E4E4] shadow-[0_8px_28px_-10px_rgba(15,23,42,0.1)]"
+                : "bg-white/88 backdrop-blur-xl border-b border-[#E4E4E4]"
+              : scrolled
+              ? "bg-[#060A15]/82 backdrop-blur-xl border-b lg:border border-white/[0.12] shadow-[0_14px_34px_-10px_rgba(2,6,23,0.6)]"
+              : "bg-[#02050E]/45 backdrop-blur-md border-b border-white/[0.07]"
+          }`}
         >
-          {/* Left: Brand Mark + Wordmark */}
-          <div
-            className="public-nav-brand"
-            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0, minWidth: 132 }}
-            onClick={handleLogoClick}
-          >
-            {inLightZone ? (
-              <img className="public-nav-logo-text" src="/Tradifive_logo1.png" style={{ height: 26, width: "auto", flexShrink: 0 }} alt="TradiFive" />
-            ) : (
-              <>
-                <img className="public-nav-logo-icon" src="/Logo_only.png" style={{ height: 32, width: "auto", flexShrink: 0 }} alt="Icon" />
-                <img className="public-nav-logo-text" src="/Dark mode logo with white.png" style={{ height: 28, width: "auto", flexShrink: 0 }} alt="TradiFive" />
-              </>
-            )}
-          </div>
-
-          {/* Center: Complete Product Navigation */}
-          <div
-            className="hide-sm"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 20,
-              whiteSpace: "nowrap",
-            }}
-          >
-            <a
-              href={isHome ? "#features" : "/#features"}
-              onClick={(e) => handleScrollTo(e, "features")}
-              className={`nav-link-item ${isFeaturesActive ? "active" : ""}`}
+          <div className="max-w-[1220px] mx-auto h-[60px] lg:h-[62px] px-4 sm:px-6 flex items-center justify-between gap-4">
+            {/* Left: Brand Lockup */}
+            <button
+              type="button"
+              onClick={handleLogoClick}
+              className="flex items-center gap-2 shrink-0 cursor-pointer focus:outline-none"
             >
-              Features
-            </a>
+              {inLightZone ? (
+                <img
+                  src="/Tradifive_logo1.png"
+                  alt="TradiFive"
+                  className="h-[25px] w-auto object-contain"
+                />
+              ) : (
+                <>
+                  <img
+                    src="/Logo_only.png"
+                    alt=""
+                    className="h-[28px] lg:h-[30px] w-auto object-contain"
+                  />
+                  <img
+                    src="/Dark mode logo with white.png"
+                    alt="TradiFive"
+                    className="h-[22px] lg:h-[25px] w-auto object-contain"
+                  />
+                </>
+              )}
+            </button>
 
-            <Link
-              to="/features/smart-journal"
-              className={`nav-link-item ${isJournalActive ? "active" : ""}`}
-            >
-              Journal
-            </Link>
-
-            <Link
-              to="/features/risk-guard"
-              className={`nav-link-item ${isRiskGuardActive ? "active" : ""}`}
-            >
-              Risk Guard
-            </Link>
-
-            <Link
-              to="/features/tradifive-ai"
-              className={`nav-link-item ${isAiActive ? "active" : ""}`}
-            >
-              TradiFive AI
-            </Link>
-
-            <Link
-              to="/features/community-hub"
-              className={`nav-link-item ${isCommunityActive ? "active" : ""}`}
-            >
-              Community
-            </Link>
-
-            <a
-              href={isHome ? "#pricing" : "/#pricing"}
-              onClick={(e) => handleScrollTo(e, "pricing")}
-              className="nav-link-item"
-            >
-              Pricing
-            </a>
-
-            <Link
-              to="/download"
-              className={`nav-link-item ${isAppActive ? "active" : ""}`}
-            >
-              App
-            </Link>
-
-            <Link
-              to="/contact"
-              className={`nav-link-item ${isContactActive ? "active" : ""}`}
-            >
-              Contact
-            </Link>
-          </div>
-
-          {/* Right: Tactile Action Pills & Mobile Hamburger */}
-          <div
-            className="public-nav-actions"
-            style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, minWidth: 165 }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }} className="hide-on-mobile hide-sm">
-              <button
-                onClick={handleSignIn}
-                className="tactile-black-pill rounded-full px-4 py-2 text-[13px] font-semibold cursor-pointer"
+            {/* Center: Clean Editorial Navigation with Product Dropdown */}
+            <div className="hidden lg:flex items-center justify-center gap-1 whitespace-nowrap relative">
+              <div
+                className="relative"
+                onMouseEnter={openMenu}
+                onMouseLeave={scheduleCloseMenu}
               >
-                Sign In
-              </button>
-              <button
-                onClick={handleSignUp}
-                className="tactile-blue-pill rounded-full px-5 py-2 text-[13px] font-bold cursor-pointer"
+                <button
+                  type="button"
+                  onClick={() => setProductMenuOpen((prev) => !prev)}
+                  className={`inline-flex items-center gap-1 cursor-pointer ${navLinkClass(
+                    isProductRoute && !isAiActive && !isCommunityActive
+                  )}`}
+                >
+                  <span>Platform</span>
+                  <ChevronDown
+                    size={13}
+                    strokeWidth={2}
+                    className={`transition-transform duration-200 ${
+                      productMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                <AnimatePresence>
+                  {productMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 6, scale: 0.98 }}
+                      transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+                      onMouseEnter={openMenu}
+                      onMouseLeave={scheduleCloseMenu}
+                      className={`absolute left-1/2 -translate-x-1/2 top-[calc(100%+12px)] w-[540px] rounded-2xl p-3 border shadow-2xl ${
+                        inLightZone
+                          ? "bg-white border-[#E4E4E4] shadow-[0_18px_44px_-12px_rgba(15,23,42,0.16)]"
+                          : "bg-[#0B1120]/95 backdrop-blur-2xl border-white/12 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.65)]"
+                      }`}
+                    >
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {PRODUCT_ITEMS.map((item) => {
+                          const Icon = item.icon;
+                          const active = location.pathname === item.path;
+                          return (
+                            <Link
+                              key={item.path}
+                              to={item.path}
+                              onClick={() => setProductMenuOpen(false)}
+                              className={`group flex items-start gap-3 p-2.5 rounded-xl transition-colors ${
+                                inLightZone
+                                  ? active
+                                    ? "bg-slate-100"
+                                    : "hover:bg-slate-50"
+                                  : active
+                                  ? "bg-white/10"
+                                  : "hover:bg-white/[0.06]"
+                              }`}
+                            >
+                              <div
+                                className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 ${
+                                  inLightZone ? item.tint : item.darkTint
+                                }`}
+                              >
+                                <Icon size={15} strokeWidth={1.9} />
+                              </div>
+                              <div className="min-w-0">
+                                <div
+                                  className={`text-[13px] font-semibold leading-tight ${
+                                    inLightZone ? "text-slate-900" : "text-white"
+                                  }`}
+                                >
+                                  {item.title}
+                                </div>
+                                <div
+                                  className={`text-[11.5px] leading-snug mt-0.5 line-clamp-1 ${
+                                    inLightZone ? "text-slate-500" : "text-slate-400"
+                                  }`}
+                                >
+                                  {item.desc}
+                                </div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+
+                      <div
+                        className={`mt-2.5 pt-2.5 px-2 flex items-center justify-between border-t text-[11.5px] ${
+                          inLightZone
+                            ? "border-[#E4E4E4] text-slate-500"
+                            : "border-white/10 text-slate-400"
+                        }`}
+                      >
+                        <span>Direct MT5 bridge · Read/execute safety</span>
+                        <a
+                          href={isHome ? "#features" : "/#features"}
+                          onClick={(e) => handleScrollTo(e, "features")}
+                          className={`inline-flex items-center gap-1 font-semibold ${
+                            inLightZone
+                              ? "text-[#2563EB] hover:text-blue-700"
+                              : "text-blue-400 hover:text-blue-300"
+                          }`}
+                        >
+                          <LayoutGrid size={12} />
+                          <span>Live preview</span>
+                        </a>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <Link
+                to="/features/tradifive-ai"
+                className={navLinkClass(isAiActive)}
               >
-                Get Started
-              </button>
+                TradiFive AI
+              </Link>
+
+              <Link
+                to="/features/community-hub"
+                className={navLinkClass(isCommunityActive)}
+              >
+                Community
+              </Link>
+
+              <a
+                href={isHome ? "#pricing" : "/#pricing"}
+                onClick={(e) => handleScrollTo(e, "pricing")}
+                className={navLinkClass(false)}
+              >
+                Pricing
+              </a>
+
+              <Link to="/download" className={navLinkClass(isAppActive)}>
+                App
+              </Link>
+
+              <Link to="/contact" className={navLinkClass(isContactActive)}>
+                Contact
+              </Link>
             </div>
 
-            {/* Mobile Quick Action + Hamburger */}
-            <div className="show-sm" style={{ display: "none", alignItems: "center", gap: 8 }}>
-              <button
-                onClick={handleSignUp}
-                className="tactile-blue-pill rounded-full px-3.5 py-1.5 text-[11.5px] font-bold cursor-pointer whitespace-nowrap"
-              >
-                Get Started
-              </button>
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Open menu"
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  color: inLightZone ? "#0F172A" : "#fff",
-                  cursor: "pointer",
-                  padding: "6px",
-                  display: "flex",
-                }}
-              >
-                <Menu size={24} />
-              </button>
+            {/* Right: Crisp Architectural Action Buttons & Mobile Controls */}
+            <div className="flex items-center justify-end gap-2 shrink-0">
+              <div className="hidden lg:flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSignIn}
+                  className={`px-3.5 py-1.5 rounded-full text-[13px] font-medium transition-colors cursor-pointer ${
+                    inLightZone
+                      ? "text-slate-700 hover:text-slate-950 hover:bg-slate-100"
+                      : "text-slate-200 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignUp}
+                  className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-semibold transition-all cursor-pointer ${
+                    inLightZone
+                      ? "bg-[#2563EB] hover:bg-blue-700 text-white shadow-[0_2px_8px_rgba(37,99,235,0.28)]"
+                      : "bg-white hover:bg-blue-50 text-slate-950 shadow-[0_2px_10px_rgba(255,255,255,0.18)]"
+                  }`}
+                >
+                  <span>Get Started</span>
+                  <ArrowRight size={13} strokeWidth={2.2} />
+                </button>
+              </div>
+
+              {/* Mobile Action + Menu Button */}
+              <div className="flex lg:hidden items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleSignUp}
+                  className={`px-3.5 py-1.5 rounded-full text-[12px] font-semibold whitespace-nowrap cursor-pointer ${
+                    inLightZone
+                      ? "bg-[#2563EB] text-white"
+                      : "bg-white text-slate-950"
+                  }`}
+                >
+                  Get Started
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMobileMenuOpen(true)}
+                  aria-label="Open menu"
+                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                    inLightZone
+                      ? "text-slate-900 hover:bg-slate-100"
+                      : "text-white hover:bg-white/10"
+                  }`}
+                >
+                  <Menu size={22} />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      </div>
 
       {/* Mobile Drawer Overlay */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              style={{
-                position: "fixed", inset: 0,
-                background: "rgba(0,0,0,0.6)",
-                backdropFilter: "blur(8px)",
-                WebkitBackdropFilter: "blur(8px)",
-                zIndex: 10000
-              }}
+              transition={{ duration: 0.22 }}
+              className="fixed inset-0 bg-slate-950/55 backdrop-blur-sm z-[10000]"
               onClick={() => setMobileMenuOpen(false)}
             />
 
-            {/* Drawer Panel */}
             <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 260 }}
-              style={{
-                position: "fixed", top: 0, right: 0, bottom: 0,
-                width: "85%", maxWidth: 360,
-                background: "#0a0a0f",
-                borderLeft: "1px solid rgba(255,255,255,0.06)",
-                zIndex: 10001,
-                display: "flex", flexDirection: "column",
-                boxShadow: "-40px 0 100px rgba(0,0,0,0.8)",
-                overflow: "hidden",
-                borderTopLeftRadius: "28px",
-                borderBottomLeftRadius: "28px",
-                borderTopRightRadius: "0px",
-                borderBottomRightRadius: "0px"
-              }}
+              transition={{ type: "spring", damping: 32, stiffness: 280 }}
+              className={`fixed top-0 right-0 bottom-0 w-[86%] max-w-[360px] z-[10001] flex flex-col overflow-hidden rounded-l-[24px] border-l shadow-2xl ${
+                inLightZone
+                  ? "bg-white border-[#E4E4E4] text-slate-900"
+                  : "bg-[#080C17] border-white/10 text-white"
+              }`}
             >
-              {/* Subtle top accent line */}
-              <div style={{
-                position: "absolute", top: 0, left: "15%", right: "15%", height: 1,
-                background: "linear-gradient(to right, transparent, rgba(99,102,241,0.5), transparent)"
-              }} />
-
-              {/* Ambient glow */}
-              <div style={{
-                position: "absolute", top: -80, right: -80,
-                width: 260, height: 260,
-                background: "radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%)",
-                pointerEvents: "none"
-              }} />
-
-              {/* â”€â”€ Header â”€â”€ */}
-              <div style={{ padding: "24px 24px 20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <img src="/favicon.png" style={{ height: 28, width: "auto" }} alt="Icon" />
-                  <img src="/Dark mode logo with white.png" style={{ height: 21, width: "auto" }} alt="TradiFive" />
+              {/* Header */}
+              <div className="px-6 pt-6 pb-4 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  {inLightZone ? (
+                    <img src="/Tradifive_logo1.png" className="h-6 w-auto" alt="TradiFive" />
+                  ) : (
+                    <>
+                      <img src="/Logo_only.png" className="h-7 w-auto" alt="" />
+                      <img src="/Dark mode logo with white.png" className="h-5 w-auto" alt="TradiFive" />
+                    </>
+                  )}
                 </div>
-                <motion.button
-                  whileTap={{ scale: 0.88 }}
+                <button
+                  type="button"
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{
-                    background: "rgba(255,255,255,0.015)",
-                    border: "none",
-                    borderRadius: 16, width: 34, height: 34,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "rgba(255,255,255,0.5)", cursor: "pointer",
-                    transition: "all 0.15s"
-                  }}
+                  aria-label="Close menu"
+                  className={`w-8 h-8 rounded-full flex items-center justify-center border transition-colors cursor-pointer ${
+                    inLightZone
+                      ? "border-[#E4E4E4] text-slate-500 hover:text-slate-900 hover:bg-slate-50"
+                      : "border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
+                  }`}
                 >
-                  <X size={14} />
-                </motion.button>
+                  <X size={15} />
+                </button>
               </div>
 
-              {/* â”€â”€ Divider â”€â”€ */}
-              <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginLeft: 24, marginRight: 24 }} />
+              <div className={`h-px mx-6 ${inLightZone ? "bg-[#E4E4E4]" : "bg-white/10"}`} />
 
-              {/* â”€â”€ Scrollable Content â”€â”€ */}
-              <div
-                style={{
-                  flex: 1,
-                  overflowY: "auto",
-                  padding: "16px 16px 24px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 4,
-                  WebkitOverflowScrolling: "touch"
-                }}
-              >
-
-                {/* Collapsible Features Dropdown Header */}
+              {/* Scrollable Navigation */}
+              <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-1">
                 <button
+                  type="button"
                   onClick={() => setMobileFeaturesOpen((prev) => !prev)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    width: "100%",
-                    padding: "8px 8px 10px",
-                    background: "transparent",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: 10,
-                    fontWeight: 700,
-                    color: "rgba(255,255,255,0.45)",
-                    letterSpacing: "0.16em",
-                    textTransform: "uppercase"
-                  }}
+                  className={`flex items-center justify-between w-full px-2 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] cursor-pointer ${
+                    inLightZone ? "text-slate-400" : "text-slate-400"
+                  }`}
                 >
-                  <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    Features
-                    <span
-                      style={{
-                        fontSize: 9,
-                        background: "rgba(96, 165, 250, 0.15)",
-                        color: "#60a5fa",
-                        padding: "1px 6px",
-                        borderRadius: 100,
-                        fontWeight: 700
-                      }}
-                    >
-                      {MOBILE_FEATURES.length}
-                    </span>
-                  </span>
+                  <span>Platform ({PRODUCT_ITEMS.length})</span>
                   <ChevronDown
                     size={14}
-                    style={{
-                      transform: mobileFeaturesOpen ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s ease",
-                      color: "rgba(255,255,255,0.45)"
-                    }}
+                    className={`transition-transform duration-200 ${
+                      mobileFeaturesOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </button>
 
-                {/* Features Items Dropdown List */}
                 {mobileFeaturesOpen && (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                      marginBottom: 14
-                    }}
-                  >
-                    {MOBILE_FEATURES.map((feat) => {
+                  <div className="flex flex-col gap-2 mb-3">
+                    {PRODUCT_ITEMS.map((feat) => {
                       const Icon = feat.icon;
                       return (
                         <button
                           key={feat.path}
+                          type="button"
                           onClick={() => {
                             setMobileMenuOpen(false);
                             navigate(feat.path);
                           }}
-                          style={{
-                            width: "100%",
-                            textAlign: "left",
-                            background: "#171717",
-                            border: "1px solid rgba(255, 255, 255, 0.08)",
-                            boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)",
-                            borderRadius: 16,
-                            padding: "11px 14px",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 12,
-                            transition: "all 0.2s ease",
-                            outline: "none"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#202020";
-                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
-                            e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 10px rgba(0, 0, 0, 0.3)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "#171717";
-                            e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                            e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)";
-                          }}
+                          className={`w-full text-left rounded-xl px-3 py-2.5 border flex items-center gap-3 transition-colors cursor-pointer ${
+                            inLightZone
+                              ? "bg-white border-[#E4E4E4] hover:border-slate-300"
+                              : "bg-white/[0.04] border-white/10 hover:bg-white/[0.08]"
+                          }`}
                         >
                           <div
-                            style={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 10,
-                              background: feat.bgColor,
-                              border: `1px solid ${feat.borderColor}`,
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              flexShrink: 0,
-                              color: feat.color
-                            }}
+                            className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${
+                              inLightZone ? feat.tint : feat.darkTint
+                            }`}
                           >
-                            <Icon size={16} />
+                            <Icon size={15} />
                           </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6, lineHeight: 1.2 }}>
-                              <span style={{ fontSize: 13.5, fontWeight: 700, color: "#ffffff" }}>
-                                {feat.title}
-                              </span>
-                              {feat.badge && (
-                                <span
-                                  style={{
-                                    fontSize: 8.5,
-                                    fontWeight: 800,
-                                    padding: "2px 6px",
-                                    borderRadius: 4,
-                                    background: feat.bgColor,
-                                    border: `1px solid ${feat.borderColor}`,
-                                    color: feat.color,
-                                    letterSpacing: 0.4
-                                  }}
-                                >
-                                  {feat.badge}
-                                </span>
-                              )}
+                          <div className="flex-1 min-w-0">
+                            <div
+                              className={`text-[13.5px] font-semibold ${
+                                inLightZone ? "text-slate-900" : "text-white"
+                              }`}
+                            >
+                              {feat.title}
                             </div>
                             <div
-                              style={{
-                                fontSize: 11.5,
-                                color: "rgba(255, 255, 255, 0.45)",
-                                marginTop: 3,
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis"
-                              }}
+                              className={`text-[11.5px] truncate ${
+                                inLightZone ? "text-slate-500" : "text-slate-400"
+                              }`}
                             >
                               {feat.desc}
                             </div>
                           </div>
-                          <ChevronRight size={14} color="rgba(255, 255, 255, 0.3)" style={{ flexShrink: 0 }} />
+                          <ChevronRight
+                            size={14}
+                            className={inLightZone ? "text-slate-400" : "text-slate-500"}
+                          />
                         </button>
                       );
                     })}
                   </div>
                 )}
 
-                {/* Section Label */}
-                <div style={{ padding: "12px 8px 8px", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                  Navigation
+                <div className="px-2 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                  Resources
                 </div>
 
-                {/* Nav Links */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+                <div className="flex flex-col gap-2">
                   {[
                     { label: "Pricing", path: "/#pricing", scrollId: "pricing", icon: Tag },
                     { label: "Download App", path: "/download", icon: Smartphone },
                     { label: "Contact", path: "/contact", icon: Mail },
-                  ].map((item, i) => {
+                  ].map((item) => {
                     const Icon = item.icon;
-                    const content = (
+                    const inner = (
                       <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 12,
-                          padding: "11px 14px",
-                          borderRadius: 16,
-                          background: "#171717",
-                          border: "1px solid rgba(255, 255, 255, 0.08)",
-                          boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)",
-                          transition: "all 0.2s ease",
-                          cursor: "pointer"
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#202020";
-                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.14)";
-                          e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 10px rgba(0, 0, 0, 0.3)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#171717";
-                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.08)";
-                          e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 4px rgba(0, 0, 0, 0.2)";
-                        }}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-colors ${
+                          inLightZone
+                            ? "bg-white border-[#E4E4E4] text-slate-800 hover:border-slate-300"
+                            : "bg-white/[0.04] border-white/10 text-slate-200 hover:bg-white/[0.08]"
+                        }`}
                       >
-                        <div style={{
-                          width: 36, height: 36, borderRadius: 10,
-                          background: "rgba(255,255,255,0.04)",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          flexShrink: 0
-                        }}>
-                          <Icon size={15} color="rgba(255,255,255,0.65)" />
+                        <div
+                          className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${
+                            inLightZone
+                              ? "bg-slate-50 border-[#E4E4E4] text-slate-600"
+                              : "bg-white/[0.06] border-white/10 text-slate-300"
+                          }`}
+                        >
+                          <Icon size={14} />
                         </div>
-                        <span style={{ fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{item.label}</span>
-                        <ChevronRight size={14} color="rgba(255,255,255,0.3)" style={{ marginLeft: "auto" }} />
+                        <span className="text-[13.5px] font-semibold">{item.label}</span>
+                        <ChevronRight size={14} className="ml-auto text-slate-400" />
                       </div>
                     );
-                    return (
-                      <motion.div
+
+                    return item.scrollId ? (
+                      <a
                         key={item.label}
-                        initial={{ opacity: 0, x: 16 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 + i * 0.05, duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        href={item.path}
+                        onClick={(e) => handleScrollTo(e, item.scrollId!)}
                       >
-                        {item.scrollId ? (
-                          <a href={item.path} onClick={(e) => handleScrollTo(e as any, item.scrollId!)} style={{ textDecoration: "none", display: "block" }}>
-                            {content}
-                          </a>
-                        ) : (
-                          <Link to={item.path} onClick={() => setMobileMenuOpen(false)} style={{ textDecoration: "none", display: "block" }}>
-                            {content}
-                          </Link>
-                        )}
-                      </motion.div>
+                        {inner}
+                      </a>
+                    ) : (
+                      <Link
+                        key={item.label}
+                        to={item.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {inner}
+                      </Link>
                     );
                   })}
                 </div>
               </div>
 
-              {/* â”€â”€ Bottom CTA â”€â”€ */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.18, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-                style={{
-                  padding: "16px 20px 32px",
-                  borderTop: "1px solid rgba(255,255,255,0.05)",
-                  display: "flex", flexDirection: "column", gap: 10,
-                  flexShrink: 0,
-                  background: "rgba(255,255,255,0.01)"
-                }}
+              {/* Bottom CTA */}
+              <div
+                className={`p-5 border-t flex flex-col gap-2.5 shrink-0 ${
+                  inLightZone ? "border-[#E4E4E4] bg-[#F9FAFB]" : "border-white/10 bg-white/[0.02]"
+                }`}
               >
-                <motion.button
-                  whileTap={{ scale: 0.985 }}
-                  onClick={(e: any) => { setMobileMenuOpen(false); handleSignIn(e); }}
-                  style={{
-                    background: "#171717",
-                    border: "none",
-                    color: "rgba(255, 255, 255, 0.9)",
-                    padding: "12px",
-                    borderRadius: "100px",
-                    fontSize: "14.5px",
-                    fontWeight: 600,
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    cursor: "pointer",
-                    boxShadow: "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)",
-                    transition: "all 0.2s ease",
-                    outline: "none"
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleSignIn();
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#1e1e1e";
-                    e.currentTarget.style.color = "#ffffff";
-                    e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.18), 0 2px 4px rgba(0, 0, 0, 0.25)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#171717";
-                    e.currentTarget.style.color = "rgba(255, 255, 255, 0.9)";
-                    e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 4px rgba(0, 0, 0, 0.2)";
-                  }}
+                  className={`w-full py-2.5 rounded-full text-[13.5px] font-semibold border transition-colors cursor-pointer ${
+                    inLightZone
+                      ? "bg-white border-[#E4E4E4] text-slate-800 hover:bg-slate-50"
+                      : "bg-white/[0.06] border-white/12 text-white hover:bg-white/10"
+                  }`}
                 >
                   Sign In
-                </motion.button>
-                <motion.button
-                  whileTap={{ scale: 0.985 }}
-                  onClick={() => { setMobileMenuOpen(false); handleSignUp(); }}
-                  style={{
-                    background: "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)",
-                    border: "none",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 6px rgba(0,0,0,0.3)",
-                    color: "#60a5fa",
-                    padding: "13px",
-                    borderRadius: "100px",
-                    fontSize: "14.5px",
-                    fontWeight: 700,
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: "8px",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    outline: "none"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleSignUp();
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "linear-gradient(135deg, #253347 0%, #131c33 100%)";
-                    e.currentTarget.style.color = "#93c5fd";
-                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.4)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)";
-                    e.currentTarget.style.color = "#60a5fa";
-                    e.currentTarget.style.boxShadow = "inset 0 1px 0 rgba(255,255,255,0.1), 0 2px 6px rgba(0,0,0,0.3)";
-                  }}
+                  className={`w-full py-2.5 rounded-full text-[13.5px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors cursor-pointer ${
+                    inLightZone
+                      ? "bg-[#2563EB] hover:bg-blue-700 text-white"
+                      : "bg-white hover:bg-blue-50 text-slate-950"
+                  }`}
                 >
-                  <Sparkles size={15} />
                   <span>Get Started</span>
-                </motion.button>
-              </motion.div>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
             </motion.div>
           </>
         )}
