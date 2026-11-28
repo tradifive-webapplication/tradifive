@@ -20,16 +20,14 @@ import {
 import { cn } from "@/lib/utils";
 
 /* ──────────────────────────────────────────────────────
-   Niche: AI Agent Workspace
+   TradiFive Platform Bento Grid (White Editorial Mode)
    Grid: 3 cards top row · 2 cards bottom row
-   Each FeatCard takes: title, description, children (visual)
-────────────────────────────────────────────────────── */
+   ────────────────────────────────────────────────────── */
 
 interface FeatCardProps {
   title: string;
   description: string;
   children: React.ReactNode;
-  /** Optional extra classes for sizing/spanning */
   className?: string;
 }
 
@@ -37,20 +35,21 @@ export function FeatCard({ title, description, children, className = "" }: FeatC
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "group relative flex flex-col gap-2 overflow-hidden rounded-[20px] p-5",
-        "bg-white border border-slate-200/90",
-        "shadow-[0_8px_28px_-12px_rgba(15,23,42,0.08)]",
+        "group relative flex flex-col gap-2.5 overflow-hidden rounded-[20px] p-5 sm:p-6",
+        "bg-white border border-slate-200/90 hover:border-slate-300 transition-colors duration-200",
+        "shadow-[0_6px_24px_-14px_rgba(15,23,42,0.08)]",
         className
       )}
     >
-      <div className="z-10 flex flex-col gap-1.5">
-        <h3 className="font-semibold text-slate-900 text-sm tracking-tight">{title}</h3>
-        <p className="text-slate-500 text-xs leading-relaxed max-w-[92%]">{description}</p>
+      <div className="z-10 flex flex-col gap-1">
+        <h3 className="font-semibold text-slate-900 text-[15px] tracking-tight">{title}</h3>
+        <p className="text-slate-500 text-[12.5px] leading-relaxed max-w-[95%]">{description}</p>
       </div>
-      <div className="relative mt-2 flex-1 w-full rounded-[14px] overflow-hidden border border-slate-200/80 bg-[#0A0F1A]">
+      <div className="relative mt-1.5 flex-1 w-full rounded-[14px] overflow-hidden border border-slate-200/80 bg-[#F8FAFC] p-2.5">
         {children}
       </div>
     </motion.div>
@@ -58,120 +57,104 @@ export function FeatCard({ title, description, children, className = "" }: FeatC
 }
 
 /* ─────────────────────────────────────────────
-   Card1 – Agent Pipeline
-   Minimalist precise node graph with real-time task flows
+   Card1 – Automated Execution & Journal Graph
    ───────────────────────────────────────────── */
 
-type ActiveStep = 'request' | 'router' | 'agent' | 'memory' | 'tools' | 'response';
+type ActiveStep = "request" | "router" | "agent" | "memory" | "tools" | "response";
 
 const VW = 320;
-const VH = 240;
+const VH = 220;
 
 interface NodeConfig {
   id: string;
   x: number;
   y: number;
-  icon?: any;
+  icon?: React.ComponentType<{ className?: string; weight?: "fill" | "regular" | "bold" }>;
   label?: string;
-  type: 'box' | 'circle';
+  type: "box" | "circle";
 }
 
 const NODES: NodeConfig[] = [
-  { id: 'A', x: 50, y: 120, icon: ChatCircle, label: "BROKER", type: 'box' },
-  { id: 'Router', x: 125, y: 120, type: 'circle' },
-  { id: 'C', x: 200, y: 120, icon: Brain, label: "TRADIFIVE", type: 'box' },
-  { id: 'B', x: 280, y: 50, icon: Database, label: "JOURNAL", type: 'box' },
-  { id: 'D', x: 280, y: 190, icon: TerminalWindow, label: "COACH", type: 'box' },
+  { id: "A", x: 52, y: 110, icon: ChatCircle, label: "MT5 FEED", type: "box" },
+  { id: "Router", x: 126, y: 110, type: "circle" },
+  { id: "C", x: 200, y: 110, icon: Brain, label: "TRADIFIVE", type: "box" },
+  { id: "B", x: 278, y: 48, icon: Database, label: "JOURNAL", type: "box" },
+  { id: "D", x: 278, y: 172, icon: TerminalWindow, label: "AI COACH", type: "box" },
 ];
 
 interface FlowPath {
   id: string;
   d: string;
   activeSteps: ActiveStep[];
-  flowDirection: 'forward' | 'backward' | 'both';
   colorClass: string;
 }
 
 const PATHS: FlowPath[] = [
   {
     id: "a-to-router",
-    d: "M 78 120 L 113 120",
+    d: "M 80 110 L 114 110",
     activeSteps: ["request"],
-    flowDirection: "forward",
-    colorClass: "text-cyan-500 text-cyan-400",
+    colorClass: "text-sky-600",
   },
   {
     id: "router-to-agent",
-    d: "M 137 120 L 172 120",
+    d: "M 138 110 L 172 110",
     activeSteps: ["agent"],
-    flowDirection: "forward",
-    colorClass: "text-violet-500 text-violet-400",
+    colorClass: "text-blue-600",
   },
   {
     id: "agent-to-memory",
-    d: "M 200 92 L 200 50 L 252 50",
+    d: "M 200 82 L 200 48 L 250 48",
     activeSteps: ["memory"],
-    flowDirection: "both",
-    colorClass: "text-fuchsia-500 text-fuchsia-400",
+    colorClass: "text-indigo-600",
   },
   {
     id: "agent-to-tools",
-    d: "M 200 148 L 200 190 L 252 190",
+    d: "M 200 138 L 200 172 L 250 172",
     activeSteps: ["tools"],
-    flowDirection: "both",
-    colorClass: "text-emerald-500 text-emerald-400",
+    colorClass: "text-emerald-600",
   },
   {
     id: "response-flow-1",
-    d: "M 172 120 L 137 120",
+    d: "M 172 110 L 138 110",
     activeSteps: ["response"],
-    flowDirection: "forward",
-    colorClass: "text-cyan-500 text-cyan-400",
+    colorClass: "text-blue-600",
   },
   {
     id: "response-flow-2",
-    d: "M 113 120 L 78 120",
+    d: "M 114 110 L 80 110",
     activeSteps: ["response"],
-    flowDirection: "forward",
-    colorClass: "text-cyan-500 text-cyan-400",
+    colorClass: "text-sky-600",
   },
 ];
 
-const NODE_COLORS: Record<string, { bg: string; border: string; text: string; buttonBg: string; buttonBorder: string }> = {
+const NODE_LIGHT_STYLES: Record<
+  string,
+  { idle: string; active: string; iconIdle: string; iconActive: string }
+> = {
   A: {
-    bg: "bg-cyan-500/10 bg-cyan-500/5",
-    border: "border-cyan-500/60 border-cyan-400/50",
-    text: "text-cyan-600 text-cyan-400",
-    buttonBg: "bg-cyan-500",
-    buttonBorder: "border-cyan-600",
-  },
-  Router: {
-    bg: "bg-amber-500/10 bg-amber-500/5",
-    border: "border-amber-500/60 border-amber-400/50",
-    text: "text-amber-600 text-amber-400",
-    buttonBg: "bg-amber-500",
-    buttonBorder: "border-amber-600",
+    idle: "bg-white border-slate-200 text-slate-700",
+    active: "bg-sky-600 border-sky-700 text-white shadow-sm",
+    iconIdle: "text-sky-600",
+    iconActive: "text-white",
   },
   C: {
-    bg: "bg-violet-500/10 bg-violet-500/5",
-    border: "border-violet-500/60 border-violet-400/50",
-    text: "text-violet-600 text-violet-400",
-    buttonBg: "bg-violet-500",
-    buttonBorder: "border-violet-600",
+    idle: "bg-white border-slate-200 text-slate-700",
+    active: "bg-[#2563EB] border-blue-700 text-white shadow-sm",
+    iconIdle: "text-[#2563EB]",
+    iconActive: "text-white",
   },
   B: {
-    bg: "bg-fuchsia-500/10 bg-fuchsia-500/5",
-    border: "border-fuchsia-500/60 border-fuchsia-400/50",
-    text: "text-fuchsia-600 text-fuchsia-400",
-    buttonBg: "bg-fuchsia-500",
-    buttonBorder: "border-fuchsia-600",
+    idle: "bg-white border-slate-200 text-slate-700",
+    active: "bg-indigo-600 border-indigo-700 text-white shadow-sm",
+    iconIdle: "text-indigo-600",
+    iconActive: "text-white",
   },
   D: {
-    bg: "bg-emerald-500/10 bg-emerald-500/5",
-    border: "border-emerald-500/60 border-emerald-400/50",
-    text: "text-emerald-600 text-emerald-400",
-    buttonBg: "bg-emerald-500",
-    buttonBorder: "border-emerald-600",
+    idle: "bg-white border-slate-200 text-slate-700",
+    active: "bg-emerald-600 border-emerald-700 text-white shadow-sm",
+    iconIdle: "text-emerald-600",
+    iconActive: "text-white",
   },
 };
 
@@ -184,95 +167,90 @@ export function Card1() {
     const interval = setInterval(() => {
       idx = (idx + 1) % steps.length;
       setStep(steps[idx]);
-    }, 2000);
+    }, 1800);
     return () => clearInterval(interval);
   }, []);
 
   const isNodeActive = (nodeId: string) => {
     switch (step) {
-      case 'request':
-        return nodeId === 'A';
-      case 'router':
-        return nodeId === 'Router';
-      case 'agent':
-        return nodeId === 'C';
-      case 'memory':
-        return nodeId === 'C' || nodeId === 'B';
-      case 'tools':
-        return nodeId === 'C' || nodeId === 'D';
-      case 'response':
-        return nodeId === 'C' || nodeId === 'Router' || nodeId === 'A';
+      case "request":
+        return nodeId === "A";
+      case "router":
+        return nodeId === "Router";
+      case "agent":
+        return nodeId === "C";
+      case "memory":
+        return nodeId === "C" || nodeId === "B";
+      case "tools":
+        return nodeId === "C" || nodeId === "D";
+      case "response":
+        return nodeId === "C" || nodeId === "Router" || nodeId === "A";
       default:
         return false;
     }
   };
 
   return (
-    <div className="w-full h-full relative overflow-hidden select-none bg-[#111]  rounded-xl flex items-center justify-center p-2">
-      {/* ── Layer 1: Clean dotted grid ── */}
+    <div className="w-full h-full relative overflow-hidden select-none bg-white rounded-[10px] border border-slate-200/70 flex items-center justify-center">
+      {/* Subtle architectural dot matrix on white */}
       <svg className="absolute inset-0 w-full h-full" aria-hidden>
         <defs>
-          <pattern id="clean-grid" width="16" height="16" patternUnits="userSpaceOnUse">
-            <circle cx="1.5" cy="1.5" r="0.75" fill="currentColor" className="text-white/20 " />
+          <pattern id="light-clean-grid" width="16" height="16" patternUnits="userSpaceOnUse">
+            <circle cx="1.5" cy="1.5" r="0.8" fill="currentColor" className="text-slate-200" />
           </pattern>
         </defs>
-        <rect width="100%" height="100%" fill="url(#clean-grid)" />
+        <rect width="100%" height="100%" fill="url(#light-clean-grid)" />
       </svg>
 
-      {/* ── Layer 2: Connector SVG & Nodes ── */}
+      {/* Connector SVG & Nodes */}
       <svg
         className="absolute inset-0 w-full h-full"
         viewBox={`0 0 ${VW} ${VH}`}
         preserveAspectRatio="xMidYMid meet"
         aria-hidden
       >
-        {/* Base Static Connection Paths */}
-        <path d="M 78 120 L 113 120" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
-        <path d="M 137 120 L 172 120" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
-        <path d="M 200 92 L 200 50 L 252 50" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
-        <path d="M 200 148 L 200 190 L 252 190" fill="none" stroke="currentColor" className="text-white/20 " strokeWidth="1" />
+        <path d="M 80 110 L 114 110" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
+        <path d="M 138 110 L 172 110" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
+        <path d="M 200 82 L 200 48 L 250 48" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
+        <path d="M 200 138 L 200 172 L 250 172" fill="none" stroke="currentColor" className="text-slate-200" strokeWidth="1.25" />
 
-        {/* Animated Flow Overlays */}
         {PATHS.map((p) => {
           const isActive = p.activeSteps.includes(step);
           if (!isActive) return null;
 
           return (
             <g key={p.id}>
-              {/* Outer soft glow stroke - travels once */}
               <motion.path
                 d={p.d}
                 fill="none"
                 stroke="currentColor"
                 className={p.colorClass}
-                strokeWidth="3.5"
-                strokeOpacity="0.2"
+                strokeWidth="4"
+                strokeOpacity="0.16"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+                transition={{ duration: 0.75, ease: "easeInOut" }}
               />
-              {/* Sharp solid flowing stroke - travels once */}
               <motion.path
                 d={p.d}
                 fill="none"
                 stroke="currentColor"
                 className={p.colorClass}
-                strokeWidth="1.5"
+                strokeWidth="1.75"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ duration: 0.8, ease: "easeInOut" }}
+                transition={{ duration: 0.75, ease: "easeInOut" }}
               />
             </g>
           );
         })}
 
-        {/* ForeignObjects for Nodes */}
         {NODES.map((node) => {
-          const isBox = node.type === 'box';
+          const isBox = node.type === "box";
           const w = isBox ? 56 : 24;
-          const h = isBox ? 56 : 24;
+          const h = isBox ? 54 : 24;
           const isActive = isNodeActive(node.id);
-          const colorStyles = NODE_COLORS[node.id];
+          const styles = NODE_LIGHT_STYLES[node.id];
 
           return (
             <foreignObject
@@ -284,29 +262,34 @@ export function Card1() {
               className="overflow-visible"
             >
               <div className="w-full h-full flex items-center justify-center">
-                {isBox && node.icon ? (
+                {isBox && node.icon && styles ? (
                   <div
-                    className={`w-full h-full rounded-[14px] border border-white/10 flex flex-col items-center justify-center shadow-[inset_0_1px_0_0_rgba(255,255,255,0.4),inset_4px_4px_0_0_rgba(255,255,255,0.06),inset_6px_6px_0_0_rgba(255,255,255,0.04),inset_8px_8px_0_0_rgba(255,255,255,0.02),0_1px_2px_0_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06),0_4px_6px_0_rgba(0,0,0,0.04),0_6px_8px_0_rgba(0,0,0,0.02)] text-white ${colorStyles.buttonBg} ${colorStyles.buttonBorder}`}
+                    className={`w-full h-full rounded-[12px] border flex flex-col items-center justify-center transition-all duration-300 ${
+                      isActive ? styles.active : styles.idle
+                    }`}
                   >
-                    {/* Centered Static Icon */}
                     <div className="mb-0.5 flex items-center justify-center">
-                      <node.icon className="w-5 h-5" weight="fill" />
+                      <node.icon
+                        className={`w-4 h-4 ${isActive ? styles.iconActive : styles.iconIdle}`}
+                        weight="fill"
+                      />
                     </div>
-                    <span className="text-[8.5px] font-mono font-bold tracking-wider select-none">
+                    <span className="text-[7.5px] font-mono font-bold tracking-wider select-none">
                       {node.label}
                     </span>
                   </div>
                 ) : (
-                  /* Central Router Node Upgrade */
                   <div
-                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shadow-sm transition-all duration-300 ${isActive
-                      ? "bg-amber-500/20 border-amber-500/70"
-                      : "bg-[#000]/80 border-zinc-300 border-zinc-800"
-                      }`}
+                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
+                      isActive
+                        ? "bg-blue-50 border-blue-500"
+                        : "bg-white border-slate-300"
+                    }`}
                   >
                     <motion.div
-                      className={`w-2.5 h-2.5 rounded-full border border-dashed ${isActive ? "border-amber-500" : "border-zinc-400 border-zinc-600"
-                        }`}
+                      className={`w-2.5 h-2.5 rounded-full border border-dashed ${
+                        isActive ? "border-blue-600" : "border-slate-400"
+                      }`}
                       animate={{ rotate: 360 }}
                       transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
                     />
@@ -322,10 +305,10 @@ export function Card1() {
 }
 
 /* ─────────────────────────────────────────────
-   Card2 – Live Token / Cost Monitor
-───────────────────────────────────────────── */
+   Card2 – Live Drawdown & Win Rate Telemetry
+   ───────────────────────────────────────────── */
 export function Card2() {
-  const bars = [45, 75, 35, 85, 60, 95, 50];
+  const bars = [42, 72, 38, 84, 62, 92, 54];
   const days = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -339,60 +322,58 @@ export function Card2() {
   }, []);
 
   return (
-    <div className="w-full h-full flex flex-col gap-3.5 justify-between">
-      {/* Stats row with a 0.5rem slide offset margin to prevent slide-up overflow clipping */}
-      <div className="flex gap-4 pt-[0.625rem] pr-[0.625rem] pb-0.5 pl-0.5">
+    <div className="w-full h-full flex flex-col gap-3 justify-between">
+      <div className="flex gap-3 pt-1.5 pr-1.5 pb-0.5 pl-0.5">
         {[
-          { label: "Drawdown", value: "1.2%", trend: "+0.1%" },
-          { label: "Win Rate", value: "68%", trend: "+3%" },
+          { label: "Daily DD", value: "0.8%", trend: "cap 3.0%", positive: true },
+          { label: "Rule Score", value: "96%", trend: "+4.2%", positive: true },
         ].map((s, i) => {
           const isActive = i === activeIdx || hoveredIdx === i;
 
           return (
-            <div key={i} className="flex-1 h-[76px] relative select-none">
-              {/* Background Hatched Scale Card */}
+            <div key={i} className="flex-1 h-[70px] relative select-none">
               <div
-                className="absolute inset-0 rounded-xl border border-white/10 bg-[#080808]/5 text-white/20"
+                className="absolute inset-0 rounded-xl border border-slate-200/90 bg-white text-slate-200/70"
                 style={{
-                  backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)" }}
+                  backgroundImage:
+                    "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
+                }}
               />
 
-              {/* Foreground Card sliding up and right on hover or cycle activation (0.5rem offset) */}
               <motion.div
-                className="absolute inset-0 w-full h-full rounded-xl bg-[#080808]/5  border border-white/10 shadow-[inset_0_0_0_1px_rgba(255,255,255,1)] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.01)] p-3 hover:bg-[#080808]/5 transition-colors duration-300 backdrop-blur-[2px] flex items-center justify-between gap-3 cursor-pointer"
+                className="absolute inset-0 w-full h-full rounded-xl bg-white border border-slate-200 shadow-[0_4px_14px_-6px_rgba(15,23,42,0.12)] px-3 py-2.5 hover:border-blue-300 transition-colors duration-200 flex items-center justify-between gap-2 cursor-pointer"
                 animate={{
-                  x: isActive ? "0.5rem" : "0rem",
-                  y: isActive ? "-0.5rem" : "0rem" }}
-                transition={{ type: "spring", stiffness: 200, damping: 16 }}
+                  x: isActive ? "0.35rem" : "0rem",
+                  y: isActive ? "-0.35rem" : "0rem",
+                }}
+                transition={{ type: "spring", stiffness: 200, damping: 18 }}
                 onMouseEnter={() => setHoveredIdx(i)}
                 onMouseLeave={() => setHoveredIdx(null)}
               >
-                {/* Left Column: Metric Details */}
                 <div className="flex flex-col min-w-0">
-                  <span className="text-[8px] text-white/60/80 font-mono uppercase tracking-widest leading-none">{s.label}</span>
-                  <span className="text-base font-bold font-mono text-white leading-none mt-1.5 tracking-tight">{s.value}</span>
-                  <div className="flex items-center gap-1.5 mt-2">
-                    <span className={`text-[8px] font-mono font-bold ${s.trend.startsWith("+") ? "text-emerald-500" : "text-rose-400"
-                      }`}>
-                      {s.trend}
-                    </span>
-                    <span className="text-[8px] text-white/60/50 font-mono">prev</span>
-                  </div>
+                  <span className="text-[8px] text-slate-400 font-mono uppercase tracking-widest leading-none">
+                    {s.label}
+                  </span>
+                  <span className="text-[16px] font-bold font-mono text-slate-900 leading-none mt-1.5 tracking-tight">
+                    {s.value}
+                  </span>
+                  <span className="text-[8px] font-mono font-semibold text-emerald-600 mt-1.5">
+                    {s.trend}
+                  </span>
                 </div>
 
-                {/* Right Column: High-Precision Sparkline with Micro Vertices */}
-                <div className="w-12 h-6 flex items-center justify-center shrink-0">
+                <div className="w-11 h-5 flex items-center justify-center shrink-0">
                   <svg className="w-full h-full overflow-visible" viewBox="0 0 48 24">
-                    {/* Connecting Line */}
                     <motion.path
-                      d={i === 0
-                        ? "M 0 18 L 16 11 L 32 14 L 48 4"
-                        : "M 0 4 L 16 12 L 32 8 L 48 18"
+                      d={
+                        i === 0
+                          ? "M 0 18 L 16 11 L 32 13 L 48 5"
+                          : "M 0 16 L 16 12 L 32 8 L 48 4"
                       }
                       fill="none"
                       stroke="currentColor"
-                      className="text-white/60/30 text-white/60/20"
-                      strokeWidth="1"
+                      className="text-blue-600/60"
+                      strokeWidth="1.4"
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       initial={{ pathLength: 0 }}
@@ -400,21 +381,30 @@ export function Card2() {
                       transition={{ duration: 0.8, delay: 0.2 + i * 0.15, ease: "easeOut" }}
                     />
 
-                    {/* Vertex Dots */}
                     {(i === 0
-                      ? [{ x: 0, y: 18 }, { x: 16, y: 11 }, { x: 32, y: 14 }, { x: 48, y: 4 }]
-                      : [{ x: 0, y: 4 }, { x: 16, y: 12 }, { x: 32, y: 8 }, { x: 48, y: 18 }]
+                      ? [
+                          { x: 0, y: 18 },
+                          { x: 16, y: 11 },
+                          { x: 32, y: 13 },
+                          { x: 48, y: 5 },
+                        ]
+                      : [
+                          { x: 0, y: 16 },
+                          { x: 16, y: 12 },
+                          { x: 32, y: 8 },
+                          { x: 48, y: 4 },
+                        ]
                     ).map((pt, idx) => (
                       <motion.circle
                         key={idx}
                         cx={pt.x}
                         cy={pt.y}
-                        r="1.5"
-                        className="fill-background stroke-muted-foreground/40 stroke-muted-foreground/30"
-                        strokeWidth="1"
+                        r="1.75"
+                        className="fill-white stroke-[#2563EB]"
+                        strokeWidth="1.2"
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        transition={{ delay: 0.5 + idx * 0.08, duration: 0.25 }}
+                        transition={{ delay: 0.4 + idx * 0.08, duration: 0.25 }}
                       />
                     ))}
                   </svg>
@@ -425,41 +415,45 @@ export function Card2() {
         })}
       </div>
 
-      {/* Bar chart */}
-      <div className="flex-1 flex items-end gap-2.5 px-0.5 min-h-[90px]">
+      {/* Discipline Bar Chart */}
+      <div className="flex-1 flex items-end gap-2 px-0.5 min-h-[78px]">
         {bars.map((h, i) => (
           <div
             key={i}
-            className="flex-1 h-full rounded-xl  border border-white/10 relative overflow-hidden bg-[#080808]/5 text-white/20"
+            className="flex-1 h-full rounded-[10px] border border-slate-200/80 relative overflow-hidden bg-white text-slate-200/75"
             style={{
-              backgroundImage: "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)" }}
+              backgroundImage:
+                "repeating-linear-gradient(45deg, transparent, transparent 6px, currentColor 6px, currentColor 7px)",
+            }}
           >
-            {/* Animated Solid Filled Bar at bottom */}
             <motion.div
-              className="absolute bottom-0 left-0 right-0 bg-primary border-t border-x border-primary/80 shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.6),inset_0_8px_12px_0_rgba(255,255,255,0.03),inset_0.5px_0_0_0_rgba(255,255,255,0.2),inset_0_2px_6px_0_rgba(255,255,255,0.3),inset_0_-0.5px_0_0_rgba(0,0,0,0.2),inset_-0.5px_0_0_0_rgba(0,0,0,0.1),inset_0_-2px_6px_0_rgba(0,0,0,0.1),0_1px_2px_0_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06),0_4px_6px_0_rgba(0,0,0,0.04),inset_0_-4px_8px_0_rgba(0,0,0,0.05)] rounded-t-[10px]"
+              className="absolute bottom-0 left-0 right-0 bg-[#2563EB] border-t border-x border-blue-700/30 rounded-t-[8px]"
               initial={{ height: "0%" }}
               animate={{
                 height: [
                   `${h}%`,
-                  `${Math.min(95, h + 15)}%`,
-                  `${Math.max(10, h - 20)}%`,
-                  `${Math.min(90, h + 8)}%`,
-                  `${h}%`
-                ] }}
+                  `${Math.min(94, h + 12)}%`,
+                  `${Math.max(18, h - 14)}%`,
+                  `${Math.min(90, h + 6)}%`,
+                  `${h}%`,
+                ],
+              }}
               transition={{
                 repeat: Infinity,
-                duration: 3 + (i % 3) * 0.8,
+                duration: 3.2 + (i % 3) * 0.7,
                 ease: "easeInOut",
-                delay: i * 0.1 }}
+                delay: i * 0.1,
+              }}
             />
           </div>
         ))}
       </div>
 
-      {/* X labels */}
-      <div className="flex gap-2.5 px-0.5">
+      <div className="flex gap-2 px-0.5">
         {days.map((d, i) => (
-          <p key={i} className="flex-1 text-center text-[8px] text-white/60 font-mono font-medium">{d}</p>
+          <p key={i} className="flex-1 text-center text-[8px] text-slate-500 font-mono font-medium">
+            {d}
+          </p>
         ))}
       </div>
     </div>
@@ -467,23 +461,46 @@ export function Card2() {
 }
 
 /* ─────────────────────────────────────────────
-   Card3 – Stacked Infinite-Scroll Activity Feed
+   Card3 – Verified Live Execution Feed
    ───────────────────────────────────────────── */
 
-const STATUS_ICONS: Record<string, { icon: any; color: string; bg: string; gradient: string; border: string }> = {
-  done: { icon: Check, color: "text-lime-500", bg: "bg-lime-500/15", gradient: "bg-gradient-to-b from-lime-400 to-lime-600", border: "border-lime-600" },
-  running: { icon: CircleNotch, color: "text-blue-400", bg: "bg-blue-400/15", gradient: "bg-gradient-to-b from-blue-400 to-blue-600", border: "border-blue-600" },
-  waiting: { icon: Clock, color: "text-amber-400", bg: "bg-amber-400/15", gradient: "bg-gradient-to-b from-amber-400 to-amber-600", border: "border-amber-600" },
-  idle: { icon: Minus, color: "text-white/60/60", bg: "bg-[#080808]/5", gradient: "bg-gradient-to-b from-zinc-400 to-zinc-600", border: "border-zinc-600" },
+const STATUS_ICONS: Record<
+  string,
+  { icon: React.ComponentType<{ className?: string; weight?: "bold" }>; color: string; bg: string; iconBg: string }
+> = {
+  done: {
+    icon: Check,
+    color: "text-emerald-700",
+    bg: "bg-emerald-50 border border-emerald-200/80",
+    iconBg: "bg-emerald-600",
+  },
+  armed: {
+    icon: CircleNotch,
+    color: "text-blue-700",
+    bg: "bg-blue-50 border border-blue-200/80",
+    iconBg: "bg-[#2563EB]",
+  },
+  live: {
+    icon: Clock,
+    color: "text-amber-700",
+    bg: "bg-amber-50 border border-amber-200/80",
+    iconBg: "bg-amber-500",
+  },
+  audit: {
+    icon: Minus,
+    color: "text-slate-600",
+    bg: "bg-slate-100 border border-slate-200",
+    iconBg: "bg-slate-600",
+  },
 };
 
 export function Card3() {
   const logs = [
-    { agent: "Bot", action: "Closed EUR/USD position", status: "done", t: "+₹45" },
-    { agent: "Guard", action: "Blocked impulsive trade", status: "running", t: "—" },
-    { agent: "Comm", action: "Alex hit 10% gain", status: "waiting", t: "—" },
-    { agent: "Sync", action: "Syncing daily trades", status: "done", t: "0.5s" },
-    { agent: "Coach", action: "Analyzing behavior", status: "idle", t: "—" },
+    { agent: "Sync", action: "IC Markets XAU/USD +1.8R logged", status: "done", t: "+$420" },
+    { agent: "Guard", action: "Cooldown armed after 2 daily losses", status: "armed", t: "0.2s" },
+    { agent: "Verify", action: "Exness MT5 equity proof verified", status: "done", t: "100%" },
+    { agent: "Desk", action: "London desk leaderboard ranked #4", status: "live", t: "+11.4%" },
+    { agent: "Coach", action: "Flagged post-loss size escalation", status: "audit", t: "-20% lot" },
   ];
 
   const [activeIdx, setActiveIdx] = useState(0);
@@ -495,7 +512,6 @@ export function Card3() {
     return () => clearInterval(interval);
   }, [logs.length]);
 
-  // Signed slot: 0 = active front, negative = above (upcoming), positive = below (past)
   const getSlot = (i: number) => {
     const N = logs.length;
     let rel = i - activeIdx;
@@ -504,8 +520,7 @@ export function Card3() {
     return rel;
   };
 
-  // Fixed y positions: tighter stack, not linear steps
-  const Y: Record<string, number> = { "-2": -68, "-1": -38, "0": 0, "1": 38, "2": 68 };
+  const Y: Record<string, number> = { "-2": -62, "-1": -35, "0": 0, "1": 35, "2": 62 };
 
   return (
     <div className="w-full h-full relative flex items-center justify-center overflow-hidden">
@@ -516,68 +531,93 @@ export function Card3() {
         const isActive = slot === 0;
         const isVisible = abs <= 2;
 
-        const yOffset = Y[String(slot)] ?? (slot < 0 ? -120 : 120);
-        const scale = isActive ? 1 : abs === 1 ? 0.93 : 0.87;
-        const opacity = isActive ? 1 : abs === 1 ? 0.65 : 0.38;
+        const yOffset = Y[String(slot)] ?? (slot < 0 ? -110 : 110);
+        const scale = isActive ? 1 : abs === 1 ? 0.94 : 0.88;
+        const opacity = isActive ? 1 : abs === 1 ? 0.72 : 0.4;
         const zIndex = isActive ? 30 : abs === 1 ? 20 : 10;
 
         return (
           <motion.div
             key={l.agent}
-            className="absolute left-0 right-0 mx-auto px-1.5"
+            className="absolute left-0 right-0 mx-auto px-1"
             style={{ zIndex }}
             animate={{
-              y: isVisible ? yOffset : slot < 0 ? -150 : 150,
+              y: isVisible ? yOffset : slot < 0 ? -135 : 135,
               scale,
-              opacity: isVisible ? opacity : 0 }}
+              opacity: isVisible ? opacity : 0,
+            }}
             transition={{
-              y: { type: "spring", stiffness: 500, damping: 35 },
-              scale: { type: "spring", stiffness: 500, damping: 35 },
-              opacity: { duration: 0.25, ease: "easeOut" } }}
+              y: { type: "spring", stiffness: 500, damping: 36 },
+              scale: { type: "spring", stiffness: 500, damping: 36 },
+              opacity: { duration: 0.22, ease: "easeOut" },
+            }}
           >
-            <div className={`w-full rounded-2xl border border-white/10 flex items-center gap-2.5 ${isActive
-              ? "px-3 py-2.5 bg-[#000] border-white/10"
-              : "px-2.5 py-1.5 bg-[#080808]/5 border-white/10"
-              }`}>
-
-              {/* Icon badge — full on active, compact on behind */}
-              <div className={`shrink-0 rounded-[8px] flex items-center justify-center font-bold text-white transition-all duration-300 ${si.gradient} border ${si.border} shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.6),inset_0.5px_0_0_0_rgba(255,255,255,0.2),inset_0_2px_6px_0_rgba(255,255,255,0.3),inset_0_-0.5px_0_0_rgba(0,0,0,0.3),inset_-0.5px_0_0_0_rgba(0,0,0,0.1),inset_0_-2px_6px_0_rgba(0,0,0,0.1),0_1px_2px_0_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06),0_4px_6px_0_rgba(0,0,0,0.04)] ${isActive ? "w-8 h-8" : "w-5 h-5"
-                }`}>
-                <si.icon weight="bold" className={`${isActive ? "w-4 h-4" : "w-2.5 h-2.5"} ${l.status === "running" ? "animate-spin" : ""}`} />
+            <div
+              className={`w-full rounded-xl border flex items-center gap-2.5 ${
+                isActive
+                  ? "px-3 py-2.5 bg-white border-slate-200 shadow-[0_6px_20px_-8px_rgba(15,23,42,0.14)]"
+                  : "px-2.5 py-1.5 bg-white/90 border-slate-200/80"
+              }`}
+            >
+              <div
+                className={`shrink-0 rounded-[7px] flex items-center justify-center font-bold text-white transition-all duration-300 ${si.iconBg} ${
+                  isActive ? "w-7 h-7" : "w-5 h-5"
+                }`}
+              >
+                <si.icon
+                  weight="bold"
+                  className={`${isActive ? "w-3.5 h-3.5" : "w-2.5 h-2.5"} ${
+                    l.status === "armed" ? "animate-spin" : ""
+                  }`}
+                />
               </div>
 
-              {/* Text — full on active, name-only on behind */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className={`font-mono font-semibold text-white leading-none ${isActive ? "text-[10px]" : "text-[9px]"
-                    }`}>{l.agent}</span>
-                  <span className={`font-mono uppercase tracking-wide rounded px-1 py-0.5 ${si.bg} ${si.color} ${isActive ? "text-[7px]" : "text-[6px]"
-                    }`}>{l.status}</span>
+                  <span
+                    className={`font-mono font-semibold text-slate-900 leading-none ${
+                      isActive ? "text-[10.5px]" : "text-[9px]"
+                    }`}
+                  >
+                    {l.agent}
+                  </span>
+                  <span
+                    className={`font-mono uppercase tracking-wide rounded px-1.5 py-0.5 ${si.bg} ${si.color} ${
+                      isActive ? "text-[7px]" : "text-[6px]"
+                    }`}
+                  >
+                    {l.status}
+                  </span>
                 </div>
                 {isActive && (
-                  <p className="text-[9px] text-white/60 truncate mt-0.5 leading-tight">{l.action}</p>
+                  <p className="text-[9.5px] text-slate-500 truncate mt-0.5 leading-tight">
+                    {l.action}
+                  </p>
                 )}
               </div>
 
               {isActive && (
-                <span className="text-[9px] font-mono text-white/60 shrink-0">{l.t}</span>
+                <span className="text-[9.5px] font-mono font-semibold text-slate-700 shrink-0 tabular-nums">
+                  {l.t}
+                </span>
               )}
             </div>
           </motion.div>
         );
       })}
 
-      {/* Progress dots */}
+      {/* Minimal segmented indicator bar (no round dots) */}
       <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1">
         {logs.map((_, i) => (
           <motion.div
             key={i}
-            className="rounded-full bg-foreground/25"
+            className="rounded-sm bg-slate-400"
             animate={{
-              width: i === activeIdx ? 14 : 4,
-              opacity: i === activeIdx ? 0.7 : 0.2 }}
-            style={{ height: 3 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              width: i === activeIdx ? 14 : 5,
+              opacity: i === activeIdx ? 0.85 : 0.25,
+            }}
+            style={{ height: 2.5 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
           />
         ))}
       </div>
@@ -586,38 +626,61 @@ export function Card3() {
 }
 
 /* ─────────────────────────────────────────────
-   Card4 – Memory / Knowledge Base Namespaces
+   Card4 – AI Behavior Memory & Coaching Audit
    ───────────────────────────────────────────── */
 
 const NS_ICONS: Record<string, React.ElementType> = {
-  trades: Code,
-  metrics: FileText,
-  comm: SlackLogo,
-  coach: NotionLogo,
+  fills: Code,
+  setups: FileText,
+  rules: SlackLogo,
+  habits: NotionLogo,
 };
 
-const NS_COLORS: Record<string, { bar: string; dot: string; badge: string; buttonBg: string; buttonBorder: string }> = {
-  trades: { bar: "from-violet-500 to-violet-400", dot: "bg-violet-500", badge: "bg-violet-500/15 text-violet-400", buttonBg: "bg-violet-500", buttonBorder: "border-violet-600" },
-  metrics: { bar: "from-sky-500    to-sky-400", dot: "bg-sky-500", badge: "bg-sky-500/15 text-sky-400", buttonBg: "bg-sky-500", buttonBorder: "border-sky-600" },
-  comm: { bar: "from-emerald-500 to-emerald-400", dot: "bg-emerald-500", badge: "bg-emerald-500/15 text-emerald-400", buttonBg: "bg-emerald-500", buttonBorder: "border-emerald-600" },
-  coach: { bar: "from-amber-500  to-amber-400", dot: "bg-amber-500", badge: "bg-amber-500/15 text-amber-400", buttonBg: "bg-amber-500", buttonBorder: "border-amber-600" },
+const NS_COLORS: Record<
+  string,
+  { bar: string; badge: string; buttonBg: string; buttonBorder: string }
+> = {
+  fills: {
+    bar: "from-blue-600 to-blue-500",
+    badge: "bg-blue-50 text-blue-700 border border-blue-200/80",
+    buttonBg: "bg-[#2563EB]",
+    buttonBorder: "border-blue-700",
+  },
+  setups: {
+    bar: "from-sky-600 to-sky-500",
+    badge: "bg-sky-50 text-sky-700 border border-sky-200/80",
+    buttonBg: "bg-sky-600",
+    buttonBorder: "border-sky-700",
+  },
+  rules: {
+    bar: "from-emerald-600 to-emerald-500",
+    badge: "bg-emerald-50 text-emerald-700 border border-emerald-200/80",
+    buttonBg: "bg-emerald-600",
+    buttonBorder: "border-emerald-700",
+  },
+  habits: {
+    bar: "from-amber-500 to-amber-400",
+    badge: "bg-amber-50 text-amber-700 border border-amber-200/80",
+    buttonBg: "bg-amber-500",
+    buttonBorder: "border-amber-600",
+  },
 };
 
 const RETRIEVAL_QUERIES = [
-  { ns: "trades", q: "Analyzing EUR/USD breakout pattern", t: "0.2s" },
-  { ns: "metrics", q: "Calculating daily drawdown limit", t: "1.1s" },
-  { ns: "trades", q: "Reviewing yesterday's losing streak", t: "2.4s" },
-  { ns: "comm", q: "Pulling top creator signals", t: "4.0s" },
-  { ns: "coach", q: "Finding emotional trading triggers", t: "5.8s" },
-  { ns: "metrics", q: "Cross-checking risk management rules", t: "7.2s" },
+  { ns: "fills", q: "XAU/USD London open: +2.4R avg edge", t: "0.2s" },
+  { ns: "rules", q: "Risk Guard paused execution at -2.8% DD", t: "1.1s" },
+  { ns: "habits", q: "Detected tilt sizing +35% post stop-loss", t: "2.4s" },
+  { ns: "setups", q: "Win rate drops 28% after 14:30 EST", t: "3.8s" },
+  { ns: "rules", q: "Max 3 trades/session adhered 14 days", t: "5.2s" },
+  { ns: "habits", q: "Pre-session discipline check passed", t: "6.4s" },
 ];
 
 export function Card4() {
   const namespaces = [
-    { name: "trades", hits: 342, fill: 88 },
-    { name: "metrics", hits: 218, fill: 56 },
-    { name: "comm", hits: 97, fill: 25 },
-    { name: "coach", hits: 54, fill: 14 },
+    { name: "fills", hits: 1420, fill: 88 },
+    { name: "setups", hits: 318, fill: 62 },
+    { name: "rules", hits: 94, fill: 40 },
+    { name: "habits", hits: 62, fill: 26 },
   ];
 
   const [tick, setTick] = useState(0);
@@ -625,103 +688,94 @@ export function Card4() {
   useEffect(() => {
     const interval = setInterval(() => {
       setTick((prev) => (prev + 1) % RETRIEVAL_QUERIES.length);
-    }, 2000);
+    }, 2100);
     return () => clearInterval(interval);
   }, []);
 
   const activeNs = RETRIEVAL_QUERIES[tick].ns;
   const recentQueries = [0, 1, 2, 3].map(
-    (offset) => RETRIEVAL_QUERIES[(tick - offset + RETRIEVAL_QUERIES.length) % RETRIEVAL_QUERIES.length]
+    (offset) =>
+      RETRIEVAL_QUERIES[(tick - offset + RETRIEVAL_QUERIES.length) % RETRIEVAL_QUERIES.length]
   );
 
   return (
-    <div className="w-full h-full flex gap-5 py-2 px-3">
+    <div className="w-full h-full flex gap-4 bg-white rounded-[10px] border border-slate-200/70 p-3">
+      {/* Left panel: Behavior Memory Indexes */}
+      <div className="flex-1 flex flex-col min-w-0 pr-1">
+        <p className="text-[8.5px] font-mono uppercase tracking-widest text-slate-400 mb-3">
+          Behavior Memory
+        </p>
 
-      {/* ── Left panel: Namespace bars ── */}
-      <div className="flex-1 flex flex-col gap-0 min-w-0 pr-2">
-        <p className="text-[8px] font-mono uppercase tracking-widest text-white/60 mb-3">Namespaces</p>
-
-        <div className="flex flex-col gap-3 flex-1">
+        <div className="flex flex-col gap-2.5 flex-1">
           {namespaces.map((ns, i) => {
             const c = NS_COLORS[ns.name];
             const isActive = ns.name === activeNs;
-            const Icon = (NS_ICONS[ns.name] || Database) as React.ComponentType<{ size?: number; weight?: string; className?: string }>;
+            const Icon = (NS_ICONS[ns.name] || Database) as React.ComponentType<{
+              size?: number;
+              weight?: string;
+              className?: string;
+            }>;
 
             return (
-              <div key={ns.name} className="flex items-center gap-3 group relative">
-
-                {/* Icon Container with 3D effect */}
+              <div key={ns.name} className="flex items-center gap-2.5 group relative">
                 <div
-                  className={`relative flex shrink-0 items-center justify-center w-[36px] h-[36px] rounded-[12px] border border-white/10 transition-all duration-500 ${isActive ? `shadow-[inset_0_1px_0_0_rgba(255,255,255,0.4),inset_4px_4px_0_0_rgba(255,255,255,0.06),inset_6px_6px_0_0_rgba(255,255,255,0.04),inset_8px_8px_0_0_rgba(255,255,255,0.02),0_1px_2px_0_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06),0_4px_6px_0_rgba(0,0,0,0.04),0_6px_8px_0_rgba(0,0,0,0.02)] text-white ${c.buttonBg} ${c.buttonBorder} scale-105` : ' shadow-[0_0_0_1px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.06),0_2px_4px_0px_rgba(0,0,0,0.04)] bg-[#080808] border-transparent text-[#A1A1A1]'}`}
+                  className={`relative flex shrink-0 items-center justify-center w-[32px] h-[32px] rounded-[9px] border transition-all duration-400 ${
+                    isActive
+                      ? `${c.buttonBg} ${c.buttonBorder} text-white shadow-xs`
+                      : "bg-[#F8FAFC] border-slate-200 text-slate-500"
+                  }`}
                 >
-                  <Icon size={16} weight={isActive ? "fill" : "regular"} className="relative z-10" />
+                  <Icon size={15} weight={isActive ? "fill" : "regular"} className="relative z-10" />
                 </div>
 
-                {/* Name */}
-                <span className={`text-[10px] font-mono w-16 shrink-0 transition-colors duration-400 ${isActive ? "text-white font-semibold" : "text-white/60 group-hover:text-white/70"}`}>
+                <span
+                  className={`text-[10.5px] font-mono w-14 shrink-0 transition-colors duration-300 ${
+                    isActive ? "text-slate-900 font-semibold" : "text-slate-500"
+                  }`}
+                >
                   {ns.name}
                 </span>
 
-                {/* Cyberpunk Bar track */}
-                <div className="flex-1 h-1.5 bg-[#080808]/5 rounded-full overflow-hidden relative backdrop-blur-sm shadow-inner">
+                <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden relative">
                   <motion.div
-                    className={`absolute left-0 top-0 bottom-0 rounded-full overflow-hidden bg-gradient-to-r ${c.bar}`}
+                    className={`absolute left-0 top-0 bottom-0 rounded-full bg-gradient-to-r ${c.bar}`}
                     initial={{ width: "0%" }}
-                    animate={{ width: `${ns.fill}%`, opacity: isActive ? 1 : 0.25 }}
+                    animate={{ width: `${ns.fill}%`, opacity: isActive ? 1 : 0.35 }}
                     transition={{
-                      width: { duration: 1.2, delay: i * 0.1, type: "spring", bounce: 0.2 },
-                      opacity: { duration: 0.4 } }}
-                  >
-                    {/* Scanning light beam effect inside the bar */}
-                    {isActive && (
-                      <motion.div
-                        className="absolute inset-y-0 left-0 w-full bg-gradient-to-r from-transparent via-white/50 to-transparent"
-                        initial={{ x: "-100%" }}
-                        animate={{ x: "100%" }}
-                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                      />
-                    )}
-                  </motion.div>
+                      width: { duration: 1.1, delay: i * 0.08, type: "spring", bounce: 0.15 },
+                      opacity: { duration: 0.35 },
+                    }}
+                  />
                 </div>
 
-                {/* Hit count */}
-                <div className={`flex items-center gap-1.5 w-10 justify-end transition-all duration-500 ${isActive ? "opacity-100 scale-105" : "opacity-60 scale-100"}`}>
-                  <span className={`text-[9px] font-mono font-medium ${isActive ? "text-white" : "text-white/60"}`}>
-                    {ns.hits}
-                  </span>
-                  {isActive && (
-                    <motion.div
-                      className={`w-1 h-1 rounded-full ${c.dot}`}
-                      animate={{ opacity: [1, 0.2, 1], scale: [1, 1.5, 1] }}
-                      transition={{ repeat: Infinity, duration: 1 }}
-                    />
-                  )}
-                </div>
+                <span
+                  className={`w-10 text-right text-[9.5px] font-mono font-medium tabular-nums ${
+                    isActive ? "text-slate-900 font-semibold" : "text-slate-400"
+                  }`}
+                >
+                  {ns.hits}
+                </span>
               </div>
             );
           })}
         </div>
 
-        {/* Live indicator */}
-        <div className="flex items-center gap-2 pt-3 mt-auto">
-          <div className="relative flex items-center justify-center w-2 h-2">
-            <motion.div
-              className="absolute inset-0 rounded-full bg-emerald-400/40"
-              animate={{ scale: [1, 2.5, 1], opacity: [0.5, 0, 0.5] }}
-              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            />
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-          </div>
-          <span className="text-[8px] font-mono text-white/60 font-medium tracking-wide">Live retrieval active</span>
+        <div className="flex items-center justify-between pt-2.5 mt-auto border-t border-slate-100">
+          <span className="text-[9px] font-mono text-emerald-700 font-medium">
+            LIVE AUDIT ACTIVE
+          </span>
+          <span className="text-[9px] font-mono text-slate-400">MT5 Telemetry</span>
         </div>
       </div>
 
-      {/* Thin divider */}
-      <div className="w-px bg-[#080808]/10 self-stretch shrink-0" />
+      {/* Subtle Divider */}
+      <div className="w-px bg-slate-200/80 self-stretch shrink-0 hidden sm:block" />
 
-      {/* ── Right panel: Retrieval log ── */}
-      <div className="w-[172px] shrink-0 flex flex-col gap-0">
-        <p className="text-[8px] font-mono uppercase tracking-widest text-white/60 mb-2.5">Retrieval Log</p>
+      {/* Right panel: AI Coaching Findings */}
+      <div className="w-[185px] shrink-0 hidden sm:flex flex-col">
+        <p className="text-[8.5px] font-mono uppercase tracking-widest text-slate-400 mb-2.5">
+          Session Insights
+        </p>
 
         <div className="flex flex-col gap-1.5 flex-1 overflow-hidden">
           {recentQueries.map((q, qi) => {
@@ -729,76 +783,119 @@ export function Card4() {
             return (
               <motion.div
                 key={`${q.ns}-${q.q}-${qi}`}
-                className="rounded-xl border border-white/10 bg-[#080808]/5  px-2.5 py-2"
-                initial={{ opacity: 0, y: -8 }}
+                className="rounded-lg border border-slate-200/90 bg-[#F8FAFC] px-2.5 py-1.5"
+                initial={{ opacity: 0, y: -6 }}
                 animate={{
-                  opacity: qi === 0 ? 1 : qi === 1 ? 0.8 : qi === 2 ? 0.5 : 0.25,
-                  y: 0 }}
-                transition={{ type: "spring", stiffness: 500, damping: 35, delay: qi * 0.05 }}
+                  opacity: qi === 0 ? 1 : qi === 1 ? 0.85 : qi === 2 ? 0.55 : 0.3,
+                  y: 0,
+                }}
+                transition={{ type: "spring", stiffness: 500, damping: 35, delay: qi * 0.04 }}
               >
-                <div className="flex items-center gap-1 mb-1">
-                  <span className={`text-[6.5px] font-mono font-semibold uppercase px-1.5 py-0.5 rounded-md ${c.badge}`}>
+                <div className="flex items-center gap-1 mb-0.5">
+                  <span
+                    className={`text-[7px] font-mono font-semibold uppercase px-1.5 py-0.25 rounded ${c.badge}`}
+                  >
                     {q.ns}
                   </span>
-                  <span className="text-[7px] font-mono text-white/60/50 ml-auto tabular-nums">{q.t}</span>
+                  <span className="text-[7.5px] font-mono text-slate-400 ml-auto tabular-nums">
+                    {q.t}
+                  </span>
                 </div>
-                <p className="text-[8px] text-white/75 leading-tight font-mono truncate">{q.q}</p>
+                <p className="text-[8.5px] text-slate-700 leading-tight font-mono truncate">
+                  {q.q}
+                </p>
               </motion.div>
             );
           })}
         </div>
       </div>
-
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────
-   Card5 – Tool Call Inspector
-───────────────────────────────────────────── */
+   Card5 – Unified Account & Risk Telemetry
+   ───────────────────────────────────────────── */
 export function Card5() {
   const tools = [
-    { name: "MT5 Sync", calls: 14, icon: Globe, latency: "280ms", color: "bg-gradient-to-b from-sky-400 to-sky-600", borderColor: "border-sky-600" },
-    { name: "Risk Limits", calls: 8, icon: TerminalWindow, latency: "1.2s", color: "bg-gradient-to-b from-emerald-400 to-emerald-600", borderColor: "border-emerald-600" },
-    { name: "AI Coach", calls: 22, icon: FileText, latency: "12ms", color: "bg-gradient-to-b from-amber-400 to-amber-600", borderColor: "border-amber-600" },
-    { name: "Copy Trade", calls: 31, icon: Brain, latency: "95ms", color: "bg-gradient-to-b from-violet-400 to-violet-600", borderColor: "border-violet-600" },
+    {
+      name: "MT5 Bridge",
+      val: "4ms",
+      sub: "SYNC",
+      icon: Globe,
+      pct: 94,
+      iconColor: "bg-[#2563EB]",
+      barColor: "bg-[#2563EB]",
+    },
+    {
+      name: "Risk Guard",
+      val: "0",
+      sub: "BREACHES",
+      icon: TerminalWindow,
+      pct: 100,
+      iconColor: "bg-emerald-600",
+      barColor: "bg-emerald-600",
+    },
+    {
+      name: "Discipline",
+      val: "94",
+      sub: "SCORE",
+      icon: FileText,
+      pct: 94,
+      iconColor: "bg-amber-500",
+      barColor: "bg-amber-500",
+    },
+    {
+      name: "Profit Factor",
+      val: "2.18",
+      sub: "30D",
+      icon: Brain,
+      pct: 78,
+      iconColor: "bg-indigo-600",
+      barColor: "bg-indigo-600",
+    },
   ];
 
   return (
     <div className="w-full h-full flex items-center justify-center">
-      <div className="grid grid-cols-2 gap-2 w-full">
+      <div className="grid grid-cols-2 gap-2.5 w-full h-full">
         {tools.map((t, i) => (
           <motion.div
             key={i}
-            className="relative rounded-[16px] border border-white/10 bg-[#000]  shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between p-2.5 group hover:border-white/10"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1, type: "spring", stiffness: 300, damping: 25 }}
+            className="relative rounded-[12px] border border-slate-200/90 bg-white hover:border-blue-300 transition-colors duration-200 flex flex-col justify-between p-2.5 group"
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: i * 0.08, type: "spring", stiffness: 300, damping: 25 }}
           >
-            {/* Top Row: 3D Icon + Calls */}
             <div className="flex items-start justify-between">
-              <div className={`w-[28px] h-[28px] rounded-[8px] flex items-center justify-center text-white ${t.color} border ${t.borderColor} shadow-[inset_0_0.5px_0_0_rgba(255,255,255,0.6),inset_0.5px_0_0_0_rgba(255,255,255,0.2),inset_0_2px_6px_0_rgba(255,255,255,0.3),inset_0_-0.5px_0_0_rgba(0,0,0,0.3),inset_-0.5px_0_0_0_rgba(0,0,0,0.1),inset_0_-2px_6px_0_rgba(0,0,0,0.1),0_1px_2px_0_rgba(0,0,0,0.08),0_2px_4px_0_rgba(0,0,0,0.06),0_4px_6px_0_rgba(0,0,0,0.04)] group-hover:scale-105 transition-transform duration-300`}>
-                <t.icon weight="fill" className="w-3.5 h-3.5 relative z-10" />
+              <div
+                className={`w-[26px] h-[26px] rounded-[7px] flex items-center justify-center text-white ${t.iconColor}`}
+              >
+                <t.icon weight="fill" className="w-3.5 h-3.5" />
               </div>
 
-              <div className="flex flex-col items-end gap-0.5 mt-0.5">
-                <span className="text-[12px] font-mono font-bold text-white leading-none">{t.calls}</span>
-                <span className="text-[7px] font-mono text-white/60/80 uppercase tracking-widest leading-none">Calls</span>
+              <div className="flex flex-col items-end gap-0.5">
+                <span className="text-[12.5px] font-mono font-bold text-slate-900 leading-none tabular-nums">
+                  {t.val}
+                </span>
+                <span className="text-[7px] font-mono text-slate-400 uppercase tracking-widest leading-none">
+                  {t.sub}
+                </span>
               </div>
             </div>
 
-            {/* Bottom Row: Name + Latency + Progress */}
             <div className="mt-2 flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono font-medium text-white tracking-tight">{t.name}</span>
-                <span className="text-[8px] font-mono text-white/60 tabular-nums">{t.latency}</span>
-              </div>
-              <div className="w-full h-1.5 bg-[#080808]/5 rounded-full overflow-hidden shadow-inner relative">
+              <span className="text-[10px] font-mono font-semibold text-slate-800 tracking-tight truncate">
+                {t.name}
+              </span>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden relative">
                 <motion.div
-                  className={`absolute left-0 top-0 bottom-0 rounded-full ${t.color}`}
+                  className={`absolute left-0 top-0 bottom-0 rounded-full ${t.barColor}`}
                   initial={{ width: "0%" }}
-                  animate={{ width: `${(t.calls / 31) * 100}%` }}
-                  transition={{ delay: 0.4 + i * 0.1, duration: 0.8, ease: "easeOut" }}
+                  whileInView={{ width: `${t.pct}%` }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.25 + i * 0.08, duration: 0.7, ease: "easeOut" }}
                 />
               </div>
             </div>
@@ -811,43 +908,48 @@ export function Card5() {
 
 /* ─────────────────────────────────────────────
    Main Grid Component
-───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 const CARDS = [
   {
     title: "Smart Trade Journal",
-    description: "Every trade is automatically imported, analyzed, and organized. Discover patterns and mistakes without manual journaling.",
+    description:
+      "Every fill is automatically imported, tagged, and analyzed. Spot setup edges without manual spreadsheet upkeep.",
     visual: <Card1 />,
     colSpan: "lg:col-span-1",
     height: "h-[300px]",
   },
   {
     title: "Autonomous Risk Protection",
-    description: "Set daily loss limits and max drawdown rules. Tradifive automatically protects your capital and enforces discipline in real-time.",
+    description:
+      "Enforce daily loss caps and max drawdown rules at the broker edge. TradiFive prevents emotional spirals in real time.",
     visual: <Card2 />,
     colSpan: "lg:col-span-1",
     height: "h-[300px]",
   },
   {
-    title: "Verified Trading Network",
-    description: "Join public and private channels, chat with traders, and learn from verified performance.",
+    title: "Verified Execution Feed",
+    description:
+      "Follow broker-verified track records, subscribe to disciplined desks, and benchmark live execution metrics.",
     visual: <Card3 />,
     colSpan: "lg:col-span-1",
     height: "h-[300px]",
   },
   {
     title: "Personal AI Mentor",
-    description: "Get personalized feedback, psychology coaching, trade reviews, and actionable insights based on your behavior.",
+    description:
+      "Receive behavioral coaching, tilt diagnostics, and session-by-session reviews built directly from your MT5 history.",
     visual: <Card4 />,
     colSpan: "lg:col-span-2",
     height: "h-[300px]",
   },
   {
-    title: "Trading Dashboard",
-    description: "Monitor performance, analytics, broker accounts, risk metrics, and growth from one powerful dashboard.",
+    title: "Unified Trading Telemetry",
+    description:
+      "Monitor broker latency, drawdown buffers, discipline scoring, and expectancy from one clean workspace.",
     visual: <Card5 />,
     colSpan: "lg:col-span-1",
     height: "h-[300px]",
-  }
+  },
 ];
 
 export interface AgentBentoGridProps {
@@ -856,7 +958,12 @@ export interface AgentBentoGridProps {
 
 export function AgentBentoGrid({ className }: AgentBentoGridProps) {
   return (
-    <div className={cn("grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-[1500px] mx-auto", className)}>
+    <div
+      className={cn(
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-[1500px] mx-auto",
+        className
+      )}
+    >
       {CARDS.map((card, idx) => (
         <FeatCard
           key={idx}
