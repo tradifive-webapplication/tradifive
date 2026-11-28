@@ -37,6 +37,7 @@ import {
   BarChart3,
   FileText,
   LayoutGrid,
+  Check,
   CheckCircle2,
   AlertTriangle,
   Target,
@@ -61,6 +62,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
 import BlurText from "@/components/ui/BlurText";
 import { MT5_BROKER_LOGOS } from "@/components/MT5BrokerLogos";
+import { TradeSlotsBlobStrip } from "@/components/ui/TradeSlotBlobCheckbox";
+import { Switch } from "@/components/ui/switch";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -2942,36 +2945,18 @@ function ProblemSection() {
    THE SOLUTION
 ════════════════ */
 function SolutionSection({ onStart }: { onStart: () => void }) {
-  const SOLUTIONS = [
-    {
-      icon: Lock,
-      problemRef: "Revenge trading",
-      title: "Hard Cooldown Circuit Breaker",
-      desc: "When daily drawdown or loss limits trigger, Risk Guard locks execution automatically so one bad session never compounds.",
-      metric: "Auto-arms at your cap",
-    },
-    {
-      icon: Layers,
-      problemRef: "Manual spreadsheets",
-      title: "Instant Broker-Verified Journal",
-      desc: "Every MT5 position streams directly into structured setup, R-multiple, and MAE/MFE attribution without typing a row.",
-      metric: "100% fill accuracy",
-    },
-    {
-      icon: Sparkles,
-      problemRef: "Delayed feedback",
-      title: "Live Behavioral AI Coaching",
-      desc: "Spot overtrading windows, post-loss risk spikes, and session edges immediately — with actionable pre-bell reminders.",
-      metric: "Real-time pattern memory",
-    },
-    {
-      icon: CheckCircle2,
-      problemRef: "Inconsistent scaling",
-      title: "Unified TradiFive Discipline Score",
-      desc: "Benchmark win rate, profit factor, avg R, consistency, and rule adherence in one live score before scaling capital.",
-      metric: "Scale on verified proof",
-    },
-  ];
+  const [tradeLimitActive, setTradeLimitActive] = useState(true);
+  const [tradeCap, setTradeCap] = useState(6);
+  const [tradesUsed, setTradesUsed] = useState(0);
+
+  const tradesLeft = Math.max(0, tradeCap - tradesUsed);
+  const tradesBreached = tradesUsed >= tradeCap;
+
+  const donutSize = 72;
+  const strokeWidth = 6.5;
+  const radius = (donutSize - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - 0.78);
 
   return (
     <section id="solution" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white">
@@ -2998,38 +2983,365 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
         </div>
 
         <div className="rounded-2xl bg-[#E4E4E4]/45 border border-[#E4E4E4] p-2.5 sm:p-3.5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3.5">
-            {SOLUTIONS.map((s, idx) => {
-              const Icon = s.icon;
-              return (
-                <motion.div
-                  key={s.title}
-                  initial={{ opacity: 0, y: 12 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
-                  className="rounded-xl bg-white border border-[#E4E4E4] p-6 sm:p-7 flex flex-col justify-between gap-6"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-3 mb-5 pb-3.5 border-b border-[#E4E4E4]/70">
-                      <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
-                        <Icon size={15} strokeWidth={1.8} className="text-slate-700" />
-                        <span>Addresses <span className="text-slate-800 font-medium">{s.problemRef}</span></span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2.5 sm:gap-3.5">
+            {/* CARD 1: Real Risk Guard "Daily Trade Limit" Web App Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
+                    <Lock size={15} strokeWidth={1.8} className="text-slate-700" />
+                    <span>Addresses <span className="text-slate-800 font-medium">Revenge trading</span></span>
+                  </div>
+                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
+                    Auto-arms at cap
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
+                  Hard Cooldown Circuit Breaker
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Stop overtrading automatically once your daily order cap or drawdown limit hits.
+                </p>
+              </div>
+
+              {/* Actual Real Web App Card: Risk Guard Daily Trade Limit */}
+              <div className="p-3.5 rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)] space-y-3">
+                <div className="flex items-center justify-between gap-2.5">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div
+                      className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 transition-colors ${
+                        tradeLimitActive
+                          ? "bg-blue-50 text-[#2563EB]"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      <ShieldCheck size={14} strokeWidth={2} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-semibold text-slate-900 truncate leading-tight">
+                        Daily Trade Limit
                       </div>
-                      <span className="text-[11.5px] font-mono font-medium text-emerald-700">
-                        {s.metric}
+                      <div className="text-[10.5px] text-slate-400 truncate mt-0.5 leading-tight">
+                        Stop overtrading after max orders per day
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[11px] font-semibold tabular-nums ${
+                        tradeLimitActive
+                          ? "bg-blue-50 text-[#2563EB]"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {tradeCap}/day
+                    </span>
+                    <Switch checked={tradeLimitActive} onCheckedChange={setTradeLimitActive} size="sm" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 pt-0.5">
+                  <div className="flex items-center justify-between text-[10.5px]">
+                    <span className="font-semibold text-slate-700 inline-flex items-center gap-1.5 tabular-nums">
+                      <span>Today: {tradesUsed} / {tradeCap}</span>
+                      <span className="px-1.5 py-[0.5px] rounded text-[8.5px] font-bold uppercase bg-emerald-100 text-emerald-700">
+                        LIVE
+                      </span>
+                    </span>
+                    <span
+                      className={`font-semibold tabular-nums ${
+                        tradesBreached ? "text-rose-600" : "text-emerald-600"
+                      }`}
+                    >
+                      {tradesBreached ? "Limit reached" : `${tradesLeft} left today`}
+                    </span>
+                  </div>
+
+                  <TradeSlotsBlobStrip
+                    total={tradeCap}
+                    completed={tradesUsed}
+                    interactive={true}
+                    onSelectCount={setTradesUsed}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-0.5">
+                  <span className="text-[11px] font-medium text-slate-500">
+                    Max trades per day
+                  </span>
+                  <div className="flex items-center gap-1.5 w-[132px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = Math.max(1, tradeCap - 1);
+                        setTradeCap(next);
+                        if (tradesUsed > next) setTradesUsed(next);
+                      }}
+                      className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold text-slate-700 cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <span className="flex-1 text-center px-2 py-1 rounded-[8px] bg-[#F8FAFC] border border-[#E4E4E4] text-[12px] font-bold text-slate-900 tabular-nums">
+                      {tradeCap}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setTradeCap((v) => Math.min(10, v + 1))}
+                      className="tactile-white-pill w-7 h-7 rounded-[8px] flex items-center justify-center font-bold text-slate-700 cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CARD 2: Real Smart Journal MT5 Synced Trades Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.05, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
+                    <Layers size={15} strokeWidth={1.8} className="text-slate-700" />
+                    <span>Addresses <span className="text-slate-800 font-medium">Manual spreadsheets</span></span>
+                  </div>
+                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
+                    100% fill accuracy
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
+                  Instant Broker-Verified Journal
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Every MT5 position streams directly into structured setup and R-multiple records automatically.
+                </p>
+              </div>
+
+              {/* Actual Real Web App Card: MT5 Synced Journal Table */}
+              <div className="rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)] overflow-hidden">
+                <div className="px-3.5 py-2.5 border-b border-[#E4E4E4]/80 flex items-center justify-between gap-2 bg-[#FAFAFC]">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-[7px] bg-blue-50 text-[#2563EB] flex items-center justify-center">
+                      <BookOpen size={13} strokeWidth={2} />
+                    </div>
+                    <span className="text-[12.5px] font-semibold text-slate-900">
+                      Recent Synced Fills
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold uppercase">
+                    Exness MT5 · Live
+                  </span>
+                </div>
+
+                <div className="divide-y divide-[#E4E4E4]/70 text-[11.5px]">
+                  {[
+                    { pair: "XAU/USD", lot: "1.25L", setup: "NY Open Sweep", rr: "+2.4R", pnl: "+$1,480", win: true },
+                    { pair: "EUR/USD", lot: "2.00L", setup: "London OB", rr: "+1.8R", pnl: "+$960", win: true },
+                    { pair: "NAS100", lot: "0.50L", setup: "FVG Retest", rr: "-1.0R", pnl: "-$310", win: false },
+                  ].map((row) => (
+                    <div key={row.pair} className="px-3.5 py-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-[9.5px] font-mono font-bold ${
+                            row.win
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-rose-50 text-rose-600"
+                          }`}
+                        >
+                          {row.rr}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-900 truncate">
+                            {row.pair}{" "}
+                            <span className="text-[10.5px] font-normal text-slate-400">· {row.lot}</span>
+                          </div>
+                          <div className="text-[10px] text-slate-500 truncate">{row.setup}</div>
+                        </div>
+                      </div>
+                      <span
+                        className={`font-mono font-bold tabular-nums shrink-0 ${
+                          row.win ? "text-emerald-600" : "text-rose-500"
+                        }`}
+                      >
+                        {row.pnl}
                       </span>
                     </div>
-                    <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-2">
-                      {s.title}
-                    </h3>
-                    <p className="text-[13.5px] text-slate-500 leading-relaxed font-normal">
-                      {s.desc}
-                    </p>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CARD 3: Real Pre-Market Plan + AI Session Debrief Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
+                    <Sparkles size={15} strokeWidth={1.8} className="text-slate-700" />
+                    <span>Addresses <span className="text-slate-800 font-medium">Delayed feedback</span></span>
                   </div>
-                </motion.div>
-              );
-            })}
+                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
+                    Real-time pattern memory
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
+                  Live Behavioral AI Coaching
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Spot tilt windows and post-loss sizing drift immediately inside your daily session brief.
+                </p>
+              </div>
+
+              {/* Actual Real Web App Cards: Pre-market Plan + AI Session Debrief */}
+              <div className="space-y-2.5">
+                <div className="px-3.5 py-2.5 rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] flex items-center justify-between text-[12px]">
+                  <span className="flex items-center gap-2 font-semibold text-slate-800">
+                    <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center">
+                      <Check size={10} strokeWidth={3} />
+                    </span>
+                    <span>
+                      Pre-market plan active ·{" "}
+                      <span className="text-slate-500 font-medium">Bullish bias</span>
+                    </span>
+                  </span>
+                  <ArrowRight size={13} className="text-slate-400" />
+                </div>
+
+                <div className="p-3.5 rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)]">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#2563EB]">
+                      <Sparkles size={12.5} />
+                      TradiFive AI · Session Debrief
+                    </span>
+                    <span className="text-[10.5px] font-mono text-slate-400">NY Session</span>
+                  </div>
+                  <p className="text-[12px] leading-relaxed text-slate-700">
+                    &ldquo;Your discipline held at <strong className="text-slate-900">94/100</strong> this week.
+                    Sticking to the first 2 NY Open setups generated{" "}
+                    <strong className="text-emerald-600">+89% of monthly gains</strong> with zero revenge entries.&rdquo;
+                  </p>
+                  <div className="mt-2.5 pt-2 border-t border-[#E4E4E4]/70 flex items-center justify-between text-[10.5px]">
+                    <span className="text-slate-500 font-medium">Rule: Hold winners to 2.0R</span>
+                    <span className="font-mono font-semibold text-emerald-600">14 clean days</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* CARD 4: Real Net Cumulative P&L + Win Rate Donut + 3-Metric Row from Dashboard.tsx */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.15, ease: EASE_OUT }}
+              className="rounded-xl bg-white border border-[#E4E4E4] p-5 sm:p-6 flex flex-col justify-between gap-4"
+            >
+              <div>
+                <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-[#E4E4E4]/70">
+                  <div className="inline-flex items-center gap-2 text-[12px] text-slate-500">
+                    <CheckCircle2 size={15} strokeWidth={1.8} className="text-slate-700" />
+                    <span>Addresses <span className="text-slate-800 font-medium">Inconsistent scaling</span></span>
+                  </div>
+                  <span className="text-[11.5px] font-mono font-medium text-emerald-700">
+                    Scale on verified proof
+                  </span>
+                </div>
+                <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900 mb-1">
+                  Unified TradiFive Discipline Score
+                </h3>
+                <p className="text-[13px] text-slate-500 leading-relaxed mb-4">
+                  Benchmark win rate, profit factor, avg R, and cumulative edge inside one live dashboard.
+                </p>
+              </div>
+
+              {/* Actual Real Web App Card: Dashboard Net P&L + Win Ring + Telemetry */}
+              <div className="space-y-2.5">
+                <div className="p-3.5 rounded-[16px] bg-white border border-[#E4E4E4] shadow-[0_2px_10px_rgba(15,23,42,0.04),0_8px_22px_-10px_rgba(15,23,42,0.06)] flex items-center justify-between gap-4">
+                  <div>
+                    <div className="text-[11px] font-medium text-slate-500">
+                      Net Cumulative P&amp;L
+                    </div>
+                    <div className="text-[24px] font-bold text-slate-950 tracking-[-0.03em] tabular-nums leading-tight mt-0.5">
+                      +$8,420.50
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-[11px]">
+                      <span className="px-2 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E4E4E4] font-semibold text-slate-700 tabular-nums">
+                        14W / 4L
+                      </span>
+                      <span className="text-slate-400 font-medium tabular-nums">
+                        18 closed trades
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="relative w-[72px] h-[72px] shrink-0">
+                    <svg width={donutSize} height={donutSize} viewBox={`0 0 ${donutSize} ${donutSize}`} className="-rotate-90">
+                      <circle
+                        cx={donutSize / 2}
+                        cy={donutSize / 2}
+                        r={radius}
+                        fill="none"
+                        stroke="#E2E8F0"
+                        strokeWidth={strokeWidth}
+                      />
+                      <circle
+                        cx={donutSize / 2}
+                        cy={donutSize / 2}
+                        r={radius}
+                        fill="none"
+                        stroke="#10B981"
+                        strokeWidth={strokeWidth}
+                        strokeLinecap="round"
+                        strokeDasharray={circumference}
+                        strokeDashoffset={dashOffset}
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-[13px] font-bold text-slate-900 leading-none tabular-nums">
+                        78%
+                      </span>
+                      <span className="text-[8.5px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
+                        Win
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { label: "Avg RR", value: "2.15R" },
+                    { label: "Profit Factor", value: "2.48" },
+                    { label: "Avg W / L", value: "$740 / $290" },
+                  ].map((m) => (
+                    <div
+                      key={m.label}
+                      className="px-2.5 py-2.5 rounded-[13px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] text-center"
+                    >
+                      <div className="text-[10px] font-medium text-slate-400">{m.label}</div>
+                      <div className="text-[13px] font-bold text-slate-900 mt-0.5 tabular-nums truncate">
+                        {m.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
           </div>
         </div>
       </div>
