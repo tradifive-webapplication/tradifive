@@ -8,6 +8,7 @@ import {
   animate,
   useScroll,
   useTransform,
+  useSpring,
 } from "framer-motion";
 import {
   Users,
@@ -2284,12 +2285,9 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.4, ease: EASE_OUT }}
-            className="inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1 rounded-full bg-white border border-[#E4E4E4] shadow-[0_2px_10px_-3px_rgba(15,23,42,0.08)] mb-3.5"
+            className="tactile-black-pill inline-flex items-center justify-center px-4 py-1.5 rounded-full mb-3.5 mx-auto"
           >
-            <span className="w-5 h-5 rounded-full bg-blue-50 border border-blue-200/70 flex items-center justify-center text-[#2563EB]">
-              <LayoutGrid size={11} strokeWidth={2.2} />
-            </span>
-            <span className="text-[12px] font-semibold tracking-[-0.01em] text-slate-900">
+            <span className="text-[12px] font-semibold tracking-[-0.01em] text-white">
               Inside the workspace
             </span>
           </motion.div>
@@ -4007,8 +4005,8 @@ function PlatformPillars() {
 ════════════════ */
 function SectionHeader({
   badge,
-  icon: Icon,
-  tone = "blue",
+  icon: _icon,
+  tone: _tone = "blue",
   title,
   subtitle,
   description,
@@ -4018,7 +4016,7 @@ function SectionHeader({
   action,
 }: {
   badge: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
+  icon?: React.ComponentType<{ size?: number; strokeWidth?: number }>;
   tone?: "blue" | "rose" | "emerald";
   title: string;
   subtitle: string;
@@ -4028,12 +4026,8 @@ function SectionHeader({
   inlineSubtitle?: boolean;
   action?: React.ReactNode;
 }) {
-  const toneStyles = {
-    blue: "bg-blue-50 border-blue-200/70 text-[#2563EB]",
-    rose: "bg-rose-50 border-rose-200/70 text-rose-600",
-    emerald: "bg-emerald-50 border-emerald-200/70 text-emerald-700",
-  }[tone];
-
+  void _icon;
+  void _tone;
   const isCenter = align === "center";
 
   return (
@@ -4043,13 +4037,10 @@ function SectionHeader({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.25 }}
         transition={{ duration: 0.4, ease: EASE_OUT }}
-        className={`inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1 rounded-full bg-white border border-[#E4E4E4] shadow-[0_2px_10px_-3px_rgba(15,23,42,0.08)] mb-4 ${isCenter ? "mx-auto" : ""
+        className={`tactile-black-pill inline-flex items-center justify-center px-4 py-1.5 rounded-full mb-4 ${isCenter ? "mx-auto" : ""
           }`}
       >
-        <span className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${toneStyles}`}>
-          <Icon size={11} strokeWidth={2.2} />
-        </span>
-        <span className="text-[12px] font-semibold tracking-[-0.01em] text-slate-900">
+        <span className="text-[12px] font-semibold tracking-[-0.01em] text-white">
           {badge}
         </span>
       </motion.div>
@@ -5024,26 +5015,31 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
 ════════════════ */
 function HowItWorks() {
   const workflowRef = useRef<HTMLElement | null>(null);
-  const inView = useInView(workflowRef, { once: true, amount: 0.18 });
+  const inView = useInView(workflowRef, { once: true, amount: 0.12 });
   const [activeStep, setActiveStep] = useState(0);
   const [manualStep, setManualStep] = useState<number | null>(null);
 
   const { scrollYProgress } = useScroll({
     target: workflowRef,
-    offset: ["start 78%", "end 38%"],
+    offset: ["start start", "end end"],
   });
-  const ribbonProgress = useTransform(scrollYProgress, [0.06, 0.84], [0.08, 1]);
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 95,
+    damping: 26,
+    restDelta: 0.001,
+  });
+  const ribbonProgress = useTransform(smoothProgress, [0.03, 0.92], [0.04, 1]);
 
   useEffect(() => {
-    const unsub = scrollYProgress.on("change", (v) => {
+    const unsub = smoothProgress.on("change", (v) => {
       if (manualStep !== null) return;
-      if (v >= 0.7) setActiveStep(3);
-      else if (v >= 0.46) setActiveStep(2);
+      if (v >= 0.74) setActiveStep(3);
+      else if (v >= 0.49) setActiveStep(2);
       else if (v >= 0.24) setActiveStep(1);
       else setActiveStep(0);
     });
     return () => unsub();
-  }, [scrollYProgress, manualStep]);
+  }, [smoothProgress, manualStep]);
 
   const currentStep = manualStep ?? activeStep;
 
@@ -5204,9 +5200,10 @@ function HowItWorks() {
     <section
       ref={workflowRef}
       id="how-it-works"
-      className="py-20 sm:py-28 px-4 sm:px-7 relative bg-white overflow-hidden"
+      className="relative bg-white lg:h-[290vh] overflow-x-clip"
     >
-      <div className="max-w-[1160px] mx-auto">
+      <div className="lg:sticky lg:top-0 lg:min-h-screen lg:flex lg:flex-col lg:justify-center py-20 lg:py-16 px-4 sm:px-7">
+        <div className="max-w-[1160px] w-full mx-auto">
         <SectionHeader
           badge="Workflow"
           icon={Globe}
@@ -5345,6 +5342,7 @@ function HowItWorks() {
               </motion.div>
             );
           })}
+        </div>
         </div>
       </div>
     </section>
@@ -5890,7 +5888,7 @@ export default function TradiFive() {
         color: "#0F172A",
         minHeight: "100vh",
         position: "relative",
-        overflowX: "hidden",
+        overflowX: "clip",
       }}
     >
       <PublicNavbar
