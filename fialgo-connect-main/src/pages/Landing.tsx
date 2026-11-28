@@ -63,6 +63,7 @@ import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
 import BlurText from "@/components/ui/BlurText";
 import { MT5_BROKER_LOGOS } from "@/components/MT5BrokerLogos";
 import { TradeSlotsBlobStrip } from "@/components/ui/TradeSlotBlobCheckbox";
+import { AnimatedNumber } from "@/components/ui/AnimatedNumber";
 import { Switch } from "@/components/ui/switch";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
@@ -2883,32 +2884,32 @@ function ProblemSection() {
   ];
 
   return (
-    <section id="problem" className="py-24 sm:py-28 px-4 sm:px-7 relative bg-white overflow-hidden">
-      {/* Seamless alpine mountain backdrop dissolving top & bottom into crisp white */}
+    <section id="problem" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white overflow-hidden">
+      {/* Crisp alpine mountain backdrop dissolving cleanly at top & bottom into white */}
       <div className="pointer-events-none absolute inset-0 select-none" aria-hidden="true">
         <img
-          src="/problem-mountain-bg.jpg"
+          src="/mountain.jpg"
           alt=""
-          className="w-full h-full object-cover object-[35%_52%] opacity-[0.58] sm:opacity-[0.65] scale-[1.03]"
+          className="w-full h-full object-cover object-[46%_42%] opacity-[0.44] sm:opacity-[0.52]"
         />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.42) 18%, rgba(255,255,255,0.08) 54%, rgba(255,255,255,0.82) 86%, #ffffff 100%)",
+              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.55) 14%, rgba(255,255,255,0.08) 48%, rgba(255,255,255,0.55) 84%, #ffffff 100%)",
           }}
         />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to right, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0.34) 36%, rgba(255,255,255,0.72) 66%, rgba(255,255,255,0.9) 100%)",
+              "linear-gradient(to right, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.22) 38%, rgba(255,255,255,0.58) 72%, rgba(255,255,255,0.78) 100%)",
           }}
         />
       </div>
 
       <div className="max-w-[1160px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        <div className="lg:col-span-5 lg:sticky lg:top-28 lg:rounded-2xl lg:bg-white/55 lg:backdrop-blur-[6px] lg:p-6 lg:-ml-6 lg:border lg:border-white/80">
+        <div className="lg:col-span-5 lg:sticky lg:top-28">
           <SectionHeader
             badge="The problem"
             icon={AlertTriangle}
@@ -2924,13 +2925,13 @@ function ProblemSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.45, delay: 0.3, ease: EASE_OUT }}
-            className="border-l-2 border-rose-500/80 pl-4 py-0.5 text-[13px] text-slate-700 leading-relaxed"
+            className="border-l-2 border-rose-500/80 pl-4 py-1 bg-white/65 rounded-r-lg text-[13px] text-slate-700 leading-relaxed"
           >
             Across MT5 retail &amp; prop accounts, over 70% of monthly equity drawdowns occur during unscheduled post-loss sessions.
           </motion.div>
         </div>
 
-        <div className="lg:col-span-7 rounded-2xl bg-white/82 backdrop-blur-md border border-[#E4E4E4] px-5 sm:px-8 divide-y divide-[#E4E4E4] shadow-[0_18px_48px_-22px_rgba(15,23,42,0.1)]">
+        <div className="lg:col-span-7 rounded-2xl bg-white/86 backdrop-blur-sm border border-[#E4E4E4] px-5 sm:px-7 divide-y divide-[#E4E4E4] shadow-[0_18px_48px_-22px_rgba(15,23,42,0.08)]">
           {PROBLEMS.map((p, idx) => (
             <motion.div
               key={p.num}
@@ -2938,7 +2939,7 @@ function ProblemSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
-              className="py-6 sm:py-7 flex items-start gap-5 sm:gap-7 group"
+              className="py-5 sm:py-6 flex items-start gap-5 sm:gap-7 group"
             >
               <span className="text-[13px] font-mono font-semibold text-slate-400 pt-0.5 tabular-nums shrink-0 group-hover:text-rose-500 transition-colors">
                 {p.num}
@@ -2968,21 +2969,159 @@ function ProblemSection() {
    THE SOLUTION
 ════════════════ */
 function SolutionSection({ onStart }: { onStart: () => void }) {
+  const sectionRef = useRef<HTMLElement>(null);
+  const isInView = useInView(sectionRef, { amount: 0.15 });
+  const manualPauseUntilRef = useRef<number>(0);
+
+  const pauseAutoBriefly = () => {
+    manualPauseUntilRef.current = Date.now() + 7000;
+  };
+
+  // Card 1: Daily Trade Limit interactive + auto state
   const [tradeLimitActive, setTradeLimitActive] = useState(true);
-  const [tradeCap, setTradeCap] = useState(6);
-  const [tradesUsed, setTradesUsed] = useState(0);
+  const [tradeCap, setTradeCap] = useState(5);
+  const [tradesUsed, setTradesUsed] = useState(1);
+
+  // Card 2: Smart Journal interactive + auto state
+  const [journalLiveIdx, setJournalLiveIdx] = useState(0);
+  const [selectedRowIdx, setSelectedRowIdx] = useState(0);
+
+  const JOURNAL_BATCHES = [
+    [
+      { pair: "XAU/USD", lot: "1.25L", setup: "NY Open Sweep", rr: "+2.4R", pnl: "+$1,480", win: true, note: "Waited for sweep · Rule score 98/100" },
+      { pair: "EUR/USD", lot: "2.00L", setup: "London OB", rr: "+1.8R", pnl: "+$960", win: true, note: "Clean 0.5% risk · Held to target" },
+      { pair: "NAS100", lot: "0.50L", setup: "FVG Retest", rr: "-1.0R", pnl: "-$310", win: false, note: "Stopped cleanly · Zero revenge trade" },
+    ],
+    [
+      { pair: "GBP/USD", lot: "1.50L", setup: "London Break", rr: "+2.1R", pnl: "+$1,120", win: true, note: "Synced in 0.4s from Exness MT5" },
+      { pair: "XAU/USD", lot: "1.25L", setup: "NY Open Sweep", rr: "+2.4R", pnl: "+$1,480", win: true, note: "Waited for sweep · Rule score 98/100" },
+      { pair: "USD/JPY", lot: "1.80L", setup: "Session High Rej", rr: "+1.5R", pnl: "+$740", win: true, note: "Followed pre-market level cleanly" },
+    ],
+  ];
+  const activeTrades = JOURNAL_BATCHES[journalLiveIdx];
+  const selectedTradeObj = activeTrades[selectedRowIdx] || activeTrades[0];
+
+  // Card 3: Pre-Market Plan & AI Coach interactive + auto state
+  const BIASES = [
+    {
+      label: "Bullish bias",
+      dotClass: "bg-emerald-500",
+      session: "NY Session",
+      score: "94/100",
+      highlight: "+89% of gains",
+      quote: "Your first 2 NY Open setups made",
+      tail: "with zero revenge trades.",
+    },
+    {
+      label: "Bearish bias",
+      dotClass: "bg-rose-500",
+      session: "London Session",
+      score: "91/100",
+      highlight: "3 clean short setups",
+      quote: "You skipped 2 late counter-trend traps and caught",
+      tail: "inside your risk plan.",
+    },
+    {
+      label: "Range / Wait",
+      dotClass: "bg-amber-500",
+      session: "Risk Check",
+      score: "97/100",
+      highlight: "100% capital saved",
+      quote: "Staying flat during choppy pre-news action kept",
+      tail: "until clean structure formed.",
+    },
+  ] as const;
+  const [biasIdx, setBiasIdx] = useState(0);
+  const activeBias = BIASES[biasIdx];
+
+  // Card 4: Dashboard Net Cumulative P&L timeframe switcher
+  const PNL_RANGES = ["7D", "30D", "ALL"] as const;
+  const PNL_STATS = {
+    "7D": {
+      pnlNum: 2140.0,
+      wins: 4,
+      losses: 1,
+      closed: 5,
+      winPct: 80,
+      avgRR: 2.3,
+      pf: 3.1,
+      avgWL: "$610 / $220",
+    },
+    "30D": {
+      pnlNum: 8420.5,
+      wins: 14,
+      losses: 4,
+      closed: 18,
+      winPct: 78,
+      avgRR: 2.15,
+      pf: 2.48,
+      avgWL: "$740 / $290",
+    },
+    ALL: {
+      pnlNum: 24890.0,
+      wins: 41,
+      losses: 12,
+      closed: 53,
+      winPct: 77,
+      avgRR: 2.08,
+      pf: 2.36,
+      avgWL: "$795 / $310",
+    },
+  } as const;
+  const [pnlRange, setPnlRange] = useState<"7D" | "30D" | "ALL">("30D");
+  const currentStats = PNL_STATS[pnlRange];
+
+  // Auto-play animations across all 4 cards when section is visible
+  useEffect(() => {
+    if (!isInView) return;
+
+    const slotsTimer = window.setInterval(() => {
+      if (Date.now() < manualPauseUntilRef.current) return;
+      if (!tradeLimitActive) return;
+      setTradesUsed((prev) => (prev >= tradeCap ? 0 : prev + 1));
+    }, 1850);
+
+    const journalTimer = window.setInterval(() => {
+      if (Date.now() < manualPauseUntilRef.current) return;
+      setSelectedRowIdx((prev) => {
+        if (prev < 2) return prev + 1;
+        setJournalLiveIdx((b) => (b + 1) % JOURNAL_BATCHES.length);
+        return 0;
+      });
+    }, 2300);
+
+    const aiTimer = window.setInterval(() => {
+      if (Date.now() < manualPauseUntilRef.current) return;
+      setBiasIdx((prev) => (prev + 1) % BIASES.length);
+    }, 3400);
+
+    const pnlTimer = window.setInterval(() => {
+      if (Date.now() < manualPauseUntilRef.current) return;
+      setPnlRange((prev) => {
+        const nextIdx = (PNL_RANGES.indexOf(prev) + 1) % PNL_RANGES.length;
+        return PNL_RANGES[nextIdx];
+      });
+    }, 3100);
+
+    return () => {
+      window.clearInterval(slotsTimer);
+      window.clearInterval(journalTimer);
+      window.clearInterval(aiTimer);
+      window.clearInterval(pnlTimer);
+    };
+  }, [isInView, tradeLimitActive, tradeCap]);
 
   const tradesLeft = Math.max(0, tradeCap - tradesUsed);
-  const tradesBreached = tradesUsed >= tradeCap;
+  const tradesBreached = tradeLimitActive && tradesUsed >= tradeCap;
 
   const donutSize = 60;
   const strokeWidth = 5.5;
   const radius = (donutSize - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const dashOffset = circumference * (1 - 0.78);
+  const dashOffset = circumference * (1 - currentStats.winPct / 100);
 
   return (
-    <section id="solution" className="py-14 sm:py-16 px-4 sm:px-7 relative bg-white">
+    <section ref={sectionRef} id="solution" className="py-14 sm:py-16 px-4 sm:px-7 relative bg-white">
       <div className="max-w-[1160px] mx-auto">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-8">
           <SectionHeader
@@ -3065,7 +3204,14 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                     >
                       {tradeCap}/day
                     </span>
-                    <Switch checked={tradeLimitActive} onCheckedChange={setTradeLimitActive} size="sm" />
+                    <Switch
+                      checked={tradeLimitActive}
+                      onCheckedChange={(checked) => {
+                        pauseAutoBriefly();
+                        setTradeLimitActive(checked);
+                      }}
+                      size="sm"
+                    />
                   </div>
                 </div>
 
@@ -3073,24 +3219,55 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                   <div className="flex items-center justify-between text-[10px]">
                     <span className="font-semibold text-slate-700 inline-flex items-center gap-1.5 tabular-nums">
                       <span>Today: {tradesUsed} / {tradeCap}</span>
-                      <span className="px-1.5 py-[0.5px] rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700">
-                        LIVE
+                      <span
+                        className={`px-1.5 py-[0.5px] rounded text-[8px] font-bold uppercase ${
+                          tradeLimitActive
+                            ? "bg-emerald-100 text-emerald-700"
+                            : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {tradeLimitActive ? "LIVE" : "PAUSED"}
                       </span>
                     </span>
-                    <span
-                      className={`font-semibold tabular-nums ${
-                        tradesBreached ? "text-rose-600" : "text-emerald-600"
-                      }`}
-                    >
-                      {tradesBreached ? "Limit reached" : `${tradesLeft} left today`}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {tradesUsed > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            pauseAutoBriefly();
+                            setTradesUsed(0);
+                          }}
+                          className="text-[9.5px] font-semibold text-slate-400 hover:text-slate-700 underline cursor-pointer"
+                        >
+                          Reset
+                        </button>
+                      )}
+                      <span
+                        className={`font-semibold tabular-nums ${
+                          !tradeLimitActive
+                            ? "text-slate-400"
+                            : tradesBreached
+                            ? "text-rose-600"
+                            : "text-emerald-600"
+                        }`}
+                      >
+                        {!tradeLimitActive
+                          ? "Guard paused"
+                          : tradesBreached
+                          ? "Limit reached · Locked"
+                          : `${tradesLeft} left today`}
+                      </span>
+                    </div>
                   </div>
 
                   <TradeSlotsBlobStrip
                     total={tradeCap}
                     completed={tradesUsed}
                     interactive={true}
-                    onSelectCount={setTradesUsed}
+                    onSelectCount={(count) => {
+                      pauseAutoBriefly();
+                      setTradesUsed(count);
+                    }}
                   />
                 </div>
 
@@ -3102,6 +3279,7 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                     <button
                       type="button"
                       onClick={() => {
+                        pauseAutoBriefly();
                         const next = Math.max(1, tradeCap - 1);
                         setTradeCap(next);
                         if (tradesUsed > next) setTradesUsed(next);
@@ -3115,7 +3293,10 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                     </span>
                     <button
                       type="button"
-                      onClick={() => setTradeCap((v) => Math.min(10, v + 1))}
+                      onClick={() => {
+                        pauseAutoBriefly();
+                        setTradeCap((v) => Math.min(10, v + 1));
+                      }}
                       className="tactile-white-pill w-6 h-6 rounded-[7px] flex items-center justify-center text-[12px] font-bold text-slate-700 cursor-pointer"
                     >
                       +
@@ -3162,42 +3343,86 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                       Recent Trades
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9.5px] font-bold uppercase">
-                    MT5 · Auto-Synced
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      pauseAutoBriefly();
+                      const nextIdx = (journalLiveIdx + 1) % JOURNAL_BATCHES.length;
+                      setJournalLiveIdx(nextIdx);
+                      setSelectedRowIdx(0);
+                    }}
+                    className="px-2 py-0.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[9.5px] font-bold uppercase cursor-pointer transition-colors inline-flex items-center gap-1.5"
+                    title="Auto-syncing from MT5"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    MT5 · Auto-Sync
+                  </button>
                 </div>
 
-                <div className="divide-y divide-[#E4E4E4]/70 text-[11px]">
-                  {[
-                    { pair: "XAU/USD", lot: "1.25L", setup: "NY Open Sweep", rr: "+2.4R", pnl: "+$1,480", win: true },
-                    { pair: "EUR/USD", lot: "2.00L", setup: "London OB", rr: "+1.8R", pnl: "+$960", win: true },
-                    { pair: "NAS100", lot: "0.50L", setup: "FVG Retest", rr: "-1.0R", pnl: "-$310", win: false },
-                  ].map((row) => (
-                    <div key={row.pair} className="px-3 py-1.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
-                            row.win
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-rose-50 text-rose-600"
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={journalLiveIdx}
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                    transition={{ duration: 0.25 }}
+                    className="divide-y divide-[#E4E4E4]/70 text-[11px]"
+                  >
+                    {activeTrades.map((row, idx) => {
+                      const isSelected = selectedRowIdx === idx;
+                      return (
+                        <button
+                          key={row.pair}
+                          type="button"
+                          onClick={() => {
+                            pauseAutoBriefly();
+                            setSelectedRowIdx(idx);
+                          }}
+                          className={`w-full px-3 py-1.5 flex items-center justify-between gap-2 text-left transition-colors cursor-pointer ${
+                            isSelected ? "bg-blue-50/70" : "hover:bg-slate-50/80"
                           }`}
                         >
-                          {row.rr}
-                        </span>
-                        <div className="min-w-0 truncate">
-                          <span className="font-semibold text-slate-900">{row.pair}</span>{" "}
-                          <span className="text-[10px] text-slate-400">· {row.lot} · {row.setup}</span>
-                        </div>
-                      </div>
-                      <span
-                        className={`font-mono font-bold tabular-nums shrink-0 ${
-                          row.win ? "text-emerald-600" : "text-rose-500"
-                        }`}
-                      >
-                        {row.pnl}
-                      </span>
-                    </div>
-                  ))}
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold ${
+                                row.win
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-rose-50 text-rose-600"
+                              }`}
+                            >
+                              {row.rr}
+                            </span>
+                            <div className="min-w-0 truncate">
+                              <span className="font-semibold text-slate-900">{row.pair}</span>{" "}
+                              <span className="text-[10px] text-slate-400">· {row.lot} · {row.setup}</span>
+                            </div>
+                          </div>
+                          <span
+                            className={`font-mono font-bold tabular-nums shrink-0 ${
+                              row.win ? "text-emerald-600" : "text-rose-500"
+                            }`}
+                          >
+                            {row.pnl}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="px-3 py-1 bg-[#FAFAFC] border-t border-[#E4E4E4]/70 flex items-center justify-between text-[10px] text-slate-500 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={`${journalLiveIdx}-${selectedRowIdx}`}
+                      initial={{ opacity: 0, x: 6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -6 }}
+                      transition={{ duration: 0.2 }}
+                      className="truncate block"
+                    >
+                      <strong className="text-slate-700">{selectedTradeObj.pair}:</strong> {selectedTradeObj.note}
+                    </motion.span>
+                  </AnimatePresence>
                 </div>
               </div>
             </motion.div>
@@ -3230,18 +3455,34 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
 
               {/* Actual Real Web App Cards: Pre-market Plan + AI Session Debrief */}
               <div className="space-y-2">
-                <div className="px-3 py-2 rounded-[12px] bg-white border border-[#E4E4E4] shadow-[0_2px_6px_rgba(15,23,42,0.03)] flex items-center justify-between text-[11.5px]">
-                  <span className="flex items-center gap-2 font-semibold text-slate-800">
-                    <span className="w-4 h-4 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                      <Check size={10} strokeWidth={3} />
-                    </span>
-                    <span>
-                      Pre-market plan active ·{" "}
-                      <span className="text-slate-500 font-medium">Bullish bias</span>
-                    </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    pauseAutoBriefly();
+                    setBiasIdx((v) => (v + 1) % BIASES.length);
+                  }}
+                  className="w-full px-3 py-2 rounded-[12px] bg-white hover:bg-slate-50/80 border border-[#E4E4E4] shadow-[0_2px_6px_rgba(15,23,42,0.03)] flex items-center justify-between text-[11.5px] cursor-pointer transition-colors"
+                >
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={activeBias.label}
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center gap-2 font-semibold text-slate-800"
+                    >
+                      <span className={`w-2 h-2 rounded-full ${activeBias.dotClass}`} />
+                      <span>
+                        Pre-market plan ·{" "}
+                        <span className="text-slate-500 font-medium">{activeBias.label}</span>
+                      </span>
+                    </motion.span>
+                  </AnimatePresence>
+                  <span className="text-[10px] font-semibold text-[#2563EB] inline-flex items-center gap-1">
+                    Switch <ArrowRight size={11.5} />
                   </span>
-                  <ArrowRight size={12.5} className="text-slate-400" />
-                </div>
+                </button>
 
                 <div className="p-3 rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)]">
                   <div className="flex items-center justify-between gap-2 mb-1">
@@ -3249,12 +3490,39 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                       <Sparkles size={11.5} />
                       TradiFive AI · Session Debrief
                     </span>
-                    <span className="text-[10px] font-mono text-slate-400">NY Session</span>
+                    <div className="inline-flex items-center gap-1">
+                      {BIASES.map((b, i) => (
+                        <button
+                          key={b.session}
+                          type="button"
+                          onClick={() => {
+                            pauseAutoBriefly();
+                            setBiasIdx(i);
+                          }}
+                          className={`px-1.5 py-0.5 rounded text-[9px] font-semibold cursor-pointer transition-colors ${
+                            biasIdx === i
+                              ? "bg-blue-50 text-[#2563EB]"
+                              : "text-slate-400 hover:text-slate-700"
+                          }`}
+                        >
+                          {b.session === "NY Session" ? "NY" : b.session === "London Session" ? "LDN" : "Risk"}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-[11.5px] leading-snug text-slate-700">
-                    &ldquo;Your discipline held at <strong className="text-slate-900">94/100</strong>.
-                    Your first 2 NY Open setups made <strong className="text-emerald-600">+89% of gains</strong> with zero revenge trades.&rdquo;
-                  </p>
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={activeBias.session}
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -5 }}
+                      transition={{ duration: 0.22 }}
+                      className="text-[11.5px] leading-snug text-slate-700"
+                    >
+                      &ldquo;Your discipline held at <strong className="text-slate-900">{activeBias.score}</strong>.{" "}
+                      {activeBias.quote} <strong className="text-emerald-600">{activeBias.highlight}</strong> {activeBias.tail}&rdquo;
+                    </motion.p>
+                  </AnimatePresence>
                 </div>
               </div>
             </motion.div>
@@ -3288,19 +3556,50 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
               {/* Actual Real Web App Card: Dashboard Net Cumulative P&L + Win Ring + 3-Metric Row */}
               <div className="space-y-2">
                 <div className="p-3 rounded-[14px] bg-white border border-[#E4E4E4] shadow-[0_2px_8px_rgba(15,23,42,0.03)] flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[10.5px] font-medium text-slate-500">
-                      Net Cumulative P&amp;L
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10.5px] font-medium text-slate-500">
+                        Net Cumulative P&amp;L
+                      </span>
+                      <div className="inline-flex items-center p-0.5 rounded-[7px] bg-slate-100">
+                        {PNL_RANGES.map((tab) => (
+                          <button
+                            key={tab}
+                            type="button"
+                            onClick={() => {
+                              pauseAutoBriefly();
+                              setPnlRange(tab);
+                            }}
+                            className={`px-1.5 py-0.5 rounded-[5px] text-[9px] font-bold cursor-pointer transition-colors ${
+                              pnlRange === tab
+                                ? "bg-white text-slate-900 shadow-sm"
+                                : "text-slate-500 hover:text-slate-800"
+                            }`}
+                          >
+                            {tab}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                     <div className="text-[20px] font-bold text-slate-950 tracking-[-0.03em] tabular-nums leading-tight mt-0.5">
-                      +$8,420.50
+                      <AnimatedNumber
+                        value={currentStats.pnlNum}
+                        duration={750}
+                        format={(v) =>
+                          `+$${v.toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}`
+                        }
+                      />
                     </div>
                     <div className="mt-1 flex items-center gap-1.5 text-[10.5px]">
                       <span className="px-2 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E4E4E4] font-semibold text-slate-700 tabular-nums">
-                        14W / 4L
+                        <AnimatedNumber value={currentStats.wins} duration={650} />W /{" "}
+                        <AnimatedNumber value={currentStats.losses} duration={650} />L
                       </span>
                       <span className="text-slate-400 font-medium tabular-nums">
-                        18 closed trades
+                        <AnimatedNumber value={currentStats.closed} duration={650} /> closed trades
                       </span>
                     </div>
                   </div>
@@ -3325,11 +3624,16 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                         strokeLinecap="round"
                         strokeDasharray={circumference}
                         strokeDashoffset={dashOffset}
+                        className="transition-[stroke-dashoffset] duration-700 ease-out"
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-[12px] font-bold text-slate-900 leading-none tabular-nums">
-                        78%
+                        <AnimatedNumber
+                          value={currentStats.winPct}
+                          duration={650}
+                          format={(v) => `${Math.round(v)}%`}
+                        />
                       </span>
                       <span className="text-[7.5px] font-semibold uppercase tracking-wider text-slate-400 mt-0.5">
                         Win
@@ -3339,21 +3643,32 @@ function SolutionSection({ onStart }: { onStart: () => void }) {
                 </div>
 
                 <div className="grid grid-cols-3 gap-1.5">
-                  {[
-                    { label: "Avg RR", value: "2.15R" },
-                    { label: "Profit Factor", value: "2.48" },
-                    { label: "Avg W / L", value: "$740 / $290" },
-                  ].map((m) => (
-                    <div
-                      key={m.label}
-                      className="px-2 py-1.5 rounded-[11px] bg-white border border-[#E4E4E4] text-center"
-                    >
-                      <div className="text-[9.5px] font-medium text-slate-400">{m.label}</div>
-                      <div className="text-[12px] font-bold text-slate-900 tabular-nums truncate">
-                        {m.value}
-                      </div>
+                  <div className="px-2 py-1.5 rounded-[11px] bg-white border border-[#E4E4E4] text-center">
+                    <div className="text-[9.5px] font-medium text-slate-400">Avg RR</div>
+                    <div className="text-[12px] font-bold text-slate-900 tabular-nums truncate">
+                      <AnimatedNumber
+                        value={currentStats.avgRR}
+                        duration={650}
+                        format={(v) => `${v.toFixed(2)}R`}
+                      />
                     </div>
-                  ))}
+                  </div>
+                  <div className="px-2 py-1.5 rounded-[11px] bg-white border border-[#E4E4E4] text-center">
+                    <div className="text-[9.5px] font-medium text-slate-400">Profit Factor</div>
+                    <div className="text-[12px] font-bold text-slate-900 tabular-nums truncate">
+                      <AnimatedNumber
+                        value={currentStats.pf}
+                        duration={650}
+                        format={(v) => v.toFixed(2)}
+                      />
+                    </div>
+                  </div>
+                  <div className="px-2 py-1.5 rounded-[11px] bg-white border border-[#E4E4E4] text-center">
+                    <div className="text-[9.5px] font-medium text-slate-400">Avg W / L</div>
+                    <div className="text-[12px] font-bold text-slate-900 tabular-nums truncate">
+                      {currentStats.avgWL}
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
