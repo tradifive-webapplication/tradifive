@@ -35,7 +35,13 @@ const defaultFaqs = [
   },
 ];
 
-export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: string }[] }) {
+export function PublicFAQ({
+  faqs = defaultFaqs,
+  lightMode = false,
+}: {
+  faqs?: { q: string; a: string }[];
+  lightMode?: boolean;
+}) {
   const [openFaqs, setOpenFaqs] = useState<Record<number, boolean>>({});
 
   const toggleFaq = (index: number) => {
@@ -48,11 +54,23 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
   return (
     <section style={{ padding: "60px 24px 80px", maxWidth: 840, margin: "0 auto", position: "relative", zIndex: 10 }}>
       <motion.div {...fadeUp()} style={{ textAlign: "center", marginBottom: 48 }}>
-        <h2 style={{ fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 12, color: "#fff" }}>
-          Frequently Asked Questions
+        <h2
+          style={{
+            fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif",
+            fontSize: "clamp(26px, 4vw, 38px)",
+            fontWeight: 800,
+            letterSpacing: "-0.03em",
+            marginBottom: 12,
+            color: lightMode ? "#0F172A" : "#fff",
+          }}
+        >
+          Frequently Asked{" "}
+          <span style={{ fontWeight: 300, color: lightMode ? "#64748B" : "rgba(255,255,255,0.65)" }}>
+            Questions
+          </span>
         </h2>
-        <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 15 }}>
-          Everything you need to know about the Tradifive terminal.
+        <p style={{ color: lightMode ? "#64748B" : "rgba(255,255,255,0.45)", fontSize: 15 }}>
+          Everything you need to know about the TradiFive terminal.
         </p>
       </motion.div>
 
@@ -64,16 +82,20 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
               key={idx}
               {...fadeUp(idx * 0.05)}
               style={{
-                background: "#171717",
-                boxShadow: "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
+                background: lightMode
+                  ? isOpen ? "#F8FAFC" : "#FFFFFF"
+                  : "#171717",
+                border: lightMode
+                  ? isOpen ? "1px solid #BFDBFE" : "1px solid #E2E8F0"
+                  : "none",
+                boxShadow: lightMode
+                  ? isOpen
+                    ? "0 8px 24px -10px rgba(37,99,235,0.14)"
+                    : "0 2px 8px rgba(15,23,42,0.03)"
+                  : "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)",
                 borderRadius: 20,
                 overflow: "hidden",
-                transition: "box-shadow 0.3s ease" }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(255,255,255,0.1), 0 8px 16px rgba(0,0,0,0.4)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "inset 0 1px 0 0 rgba(255,255,255,0.05), 0 0 0 1px rgba(255,255,255,0.05), 0 2px 4px rgba(0,0,0,0.2)";
+                transition: "box-shadow 0.25s ease, border-color 0.25s ease",
               }}
             >
               <button
@@ -86,16 +108,17 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
                   justifyContent: "space-between",
                   background: "none",
                   border: "none",
-                  color: "#fff",
+                  color: lightMode ? "#0F172A" : "#fff",
                   fontSize: 15,
                   fontWeight: 700,
                   textAlign: "left",
                   cursor: "pointer",
-                  outline: "none" }}
+                  outline: "none",
+                }}
               >
                 <span>{faq.q}</span>
                 <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.25 }}>
-                  <ChevronDown size={18} style={{ color: "rgba(255,255,255,0.5)" }} />
+                  <ChevronDown size={18} style={{ color: lightMode ? "#64748B" : "rgba(255,255,255,0.5)" }} />
                 </motion.div>
               </button>
 
@@ -107,14 +130,17 @@ export function PublicFAQ({ faqs = defaultFaqs }: { faqs?: { q: string; a: strin
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.25, ease: "easeInOut" }}
                   >
-                    <div style={{
-                      padding: "0 24px 20px",
-                      fontSize: 13.5,
-                      color: "rgba(255,255,255,0.5)",
-                      lineHeight: 1.6,
-                      borderTop: "1px solid rgba(255,255,255,0.02)",
-                      marginTop: -4,
-                      paddingTop: 16 }}>
+                    <div
+                      style={{
+                        padding: "0 24px 20px",
+                        fontSize: 14,
+                        color: lightMode ? "#475569" : "rgba(255,255,255,0.55)",
+                        lineHeight: 1.65,
+                        borderTop: lightMode ? "1px solid #E2E8F0" : "1px solid rgba(255,255,255,0.05)",
+                        marginTop: -4,
+                        paddingTop: 16,
+                      }}
+                    >
                       {faq.a}
                     </div>
                   </motion.div>

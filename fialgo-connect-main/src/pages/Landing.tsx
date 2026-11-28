@@ -59,6 +59,7 @@ import PublicNavbar from "../components/PublicNavbar";
 import PublicFooter from "../components/PublicFooter";
 import { supabase } from "@/integrations/supabase/client";
 import { AgentBentoGrid } from "@/components/ui/agent-bento-grid";
+import BlurText from "@/components/ui/BlurText";
 
 const EASE_OUT: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
@@ -170,19 +171,28 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.16, ease: EASE_OUT }}
       style={{
-        backgroundColor: "rgba(255, 255, 255, 0.74)",
+        backgroundColor: "rgba(255, 255, 255, 0.58)",
         boxShadow:
-          "inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 24px 64px rgba(15, 23, 42, 0.18), 0 4px 18px rgba(15, 23, 42, 0.08)",
+          "inset 0 1px 0 rgba(255, 255, 255, 0.86), 0 24px 64px rgba(15, 23, 42, 0.16), 0 4px 18px rgba(15, 23, 42, 0.08)",
       }}
-      className="w-full max-w-[680px] mx-auto rounded-[18px] sm:rounded-[22px] backdrop-blur-2xl backdrop-saturate-150 border border-white/80 overflow-hidden text-left"
+      className="w-full max-w-[680px] mx-auto rounded-[18px] sm:rounded-[22px] backdrop-blur-2xl backdrop-saturate-150 border border-white/65 overflow-hidden text-left"
     >
       <form onSubmit={handleSubmit} className="px-3.5 sm:px-5 pt-3.5 sm:pt-4 pb-3 sm:pb-3.5 space-y-3 sm:space-y-4">
-        {/* Clean Typing Area with Blue Caret */}
+        {/* Clean Typing Area with Trailing Blinking Blue Caret */}
         <div className="relative min-h-[24px] sm:min-h-[26px] flex items-center px-0.5">
           {!query && (
-            <div className="pointer-events-none absolute inset-0 flex items-center text-[13px] sm:text-[15px] text-slate-600/85 font-normal truncate pr-2">
-              <span className="inline-block w-[1.5px] h-[16px] sm:h-[18px] bg-[#2563EB] mr-1 animate-pulse shrink-0" />
+            <div className="pointer-events-none absolute inset-0 flex items-center text-[13px] sm:text-[15px] text-slate-700/90 font-normal overflow-hidden pr-2">
               <span className="truncate">{displayPlaceholder}</span>
+              <motion.span
+                aria-hidden="true"
+                animate={{ opacity: [1, 1, 0, 0] }}
+                transition={{
+                  duration: 0.9,
+                  repeat: Infinity,
+                  times: [0, 0.45, 0.5, 0.95],
+                }}
+                className="inline-block w-[1.8px] h-[16px] sm:h-[18px] bg-[#2563EB] ml-0.5 shrink-0"
+              />
             </div>
           )}
           <input
@@ -1545,31 +1555,8 @@ function HeroDashboard({ onStart }: { onStart: () => void }) {
 /* ════════════════
    HERO
 ════════════════ */
-const HERO_HEADLINES: Array<{
-  top: string;
-  bottomThin: string;
-  bottomBold: string;
-}> = [
-  { top: "Master your discipline,", bottomThin: "multiply every", bottomBold: "edge." },
-  { top: "Silence the impulse,", bottomThin: "compound every", bottomBold: "setup." },
-  { top: "Protect the downside,", bottomThin: "scale without", bottomBold: "fear." },
-  { top: "Your trading edge,", bottomThin: "finally", bottomBold: "unbreakable." },
-];
-
-const CURTAIN_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1];
-
 function Hero({ onStart }: { onStart: () => void; onSignIn: () => void }) {
   const navigate = useNavigate();
-  const [headlineIdx, setHeadlineIdx] = useState(0);
-
-  useEffect(() => {
-    const id = window.setInterval(() => {
-      setHeadlineIdx((i) => (i + 1) % HERO_HEADLINES.length);
-    }, 4200);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const currentHeadline = HERO_HEADLINES[headlineIdx];
 
   return (
     <section
@@ -1759,95 +1746,80 @@ function Hero({ onStart }: { onStart: () => void; onSignIn: () => void }) {
           <span className="px-2 sm:px-2.5 py-0.5 rounded-full bg-white text-[#2563EB] text-[9.5px] sm:text-[10px] font-bold tracking-wider uppercase leading-tight shadow-2xs shrink-0">
             NEW
           </span>
-          <span className="truncate">Institutional Risk Guard &amp; AI Journal</span>
+          <span className="truncate">Introducing AI-Powered Trading Intelligence</span>
           <ArrowRight size={12} className="text-white/80 shrink-0" />
         </motion.button>
 
-        {/* Crisp Masked Editorial Headline (Bold + Thin Weight Contrast) */}
+        {/* React Bits BlurText Editorial Headline (Bold + Thin Weight Contrast) */}
         <div className="min-h-[76px] sm:min-h-[136px] lg:min-h-[154px] flex items-center justify-center w-full">
-          <AnimatePresence mode="wait">
-            <motion.h1
-              key={headlineIdx}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-              className="text-[28px] sm:text-[54px] lg:text-[64px] tracking-[-0.035em] leading-[1.1] sm:leading-[1.08] text-white max-w-[900px] drop-shadow-[0_6px_26px_rgba(1,3,10,0.65)]"
-            >
-              <span className="block overflow-hidden py-[2px]">
-                <motion.span
-                  variants={{
-                    hidden: { y: "105%", opacity: 0 },
-                    visible: {
-                      y: "0%",
-                      opacity: 1,
-                      transition: {
-                        y: { duration: 0.48, ease: CURTAIN_EASE },
-                        opacity: { duration: 0.28, ease: "easeOut" },
-                      },
-                    },
-                    exit: {
-                      y: "-105%",
-                      opacity: 0,
-                      transition: {
-                        y: { duration: 0.3, ease: [0.4, 0, 1, 1] },
-                        opacity: { duration: 0.2, ease: "easeIn" },
-                      },
-                    },
-                  }}
-                  className="block font-bold tracking-[-0.038em] text-white"
-                >
-                  {currentHeadline.top}
-                </motion.span>
-              </span>
+          <h1
+            style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+            className="text-[28px] sm:text-[54px] lg:text-[64px] tracking-[-0.035em] leading-[1.1] sm:leading-[1.08] text-white max-w-[900px] drop-shadow-[0_6px_26px_rgba(1,3,10,0.65)] flex flex-col items-center"
+          >
+            <BlurText
+              as="span"
+              text="Your edge isn't luck."
+              effect="blur"
+              animateBy="words"
+              direction="top"
+              staggerFrom="start"
+              trigger="load"
+              delay={120}
+              stepDuration={0.35}
+              blur={10}
+              distance={42}
+              className="justify-center font-bold tracking-[-0.038em] text-white"
+            />
 
-              <span className="block overflow-hidden py-[2px] -mt-0.5 sm:-mt-1">
-                <motion.span
-                  variants={{
-                    hidden: { y: "105%", opacity: 0 },
-                    visible: {
-                      y: "0%",
-                      opacity: 1,
-                      transition: {
-                        y: { duration: 0.52, delay: 0.06, ease: CURTAIN_EASE },
-                        opacity: { duration: 0.3, delay: 0.04, ease: "easeOut" },
-                      },
-                    },
-                    exit: {
-                      y: "-105%",
-                      opacity: 0,
-                      transition: {
-                        y: { duration: 0.28, ease: [0.4, 0, 1, 1] },
-                        opacity: { duration: 0.18, ease: "easeIn" },
-                      },
-                    },
-                  }}
-                  className="block tracking-[-0.03em]"
-                >
-                  <span className="font-extralight text-blue-100/85">
-                    {currentHeadline.bottomThin}{" "}
-                  </span>
-                  <span className="font-semibold bg-gradient-to-b from-white via-white to-blue-200 bg-clip-text text-transparent">
-                    {currentHeadline.bottomBold}
-                  </span>
-                </motion.span>
-              </span>
-            </motion.h1>
-          </AnimatePresence>
+            <span className="inline-flex flex-wrap items-baseline justify-center gap-x-[0.26em] -mt-0.5 sm:-mt-1">
+              <BlurText
+                as="span"
+                text="It's"
+                effect="blur"
+                animateBy="words"
+                direction="top"
+                staggerFrom="start"
+                trigger="load"
+                delay={120}
+                initialDelay={340}
+                stepDuration={0.35}
+                blur={10}
+                distance={42}
+                className="justify-center font-extralight tracking-[-0.03em] text-blue-100/85"
+              />
+              <BlurText
+                as="span"
+                text="discipline."
+                effect="blur"
+                animateBy="words"
+                direction="top"
+                staggerFrom="start"
+                trigger="load"
+                delay={120}
+                initialDelay={460}
+                stepDuration={0.35}
+                blur={10}
+                distance={42}
+                className="justify-center font-semibold tracking-[-0.03em]"
+                pieceClassName="bg-gradient-to-b from-white via-white to-blue-200 bg-clip-text text-transparent"
+              />
+            </span>
+          </h1>
         </div>
 
         {/* Attractive High-Contrast Subheadline */}
         <motion.p
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1, ease: EASE_OUT }}
+          transition={{ duration: 0.5, delay: 0.15, ease: EASE_OUT }}
           style={{
             fontFamily: "'Manrope', 'Inter', sans-serif",
             textShadow: "0 2px 18px rgba(2,6,23,0.75)",
           }}
-          className="mt-3 sm:mt-4 max-w-[590px] px-1 text-[13.5px] sm:text-[16.5px] font-light tracking-[-0.01em] leading-[1.58] text-slate-200/90"
+          className="mt-3 sm:mt-4 max-w-[600px] px-1 text-[13.5px] sm:text-[16.5px] font-light tracking-[-0.01em] leading-[1.58] text-slate-200/90"
         >
-          Where <span className="font-medium text-white">autonomous Risk Guard</span>, instant broker sync, and an AI coach built around your psychology turn consistency into compounding returns.
+          An AI-powered trading ecosystem built to help you{" "}
+          <span className="font-medium text-white">manage risk</span>, understand your psychology, and trade with discipline.
         </motion.p>
 
         {/* Lowered Sleek Glass AI Coach Composer */}
@@ -1856,7 +1828,7 @@ function Hero({ onStart }: { onStart: () => void; onSignIn: () => void }) {
         </div>
 
         {/* Lowered Crisp Steady Live HD Dashboard Showcase */}
-        <div className="w-full mt-9 sm:mt-[92px]">
+        <div id="hero-white-zone" className="w-full mt-9 sm:mt-[92px]">
           <HeroDashboard onStart={onStart} />
         </div>
       </div>

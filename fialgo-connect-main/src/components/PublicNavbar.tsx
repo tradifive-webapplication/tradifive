@@ -8,21 +8,26 @@ export default function PublicNavbar({
   onSignUp,
   onDownloadClick,
   lightOnScroll = false,
+  alwaysLight = false,
 }: {
   onSignIn?: () => void;
   onSignUp?: () => void;
   onDownloadClick?: () => void;
   lightOnScroll?: boolean;
+  alwaysLight?: boolean;
 }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isHome = location.pathname === "/";
-  const isFeaturesActive = location.pathname.startsWith("/features");
+  const isFeaturesActive = location.pathname === "/" && location.hash === "#features";
+  const isJournalActive = location.pathname === "/features/smart-journal";
+  const isRiskGuardActive = location.pathname === "/features/risk-guard";
   const isAppActive = location.pathname === "/download";
   const isContactActive = location.pathname === "/contact";
   const isAiActive = location.pathname === "/features/tradifive-ai";
   const isCommunityActive = location.pathname === "/features/community-hub";
   const [scrolled, setScrolled] = useState(false);
+  const [inLightZone, setInLightZone] = useState(alwaysLight);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [inDeepDives, setInDeepDives] = useState(false);
   const [isHoveredTop, setIsHoveredTop] = useState(false);
@@ -106,7 +111,22 @@ export default function PublicNavbar({
 
   useEffect(() => {
     const h = () => {
-      setScrolled(window.scrollY > 20);
+      const y = window.scrollY;
+      setScrolled(y > 20);
+
+      if (alwaysLight) {
+        setInLightZone(true);
+      } else if (lightOnScroll) {
+        // Flip navbar to White Mode only when the white HeroDashboard scrolls up to the navbar
+        const whiteAnchor = document.getElementById("hero-white-zone");
+        if (whiteAnchor) {
+          setInLightZone(whiteAnchor.getBoundingClientRect().top <= 84);
+        } else {
+          setInLightZone(y > 540);
+        }
+      } else {
+        setInLightZone(false);
+      }
 
       const deepDives = document.getElementById("deep-dives");
       const hideNavZone = document.getElementById("hide-nav-zone");
@@ -124,10 +144,14 @@ export default function PublicNavbar({
       }
       setInDeepDives(isActive);
     };
-    window.addEventListener("scroll", h);
+    window.addEventListener("scroll", h, { passive: true });
+    window.addEventListener("resize", h, { passive: true });
     h(); // initial check
-    return () => window.removeEventListener("scroll", h);
-  }, []);
+    return () => {
+      window.removeEventListener("scroll", h);
+      window.removeEventListener("resize", h);
+    };
+  }, [alwaysLight, lightOnScroll]);
 
   useEffect(() => {
     // Preload the heavy login page chunk in the background 1 second after navbar mount
@@ -253,7 +277,7 @@ export default function PublicNavbar({
         .nav-btn-get-started:active {
           transform: scale(0.985) !important;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 1024px) {
           .public-nav-container { padding: 0 14px !important; gap: 8px !important; }
           .public-nav-brand, .public-nav-actions { min-width: 0 !important; }
           .public-nav-logo-icon { height: 26px !important; margin-left: 0; }
@@ -292,7 +316,7 @@ export default function PublicNavbar({
         />
       )}
 
-      <nav className={`public-nav ${lightOnScroll && scrolled ? "nav-light-scrolled" : ""}`}
+      <nav className={`public-nav ${inLightZone ? "nav-light-scrolled" : ""}`}
         onMouseEnter={() => setIsHoveredTop(true)}
         onMouseLeave={() => setIsHoveredTop(false)}
         style={{
@@ -301,34 +325,38 @@ export default function PublicNavbar({
           left: "50%",
           transform: "translateX(-50%) translateY(var(--nav-translate-y, 0%))",
           ["--nav-translate-y" as any]: inDeepDives && !isHoveredTop && !mobileMenuOpen ? "-120%" : "0%",
-          width: scrolled ? "min(94%, 1180px)" : "min(96%, 1280px)",
+          width: scrolled ? "min(94%, 1200px)" : "min(96%, 1280px)",
           maxWidth: 1280,
           height: 60,
           borderRadius: scrolled ? 999 : 0,
-          background: lightOnScroll && scrolled
-            ? "rgba(255, 255, 255, 0.88)"
-            : !(isHome || isAppActive)
-              ? "rgba(10, 14, 24, 0.88)"
-              : scrolled
-                ? "rgba(10, 14, 24, 0.82)"
+          background: inLightZone
+            ? scrolled
+              ? "rgba(255, 255, 255, 0.90)"
+              : "rgba(255, 255, 255, 0.72)"
+            : scrolled
+              ? "rgba(8, 12, 22, 0.78)"
+              : !(isHome || isAppActive)
+                ? "rgba(8, 12, 22, 0.85)"
                 : "transparent",
-          backdropFilter: scrolled || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
-          WebkitBackdropFilter: scrolled || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
+          backdropFilter: scrolled || inLightZone || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
+          WebkitBackdropFilter: scrolled || inLightZone || !(isHome || isAppActive) ? "blur(28px) saturate(1.35)" : "none",
           border: scrolled
-            ? lightOnScroll
+            ? inLightZone
               ? "1px solid rgba(15, 23, 42, 0.09)"
-              : "1px solid rgba(255, 255, 255, 0.1)"
-            : "1px solid transparent",
+              : "1px solid rgba(255, 255, 255, 0.12)"
+            : inLightZone
+              ? "1px solid rgba(15, 23, 42, 0.05)"
+              : "1px solid transparent",
           boxShadow: scrolled
-            ? lightOnScroll
-              ? "0 12px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)"
-              : "0 14px 36px rgba(2, 6, 23, 0.28), 0 0 0 0.5px rgba(255, 255, 255, 0.06) inset, 0 1px 0 rgba(255, 255, 255, 0.08) inset"
+            ? inLightZone
+              ? "0 12px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92)"
+              : "0 14px 36px rgba(2, 6, 23, 0.35), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
             : "none",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           zIndex: 1000,
-          transition: "all 0.45s cubic-bezier(0.22, 1, 0.36, 1)"
+          transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)"
         }}>
         <div
           className="public-nav-container"
@@ -338,16 +366,16 @@ export default function PublicNavbar({
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: 20,
+            gap: 16,
           }}
         >
           {/* Left: Brand Mark + Wordmark */}
           <div
             className="public-nav-brand"
-            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0, minWidth: 150 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", flexShrink: 0, minWidth: 132 }}
             onClick={handleLogoClick}
           >
-            {lightOnScroll && scrolled ? (
+            {inLightZone ? (
               <img className="public-nav-logo-text" src="/Tradifive_logo1.png" style={{ height: 26, width: "auto", flexShrink: 0 }} alt="TradiFive" />
             ) : (
               <>
@@ -357,14 +385,15 @@ export default function PublicNavbar({
             )}
           </div>
 
-          {/* Center: Clean LiquidJournal-Style Navigation */}
+          {/* Center: Complete Product Navigation */}
           <div
             className="hide-sm"
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 28,
+              gap: 20,
+              whiteSpace: "nowrap",
             }}
           >
             <a
@@ -374,6 +403,20 @@ export default function PublicNavbar({
             >
               Features
             </a>
+
+            <Link
+              to="/features/smart-journal"
+              className={`nav-link-item ${isJournalActive ? "active" : ""}`}
+            >
+              Journal
+            </Link>
+
+            <Link
+              to="/features/risk-guard"
+              className={`nav-link-item ${isRiskGuardActive ? "active" : ""}`}
+            >
+              Risk Guard
+            </Link>
 
             <Link
               to="/features/tradifive-ai"
@@ -415,7 +458,7 @@ export default function PublicNavbar({
           {/* Right: Tactile Action Pills & Mobile Hamburger */}
           <div
             className="public-nav-actions"
-            style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, minWidth: 150 }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 10, minWidth: 165 }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }} className="hide-on-mobile hide-sm">
               <button
@@ -446,7 +489,7 @@ export default function PublicNavbar({
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: lightOnScroll && scrolled ? "#0F172A" : "#fff",
+                  color: inLightZone ? "#0F172A" : "#fff",
                   cursor: "pointer",
                   padding: "6px",
                   display: "flex",

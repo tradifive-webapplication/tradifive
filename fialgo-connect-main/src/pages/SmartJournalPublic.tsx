@@ -1,342 +1,461 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PublicNavbar from "@/components/PublicNavbar";
 import PublicFooter from "@/components/PublicFooter";
-import { RefreshCw, TrendingUp, CheckCircle2, BrainCircuit, BarChart2, Search, Calendar, Trophy, Tag, Clock, DollarSign, BookOpen } from "lucide-react";
+import {
+  RefreshCw,
+  TrendingUp,
+  CheckCircle2,
+  BrainCircuit,
+  BarChart2,
+  Search,
+  Tag,
+  Clock,
+  DollarSign,
+  BookOpen,
+  ArrowRight,
+  X,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import StarsBackground from "@/components/StarsBackground";
 import { PublicFAQ } from "@/components/PublicFAQ";
 
-function fadeUp(delay = 0) {
-  return {
-    initial: { opacity: 0, y: 30 },
-    whileInView: { opacity: 1, y: 0 },
-    viewport: { once: true },
-    transition: { duration: 0.6, delay },
-  };
-}
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 const METRICS = [
-  { label: "Win Rate", value: "72.4%", change: "+3.2%", icon: <TrendingUp size={14} />, color: "#10b981" },
-  { label: "Profit Factor", value: "2.14", change: "+0.18", icon: <BarChart2 size={14} />, color: "#6366f1" },
-  { label: "Avg RR", value: "1:2.7", change: "+0.4", icon: <DollarSign size={14} />, color: "#f59e0b" },
-  { label: "Sharpe Ratio", value: "1.83", change: "+0.22", icon: <CheckCircle2 size={14} />, color: "#a855f7" },
+  { label: "Win Rate", value: "72.4%", change: "+3.2%", icon: TrendingUp, color: "text-emerald-600" },
+  { label: "Profit Factor", value: "2.14", change: "+0.18", icon: BarChart2, color: "text-[#2563EB]" },
+  { label: "Avg RR", value: "1:2.7", change: "+0.4", icon: DollarSign, color: "text-amber-600" },
+  { label: "Sharpe Ratio", value: "1.83", change: "+0.22", icon: CheckCircle2, color: "text-violet-600" },
 ];
 
 const TRADES = [
-  { sym: "XAUUSD", dir: "BUY", pnl: "+₹342.50", rr: "1:3.2", tag: "A+ Setup", win: true, time: "06:05 PM" },
-  { sym: "US30", dir: "SELL", pnl: "-₹125.00", rr: "1:1.1", tag: "Revenge", win: false, time: "04:30 PM" },
-  { sym: "EURUSD", dir: "BUY", pnl: "+₹87.20", rr: "1:2.0", tag: "Breakout", win: true, time: "02:15 PM" },
+  { sym: "XAUUSD", dir: "BUY", pnl: "+$1,640.00", rr: "2.4R", tag: "A+ NY Open", win: true, time: "14:15 UTC" },
+  { sym: "US30", dir: "SELL", pnl: "-$280.00", rr: "-0.8R", tag: "Stop Hit", win: false, time: "15:40 UTC" },
+  { sym: "EURUSD", dir: "BUY", pnl: "+$890.00", rr: "1.9R", tag: "London Sweep", win: true, time: "08:30 UTC" },
 ];
 
 const FEATURES = [
   {
-    icon: <RefreshCw size={20} />,
-    color: "#6366f1",
-    title: "100% Auto-Synced",
-    desc: "Every execution, lot size, commission, and slippage is pulled directly from your MT5 terminal and Indian brokers (Zerodha, Dhan) in real time. Zero manual data entry — ever.",
+    icon: RefreshCw,
+    color: "text-[#2563EB]",
+    bg: "bg-blue-50 border-blue-200",
+    title: "100% Broker Auto-Sync",
+    desc: "Every fill, lot size, commission, and swap syncs automatically from MT5 and Indian brokers in real time. Zero spreadsheet typing.",
   },
   {
-    icon: <TrendingUp size={20} />,
-    color: "#10b981",
-    title: "40+ Performance Metrics",
-    desc: "Win rate, profit factor, Sharpe ratio, average hold time, drawdown streaks — all calculated automatically and visualised in interactive charts.",
+    icon: TrendingUp,
+    color: "text-emerald-600",
+    bg: "bg-emerald-50 border-emerald-200",
+    title: "40+ Institutional Metrics",
+    desc: "Win rate, profit factor, Sharpe ratio, MAE/MFE excursions, and hold durations computed automatically across every trade.",
   },
   {
-    icon: <Tag size={20} />,
-    color: "#f59e0b",
-    title: "Custom Trade Tagging",
-    desc: "Tag every trade with custom labels — 'A+ Setup', 'FOMO', 'Revenge Trade'. Then filter your data to discover exactly what each pattern costs you.",
+    icon: Tag,
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+    title: "Setup & Emotion Tagging",
+    desc: "Tag trades as 'A+ Setup', 'FOMO', or 'Early Exit' and filter directly to measure the exact dollar cost of every habit.",
   },
   {
-    icon: <Clock size={20} />,
-    color: "#a855f7",
-    title: "Session & Time Analysis",
-    desc: "Discover your most profitable time of day, day of week, and optimal trade duration. Know exactly when your edge is at its peak.",
+    icon: Clock,
+    color: "text-violet-600",
+    bg: "bg-violet-50 border-violet-200",
+    title: "Session & Time Expectancy",
+    desc: "Discover your strongest trading sessions, days of the week, and peak hourly win windows automatically.",
   },
   {
-    icon: <BrainCircuit size={20} />,
-    color: "#ef4444",
-    title: "AI Coach Insights",
-    desc: "An AI engine analyses your journal patterns and delivers personalised insights — 'Your XAUUSD trades have 3× higher win rate during London session.'",
+    icon: BrainCircuit,
+    color: "text-rose-600",
+    bg: "bg-rose-50 border-rose-200",
+    title: "AI Coach Attribution",
+    desc: "Plain-English AI diagnostics surface patterns like '89% win rate on London XAUUSD vs 38% during late NY chop.'",
   },
   {
-    icon: <Search size={20} />,
-    color: "#0ea5e9",
-    title: "Deep Filtering Engine",
-    desc: "Filter your equity curve by asset, session, tag, day of week, or trade type. Find and eliminate the bad habits hiding inside your data.",
+    icon: Search,
+    color: "text-sky-600",
+    bg: "bg-sky-50 border-sky-200",
+    title: "Deep Multi-Account Filter",
+    desc: "Isolate prop firm accounts, live portfolios, symbols, setups, and rule-compliance streaks in one clean click.",
   },
 ];
 
 const PROBLEMS = [
-  "Requires hours of manual data entry after every session",
-  "Prone to typos and skipped losing trades",
-  "Impossible to calculate complex edge metrics manually",
-  "Provides zero actionable, real-time insights",
+  "Hours of repetitive manual logging after every market close",
+  "Human bias omits bad losing trades and breaks accuracy",
+  "Impossible to calculate MAE/MFE & session expectancy manually",
+  "Provides zero real-time warning when discipline slips",
 ];
 
 const SOLUTIONS = [
-  "Zero manual entry — all trades synced from MT5 & Indian brokers instantly",
-  "Captures exact slippage, commission, and swap costs",
-  "Calculates true risk-adjusted returns automatically",
-  "AI highlights exactly what's working and what isn't",
+  "Zero manual entry — executions sync directly from your broker",
+  "Captures exact commissions, swap fees, and slippage automatically",
+  "Computes true R-multiples, drawdown streaks, and profit factors",
+  "AI Coach highlights precisely what to double down on or stop",
 ];
 
 export default function SmartJournalPublic() {
   const navigate = useNavigate();
-  const handleStart = () => navigate("/login");
+  const handleStart = () => navigate("/login", { state: { mode: "signup" } });
+  const handleSignIn = () => navigate("/login", { state: { mode: "login" } });
+  const [symFilter, setSymFilter] = useState<"ALL" | "XAUUSD" | "US30" | "EURUSD">("ALL");
+
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+    document.body.style.backgroundColor = "#ffffff";
+    document.body.style.color = "#0F172A";
+  }, []);
+
+  const filteredTrades =
+    symFilter === "ALL" ? TRADES : TRADES.filter((t) => t.sym === symFilter);
 
   return (
-    <div style={{ background: "#02040a", minHeight: "100vh", color: "#fff" }}>
-      <style>{`
-                * { box-sizing: border-box; }
-        @media (max-width: 768px) {
-          .sj-hero { grid-template-columns: 1fr !important; }
-          .sj-feat { grid-template-columns: 1fr 1fr !important; }
-          .sj-ps { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 520px) {
-          .sj-feat { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+    <div className="min-h-screen bg-white text-slate-900">
+      <PublicNavbar
+        alwaysLight
+        onSignIn={handleSignIn}
+        onSignUp={handleStart}
+        onDownloadClick={() => navigate("/download")}
+      />
 
-      <PublicNavbar onSignIn={handleStart} onSignUp={handleStart} onDownloadClick={() => navigate("/download")} />
-      <StarsBackground />
-
-      <main style={{ position: "relative", zIndex: 1 }}>
-      {/* HERO */}
-      <section style={{ padding: "160px 24px 80px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 900, height: 600, background: "radial-gradient(ellipse, rgba(236,72,153,0.07) 0%, transparent 65%)", pointerEvents: "none" }} />
-
-        <div className="sj-hero" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center", maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 1 }}>
-          {/* Left: Copy */}
-          <motion.div {...fadeUp()}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(236,72,153,0.1)", border: "1px solid rgba(236,72,153,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 28 }}>
-              <BrainCircuit size={13} color="#ec4899" />
-              <span style={{ color: "#ec4899", fontSize: 12, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>Smart Journal</span>
-            </div>
-            <h1 style={{ fontSize: "clamp(32px, 4.5vw, 58px)", fontWeight: 900, lineHeight: 1.08, letterSpacing: "-0.04em", marginBottom: 24 }}>
-              Stop Trading<br />
-              <span style={{ background: "linear-gradient(135deg, #ec4899, #a855f7)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                Blind.
-              </span>
-            </h1>
-            <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, marginBottom: 36, maxWidth: 480 }}>
-              The Smart Trade Journal automatically syncs every execution from your MT5 terminal and Indian broker accounts in real time — plotting your true edge across 40+ professional metrics. Find out exactly what setups make you money, and which ones are bleeding your account.
-            </p>
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "13px 28px", fontSize: 14, fontWeight: 700 }}>
-                Connect Broker Free →
-              </button>
-              <button onClick={() => { const el = document.getElementById("sj-features"); el?.scrollIntoView({ behavior: "smooth" }); }} className="btn-ghost" style={{ borderRadius: 100, padding: "13px 28px", fontSize: 14, fontWeight: 600 }}>
-                See all features
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Right: Journal Preview Widget */}
-          <motion.div {...fadeUp(0.15)}>
-            <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 24, padding: 24, position: "relative", overflow: "hidden" }}>
-              <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, background: "radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%)", pointerEvents: "none" }} />
-
-              {/* Metrics row */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 20 }}>
-                {METRICS.map((m, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 * i }} viewport={{ once: true }}
-                    style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 14, padding: "14px 16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, color: m.color }}>
-                      {m.icon}
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>{m.label}</span>
-                    </div>
-                    <div style={{ color: "#fff", fontSize: 20, fontWeight: 900, letterSpacing: "-0.02em" }}>{m.value}</div>
-                    <div style={{ color: m.color, fontSize: 11, fontWeight: 700, marginTop: 2 }}>{m.change} this month</div>
-                  </motion.div>
-                ))}
+      <main>
+        {/* HERO */}
+        <section className="pt-28 sm:pt-36 pb-16 sm:pb-24 px-4 sm:px-7">
+          <div className="max-w-[1160px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, ease: EASE }}
+              className="lg:col-span-6"
+            >
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] text-[11px] font-bold uppercase tracking-wider mb-6">
+                <BookOpen size={13} />
+                <span>Smart Trade Journal</span>
               </div>
 
-              {/* AI Insight */}
-              <div style={{ background: "rgba(236,72,153,0.06)", border: "1px solid rgba(236,72,153,0.15)", borderRadius: 14, padding: "14px 16px", marginBottom: 16 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                  <BrainCircuit size={14} color="#ec4899" />
-                  <span style={{ color: "#ec4899", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>AI Coach Insight</span>
+              <h1
+                style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+                className="text-[36px] sm:text-[52px] lg:text-[58px] tracking-[-0.035em] leading-[1.06] text-slate-900 mb-5"
+              >
+                <span className="font-bold block">Stop trading</span>
+                <span className="font-extralight text-slate-500">completely </span>
+                <span className="font-semibold text-[#2563EB]">blind.</span>
+              </h1>
+
+              <p className="text-[15.5px] sm:text-[17px] font-light text-slate-500 leading-relaxed max-w-[500px] mb-8">
+                Every trade synced automatically from MT5 and connected brokers into 40+ institutional analytics — exposing which setups pay you and which habits drain equity.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={handleStart}
+                  className="tactile-blue-pill h-11 px-7 rounded-full text-[14px] font-bold inline-flex items-center gap-2 cursor-pointer"
+                >
+                  <span>Connect Broker Free</span>
+                  <ArrowRight size={15} />
+                </button>
+                <button
+                  onClick={() =>
+                    document
+                      .getElementById("sj-features")
+                      ?.scrollIntoView({ behavior: "smooth" })
+                  }
+                  className="h-11 px-6 rounded-full bg-white border border-slate-200 hover:border-slate-300 text-slate-800 text-[14px] font-semibold shadow-2xs transition-colors cursor-pointer"
+                >
+                  Explore metrics
+                </button>
+              </div>
+            </motion.div>
+
+            {/* Right: Crisp White Journal Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.1, ease: EASE }}
+              className="lg:col-span-6"
+            >
+              <div className="rounded-[24px] bg-[#F8FAFC] border border-slate-200/90 shadow-[0_24px_60px_-20px_rgba(15,23,42,0.12)] p-5 sm:p-6">
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {METRICS.map((m) => {
+                    const Icon = m.icon;
+                    return (
+                      <div
+                        key={m.label}
+                        className="rounded-2xl bg-white border border-slate-200/80 p-3.5 shadow-2xs"
+                      >
+                        <div className={`flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 mb-1`}>
+                          <Icon size={13} className={m.color} />
+                          <span>{m.label}</span>
+                        </div>
+                        <div className="text-[22px] font-extrabold text-slate-900 font-mono tabular-nums">
+                          {m.value}
+                        </div>
+                        <div className={`text-[10.5px] font-semibold ${m.color} mt-0.5`}>
+                          {m.change} this month
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-                <p style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: 600, lineHeight: 1.4, marginBottom: 4 }}>
-                  "Your XAUUSD win rate is 89% during the London session."
-                </p>
-                <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 12 }}>Focus trading there to maximise your edge.</p>
-              </div>
 
-              {/* Recent trades */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {TRADES.map((t, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.win ? "#10b981" : "#ef4444", flexShrink: 0 }} />
-                      <div>
-                        <div style={{ color: "#fff", fontWeight: 700, fontSize: 12 }}>{t.sym} <span style={{ color: t.dir === "BUY" ? "#10b981" : "#ef4444", fontSize: 11 }}>{t.dir}</span></div>
-                        <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>{t.time} · {t.tag}</div>
+                {/* AI Coach Highlight */}
+                <div className="rounded-2xl bg-blue-50/75 border border-blue-200/80 p-4 mb-4">
+                  <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-[#2563EB] uppercase tracking-wider mb-1">
+                    <BrainCircuit size={13} />
+                    <span>AI Coach Pattern Insight</span>
+                  </div>
+                  <p className="text-[13px] font-semibold text-slate-900">
+                    “Your XAUUSD win rate climbs to 89% during London Open.”
+                  </p>
+                  <p className="text-[11.5px] text-slate-500 mt-0.5">
+                    Focusing risk there improves monthly expectancy by +1.4R.
+                  </p>
+                </div>
+
+                {/* Filter + Trade List */}
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    Verified Fills
+                  </span>
+                  <div className="inline-flex items-center gap-1 bg-white border border-slate-200/80 rounded-lg p-0.5">
+                    {(["ALL", "XAUUSD", "US30", "EURUSD"] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setSymFilter(f)}
+                        className={`px-2 py-0.5 rounded text-[10px] font-semibold cursor-pointer ${
+                          symFilter === f
+                            ? "bg-slate-900 text-white"
+                            : "text-slate-500 hover:text-slate-900"
+                        }`}
+                      >
+                        {f}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  {filteredTrades.map((t) => (
+                    <div
+                      key={`${t.sym}-${t.time}`}
+                      className="rounded-xl bg-white border border-slate-200/80 px-3.5 py-2.5 flex items-center justify-between"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className={`w-2 h-2 rounded-full shrink-0 ${
+                            t.win ? "bg-emerald-500" : "bg-rose-500"
+                          }`}
+                        />
+                        <div>
+                          <div className="text-[12.5px] font-bold text-slate-900">
+                            {t.sym}{" "}
+                            <span
+                              className={`text-[10.5px] font-bold ${
+                                t.dir === "BUY" ? "text-emerald-600" : "text-rose-600"
+                              }`}
+                            >
+                              {t.dir}
+                            </span>
+                          </div>
+                          <div className="text-[10.5px] text-slate-400">
+                            {t.time} · {t.tag}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right font-mono">
+                        <div
+                          className={`text-[13px] font-bold ${
+                            t.win ? "text-emerald-600" : "text-rose-600"
+                          }`}
+                        >
+                          {t.pnl}
+                        </div>
+                        <div className="text-[10px] text-slate-400">RR {t.rr}</div>
                       </div>
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                      <div style={{ color: t.win ? "#10b981" : "#ef4444", fontWeight: 800, fontSize: 13 }}>{t.pnl}</div>
-                      <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 11 }}>RR {t.rr}</div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* DESKTOP PLATFORM SHOWCASE */}
-      <section style={{ padding: "40px 24px 100px", maxWidth: 1240, margin: "0 auto", position: "relative" }}>
-        <motion.div {...fadeUp()} style={{ textAlign: "center", marginBottom: 36 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.25)", borderRadius: 100, padding: "6px 16px", marginBottom: 18 }}>
-            <BookOpen size={13} color="#a855f7" />
-            <span style={{ color: "#a855f7", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" }}>FEATURE 03 · PLATFORM SHOWCASE</span>
-          </div>
-          <h2 style={{ fontSize: "clamp(26px, 4.5vw, 48px)", fontWeight: 900, letterSpacing: "-0.03em", color: "#fff", marginBottom: 14 }}>
-            Every trade tracked automatically.
-          </h2>
-          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 16, maxWidth: 680, margin: "0 auto", lineHeight: 1.6 }}>
-            Connect your broker and let Tradifive automatically record, analyze, and organize every trade without manual input.
-          </p>
-        </motion.div>
-
-        <motion.div
-          {...fadeUp(0.15)}
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: 24,
-            padding: "16px",
-            position: "relative",
-            boxShadow: "0 30px 80px -20px rgba(0,0,0,0.85), 0 0 60px rgba(168,85,247,0.08)",
-            overflow: "hidden"
-          }}
-        >
-          {/* Ambient backlight glow */}
-          <div style={{ position: "absolute", top: -80, left: "50%", transform: "translateX(-50%)", width: 600, height: 200, background: "radial-gradient(ellipse, rgba(168,85,247,0.15) 0%, transparent 70%)", pointerEvents: "none" }} />
-          
-          {/* Window Header Bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 14px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            <div style={{ display: "flex", gap: 6 }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(255,255,255,0.15)" }} />
-            </div>
-            <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.35)", fontWeight: 600, letterSpacing: 0.5 }}>Tradifive Terminal · AI Smart Journal</div>
-            <div style={{ width: 32 }} />
-          </div>
-
-          {/* Screenshot */}
-          <div style={{ borderRadius: 16, overflow: "hidden", marginTop: 12, background: "#08090d" }}>
-            <img
-              src="/journaldesktop.png"
-              alt="Smart Journal Platform"
-              style={{ width: "100%", height: "auto", display: "block", objectFit: "contain" }}
-              onError={(e) => { (e.currentTarget as HTMLElement).style.display = "none"; }}
-            />
-          </div>
-        </motion.div>
-      </section>
-
-      {/* FEATURES */}
-      <section id="sj-features" style={{ padding: "80px 24px 100px", maxWidth: 1200, margin: "0 auto" }}>
-        <motion.div {...fadeUp()} style={{ textAlign: "center", marginBottom: 64 }}>
-          <h2 style={{ fontSize: "clamp(26px, 4vw, 42px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 16 }}>Everything the Journal Tracks</h2>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16, maxWidth: 480, margin: "0 auto" }}>Professional-grade analytics, automatically generated from your real MT5 and Indian market trades.</p>
-        </motion.div>
-
-        <div className="sj-feat" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-          {FEATURES.map((f, i) => (
-            <motion.div key={i} {...fadeUp(i * 0.08)}
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 20, padding: "28px 24px" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: `${f.color}12`, border: `1px solid ${f.color}25`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 20, color: f.color }}>
-                {f.icon}
-              </div>
-              <h3 style={{ color: "#fff", fontWeight: 800, fontSize: 15, marginBottom: 10 }}>{f.title}</h3>
-              <p style={{ color: "rgba(255,255,255,0.45)", fontSize: 13, lineHeight: 1.6 }}>{f.desc}</p>
             </motion.div>
-          ))}
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* PROBLEM vs SOLUTION */}
-      <section style={{ padding: "0 24px 100px", maxWidth: 1200, margin: "0 auto" }}>
-        <motion.div {...fadeUp()} style={{ textAlign: "center", marginBottom: 56 }}>
-          <h2 style={{ fontSize: "clamp(24px, 3.5vw, 40px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 16 }}>Manual Spreadsheets vs Smart Journal</h2>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16, maxWidth: 480, margin: "0 auto" }}>The old way destroys your data quality. Here's what changes.</p>
-        </motion.div>
-
-        <div className="sj-ps" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-          {/* Problem */}
-          <motion.div {...fadeUp(0.1)} style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 24, padding: "36px 32px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 22 }}>📊</span>
-              </div>
-              <div>
-                <h3 style={{ color: "#fff", fontWeight: 900, fontSize: 17 }}>Manual Spreadsheets</h3>
-                <p style={{ color: "#ef4444", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Inaccurate & Tedious</p>
-              </div>
+        {/* DESKTOP SHOWCASE */}
+        <section className="py-12 sm:py-16 px-4 sm:px-7">
+          <div className="max-w-[1160px] mx-auto">
+            <div className="text-center max-w-[660px] mx-auto mb-10">
+              <p className="text-[12.5px] font-semibold text-[#2563EB] uppercase tracking-wider mb-2">
+                Automated Attribution
+              </p>
+              <h2
+                style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+                className="text-[28px] sm:text-[40px] font-bold tracking-[-0.03em] leading-[1.12] text-slate-900"
+              >
+                Every trade tracked{" "}
+                <span className="font-extralight text-slate-500">automatically.</span>
+              </h2>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {PROBLEMS.map((p, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                  <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                    <span style={{ color: "#ef4444", fontSize: 10, fontWeight: 900 }}>✕</span>
-                  </div>
-                  <span style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.5 }}>{p}</span>
+
+            <div className="rounded-[24px] bg-white border border-slate-200/95 shadow-[0_24px_64px_-20px_rgba(15,23,42,0.12)] overflow-hidden p-3 sm:p-4">
+              <div className="flex items-center justify-between px-3 pb-3 border-b border-slate-100">
+                <div className="flex gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-200" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-200" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-slate-200" />
                 </div>
-              ))}
+                <span className="text-[11px] font-semibold text-slate-500">
+                  TradiFive Terminal · AI Smart Journal
+                </span>
+                <span className="text-[10.5px] font-semibold text-[#2563EB]">
+                  Auto-Sync
+                </span>
+              </div>
+              <div className="rounded-2xl overflow-hidden mt-3 bg-slate-900 border border-slate-200/80">
+                <img
+                  src="/journaldesktop.png"
+                  alt="Smart Journal Platform"
+                  className="w-full h-auto block object-contain"
+                />
+              </div>
             </div>
-          </motion.div>
+          </div>
+        </section>
 
-          {/* Solution */}
-          <motion.div {...fadeUp(0.2)} style={{ background: "rgba(236,72,153,0.04)", border: "1px solid rgba(236,72,153,0.2)", borderRadius: 24, padding: "36px 32px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, background: "rgba(236,72,153,0.1)", border: "1px solid rgba(236,72,153,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <BrainCircuit size={22} color="#ec4899" />
-              </div>
-              <div>
-                <h3 style={{ color: "#fff", fontWeight: 900, fontSize: 17 }}>Smart Journal</h3>
-                <p style={{ color: "#ec4899", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1 }}>Automated & Accurate</p>
-              </div>
+        {/* CAPABILITIES */}
+        <section id="sj-features" className="py-16 sm:py-20 px-4 sm:px-7">
+          <div className="max-w-[1160px] mx-auto">
+            <div className="text-center mb-12">
+              <h2
+                style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+                className="text-[28px] sm:text-[40px] font-bold tracking-[-0.03em] text-slate-900"
+              >
+                Everything the Journal <span className="font-extralight text-slate-500">tracks.</span>
+              </h2>
+              <p className="text-[15px] text-slate-500 mt-3 max-w-[480px] mx-auto">
+                Institutional-grade analytics automatically structured from live executions.
+              </p>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {SOLUTIONS.map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                  <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(236,72,153,0.1)", border: "1px solid rgba(236,72,153,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                    <span style={{ color: "#ec4899", fontSize: 10, fontWeight: 900 }}>✓</span>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {FEATURES.map((f, i) => {
+                const Icon = f.icon;
+                return (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, y: 14 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: i * 0.05, ease: EASE }}
+                    className="rounded-2xl bg-white border border-slate-200/90 p-6 shadow-2xs hover:border-blue-200 transition-colors"
+                  >
+                    <div
+                      className={`w-11 h-11 rounded-xl border flex items-center justify-center mb-4 ${f.bg} ${f.color}`}
+                    >
+                      <Icon size={20} />
+                    </div>
+                    <h3 className="text-[16px] font-bold text-slate-900 mb-2">
+                      {f.title}
+                    </h3>
+                    <p className="text-[13.5px] text-slate-500 leading-relaxed">
+                      {f.desc}
+                    </p>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* COMPARISON */}
+        <section className="py-16 sm:py-20 px-4 sm:px-7 bg-[#F8FAFC] border-y border-slate-200/70">
+          <div className="max-w-[1160px] mx-auto">
+            <div className="text-center mb-12">
+              <h2
+                style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+                className="text-[26px] sm:text-[38px] font-bold tracking-[-0.03em] text-slate-900"
+              >
+                Manual Spreadsheets <span className="font-extralight text-slate-500">vs Smart Journal.</span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="rounded-2xl bg-white border border-rose-200/90 p-7 shadow-2xs">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+                    <X size={18} />
                   </div>
-                  <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, lineHeight: 1.5, fontWeight: 500 }}>{s}</span>
+                  <div>
+                    <h3 className="text-[16px] font-bold text-slate-900">Manual Spreadsheets</h3>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-rose-600">
+                      Incomplete &amp; Biased
+                    </p>
+                  </div>
                 </div>
-              ))}
+                <ul className="space-y-3">
+                  {PROBLEMS.map((p) => (
+                    <li key={p} className="flex items-start gap-2.5 text-[13.5px] text-slate-600">
+                      <span className="mt-1 w-4 h-4 rounded-full bg-rose-50 border border-rose-200 text-rose-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+                        ✕
+                      </span>
+                      <span>{p}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="rounded-2xl bg-white border border-emerald-200/90 p-7 shadow-2xs">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+                    <CheckCircle2 size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-[16px] font-bold text-slate-900">TradiFive Smart Journal</h3>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
+                      Automated &amp; Verified
+                    </p>
+                  </div>
+                </div>
+                <ul className="space-y-3">
+                  {SOLUTIONS.map((s) => (
+                    <li key={s} className="flex items-start gap-2.5 text-[13.5px] text-slate-700 font-medium">
+                      <span className="mt-1 w-4 h-4 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+                        ✓
+                      </span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-          </motion.div>
-        </div>
-      </section>
+          </div>
+        </section>
 
-      {/* CTA */}
-      <section style={{ padding: "80px 24px 120px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, rgba(236,72,153,0.07) 0%, transparent 65%)", pointerEvents: "none" }} />
-        <motion.div {...fadeUp()} style={{ position: "relative", zIndex: 1 }}>
-          <h2 style={{ fontSize: "clamp(26px, 4vw, 44px)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: 18 }}>
-            Know your edge. Trade it with confidence.
-          </h2>
-          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 16, marginBottom: 36 }}>Connect your MT5 or Indian broker account in 60 seconds. No spreadsheets required.</p>
-          <button onClick={handleStart} className="btn-glow-primary" style={{ borderRadius: 100, padding: "15px 40px", fontWeight: 800, fontSize: 15 }}>
-            Start Journaling Free →
-          </button>
-        </motion.div>
-      </section>
+        {/* CTA */}
+        <section className="py-20 px-4 sm:px-7 text-center">
+          <div className="max-w-[600px] mx-auto">
+            <h2
+              style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
+              className="text-[30px] sm:text-[42px] font-bold tracking-[-0.03em] text-slate-900 mb-4"
+            >
+              Know your edge. <span className="font-extralight text-slate-500">Scale it cleanly.</span>
+            </h2>
+            <p className="text-[15px] text-slate-500 mb-8">
+              Connect your MT5 or broker account in under a minute.
+            </p>
+            <button
+              onClick={handleStart}
+              className="tactile-blue-pill h-11 px-8 rounded-full text-[14px] font-bold inline-flex items-center gap-2 cursor-pointer"
+            >
+              <span>Start Journaling Free</span>
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        </section>
 
-      <PublicFAQ />
+        <PublicFAQ lightMode />
       </main>
 
-      <PublicFooter />
+      <PublicFooter lightMode />
     </div>
   );
 }
