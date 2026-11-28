@@ -2013,11 +2013,69 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
   const [activeId, setActiveId] = useState<SessionModuleId>("dashboard");
   const [viewMode, setViewMode] = useState<"classic" | "custom">("classic");
 
+  // Interactive inner-app states across tabs
+  const [dashRange, setDashRange] = useState<"7D" | "30D" | "ALL">("30D");
+  const [journalFilter, setJournalFilter] = useState<"ALL" | "WIN" | "LOSS">("ALL");
+  const [selectedJournalIdx, setSelectedJournalIdx] = useState(0);
+  const [rgCap, setRgCap] = useState(5);
+  const [rgUsed, setRgUsed] = useState(2);
+  const [rgArmed, setRgArmed] = useState(true);
+  const [rgLossArmed, setRgLossArmed] = useState(true);
+  const [aiPromptIdx, setAiPromptIdx] = useState(0);
+
   const active = SESSION_MODULES.find((m) => m.id === activeId) || SESSION_MODULES[0];
   const leftModules = SESSION_MODULES.slice(0, 3);
   const rightModules = SESSION_MODULES.slice(3, 6);
   const totalTicks = 24;
   const activeTicks = Math.round((active.scoreValue / 100) * totalTicks);
+  const isDarkFocus = viewMode === "custom";
+
+  const DASH_RANGE_DATA = {
+    "7D": { pnl: 3420, wins: 5, losses: 1, winPct: 83, avgRR: "2.45R", pf: "4.12", avgWL: "$810 / $220" },
+    "30D": { pnl: 12530, wins: 14, losses: 3, winPct: 82, avgRR: "2.23R", pf: "3.42", avgWL: "$954 / $276" },
+    ALL: { pnl: 38940, wins: 46, losses: 11, winPct: 81, avgRR: "2.18R", pf: "3.15", avgWL: "$980 / $295" },
+  } as const;
+  const dStats = DASH_RANGE_DATA[dashRange];
+  const dashDonutSize = 48;
+  const dashRadius = 19;
+  const dashCirc = 2 * Math.PI * dashRadius;
+  const dashOffset = dashCirc * (1 - dStats.winPct / 100);
+
+  const JOURNAL_ROWS = [
+    { pair: "XAU/USD", dir: "LONG", lot: "1.50L", tag: "NY Break & Retest", r: "+2.4R", pnl: "+$1,640", good: true, note: "Entered on clean 15m displacement · Risk 0.5% · Zero hesitation" },
+    { pair: "NAS100", dir: "SHORT", lot: "1.00L", tag: "London Sweep", r: "+1.8R", pnl: "+$1,210", good: true, note: "Liquidity sweep above Asia high · Scaled 50% at 1.5R" },
+    { pair: "EUR/USD", dir: "LONG", lot: "2.00L", tag: "Pre-News Fade", r: "-0.8R", pnl: "-$240", good: false, note: "Closed at planned invalidation · Risk Guard stopped re-entry" },
+    { pair: "GBP/USD", dir: "LONG", lot: "1.25L", tag: "Order Block", r: "+2.1R", pnl: "+$1,120", good: true, note: "Synced automatically from Exness MT5 in 0.4s" },
+  ];
+  const filteredJournal = JOURNAL_ROWS.filter((r) =>
+    journalFilter === "ALL" ? true : journalFilter === "WIN" ? r.good : !r.good
+  );
+  const activeJournalRow = filteredJournal[selectedJournalIdx] || filteredJournal[0] || JOURNAL_ROWS[0];
+
+  const AI_PROMPTS = [
+    {
+      chip: "Best session edge",
+      q: "Where did most of my clean profits come from this month?",
+      badge: "NY Session · 94/100 Discipline",
+      a: "Sticking to your first 2 NY Open setups generated +89% of monthly gains ($11,150) with zero revenge trades.",
+      rule: "Stop after 2 wins or +3.0R daily",
+    },
+    {
+      chip: "Revenge risk check",
+      q: "Am I sizing up after a morning red trade?",
+      badge: "Revenge Guard · Protected",
+      a: "Last Tuesday after a -0.8R stop on EUR/USD, Risk Guard blocked 2 oversized attempts and preserved +$1,420.",
+      rule: "Auto-15m cooldown after any stop loss",
+    },
+    {
+      chip: "Holding winners",
+      q: "Should I adjust my take-profit targets on Gold?",
+      badge: "Target Audit · +0.4R Upside",
+      a: "64% of your XAU/USD winners continued to 2.2R after you trimmed at 1.5R. Trailing behind 5m structure adds +$2,180/mo.",
+      rule: "Hold partial runner to 2.0R minimum",
+    },
+  ];
+  const aiItem = AI_PROMPTS[aiPromptIdx];
 
   return (
     <section
@@ -2025,14 +2083,14 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
       className="relative bg-white text-slate-900 pt-16 sm:pt-24 pb-10 sm:pb-16 overflow-hidden"
     >
       {/* Top editorial bridge line */}
-      <div className="max-w-[1220px] mx-auto px-4 sm:px-8 mb-10 sm:mb-20">
+      <div className="max-w-[1220px] mx-auto px-4 sm:px-8 mb-8 sm:mb-14">
         <p className="text-[13.5px] sm:text-[15px] leading-relaxed text-slate-500">
           <span className="font-semibold text-slate-900">TradiFive reads it back.</span>{" "}
           Trade by trade, until the pattern has nowhere to hide.
         </p>
       </div>
 
-      {/* Subtle Cool Alpine Mist Silhouettes Flanking Margins (Ultra Clean) */}
+      {/* Subtle Cool Alpine Mist Silhouettes Flanking Margins */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-[140px] bottom-[90px] overflow-hidden select-none"
@@ -2073,9 +2131,9 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 max-w-[1220px] mx-auto px-4 sm:px-8">
+      <div className="relative z-10 max-w-[1260px] mx-auto px-4 sm:px-8">
         {/* Centered Header + Segmented Toggle */}
-        <div className="text-center max-w-[660px] mx-auto mb-7 sm:mb-12">
+        <div className="text-center max-w-[660px] mx-auto mb-7 sm:mb-10">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -2087,13 +2145,13 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
               <LayoutGrid size={11} strokeWidth={2.2} />
             </span>
             <span className="text-[12px] font-semibold tracking-[-0.01em] text-slate-900">
-              Inside the workspace
+              Inside the live web app
             </span>
           </motion.div>
 
           <h2
             style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-            className="text-[28px] sm:text-[46px] font-bold tracking-[-0.035em] leading-[1.08] text-slate-950"
+            className="text-[28px] sm:text-[44px] font-bold tracking-[-0.035em] leading-[1.08] text-slate-950"
           >
             <BlurText
               as="span"
@@ -2130,17 +2188,17 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
             whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.5, delay: 0.24, ease: EASE_OUT }}
-            className="mt-3 sm:mt-3.5 text-[14px] sm:text-[15.5px] font-normal text-slate-600 leading-relaxed"
+            className="mt-3 text-[14px] sm:text-[15.5px] font-normal text-slate-600 leading-relaxed"
           >
-            Inspect how auto-journaling, autonomous Risk Guard, and AI session coaching stay synced live.
+            Click any tool button on the side to pop it open and test the real TradiFive Dashboard, Journal, Risk Guard, and AI Coach.
           </motion.p>
 
-          {/* View Switcher Pill */}
-          <div className="mt-4 sm:mt-5 inline-flex items-center p-1 rounded-full bg-slate-100 border border-slate-200/90 shadow-inner">
+          {/* Classic Light / Focused Dark Switcher Pill */}
+          <div className="mt-4 inline-flex items-center p-1 rounded-full bg-slate-100 border border-[#E4E4E4] shadow-inner">
             {(
               [
-                { id: "classic", label: "Classic" },
-                { id: "custom", label: "Focused" },
+                { id: "classic", label: "Classic Light" },
+                { id: "custom", label: "Focused Dark" },
               ] as const
             ).map((tab) => {
               const isSelected = viewMode === tab.id;
@@ -2149,10 +2207,11 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   key={tab.id}
                   type="button"
                   onClick={() => setViewMode(tab.id)}
-                  className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-200 cursor-pointer ${isSelected
+                  className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-200 cursor-pointer ${
+                    isSelected
                       ? "bg-[#2563EB] text-white shadow-[0_3px_10px_rgba(37,99,235,0.35)]"
                       : "text-slate-600 hover:text-slate-900"
-                    }`}
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -2161,73 +2220,90 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
           </div>
         </div>
 
-        {/* Mobile Quick Module Selector (2x3 Grid so all 6 are immediately visible without sideways scrolling) */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:hidden gap-2 max-w-[460px] mx-auto mb-5">
+        {/* Mobile Quick Module Selector */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:hidden gap-2 max-w-[480px] mx-auto mb-5">
           {SESSION_MODULES.map((mod) => {
             const Icon = mod.icon;
             const isSelected = mod.id === activeId;
             return (
-              <button
+              <motion.button
                 key={mod.id}
                 type="button"
+                whileTap={{ scale: 0.96 }}
+                animate={isSelected ? { scale: 1.03, y: -2 } : { scale: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 420, damping: 26 }}
                 onClick={() => setActiveId(mod.id)}
-                className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[12px] font-semibold transition-all cursor-pointer ${isSelected
-                    ? "bg-white text-slate-900 border-[#2563EB] shadow-[0_6px_18px_rgba(37,99,235,0.16)]"
-                    : "bg-white/95 text-slate-600 border-slate-200 hover:border-slate-300"
-                  }`}
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[12px] font-semibold transition-colors cursor-pointer ${
+                  isSelected
+                    ? "bg-white text-slate-950 border-[#2563EB] shadow-[0_10px_24px_-6px_rgba(37,99,235,0.28)]"
+                    : "bg-white/95 text-slate-600 border-[#E4E4E4] hover:border-slate-300"
+                }`}
               >
                 <span
-                  className={`w-6 h-6 rounded-lg inline-flex items-center justify-center shrink-0 ${isSelected ? "bg-[#0F172A] text-white" : "bg-slate-900 text-white"
-                    }`}
+                  className={`w-6 h-6 rounded-lg inline-flex items-center justify-center shrink-0 transition-colors ${
+                    isSelected ? "bg-[#2563EB] text-white" : "bg-slate-900 text-white"
+                  }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                 </span>
                 <span className="truncate">{mod.label}</span>
-              </button>
+              </motion.button>
             );
           })}
         </div>
 
         {/* Desktop 3-Column Interactive Showcase */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-[200px_1fr_200px] items-center gap-4 lg:gap-0">
-          {/* Left Floating Pills Column */}
+        <div className="relative grid grid-cols-1 lg:grid-cols-[195px_1fr_195px] items-center gap-4 lg:gap-0">
+          {/* Left Floating Pills Column — Click to POP + Switch Page */}
           <div className="hidden lg:flex flex-col justify-center gap-12 z-20 pr-0">
             {leftModules.map((mod) => {
               const Icon = mod.icon;
               const isSelected = mod.id === activeId;
               return (
                 <div key={mod.id} className="relative flex items-center justify-end">
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: isSelected ? 1.09 : 1.04, x: isSelected ? 8 : 3 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={isSelected ? { scale: 1.08, x: 8 } : { scale: 1, x: 0 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
                     onClick={() => setActiveId(mod.id)}
-                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-all duration-200 cursor-pointer ${isSelected
-                        ? "border-[#2563EB] shadow-[0_10px_26px_rgba(37,99,235,0.18)] scale-[1.03]"
-                        : "border-slate-200/90 shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
-                      }`}
+                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-colors duration-200 cursor-pointer ${
+                      isSelected
+                        ? "border-[#2563EB] shadow-[0_14px_30px_-6px_rgba(37,99,235,0.34)] ring-2 ring-[#2563EB]/15"
+                        : "border-[#E4E4E4] shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
+                    }`}
                   >
                     <span
-                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${isSelected
-                          ? "bg-[#0F172A] text-white"
+                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${
+                        isSelected
+                          ? "bg-[#2563EB] text-white shadow-[0_4px_12px_rgba(37,99,235,0.4)]"
                           : "bg-slate-900 text-white group-hover:bg-[#2563EB]"
-                        }`}
+                      }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
                     </span>
-                    <span className="text-[12.5px] font-semibold text-slate-800 whitespace-nowrap">
+                    <span
+                      className={`text-[12.5px] font-semibold whitespace-nowrap ${
+                        isSelected ? "text-[#2563EB]" : "text-slate-800"
+                      }`}
+                    >
                       {mod.label}
                     </span>
-                  </button>
+                  </motion.button>
                   {/* Connector hairline + node */}
                   <div className="flex items-center shrink-0">
                     <div
-                      className={`w-8 h-[1.5px] transition-colors ${isSelected ? "bg-[#2563EB]" : "bg-slate-200"
-                        }`}
+                      className={`w-7 h-[1.5px] transition-colors ${
+                        isSelected ? "bg-[#2563EB]" : "bg-[#E4E4E4]"
+                      }`}
                     />
                     <span
-                      className={`w-2 h-2 rounded-full border-[1.5px] transition-colors ${isSelected
-                          ? "bg-[#2563EB] border-[#2563EB] shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"
+                      className={`w-2 h-2 rounded-full border-[1.5px] transition-all ${
+                        isSelected
+                          ? "bg-[#2563EB] border-[#2563EB] scale-125 shadow-[0_0_0_4px_rgba(37,99,235,0.18)]"
                           : "bg-white border-slate-300"
-                        }`}
+                      }`}
                     />
                   </div>
                 </div>
@@ -2235,279 +2311,706 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
             })}
           </div>
 
-          {/* Center Window Card */}
-          <div className="relative z-10 max-w-[660px] w-full mx-auto">
-            <div className="rounded-[22px] bg-white border border-slate-200/95 shadow-[0_24px_64px_-20px_rgba(15,23,42,0.16)] overflow-hidden">
-              {/* macOS Title Bar */}
-              <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50/80 border-b border-slate-200/75">
+          {/* Center Real TradiFive App Window */}
+          <div className="relative z-10 max-w-[760px] w-full mx-auto">
+            <div
+              className={`rounded-[22px] border shadow-[0_26px_70px_-20px_rgba(15,23,42,0.18)] overflow-hidden transition-colors duration-300 ${
+                isDarkFocus
+                  ? "bg-[#111216] border-white/[0.1] text-white"
+                  : "bg-white border-[#E4E4E4] text-slate-900"
+              }`}
+            >
+              {/* macOS Window Title Bar */}
+              <div
+                className={`flex items-center justify-between px-4 py-2 border-b ${
+                  isDarkFocus
+                    ? "bg-[#17181E] border-white/[0.08]"
+                    : "bg-slate-50/90 border-[#E4E4E4]"
+                }`}
+              >
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-slate-300" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-400/80" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
                 </div>
-                <span className="text-[11px] font-medium text-slate-500">
-                  {active.label}
+                <span
+                  className={`text-[11px] font-semibold ${
+                    isDarkFocus ? "text-neutral-300" : "text-slate-600"
+                  }`}
+                >
+                  app.tradifive.in / {active.label.toLowerCase().replace(/\s+/g, "-")}
                 </span>
-                <span className="text-[10px] font-semibold text-slate-400">
-                  {viewMode === "classic" ? "All widgets" : "Focus view"}
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 text-[9.5px] font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  MT5 Live
                 </span>
               </div>
 
-              {/* Dynamic Screen Canvas */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${active.id}-${viewMode}`}
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  transition={{ duration: 0.22, ease: EASE_OUT }}
-                  className="p-3 sm:p-5 pb-12 sm:pb-20 bg-[#F8FAFC] min-h-[250px] sm:min-h-[330px]"
+              {/* Real TradiFive DashboardLayout Shell: Mini App Sidebar + Live Page Content */}
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-[152px_1fr] min-h-[385px] ${
+                  isDarkFocus ? "bg-[#0E0F13]" : "bg-[#F8FAFC]"
+                }`}
+              >
+                {/* Authentic Miniature AppSidebar (matches AppSidebar.tsx navigation) */}
+                <aside
+                  className={`hidden sm:flex flex-col justify-between p-3 border-r ${
+                    isDarkFocus
+                      ? "bg-[#14151B] border-white/[0.07]"
+                      : "bg-white border-[#E4E4E4]"
+                  }`}
                 >
-                  {/* Mini Workspace Bar */}
-                  <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-200/70">
-                    <div className="flex items-center gap-2">
-                      <img src="/tf-logo.png" alt="TradiFive" className="w-4 h-4 rounded object-contain" />
-                      <span className="text-[11px] font-bold text-slate-800">
-                        TradiFive · {active.label}
+                  <div>
+                    <div className="flex items-center gap-2 px-1.5 pb-3 mb-2 border-b border-[#E4E4E4]/60 dark:border-white/[0.06]">
+                      <img src="/tf-logo.png" alt="TradiFive" className="w-5 h-5 rounded object-contain" />
+                      <span
+                        className={`text-[12.5px] font-bold tracking-tight ${
+                          isDarkFocus ? "text-white" : "text-slate-900"
+                        }`}
+                      >
+                        Tradi<span className="text-[#2563EB]">five</span>
                       </span>
                     </div>
-                    <div className="flex items-center gap-1.5 text-[10px]">
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-semibold">
-                        Exness MT5 · Live
-                      </span>
+
+                    <div className="space-y-0.5">
+                      {SESSION_MODULES.map((mod) => {
+                        const Icon = mod.icon;
+                        const isSel = mod.id === activeId;
+                        return (
+                          <button
+                            key={mod.id}
+                            type="button"
+                            onClick={() => setActiveId(mod.id)}
+                            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[10px] text-[11px] font-semibold transition-all cursor-pointer ${
+                              isSel
+                                ? isDarkFocus
+                                  ? "bg-[#2563EB] text-white shadow-sm"
+                                  : "bg-blue-50 text-[#2563EB]"
+                                : isDarkFocus
+                                ? "text-neutral-400 hover:bg-white/[0.05] hover:text-white"
+                                : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                            }`}
+                          >
+                            <Icon className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate">{mod.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {active.id === "dashboard" && (
-                    <div className="space-y-3">
-                      <div className="rounded-xl bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] text-white px-4 py-2.5 flex items-center justify-between shadow-sm">
-                        <span className="text-[11px] font-medium text-blue-50">
-                          November execution recap ready · 17 verified setups
-                        </span>
-                        <span className="text-[10.5px] font-bold px-2.5 py-1 rounded-full bg-white text-blue-700">
-                          Play brief
-                        </span>
-                      </div>
+                  {/* Account Badge at bottom of Sidebar */}
+                  <div
+                    className={`rounded-[11px] p-2 border text-[10px] ${
+                      isDarkFocus
+                        ? "bg-white/[0.03] border-white/[0.07] text-neutral-300"
+                        : "bg-[#F8FAFC] border-[#E4E4E4] text-slate-700"
+                    }`}
+                  >
+                    <div className="font-bold truncate">Exness · #40892</div>
+                    <div className="flex items-center gap-1 text-[9px] text-emerald-600 font-semibold mt-0.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                      Connected · $37,530
+                    </div>
+                  </div>
+                </aside>
 
-                      <div className="rounded-xl bg-white border border-slate-200/90 p-4 text-center">
-                        <div className="text-[10px] font-medium text-slate-400">Net P&L · All time</div>
-                        <div className="text-[28px] sm:text-[32px] font-extrabold tracking-tight text-slate-900 mt-0.5 tabular-nums">
-                          +$12,530
-                        </div>
-                        <div className="text-[11px] text-slate-500 mt-0.5">
-                          14 wins · 3 losses · 82% win rate
-                        </div>
-                      </div>
+                {/* Active Page Canvas */}
+                <div className="p-3.5 sm:p-4 pb-10 sm:pb-12 overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={`${active.id}-${viewMode}`}
+                      initial={{ opacity: 0, y: 8, scale: 0.99 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -6, scale: 0.99 }}
+                      transition={{ duration: 0.22, ease: EASE_OUT }}
+                      className="space-y-3"
+                    >
+                      {/* 1. REAL DASHBOARD VIEW (Matches Dashboard.tsx Hero + 3 Graphs + Lower Bento) */}
+                      {active.id === "dashboard" && (
+                        <>
+                          {/* Top Hero Band */}
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-stretch">
+                            {/* Left: P&L + Timeframe Tabs + Win Ring */}
+                            <div
+                              className={`sm:col-span-6 rounded-[14px] p-3 border flex items-center justify-between gap-2 ${
+                                isDarkFocus
+                                  ? "bg-[#17171A] border-white/[0.08]"
+                                  : "bg-white border-[#E4E4E4]"
+                              }`}
+                            >
+                              <div className="min-w-0">
+                                <div className="inline-flex items-center p-0.5 rounded-[7px] bg-slate-100 dark:bg-white/[0.07] mb-1.5">
+                                  {(["7D", "30D", "ALL"] as const).map((tab) => (
+                                    <button
+                                      key={tab}
+                                      type="button"
+                                      onClick={() => setDashRange(tab)}
+                                      className={`px-1.5 py-0.5 rounded-[5px] text-[9px] font-bold cursor-pointer transition-colors ${
+                                        dashRange === tab
+                                          ? isDarkFocus
+                                            ? "bg-[#26262B] text-white shadow-sm"
+                                            : "bg-white text-slate-900 shadow-sm"
+                                          : "text-slate-500"
+                                      }`}
+                                    >
+                                      {tab}
+                                    </button>
+                                  ))}
+                                </div>
+                                <div className="text-[9.5px] font-medium text-slate-400">
+                                  Net Cumulative P&amp;L
+                                </div>
+                                <div className="text-[19px] font-extrabold tracking-tight tabular-nums leading-tight">
+                                  <AnimatedNumber
+                                    value={dStats.pnl}
+                                    duration={600}
+                                    format={(v) => `+$${Math.round(v).toLocaleString("en-US")}`}
+                                  />
+                                </div>
+                                <div className="text-[9.5px] text-slate-400 font-medium mt-0.5">
+                                  {dStats.wins}W / {dStats.losses}L · {dStats.wins + dStats.losses} trades
+                                </div>
+                              </div>
 
-                      {viewMode === "classic" ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-2.5">
-                          <div className="rounded-xl bg-white border border-slate-200/80 p-2.5 sm:p-3">
-                            <div className="text-[9.5px] text-slate-400 font-medium">Avg RR</div>
-                            <div className="text-[15px] sm:text-[16px] font-bold text-slate-900 mt-0.5">2.23R</div>
-                            <div className="text-[9px] text-emerald-600 font-medium mt-0.5">+$954 avg win</div>
-                          </div>
-                          <div className="rounded-xl bg-white border border-slate-200/80 p-2.5 sm:p-3">
-                            <div className="text-[9.5px] text-slate-400 font-medium">Profit Factor</div>
-                            <div className="text-[15px] sm:text-[16px] font-bold text-slate-900 mt-0.5">16.10</div>
-                            <div className="text-[9px] text-slate-500 mt-0.5">-$276 avg loss</div>
-                          </div>
-                          <div className="rounded-xl bg-white border border-slate-200/80 p-2.5 sm:p-3 col-span-2 sm:col-span-1">
-                            <div className="text-[9.5px] text-slate-400 font-medium">TradiFive Score</div>
-                            <div className="text-[15px] sm:text-[16px] font-bold text-slate-900 mt-0.5">81 / 100</div>
-                            <div className="text-[9px] text-blue-600 font-medium mt-0.5">Top 4% desk</div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="rounded-xl bg-white border border-slate-200/80 p-3.5 flex items-center justify-between">
-                          <div>
-                            <div className="text-[11px] font-bold text-slate-800">Active Session Edge</div>
-                            <div className="text-[10px] text-slate-500 mt-0.5">
-                              NY Open XAU/USD (+2.64R expectancy · 0 rule breaches)
+                              <div className="relative w-[48px] h-[48px] shrink-0">
+                                <svg width={dashDonutSize} height={dashDonutSize} viewBox={`0 0 ${dashDonutSize} ${dashDonutSize}`} className="-rotate-90">
+                                  <circle cx={24} cy={24} r={dashRadius} fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.1)" : "#E2E8F0"} strokeWidth={4.5} />
+                                  <circle
+                                    cx={24}
+                                    cy={24}
+                                    r={dashRadius}
+                                    fill="none"
+                                    stroke="#10B981"
+                                    strokeWidth={4.5}
+                                    strokeLinecap="round"
+                                    strokeDasharray={dashCirc}
+                                    strokeDashoffset={dashOffset}
+                                    className="transition-[stroke-dashoffset] duration-500"
+                                  />
+                                </svg>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                  <span className="text-[10.5px] font-bold leading-none tabular-nums">{dStats.winPct}%</span>
+                                  <span className="text-[6.5px] uppercase text-slate-400">Win</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Right: 3 Metric Boxes + Pre-market Plan Strip */}
+                            <div className="sm:col-span-6 flex flex-col justify-between gap-2">
+                              <div className="grid grid-cols-3 gap-1.5">
+                                {[
+                                  { l: "Avg RR", v: dStats.avgRR },
+                                  { l: "Profit Factor", v: dStats.pf },
+                                  { l: "Avg W / L", v: dStats.avgWL },
+                                ].map((m) => (
+                                  <div
+                                    key={m.l}
+                                    className={`rounded-[11px] p-2 border text-center ${
+                                      isDarkFocus
+                                        ? "bg-[#17171A] border-white/[0.08]"
+                                        : "bg-white border-[#E4E4E4]"
+                                    }`}
+                                  >
+                                    <div className="text-[8.5px] text-slate-400">{m.l}</div>
+                                    <div className="text-[11px] font-bold tabular-nums mt-0.5 truncate">{m.v}</div>
+                                  </div>
+                                ))}
+                              </div>
+                              <div
+                                className={`rounded-[11px] px-3 py-2 border flex items-center justify-between text-[10.5px] font-semibold ${
+                                  isDarkFocus
+                                    ? "bg-[#17171A] border-white/[0.08] text-neutral-200"
+                                    : "bg-white border-[#E4E4E4] text-slate-700"
+                                }`}
+                              >
+                                <span className="flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                  Pre-market plan active · <span className="text-slate-400 font-normal">Bullish bias</span>
+                                </span>
+                                <ArrowRight size={11.5} className="text-slate-400" />
+                              </div>
                             </div>
                           </div>
-                          <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                            A+ Mode
-                          </span>
+
+                          {/* Row 2: 3 Open Graphs Band (Cumulative P&L | Balance | TradiFive Score Radar) */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <div
+                              className={`rounded-[13px] p-2.5 border ${
+                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between text-[9.5px] font-semibold mb-1.5">
+                                <span className="flex items-center gap-1">
+                                  <TrendingUp size={10.5} className="text-emerald-500" /> Cumulative P&amp;L
+                                </span>
+                                <span className="text-emerald-600 tabular-nums">+$12.5k</span>
+                              </div>
+                              <svg viewBox="0 0 120 44" className="w-full h-11 overflow-visible">
+                                <defs>
+                                  <linearGradient id="miniEquityFill" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#10B981" stopOpacity="0.28" />
+                                    <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                                  </linearGradient>
+                                </defs>
+                                <path d="M0,38 L18,34 L34,36 L52,25 L70,27 L88,14 L104,10 L120,4 L120,44 L0,44 Z" fill="url(#miniEquityFill)" />
+                                <path d="M0,38 L18,34 L34,36 L52,25 L70,27 L88,14 L104,10 L120,4" fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" />
+                              </svg>
+                            </div>
+
+                            <div
+                              className={`rounded-[13px] p-2.5 border ${
+                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between text-[9.5px] font-semibold mb-1.5">
+                                <span>Account Balance</span>
+                                <span className="text-[#2563EB] tabular-nums">$37,530</span>
+                              </div>
+                              <svg viewBox="0 0 120 44" className="w-full h-11 overflow-visible">
+                                <defs>
+                                  <linearGradient id="miniBalFill" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.22" />
+                                    <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
+                                  </linearGradient>
+                                </defs>
+                                <path d="M0,36 L24,30 L48,31 L72,21 L96,13 L120,6 L120,44 L0,44 Z" fill="url(#miniBalFill)" />
+                                <path d="M0,36 L24,30 L48,31 L72,21 L96,13 L120,6" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" />
+                              </svg>
+                            </div>
+
+                            <div
+                              className={`rounded-[13px] p-2.5 border flex items-center justify-between gap-1 ${
+                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                              }`}
+                            >
+                              <div>
+                                <div className="text-[9.5px] font-semibold">TradiFive Score</div>
+                                <div className="text-[15px] font-extrabold text-[#2563EB] tabular-nums mt-0.5">81<span className="text-[9px] text-slate-400 font-normal">/100</span></div>
+                                <div className="text-[8px] text-slate-400">6-axis radar</div>
+                              </div>
+                              <svg viewBox="0 0 60 56" className="w-11 h-11 shrink-0">
+                                <polygon points="30,4 52,16 52,40 30,52 8,40 8,16" fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.12)" : "#E2E8F0"} strokeWidth="1" />
+                                <polygon points="30,10 48,19 46,38 30,46 13,36 15,20" fill="rgba(37,99,235,0.22)" stroke="#2563EB" strokeWidth="1.5" />
+                              </svg>
+                            </div>
+                          </div>
+
+                          {/* Row 3: Lower Bento (Risk Guard + Discipline Streak + Calendar strip) */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setActiveId("risk-guard")}
+                              className={`rounded-[12px] p-2.5 border text-left cursor-pointer transition-all hover:border-[#2563EB]/60 ${
+                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between text-[9.5px] font-semibold">
+                                <span className="inline-flex items-center gap-1">
+                                  <ShieldCheck size={10.5} className="text-[#2563EB]" /> Risk guard
+                                </span>
+                                <span className="text-emerald-600">Armed</span>
+                              </div>
+                              <div className="text-[12px] font-bold mt-1 tabular-nums">0.8% / 3.0%</div>
+                              <div className="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 mt-1.5 overflow-hidden">
+                                <div className="h-full w-[26%] rounded-full bg-emerald-500" />
+                              </div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setActiveId("ai-coach")}
+                              className={`rounded-[12px] p-2.5 border text-left cursor-pointer transition-all hover:border-[#2563EB]/60 ${
+                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between text-[9.5px] font-semibold">
+                                <span className="inline-flex items-center gap-1">
+                                  <Flame size={10.5} className="text-orange-500" /> Discipline
+                                </span>
+                                <span className="text-amber-600">Lv.12</span>
+                              </div>
+                              <div className="text-[12px] font-bold mt-1 tabular-nums">94 / 100</div>
+                              <div className="text-[8.5px] text-slate-400 mt-1">14d clean streak · +240 XP</div>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setActiveId("reports")}
+                              className={`rounded-[12px] p-2.5 border text-left cursor-pointer transition-all hover:border-[#2563EB]/60 ${
+                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between text-[9.5px] font-semibold mb-1.5">
+                                <span>This Week P&amp;L</span>
+                                <span className="text-emerald-600">+$3.4k</span>
+                              </div>
+                              <div className="grid grid-cols-5 gap-1">
+                                {["+$840", "+$1.1k", "-$240", "+$960", "+$760"].map((d, idx) => (
+                                  <span
+                                    key={idx}
+                                    className={`py-1 rounded text-[7.5px] font-bold text-center ${
+                                      d.startsWith("-")
+                                        ? "bg-rose-500/15 text-rose-500"
+                                        : "bg-emerald-500/15 text-emerald-600"
+                                    }`}
+                                  >
+                                    {d.replace("+$", "+").replace("-$", "-")}
+                                  </span>
+                                ))}
+                              </div>
+                            </button>
+                          </div>
+                        </>
+                      )}
+
+                      {/* 2. REAL JOURNAL VIEW (Matches Journal.tsx + JournalMetrics + JournalTradesTable) */}
+                      {active.id === "journal" && (
+                        <>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {[
+                              { k: "Total Trades", v: "148" },
+                              { k: "Win Rate", v: "82%" },
+                              { k: "Profit Factor", v: "3.42" },
+                              { k: "Rule Adherence", v: "94%" },
+                            ].map((stat) => (
+                              <div
+                                key={stat.k}
+                                className={`rounded-[11px] p-2 border ${
+                                  isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                                }`}
+                              >
+                                <div className="text-[8.5px] text-slate-400 truncate">{stat.k}</div>
+                                <div className="text-[13px] font-bold mt-0.5 tabular-nums">{stat.v}</div>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div
+                            className={`rounded-[14px] border overflow-hidden ${
+                              isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                            }`}
+                          >
+                            <div
+                              className={`px-3 py-2 border-b flex items-center justify-between gap-2 ${
+                                isDarkFocus ? "border-white/[0.07] bg-white/[0.02]" : "border-[#E4E4E4] bg-[#FAFAFC]"
+                              }`}
+                            >
+                              <span className="text-[11px] font-bold">Auto-Synced MT5 Trades</span>
+                              <div className="inline-flex items-center gap-1">
+                                {(["ALL", "WIN", "LOSS"] as const).map((f) => (
+                                  <button
+                                    key={f}
+                                    type="button"
+                                    onClick={() => {
+                                      setJournalFilter(f);
+                                      setSelectedJournalIdx(0);
+                                    }}
+                                    className={`px-2 py-0.5 rounded-full text-[9px] font-bold cursor-pointer ${
+                                      journalFilter === f
+                                        ? "bg-[#2563EB] text-white"
+                                        : isDarkFocus
+                                        ? "text-neutral-400 hover:bg-white/[0.06]"
+                                        : "text-slate-500 hover:bg-slate-200/60"
+                                    }`}
+                                  >
+                                    {f}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className={`divide-y ${isDarkFocus ? "divide-white/[0.06]" : "divide-[#E4E4E4]/70"}`}>
+                              {filteredJournal.map((row, idx) => {
+                                const isSel = activeJournalRow.pair === row.pair;
+                                return (
+                                  <button
+                                    key={row.pair}
+                                    type="button"
+                                    onClick={() => setSelectedJournalIdx(idx)}
+                                    className={`w-full px-3 py-2 flex items-center justify-between text-left cursor-pointer transition-colors ${
+                                      isSel
+                                        ? isDarkFocus
+                                          ? "bg-[#2563EB]/15"
+                                          : "bg-blue-50/75"
+                                        : isDarkFocus
+                                        ? "hover:bg-white/[0.03]"
+                                        : "hover:bg-slate-50"
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <span className="text-[11.5px] font-bold">{row.pair}</span>
+                                      <span
+                                        className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded ${
+                                          row.dir === "LONG"
+                                            ? "bg-emerald-500/15 text-emerald-600"
+                                            : "bg-slate-500/15 text-slate-400"
+                                        }`}
+                                      >
+                                        {row.dir}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 truncate">
+                                        {row.lot} · {row.tag}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-2.5 tabular-nums shrink-0">
+                                      <span className="text-[10px] font-mono text-slate-400">{row.r}</span>
+                                      <span
+                                        className={`text-[11.5px] font-bold ${
+                                          row.good ? "text-emerald-600" : "text-rose-500"
+                                        }`}
+                                      >
+                                        {row.pnl}
+                                      </span>
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div
+                              className={`px-3 py-1.5 border-t text-[10px] ${
+                                isDarkFocus
+                                  ? "border-white/[0.07] bg-white/[0.02] text-neutral-300"
+                                  : "border-[#E4E4E4] bg-[#FAFAFC] text-slate-600"
+                              }`}
+                            >
+                              <strong className="text-[#2563EB]">{activeJournalRow.pair} Audit:</strong> {activeJournalRow.note}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* 3. REAL ANALYTICS VIEW */}
+                      {active.id === "analytics" && (
+                        <>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="text-[9.5px] text-slate-400">London Session</div>
+                              <div className="text-[15px] font-bold text-emerald-600 mt-0.5 tabular-nums">+$6,840</div>
+                              <div className="text-[9px] text-slate-400">84% win rate</div>
+                            </div>
+                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="text-[9.5px] text-slate-400">NY Open</div>
+                              <div className="text-[15px] font-bold text-emerald-600 mt-0.5 tabular-nums">+$4,920</div>
+                              <div className="text-[9px] text-slate-400">79% win rate</div>
+                            </div>
+                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="text-[9.5px] text-slate-400">Asian Session</div>
+                              <div className="text-[15px] font-bold mt-0.5 tabular-nums">+$770</div>
+                              <div className="text-[9px] text-slate-400">50% win rate</div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                            <div className={`sm:col-span-7 rounded-[14px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="flex items-center justify-between text-[10px] font-semibold mb-2.5">
+                                <span>Hourly Expectancy Edge</span>
+                                <span className="text-[#2563EB]">Peak 13:30–16:00 UTC</span>
+                              </div>
+                              <div className="grid grid-cols-8 items-end gap-1.5 h-20">
+                                {[35, 58, 84, 96, 78, 44, 62, 32].map((h, i) => (
+                                  <div key={i} className="flex flex-col items-center gap-1 h-full justify-end">
+                                    <div
+                                      className={`w-full rounded-t-md ${i === 3 || i === 2 ? "bg-[#2563EB]" : "bg-blue-500/25"}`}
+                                      style={{ height: `${h}%` }}
+                                    />
+                                    <span className="text-[7.5px] text-slate-400">{i + 9}h</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div className={`sm:col-span-5 rounded-[14px] p-3 border space-y-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="text-[10px] font-semibold">Top Edge Drivers</div>
+                              {[
+                                { label: "XAU/USD NY Sweep", pct: 86 },
+                                { label: "NAS100 London OB", pct: 74 },
+                                { label: "Rule Consistency", pct: 94 },
+                              ].map((bar) => (
+                                <div key={bar.label}>
+                                  <div className="flex justify-between text-[9px] mb-0.5">
+                                    <span className="text-slate-400">{bar.label}</span>
+                                    <span className="font-bold">{bar.pct}%</span>
+                                  </div>
+                                  <div className="h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
+                                    <div className="h-full rounded-full bg-[#2563EB]" style={{ width: `${bar.pct}%` }} />
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* 4. REAL RISK GUARD VIEW (Matches RiskGuard.tsx Daily Trade Limit & Drawdown Protections) */}
+                      {active.id === "risk-guard" && (
+                        <div className="space-y-2.5">
+                          <div className={`rounded-[14px] p-3 border space-y-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-[8px] bg-blue-500/10 text-[#2563EB] flex items-center justify-center">
+                                  <ShieldCheck size={13} />
+                                </span>
+                                <div>
+                                  <div className="text-[12px] font-semibold leading-tight">Daily Trade Limit</div>
+                                  <div className="text-[9.5px] text-slate-400">Stop overtrading after max orders/day</div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-[#2563EB] text-[10px] font-semibold tabular-nums">
+                                  {rgCap}/day
+                                </span>
+                                <Switch checked={rgArmed} onCheckedChange={setRgArmed} size="sm" />
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[9.5px]">
+                              <span className="font-semibold">Today: {rgUsed} / {rgCap}</span>
+                              <span className={rgUsed >= rgCap ? "text-rose-500 font-bold" : "text-emerald-600 font-semibold"}>
+                                {rgUsed >= rgCap ? "Limit reached · Locked" : `${Math.max(0, rgCap - rgUsed)} left today`}
+                              </span>
+                            </div>
+                            <TradeSlotsBlobStrip
+                              total={rgCap}
+                              completed={rgUsed}
+                              interactive={true}
+                              onSelectCount={setRgUsed}
+                            />
+                            <div className="flex items-center justify-between pt-0.5">
+                              <span className="text-[10px] text-slate-400">Adjust cap live</span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = Math.max(1, rgCap - 1);
+                                    setRgCap(next);
+                                    if (rgUsed > next) setRgUsed(next);
+                                  }}
+                                  className="tactile-white-pill w-6 h-6 rounded-[6px] font-bold text-slate-700 cursor-pointer"
+                                >
+                                  -
+                                </button>
+                                <span className="px-2 text-[11px] font-bold tabular-nums">{rgCap}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => setRgCap((v) => Math.min(8, v + 1))}
+                                  className="tactile-white-pill w-6 h-6 rounded-[6px] font-bold text-slate-700 cursor-pointer"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[11px] font-semibold">Daily Loss Limit</span>
+                                <Switch checked={rgLossArmed} onCheckedChange={setRgLossArmed} size="sm" />
+                              </div>
+                              <div className="text-[10px] text-slate-400 mb-1.5">0.8% drawn / 3.0% hard stop</div>
+                              <div className="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
+                                <div className="h-full w-[26%] rounded-full bg-emerald-500" />
+                              </div>
+                            </div>
+                            <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-[11px] font-semibold">Red-Folder News Lock</span>
+                                <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-[8.5px] font-bold">Armed</span>
+                              </div>
+                              <div className="text-[10px] text-slate-400">Auto-pauses 15m before US CPI (13:30 UTC)</div>
+                            </div>
+                          </div>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {active.id === "journal" && (
-                    <div className="space-y-2.5">
-                      {[
-                        { pair: "XAU/USD", dir: "LONG", tag: "NY Break & Retest", r: "+2.4R", pnl: "+$1,640", good: true },
-                        { pair: "NAS100", dir: "SHORT", tag: "London Sweep", r: "+1.8R", pnl: "+$1,210", good: true },
-                        { pair: "EUR/USD", dir: "LONG", tag: "Pre-News Fade", r: "-0.8R", pnl: "-$240", good: false },
-                      ].map((row) => (
-                        <div
-                          key={row.pair}
-                          className="rounded-xl bg-white border border-slate-200/80 px-3.5 py-2.5 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className="text-[11px] font-bold text-slate-900">{row.pair}</span>
-                            <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${row.dir === "LONG"
-                                  ? "bg-emerald-50 text-emerald-700"
-                                  : "bg-slate-100 text-slate-700"
-                                }`}
-                            >
-                              {row.dir}
-                            </span>
-                            {viewMode === "classic" && (
-                              <span className="text-[10px] text-slate-500 hidden sm:inline">
-                                · {row.tag}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-3 tabular-nums">
-                            <span className="text-[10.5px] font-semibold text-slate-500">{row.r}</span>
-                            <span
-                              className={`text-[12px] font-bold ${row.good ? "text-emerald-600" : "text-rose-500"
-                                }`}
-                            >
-                              {row.pnl}
+                      {/* 5. REAL REPORTS & CALENDAR VIEW */}
+                      {active.id === "reports" && (
+                        <div className="space-y-2.5">
+                          <div className={`rounded-[13px] p-3 border flex items-center justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                            <div>
+                              <div className="text-[11.5px] font-bold">November Verified Statement</div>
+                              <div className="text-[10px] text-slate-400 mt-0.5">
+                                Start $25,000.00 → Equity $37,530.00 (+50.1%)
+                              </div>
+                            </div>
+                            <span className="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-[#2563EB] text-[10px] font-bold">
+                              Broker Verified
                             </span>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {active.id === "analytics" && (
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5">
-                        <div className="rounded-xl bg-white border border-slate-200/80 p-2 sm:p-3">
-                          <div className="text-[8.5px] sm:text-[9.5px] text-slate-400 truncate">London</div>
-                          <div className="text-[13px] sm:text-[15px] font-bold text-emerald-600 mt-0.5">+$6,840</div>
-                          <div className="text-[8.5px] sm:text-[9.5px] text-slate-500">84% win</div>
-                        </div>
-                        <div className="rounded-xl bg-white border border-slate-200/80 p-2 sm:p-3">
-                          <div className="text-[8.5px] sm:text-[9.5px] text-slate-400 truncate">NY Open</div>
-                          <div className="text-[13px] sm:text-[15px] font-bold text-emerald-600 mt-0.5">+$4,920</div>
-                          <div className="text-[8.5px] sm:text-[9.5px] text-slate-500">79% win</div>
-                        </div>
-                        <div className="rounded-xl bg-white border border-slate-200/80 p-2 sm:p-3">
-                          <div className="text-[8.5px] sm:text-[9.5px] text-slate-400 truncate">Asian</div>
-                          <div className="text-[13px] sm:text-[15px] font-bold text-slate-800 mt-0.5">+$770</div>
-                          <div className="text-[8.5px] sm:text-[9.5px] text-slate-500">50% win</div>
-                        </div>
-                      </div>
-                      <div className="rounded-xl bg-white border border-slate-200/80 p-3.5">
-                        <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-2">
-                          <span>Hourly Expectancy Edge</span>
-                          <span className="text-[#2563EB]">Peak 13:30 – 16:00 UTC</span>
-                        </div>
-                        <div className="grid grid-cols-8 items-end gap-1.5 h-16">
-                          {[35, 58, 82, 95, 76, 44, 62, 30].map((h, i) => (
-                            <div
-                              key={i}
-                              className={`rounded-t-md ${i === 3 || i === 2 ? "bg-[#2563EB]" : "bg-blue-100"
+                          <div className="grid grid-cols-7 gap-1">
+                            {[
+                              "+$620", "+$1.1k", "-$280", "+$940", "+$1.4k", "+$750", "+$1.6k",
+                              "+$890", "+$1.5k", "-$240", "+$980", "+$1.2k", "+$650", "+$1.4k",
+                            ].map((val, idx) => (
+                              <div
+                                key={idx}
+                                className={`rounded-lg py-2 text-center text-[8.5px] font-bold border ${
+                                  val.startsWith("-")
+                                    ? "bg-rose-500/10 border-rose-500/25 text-rose-500"
+                                    : "bg-emerald-500/10 border-emerald-500/25 text-emerald-600"
                                 }`}
-                              style={{ height: `${h}%` }}
-                            />
-                          ))}
+                              >
+                                {val}
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  )}
+                      )}
 
-                  {active.id === "risk-guard" && (
-                    <div className="space-y-3">
-                      <div className="rounded-xl bg-white border border-slate-200/80 p-3.5 flex items-center justify-between">
-                        <div>
-                          <div className="text-[11px] font-bold text-slate-900">Daily Loss Limit</div>
-                          <div className="text-[10px] text-slate-500">0.8% drawn today · 2.2% buffer remaining</div>
-                        </div>
-                        <span className="px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-bold">
-                          Armed
-                        </span>
-                      </div>
-                      <div className="rounded-xl bg-white border border-slate-200/80 p-3.5">
-                        <div className="flex justify-between text-[10.5px] font-semibold text-slate-700 mb-2">
-                          <span>Daily Drawdown Meter</span>
-                          <span>0.8% / 3.0%</span>
-                        </div>
-                        <div className="w-full h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                          <div className="h-full w-[26%] rounded-full bg-emerald-500" />
-                        </div>
-                        <div className="mt-2.5 grid grid-cols-2 gap-2 text-[10px] text-slate-500">
-                          <div className="bg-slate-50 rounded-lg px-2.5 py-1.5">Max trades/day: 3 / 5</div>
-                          <div className="bg-slate-50 rounded-lg px-2.5 py-1.5">News guard: Auto-pause CPI</div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                      {/* 6. REAL TRADI FIVE AI COACH VIEW */}
+                      {active.id === "ai-coach" && (
+                        <div className="space-y-2.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {AI_PROMPTS.map((item, i) => (
+                              <button
+                                key={item.chip}
+                                type="button"
+                                onClick={() => setAiPromptIdx(i)}
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border cursor-pointer transition-colors ${
+                                  aiPromptIdx === i
+                                    ? "bg-[#2563EB] text-white border-[#2563EB]"
+                                    : isDarkFocus
+                                    ? "bg-[#17171A] border-white/[0.08] text-neutral-300"
+                                    : "bg-white border-[#E4E4E4] text-slate-600 hover:border-slate-300"
+                                }`}
+                              >
+                                {item.chip}
+                              </button>
+                            ))}
+                          </div>
 
-                  {active.id === "reports" && (
-                    <div className="space-y-3">
-                      <div className="rounded-xl bg-white border border-slate-200/80 p-3.5 flex items-center justify-between">
-                        <div>
-                          <div className="text-[11px] font-bold text-slate-900">
-                            November 2026 Verified Statement
+                          <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                            <div className="text-[10px] font-semibold text-slate-400 mb-1.5">
+                              You asked: <span className={isDarkFocus ? "text-white" : "text-slate-800"}>&ldquo;{aiItem.q}&rdquo;</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-[#2563EB] mb-1">
+                              <Sparkles className="w-3.5 h-3.5" />
+                              <span>TradiFive AI · {aiItem.badge}</span>
+                            </div>
+                            <p className={`text-[11.5px] leading-relaxed ${isDarkFocus ? "text-neutral-300" : "text-slate-700"}`}>
+                              {aiItem.a}
+                            </p>
                           </div>
-                          <div className="text-[10px] text-slate-500 mt-0.5">
-                            Start $25,000.00 → Equity $37,530.00 (+50.1%)
-                          </div>
-                        </div>
-                        <span className="px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] text-[10px] font-bold">
-                          Verified
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-                        {[
-                          "+$620", "+$1.1k", "-$280", "+$940", "+$1.4k", "+$750", "+$1.6k",
-                          "+$890", "+$1.5k", "-$240", "+$980", "+$1.2k", "+$650", "+$1.4k",
-                        ].map((val, idx) => (
-                          <div
-                            key={idx}
-                            className={`rounded-md sm:rounded-lg py-1.5 sm:py-2 text-center text-[8px] sm:text-[9.5px] font-bold border ${val.startsWith("-")
-                                ? "bg-rose-50/90 border-rose-200 text-rose-600"
-                                : "bg-emerald-50/90 border-emerald-200 text-emerald-700"
-                              }`}
-                          >
-                            {val}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
-                  {active.id === "ai-coach" && (
-                    <div className="space-y-3">
-                      <div className="rounded-xl bg-white border border-slate-200/80 p-3.5">
-                        <div className="flex items-center gap-2 text-[10.5px] font-bold text-[#2563EB] mb-1.5">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>TradiFive AI · Session Debrief</span>
-                        </div>
-                        <p className="text-[11.5px] leading-relaxed text-slate-700">
-                          “Your discipline held at <span className="font-bold text-slate-900">94/100</span> this week.
-                          Sticking to the first 2 NY Open setups produced{" "}
-                          <span className="font-bold text-emerald-600">+89% of total monthly gains</span> with zero revenge entries.”
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div className="rounded-xl bg-white border border-slate-200/80 p-3">
-                          <div className="text-[9.5px] text-slate-400">Next Focus Rule</div>
-                          <div className="text-[11px] font-bold text-slate-800 mt-0.5">
-                            Hold winners to 2.0R before partial
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="text-[9px] text-slate-400">Next Focus Rule</div>
+                              <div className="text-[11px] font-bold mt-0.5">{aiItem.rule}</div>
+                            </div>
+                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="text-[9px] text-slate-400">Streak Status</div>
+                              <div className="text-[11px] font-bold text-emerald-600 mt-0.5">14 consecutive clean days</div>
+                            </div>
                           </div>
                         </div>
-                        <div className="rounded-xl bg-white border border-slate-200/80 p-3">
-                          <div className="text-[9.5px] text-slate-400">Streak Status</div>
-                          <div className="text-[11px] font-bold text-emerald-600 mt-0.5">
-                            14 consecutive clean days
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Floating Pills Column */}
+          {/* Right Floating Pills Column — Click to POP + Switch Page */}
           <div className="hidden lg:flex flex-col justify-center gap-12 z-20 pl-0">
             {rightModules.map((mod) => {
               const Icon = mod.icon;
@@ -2517,36 +3020,48 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   {/* Connector node + hairline */}
                   <div className="flex items-center shrink-0">
                     <span
-                      className={`w-2 h-2 rounded-full border-[1.5px] transition-colors ${isSelected
-                          ? "bg-[#2563EB] border-[#2563EB] shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"
+                      className={`w-2 h-2 rounded-full border-[1.5px] transition-all ${
+                        isSelected
+                          ? "bg-[#2563EB] border-[#2563EB] scale-125 shadow-[0_0_0_4px_rgba(37,99,235,0.18)]"
                           : "bg-white border-slate-300"
-                        }`}
+                      }`}
                     />
                     <div
-                      className={`w-8 h-[1.5px] transition-colors ${isSelected ? "bg-[#2563EB]" : "bg-slate-200"
-                        }`}
+                      className={`w-7 h-[1.5px] transition-colors ${
+                        isSelected ? "bg-[#2563EB]" : "bg-[#E4E4E4]"
+                      }`}
                     />
                   </div>
-                  <button
+                  <motion.button
                     type="button"
+                    whileHover={{ scale: isSelected ? 1.09 : 1.04, x: isSelected ? -8 : -3 }}
+                    whileTap={{ scale: 0.95 }}
+                    animate={isSelected ? { scale: 1.08, x: -8 } : { scale: 1, x: 0 }}
+                    transition={{ type: "spring", stiffness: 420, damping: 24 }}
                     onClick={() => setActiveId(mod.id)}
-                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-all duration-200 cursor-pointer ${isSelected
-                        ? "border-[#2563EB] shadow-[0_10px_26px_rgba(37,99,235,0.18)] scale-[1.03]"
-                        : "border-slate-200/90 shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
-                      }`}
+                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-colors duration-200 cursor-pointer ${
+                      isSelected
+                        ? "border-[#2563EB] shadow-[0_14px_30px_-6px_rgba(37,99,235,0.34)] ring-2 ring-[#2563EB]/15"
+                        : "border-[#E4E4E4] shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
+                    }`}
                   >
                     <span
-                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${isSelected
-                          ? "bg-[#0F172A] text-white"
+                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${
+                        isSelected
+                          ? "bg-[#2563EB] text-white shadow-[0_4px_12px_rgba(37,99,235,0.4)]"
                           : "bg-slate-900 text-white group-hover:bg-[#2563EB]"
-                        }`}
+                      }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
                     </span>
-                    <span className="text-[12.5px] font-semibold text-slate-800 whitespace-nowrap">
+                    <span
+                      className={`text-[12.5px] font-semibold whitespace-nowrap ${
+                        isSelected ? "text-[#2563EB]" : "text-slate-800"
+                      }`}
+                    >
                       {mod.label}
                     </span>
-                  </button>
+                  </motion.button>
                 </div>
               );
             })}
@@ -2554,8 +3069,8 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
         </div>
 
         {/* Overlapping Floating Summary Card */}
-        <div className="relative z-20 -mt-7 sm:-mt-16 max-w-[660px] mx-auto pb-6 sm:pb-10">
-          <div className="rounded-[20px] sm:rounded-[24px] bg-white border border-slate-200/95 shadow-[0_24px_60px_-15px_rgba(15,23,42,0.14)] p-4 sm:p-7">
+        <div className="relative z-20 -mt-5 sm:-mt-8 max-w-[760px] mx-auto pb-6 sm:pb-10">
+          <div className="rounded-[20px] sm:rounded-[24px] bg-white border border-[#E4E4E4] shadow-[0_24px_60px_-15px_rgba(15,23,42,0.14)] p-4 sm:p-6">
             <AnimatePresence mode="wait">
               <motion.div
                 key={active.id}
