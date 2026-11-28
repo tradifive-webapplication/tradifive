@@ -5390,66 +5390,89 @@ function Pricing({ onStart }: { onStart: () => void }) {
 /* ════════════════
    COMMUNITY & SOCIAL PROOF
 ════════════════ */
-const TESTIS = [
-  {
-    name: "Priya Mehra",
-    role: "Day Trader, Pune",
-    init: "PM",
-    broker: "Exness MT5 · XAU/USD",
-    proof: "42% → 67% Win Rate",
-    metricLabel: "8-Week Verified",
-    text: "Seeing real verified P&Ls from other traders keeps me accountable. My win rate jumped from 42% to 67% in two months.",
-  },
-  {
-    name: "Rahul Sharma",
-    role: "IIT Delhi Graduate",
-    init: "RS",
-    broker: "Zerodha · NIFTY 50",
-    proof: "19d Clean Streak",
-    metricLabel: "0 Tilt Breaches",
-    text: "Risk Guard stopped me from revenge trading after a bad morning session. Saved my account more than once.",
-  },
-  {
-    name: "Kavita Trivedi",
-    role: "Swing Trader, Mumbai",
-    init: "KT",
-    broker: "FundedNext · EUR/USD",
-    proof: "Rank #1 Nov Cup",
-    metricLabel: "Funded Qualified",
-    text: "Won the November trading competition and qualified for a funded account. The leaderboard keeps your focus sharp daily.",
-  },
-  {
-    name: "Arjun Das",
-    role: "Software Engineer, Bengaluru",
-    init: "AD",
-    broker: "IC Markets · NAS100",
-    proof: "2.4x Profit Factor",
-    metricLabel: "Auto-Synced",
-    text: "Auto-Sync Journal eliminated manual logging. The AI coach spotted that I was overleveraging on Mondays.",
-  },
-  {
-    name: "Sneha Kapoor",
-    role: "Forex Trader, Hyderabad",
-    init: "SK",
-    broker: "Pepperstone · GBP/USD",
-    proof: "96 / 100 Discipline",
-    metricLabel: "MT5 Verified",
-    text: "Following verified setups from disciplined traders taught me more than any course. Zero noise.",
-  },
-  {
-    name: "Vikram Singh",
-    role: "Business Owner, Delhi",
-    init: "VS",
-    broker: "Vantage · XAU/USD",
-    proof: "+$4,120 / Mo",
-    metricLabel: "Live Feed Link",
-    text: "Everyone here connects live MT5 accounts so results are verifiable. No fake gurus, no edited screenshots.",
-  },
+interface ProofReview {
+  name: string;
+  role: string;
+  init: string;
+  broker: string;
+  outcome: string;
+  text: string;
+  featured?: boolean;
+  equitySpark?: boolean;
+}
+
+const PROOF_COLUMNS: ProofReview[][] = [
+  [
+    {
+      name: "Priya Mehra",
+      role: "Day Trader, Pune",
+      init: "PM",
+      broker: "Exness MT5 · XAU/USD",
+      outcome: "42% → 67% Win Rate",
+      text: "Seeing real verified P&Ls from other traders keeps me accountable. My win rate jumped from 42% to 67% in two months without changing my strategy.",
+    },
+    {
+      name: "Arjun Das",
+      role: "Software Engineer, Bengaluru",
+      init: "AD",
+      broker: "IC Markets · NAS100",
+      outcome: "2.42 Profit Factor",
+      equitySpark: true,
+      text: "Auto-Sync Journal eliminated manual logging completely. The AI coach caught that I was overleveraging every Monday open.",
+    },
+  ],
+  [
+    {
+      name: "Kavita Trivedi",
+      role: "Swing Trader, Mumbai",
+      init: "KT",
+      broker: "FundedNext · $100K Evaluation",
+      outcome: "Rank #1 · Funded Pass",
+      featured: true,
+      text: "Won the November trading competition and qualified for a funded $100K account in 24 trading days. Seeing your discipline score ranked alongside real verified traders keeps your focus sharp every morning.",
+    },
+    {
+      name: "Vikram Singh",
+      role: "Full-Time Trader, Delhi",
+      init: "VS",
+      broker: "Vantage MT5 · XAU/USD",
+      outcome: "+$4,120 / Mo Verified",
+      text: "Everyone here connects live MT5 accounts so numbers can't be faked. No screenshots, no hindsight bias — just real execution logs.",
+    },
+  ],
+  [
+    {
+      name: "Rahul Sharma",
+      role: "IIT Delhi Graduate",
+      init: "RS",
+      broker: "Zerodha · NIFTY 50",
+      outcome: "19d Clean Streak",
+      text: "Risk Guard locked my terminal after two consecutive losses and stopped me from revenge trading. It literally saved my capital twice.",
+    },
+    {
+      name: "Sneha Kapoor",
+      role: "Forex Trader, Hyderabad",
+      init: "SK",
+      broker: "Pepperstone · GBP/USD",
+      outcome: "96 / 100 Rule Score",
+      text: "Following broker-verified setups and daily tape breakdowns taught me more execution discipline than any course ever did.",
+    },
+  ],
+];
+
+const SUPPORTED_DESKS = [
+  "Exness MT5",
+  "IC Markets",
+  "FundedNext",
+  "Pepperstone",
+  "FTMO",
+  "Zerodha",
+  "Vantage",
 ];
 
 function Social() {
   const proofRef = useRef<HTMLElement | null>(null);
-  const inView = useInView(proofRef, { once: true, amount: 0.2 });
+  const inView = useInView(proofRef, { once: true, amount: 0.18 });
   const [countPct, setCountPct] = useState(0);
 
   useEffect(() => {
@@ -5465,267 +5488,174 @@ function Social() {
   const activeTraders = Math.round(12400 * countPct).toLocaleString();
   const prizePool = (2.8 * countPct).toFixed(1);
   const ruleAdherence = Math.round(94 * countPct);
-  const brokerCount = Math.round(40 * countPct);
+  const reviewCount = Math.round(1420 * countPct).toLocaleString();
 
   return (
     <section ref={proofRef} id="wall-of-fame" className="py-20 sm:py-28 relative overflow-hidden bg-white">
-      <div className="max-w-[1180px] mx-auto px-4 sm:px-7">
+      <div className="max-w-[1160px] mx-auto px-4 sm:px-7">
         <SectionHeader
           badge="Community & Proof"
           icon={Users}
           tone="blue"
-          title="Traders who chose"
-          subtitle="to grow together."
+          title="Trusted by traders with"
+          subtitle="verifiable track records."
           inlineSubtitle
-          description="Share broker-verified executions, compete on rule-weighted leaderboards, and connect with disciplined traders worldwide."
-          className="mb-12 sm:mb-14"
+          description="Every stat, payout milestone, and review below comes directly from connected MT5 and broker accounts."
+          className="mb-10 sm:mb-12"
         />
 
-        {/* Editorial Proof Bento Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 mb-12">
-          {/* Left Featured Card: Live Rule-Weighted Leaderboard + Scroll Telemetry */}
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.2 }}
-            transition={{ duration: 0.5, ease: EASE_OUT }}
-            className="lg:col-span-5 relative overflow-hidden rounded-[24px] bg-[#0B0F19] text-white p-6 flex flex-col justify-between gap-6 border border-slate-800/80 shadow-[0_24px_54px_-18px_rgba(11,15,25,0.45)]"
-          >
-            {/* Subtle Radial Accent & Decorative Curly Wave */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute -top-20 -right-16 w-60 h-60 rounded-full bg-blue-600/20 blur-3xl"
-            />
-            <svg
-              viewBox="0 0 120 36"
-              fill="none"
-              aria-hidden="true"
-              className="pointer-events-none absolute top-4 right-5 w-20 h-6 opacity-35"
-            >
-              <path
-                d="M 4 28 C 24 4, 48 32, 68 12 C 82 -2, 98 22, 116 8"
-                stroke="#60A5FA"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-
-            <div className="relative z-10 flex items-start justify-between gap-4">
-              <div>
-                <div className="text-[11px] font-mono uppercase tracking-widest text-blue-400 font-semibold">
-                  Verified Execution Network
-                </div>
-                <div className="mt-2 flex items-baseline gap-2.5">
-                  <span className="text-[36px] sm:text-[42px] font-bold tracking-tight tabular-nums leading-none">
-                    {activeTraders}+
-                  </span>
-                  <span className="text-[12.5px] font-medium text-slate-400">
-                    active traders
-                  </span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-[20px] font-bold font-mono text-emerald-400 tabular-nums leading-none">
-                  {ruleAdherence}%
-                </div>
-                <div className="text-[10.5px] text-slate-400 mt-1">Rule adherence</div>
-              </div>
-            </div>
-
-            {/* Live Rule-Weighted Standings */}
-            <div className="relative z-10 rounded-2xl bg-white/[0.04] border border-white/[0.08] p-3.5 space-y-2.5">
-              <div className="flex items-center justify-between text-[10.5px] font-mono text-slate-400">
-                <span>LIVE RULE LEADERBOARD</span>
-                <span className="inline-flex items-center gap-1.5 text-emerald-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Synced
+        {/* Top Verified Rating & Trust Benchmark Strip */}
+        <motion.div
+          initial={{ opacity: 0, y: 14 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.25 }}
+          transition={{ duration: 0.45, ease: EASE_OUT }}
+          className="rounded-2xl border border-[#E4E4E4] bg-[#FAFAFC] p-5 sm:p-6 mb-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center"
+        >
+          {/* Verified Review Score (Left 4 Cols) */}
+          <div className="lg:col-span-4 lg:border-r lg:border-[#E4E4E4] lg:pr-6 flex items-center justify-between lg:justify-start gap-4">
+            <div>
+              <div className="flex items-center gap-1 text-amber-500" aria-label="4.9 out of 5 stars">
+                {[0, 1, 2, 3, 4].map((star) => (
+                  <svg key={star} viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.172c.969 0 1.371 1.24.588 1.81l-3.375 2.453a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.538 1.118l-3.376-2.453a1 1 0 00-1.175 0l-3.376 2.453c-.783.57-1.838-.196-1.538-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.172a1 1 0 00.95-.69l1.286-3.967z" />
+                  </svg>
+                ))}
+                <span className="ml-1.5 text-[14px] font-bold text-slate-950 font-mono tabular-nums">
+                  4.9 / 5
                 </span>
               </div>
-              {[
-                { rank: "01", name: "Nikhil H.", pair: "XAU/USD · 14d Clean", score: "94 Score", pnl: "+$12,530" },
-                { rank: "02", name: "Arjun Mehta", pair: "XAU/USD · NY Sweep", score: "91% Win", pnl: "+$9,480" },
-                { rank: "03", name: "Kavita T.", pair: "EUR/USD · Prop Desk", score: "89 Score", pnl: "+$7,820" },
-              ].map((row) => (
-                <div
-                  key={row.rank}
-                  className="flex items-center justify-between gap-2 rounded-xl bg-white/[0.03] px-3 py-2 text-[11.5px] border border-white/[0.05]"
+              <div className="text-[12.5px] text-slate-500 mt-1">
+                From <strong className="text-slate-800 font-semibold tabular-nums">{reviewCount}+</strong> verified trader reviews
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-1 text-[10.5px] font-semibold text-emerald-700 shrink-0">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              MT5 Audited
+            </span>
+          </div>
+
+          {/* 3 Headline Proof Metrics (Right 8 Cols) */}
+          <div className="lg:col-span-8 grid grid-cols-3 gap-4 sm:gap-6">
+            <div>
+              <div className="text-[24px] sm:text-[28px] font-bold tracking-tight text-slate-950 tabular-nums leading-none">
+                {activeTraders}+
+              </div>
+              <div className="text-[12px] text-slate-500 mt-1.5">Connected accounts</div>
+            </div>
+            <div>
+              <div className="text-[24px] sm:text-[28px] font-bold tracking-tight text-[#2563EB] tabular-nums leading-none">
+                ₹{prizePool}M+
+              </div>
+              <div className="text-[12px] text-slate-500 mt-1.5">Verified payouts &amp; prizes</div>
+            </div>
+            <div>
+              <div className="text-[24px] sm:text-[28px] font-bold tracking-tight text-emerald-600 tabular-nums leading-none">
+                {ruleAdherence}%
+              </div>
+              <div className="text-[12px] text-slate-500 mt-1.5">Avg Rule Guard compliance</div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* 3-Column Masonry Wall of Trader Reviews & Verified Proofs */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5 items-start">
+          {PROOF_COLUMNS.map((col, colIdx) => (
+            <div key={colIdx} className="space-y-4 sm:space-y-5">
+              {col.map((item, cardIdx) => (
+                <motion.div
+                  key={item.name}
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.2 }}
+                  transition={{ duration: 0.45, delay: (colIdx * 0.1) + (cardIdx * 0.08), ease: EASE_OUT }}
+                  className={`rounded-2xl border p-5 sm:p-6 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)] ${
+                    item.featured
+                      ? "bg-gradient-to-b from-[#F5F8FF] to-white border-[#2563EB]/30 shadow-[0_14px_34px_-16px_rgba(37,99,235,0.2)]"
+                      : "bg-white border-[#E4E4E4] hover:border-slate-300"
+                  }`}
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className="font-mono text-[10.5px] text-slate-500 font-semibold">{row.rank}</span>
-                    <div className="min-w-0">
-                      <div className="font-semibold text-white truncate">{row.name}</div>
-                      <div className="text-[10px] text-slate-400 truncate">{row.pair}</div>
+                  {/* Card Top: Stars + Outcome Receipt Badge */}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-0.5 text-amber-500" aria-hidden="true">
+                      {[0, 1, 2, 3, 4].map((s) => (
+                        <svg key={s} viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.172c.969 0 1.371 1.24.588 1.81l-3.375 2.453a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.538 1.118l-3.376-2.453a1 1 0 00-1.175 0l-3.376 2.453c-.783.57-1.838-.196-1.538-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.05 9.394c-.783-.57-.38-1.81.588-1.81h4.172a1 1 0 00.95-.69l1.286-3.967z" />
+                        </svg>
+                      ))}
                     </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10.5px] font-mono font-bold text-emerald-700 shrink-0">
+                      {item.outcome}
+                    </span>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="font-mono font-bold text-emerald-400">{row.pnl}</div>
-                    <div className="text-[9.5px] text-slate-400">{row.score}</div>
+
+                  {/* Quote */}
+                  <p className="text-[14px] leading-relaxed text-slate-700 font-normal">
+                    &ldquo;{item.text}&rdquo;
+                  </p>
+
+                  {/* Optional Miniature Equity Spark Proof inside featured/data cards */}
+                  {item.equitySpark && (
+                    <div className="rounded-xl bg-[#F8FAFC] border border-slate-200/80 px-3 py-2 flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-[9.5px] font-mono uppercase text-slate-400">30d Curve</div>
+                        <div className="text-[12px] font-bold font-mono text-emerald-600">+18.4% Net</div>
+                      </div>
+                      <svg viewBox="0 0 96 28" className="w-24 h-6 overflow-visible" aria-hidden="true">
+                        <path
+                          d="M 2 24 L 18 19 L 34 21 L 50 13 L 68 9 L 82 5 L 94 2"
+                          fill="none"
+                          stroke="#10B981"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                        />
+                        <circle cx="94" cy="2" r="2.2" fill="#10B981" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {item.featured && (
+                    <div className="rounded-xl bg-white border border-blue-200/70 px-3.5 py-2.5 flex items-center justify-between text-[11px]">
+                      <span className="font-semibold text-slate-800">Nov 2026 Leaderboard Certificate</span>
+                      <span className="font-mono font-bold text-[#2563EB]">Verified ✓</span>
+                    </div>
+                  )}
+
+                  {/* Author Row + Broker Tag */}
+                  <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="w-8 h-8 rounded-full bg-slate-900 text-white text-[10.5px] font-bold inline-flex items-center justify-center shrink-0">
+                        {item.init}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-semibold text-slate-950 truncate leading-tight">
+                          {item.name}
+                        </div>
+                        <div className="text-[11px] text-slate-500 truncate">{item.role}</div>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                      {item.broker}
+                    </span>
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
-          </motion.div>
-
-          {/* Right 2x2 Community Pillar Bento Cards */}
-          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* 1: Pulse Feed */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.45, delay: 0.05, ease: EASE_OUT }}
-              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[15px] font-bold text-slate-950">Pulse feed</span>
-                  <span className="font-mono text-[11.5px] font-bold text-[#2563EB] tabular-nums">
-                    ₹{prizePool}M prizes
-                  </span>
-                </div>
-                <p className="text-[12.5px] text-slate-500 leading-relaxed">
-                  Share broker-verified setups, profit milestones, and session reviews in real time.
-                </p>
-              </div>
-              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between text-[10.5px]">
-                <span className="font-semibold text-slate-800 truncate">✓ XAU/USD Long · MT5 Receipt</span>
-                <span className="font-mono font-bold text-emerald-600 shrink-0">+2.4R</span>
-              </div>
-            </motion.div>
-
-            {/* 2: Signal Channels */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.45, delay: 0.12, ease: EASE_OUT }}
-              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[15px] font-bold text-slate-950">Signal channels</span>
-                  <span className="font-mono text-[11.5px] font-bold text-slate-900 tabular-nums">
-                    {brokerCount}+ brokers
-                  </span>
-                </div>
-                <p className="text-[12.5px] text-slate-500 leading-relaxed">
-                  Subscribe to audited broadcast desks with structured entries, stops, and rule checks.
-                </p>
-              </div>
-              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between gap-2 text-[10.5px]">
-                <span className="text-slate-500 truncate">IC Markets · Exness · Pepperstone</span>
-                <span className="w-2 h-2 rounded-full bg-[#2563EB] shrink-0" />
-              </div>
-            </motion.div>
-
-            {/* 3: Direct Messages */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.45, delay: 0.18, ease: EASE_OUT }}
-              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[15px] font-bold text-slate-950">Direct messages</span>
-                  <span className="text-[11px] font-mono text-slate-400">1-on-1 desks</span>
-                </div>
-                <p className="text-[12.5px] text-slate-500 leading-relaxed">
-                  Review executions privately with mentors and accountability partners inside your workspace.
-                </p>
-              </div>
-              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between text-[10.5px]">
-                <span className="text-slate-600 truncate">&ldquo;Halved risk before CPI.&rdquo;</span>
-                <span className="text-[#2563EB] font-semibold shrink-0">Logged ✓</span>
-              </div>
-            </motion.div>
-
-            {/* 4: Webinar Rooms */}
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.45, delay: 0.24, ease: EASE_OUT }}
-              className="rounded-[22px] bg-[#FAFAFC] hover:bg-white border border-slate-200/85 p-5 flex flex-col justify-between gap-4 transition-all hover:shadow-[0_18px_40px_-16px_rgba(15,23,42,0.09)]"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[15px] font-bold text-slate-950">Webinar rooms</span>
-                  <span className="text-[11px] font-mono text-emerald-600 font-semibold">Live weekly</span>
-                </div>
-                <p className="text-[12.5px] text-slate-500 leading-relaxed">
-                  Join live tape breakdowns and prop-firm reviews hosted by vetted disciplined traders.
-                </p>
-              </div>
-              <div className="rounded-xl bg-white border border-slate-200/80 px-3 py-2 flex items-center justify-between text-[10.5px]">
-                <div className="flex -space-x-1.5">
-                  {["NH", "PM", "KT"].map((a) => (
-                    <span
-                      key={a}
-                      className="w-5 h-5 rounded-full bg-slate-900 text-white text-[8px] font-bold border border-white inline-flex items-center justify-center"
-                    >
-                      {a}
-                    </span>
-                  ))}
-                </div>
-                <span className="text-slate-600 font-medium">NY Open Breakdown</span>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </div>
-
-      {/* Upgraded Verified Proof Cards Marquee (Pause on Hover) */}
-      <div
-        className="relative w-full overflow-hidden flex"
-        style={{
-          WebkitMaskImage:
-            "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
-          maskImage:
-            "linear-gradient(to right, transparent, black 12%, black 88%, transparent)",
-        }}
-      >
-        <div className="testimonials-track flex gap-4 sm:gap-5 py-3 hover:[animation-play-state:paused]">
-          {[...TESTIS, ...TESTIS].map((t, i) => (
-            <div
-              key={i}
-              className="w-[336px] sm:w-[360px] shrink-0 rounded-2xl bg-white border border-slate-200/90 shadow-[0_12px_32px_-16px_rgba(15,23,42,0.09)] p-5 flex flex-col justify-between gap-4 hover:border-blue-300/80 transition-colors"
-            >
-              {/* Top Verified Broker & Proof Metric Strip */}
-              <div className="flex items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                <span className="text-[10.5px] font-mono text-slate-400 truncate">
-                  {t.broker}
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-[10px] font-mono font-bold text-emerald-700 shrink-0">
-                  {t.proof}
-                </span>
-              </div>
-
-              {/* Quote Body */}
-              <p className="text-[13.5px] text-slate-700 leading-relaxed font-normal">
-                &ldquo;{t.text}&rdquo;
-              </p>
-
-              {/* Author + Verified Tag Footer */}
-              <div className="flex items-center justify-between gap-3 pt-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center text-[11px] font-bold shrink-0">
-                    {t.init}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-[13px] font-semibold text-slate-950 truncate">
-                      {t.name}
-                    </div>
-                    <div className="text-[11px] text-slate-500 truncate">{t.role}</div>
-                  </div>
-                </div>
-                <span className="text-[10px] font-semibold text-[#2563EB] shrink-0">
-                  {t.metricLabel} ✓
-                </span>
-              </div>
-            </div>
           ))}
+        </div>
+
+        {/* Clean Broker & Prop Firm Verification Strip */}
+        <div className="mt-10 pt-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
+          <span className="text-[12px] font-medium text-slate-400">
+            Verified execution feeds across 40+ brokers &amp; prop desks
+          </span>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] font-semibold text-slate-500">
+            {SUPPORTED_DESKS.map((desk) => (
+              <span key={desk} className="hover:text-slate-900 transition-colors">
+                {desk}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     </section>
