@@ -2013,16 +2013,6 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
   const [activeId, setActiveId] = useState<SessionModuleId>("dashboard");
   const [viewMode, setViewMode] = useState<"classic" | "custom">("classic");
 
-  // Interactive inner-app states across tabs
-  const [dashRange, setDashRange] = useState<"7D" | "30D" | "ALL">("30D");
-  const [journalFilter, setJournalFilter] = useState<"ALL" | "WIN" | "LOSS">("ALL");
-  const [selectedJournalIdx, setSelectedJournalIdx] = useState(0);
-  const [rgCap, setRgCap] = useState(5);
-  const [rgUsed, setRgUsed] = useState(2);
-  const [rgArmed, setRgArmed] = useState(true);
-  const [rgLossArmed, setRgLossArmed] = useState(true);
-  const [aiPromptIdx, setAiPromptIdx] = useState(0);
-
   const active = SESSION_MODULES.find((m) => m.id === activeId) || SESSION_MODULES[0];
   const leftModules = SESSION_MODULES.slice(0, 3);
   const rightModules = SESSION_MODULES.slice(3, 6);
@@ -2030,52 +2020,9 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
   const activeTicks = Math.round((active.scoreValue / 100) * totalTicks);
   const isDarkFocus = viewMode === "custom";
 
-  const DASH_RANGE_DATA = {
-    "7D": { pnl: 3420, wins: 5, losses: 1, winPct: 83, avgRR: "2.45R", pf: "4.12", avgWL: "$810 / $220" },
-    "30D": { pnl: 12530, wins: 14, losses: 3, winPct: 82, avgRR: "2.23R", pf: "3.42", avgWL: "$954 / $276" },
-    ALL: { pnl: 38940, wins: 46, losses: 11, winPct: 81, avgRR: "2.18R", pf: "3.15", avgWL: "$980 / $295" },
-  } as const;
-  const dStats = DASH_RANGE_DATA[dashRange];
-  const dashDonutSize = 48;
-  const dashRadius = 19;
-  const dashCirc = 2 * Math.PI * dashRadius;
-  const dashOffset = dashCirc * (1 - dStats.winPct / 100);
-
-  const JOURNAL_ROWS = [
-    { pair: "XAU/USD", dir: "LONG", lot: "1.50L", tag: "NY Break & Retest", r: "+2.4R", pnl: "+$1,640", good: true, note: "Entered on clean 15m displacement · Risk 0.5% · Zero hesitation" },
-    { pair: "NAS100", dir: "SHORT", lot: "1.00L", tag: "London Sweep", r: "+1.8R", pnl: "+$1,210", good: true, note: "Liquidity sweep above Asia high · Scaled 50% at 1.5R" },
-    { pair: "EUR/USD", dir: "LONG", lot: "2.00L", tag: "Pre-News Fade", r: "-0.8R", pnl: "-$240", good: false, note: "Closed at planned invalidation · Risk Guard stopped re-entry" },
-    { pair: "GBP/USD", dir: "LONG", lot: "1.25L", tag: "Order Block", r: "+2.1R", pnl: "+$1,120", good: true, note: "Synced automatically from Exness MT5 in 0.4s" },
-  ];
-  const filteredJournal = JOURNAL_ROWS.filter((r) =>
-    journalFilter === "ALL" ? true : journalFilter === "WIN" ? r.good : !r.good
-  );
-  const activeJournalRow = filteredJournal[selectedJournalIdx] || filteredJournal[0] || JOURNAL_ROWS[0];
-
-  const AI_PROMPTS = [
-    {
-      chip: "Best session edge",
-      q: "Where did most of my clean profits come from this month?",
-      badge: "NY Session · 94/100 Discipline",
-      a: "Sticking to your first 2 NY Open setups generated +89% of monthly gains ($11,150) with zero revenge trades.",
-      rule: "Stop after 2 wins or +3.0R daily",
-    },
-    {
-      chip: "Revenge risk check",
-      q: "Am I sizing up after a morning red trade?",
-      badge: "Revenge Guard · Protected",
-      a: "Last Tuesday after a -0.8R stop on EUR/USD, Risk Guard blocked 2 oversized attempts and preserved +$1,420.",
-      rule: "Auto-15m cooldown after any stop loss",
-    },
-    {
-      chip: "Holding winners",
-      q: "Should I adjust my take-profit targets on Gold?",
-      badge: "Target Audit · +0.4R Upside",
-      a: "64% of your XAU/USD winners continued to 2.2R after you trimmed at 1.5R. Trailing behind 5m structure adds +$2,180/mo.",
-      rule: "Hold partial runner to 2.0R minimum",
-    },
-  ];
-  const aiItem = AI_PROMPTS[aiPromptIdx];
+  const dashDonutRadius = 17;
+  const dashDonutCirc = 2 * Math.PI * dashDonutRadius;
+  const dashDonutOffset = dashDonutCirc - 0.82 * dashDonutCirc;
 
   return (
     <section
@@ -2131,7 +2078,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 max-w-[1260px] mx-auto px-4 sm:px-8">
+      <div className="relative z-10 max-w-[1320px] mx-auto px-4 sm:px-8">
         {/* Centered Header + Segmented Toggle */}
         <div className="text-center max-w-[660px] mx-auto mb-7 sm:mb-10">
           <motion.div
@@ -2145,7 +2092,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
               <LayoutGrid size={11} strokeWidth={2.2} />
             </span>
             <span className="text-[12px] font-semibold tracking-[-0.01em] text-slate-900">
-              Inside the live web app
+              Inside the workspace
             </span>
           </motion.div>
 
@@ -2190,7 +2137,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
             transition={{ duration: 0.5, delay: 0.24, ease: EASE_OUT }}
             className="mt-3 text-[14px] sm:text-[15.5px] font-normal text-slate-600 leading-relaxed"
           >
-            Click any tool button on the side to pop it open and test the real TradiFive Dashboard, Journal, Risk Guard, and AI Coach.
+            Click any tool button on the side to switch the live TradiFive web app preview between Dashboard, Journal, Risk Guard, and AI Coach.
           </motion.p>
 
           {/* Classic Light / Focused Dark Switcher Pill */}
@@ -2253,7 +2200,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
         </div>
 
         {/* Desktop 3-Column Interactive Showcase */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-[195px_1fr_195px] items-center gap-4 lg:gap-0">
+        <div className="relative grid grid-cols-1 lg:grid-cols-[178px_1fr_178px] items-center gap-4 lg:gap-0">
           {/* Left Floating Pills Column — Click to POP + Switch Page */}
           <div className="hidden lg:flex flex-col justify-center gap-12 z-20 pr-0">
             {leftModules.map((mod) => {
@@ -2294,7 +2241,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   {/* Connector hairline + node */}
                   <div className="flex items-center shrink-0">
                     <div
-                      className={`w-7 h-[1.5px] transition-colors ${
+                      className={`w-6 h-[1.5px] transition-colors ${
                         isSelected ? "bg-[#2563EB]" : "bg-[#E4E4E4]"
                       }`}
                     />
@@ -2311,700 +2258,709 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
             })}
           </div>
 
-          {/* Center Real TradiFive App Window */}
-          <div className="relative z-10 max-w-[760px] w-full mx-auto">
+          {/* Center Window: Authentic Non-Interactive TradiFive Web App Shell (Matches HeroDashboard Pic 2) */}
+          <div className="relative z-10 w-full mx-auto">
             <div
-              className={`rounded-[22px] border shadow-[0_26px_70px_-20px_rgba(15,23,42,0.18)] overflow-hidden transition-colors duration-300 ${
+              className={`pointer-events-none select-none rounded-[20px] sm:rounded-[24px] p-1.5 sm:p-2 border shadow-[0_24px_68px_-20px_rgba(15,23,42,0.18)] transition-colors duration-300 ${
                 isDarkFocus
                   ? "bg-[#111216] border-white/[0.1] text-white"
                   : "bg-white border-[#E4E4E4] text-slate-900"
               }`}
+              aria-hidden="true"
             >
-              {/* macOS Window Title Bar */}
+              {/* Inner TradiFive Multi-Panel Shell */}
               <div
-                className={`flex items-center justify-between px-4 py-2 border-b ${
+                className={`rounded-[15px] sm:rounded-[18px] border p-1.5 sm:p-2 flex gap-2 overflow-hidden transition-colors duration-300 ${
                   isDarkFocus
-                    ? "bg-[#17181E] border-white/[0.08]"
-                    : "bg-slate-50/90 border-[#E4E4E4]"
+                    ? "bg-[#0D0E12] border-white/[0.08]"
+                    : "bg-[#F2F4F8] border-slate-200/80"
                 }`}
               >
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-400/80" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80" />
+                {/* 1. Primary Double-Capsule Vertical Icon Rail (exact Pic 2 AppSidebar left rail) */}
+                <div className="hidden lg:flex flex-col items-center justify-between w-[48px] shrink-0 gap-1.5">
+                  <div
+                    className={`w-full flex-1 flex flex-col items-center py-1.5 rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.04)] ${
+                      isDarkFocus ? "bg-[#16171D]" : "bg-white"
+                    }`}
+                  >
+                    <div
+                      className={`w-[38px] rounded-[18px] flex flex-col items-center py-2 gap-1.5 ${
+                        isDarkFocus
+                          ? "bg-[#1E2029]"
+                          : "bg-[#f4f7fb] shadow-[inset_0_2px_6px_rgba(0,0,0,0.04)]"
+                      }`}
+                    >
+                      <div className="w-6 h-6 flex items-center justify-center">
+                        <img src="/tf-logo.png" alt="TradiFive" className="w-5 h-5 object-contain" />
+                      </div>
+                      <div className={`w-4 h-[1px] ${isDarkFocus ? "bg-white/10" : "bg-slate-200"}`} />
+                      {[
+                        { id: "dashboard" as const, Icon: IconlyCategory },
+                        { id: "journal" as const, Icon: IconlyDocument },
+                        { id: "analytics" as const, Icon: BarChart3 },
+                        { id: "risk-guard" as const, Icon: IconlyShieldDone },
+                        { id: "ai-coach" as const, Icon: Sparkles },
+                      ].map((rail) => {
+                        const isRailActive =
+                          rail.id === activeId || (activeId === "reports" && rail.id === "analytics");
+                        const RailIcon = rail.Icon;
+                        return (
+                          <div
+                            key={rail.id}
+                            className={`relative w-[28px] h-[28px] rounded-[9px] flex items-center justify-center ${
+                              isRailActive
+                                ? isDarkFocus
+                                  ? "bg-[#2563EB] text-white shadow-sm"
+                                  : "bg-white text-slate-900 shadow-sm border border-slate-200/60"
+                                : "text-slate-400"
+                            }`}
+                          >
+                            {rail.id === "analytics" || rail.id === "ai-coach" ? (
+                              <RailIcon size={12.5} strokeWidth={2} />
+                            ) : (
+                              <RailIcon size={12.5} set="curved" stroke="bold" primaryColor="currentColor" />
+                            )}
+                            {isRailActive && !isDarkFocus && (
+                              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[2px] h-3.5 bg-blue-600 rounded-l-full" />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="flex-1 flex items-center justify-center min-h-[42px]">
+                      <span className="text-[7px] font-extrabold tracking-[0.18em] text-slate-400 rotate-[-90deg] whitespace-nowrap uppercase">
+                        TRADIFIVE V1.2
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span
-                  className={`text-[11px] font-semibold ${
-                    isDarkFocus ? "text-neutral-300" : "text-slate-600"
-                  }`}
-                >
-                  app.tradifive.in / {active.label.toLowerCase().replace(/\s+/g, "-")}
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 text-[9.5px] font-bold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  MT5 Live
-                </span>
-              </div>
 
-              {/* Real TradiFive DashboardLayout Shell: Mini App Sidebar + Live Page Content */}
-              <div
-                className={`grid grid-cols-1 sm:grid-cols-[152px_1fr] min-h-[385px] ${
-                  isDarkFocus ? "bg-[#0E0F13]" : "bg-[#F8FAFC]"
-                }`}
-              >
-                {/* Authentic Miniature AppSidebar (matches AppSidebar.tsx navigation) */}
-                <aside
-                  className={`hidden sm:flex flex-col justify-between p-3 border-r ${
-                    isDarkFocus
-                      ? "bg-[#14151B] border-white/[0.07]"
-                      : "bg-white border-[#E4E4E4]"
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center gap-2 px-1.5 pb-3 mb-2 border-b border-[#E4E4E4]/60 dark:border-white/[0.06]">
-                      <img src="/tf-logo.png" alt="TradiFive" className="w-5 h-5 rounded object-contain" />
-                      <span
-                        className={`text-[12.5px] font-bold tracking-tight ${
-                          isDarkFocus ? "text-white" : "text-slate-900"
-                        }`}
-                      >
-                        Tradi<span className="text-[#2563EB]">five</span>
+                {/* 2. Secondary Navigation Sidebar (exact Pic 2 AppSidebar panel) */}
+                <aside className="hidden md:flex flex-col justify-between w-[162px] shrink-0 px-1 py-1">
+                  <div className="space-y-2.5">
+                    <div className="flex items-center px-1 pt-0.5">
+                      <img
+                        src={isDarkFocus ? "/Dark mode logo with white.png" : "/Tradifive_logo1.png"}
+                        alt="TradiFive"
+                        className="h-[19px] w-auto object-contain"
+                      />
+                    </div>
+
+                    <div
+                      className={`h-[28px] rounded-xl border px-2.5 flex items-center justify-between text-[9.5px] text-slate-400 ${
+                        isDarkFocus ? "bg-[#16171D] border-white/[0.08]" : "bg-white border-slate-200/80"
+                      }`}
+                    >
+                      <span className="inline-flex items-center gap-1 truncate">
+                        <Search size={10} className="shrink-0" />
+                        <span className="truncate">Search navigation…</span>
+                      </span>
+                      <span className="px-1 rounded bg-slate-100/80 dark:bg-white/10 text-[8px] font-bold">
+                        ⌘K
                       </span>
                     </div>
 
                     <div className="space-y-0.5">
+                      <div className="px-1.5 text-[8px] font-semibold tracking-wider text-slate-400 uppercase">
+                        Communication
+                      </div>
+                      <div className="flex items-center gap-2 px-2 py-1 rounded-lg text-[10px] font-medium text-slate-500">
+                        <IconlyMessage size={12} set="curved" stroke="bold" primaryColor="currentColor" />
+                        <span>Inbox</span>
+                      </div>
+                      <div className="flex items-center justify-between px-2 py-1 rounded-lg text-[10px] font-medium text-slate-500">
+                        <span className="inline-flex items-center gap-2">
+                          <IconlyNotification size={12} set="curved" stroke="bold" primaryColor="currentColor" />
+                          <span>Notifications</span>
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
+                      </div>
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <div className="px-1.5 text-[8px] font-semibold tracking-wider text-slate-400 uppercase">
+                        Trading Workspace
+                      </div>
                       {SESSION_MODULES.map((mod) => {
-                        const Icon = mod.icon;
+                        const ModIcon = mod.icon;
                         const isSel = mod.id === activeId;
                         return (
-                          <button
+                          <div
                             key={mod.id}
-                            type="button"
-                            onClick={() => setActiveId(mod.id)}
-                            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[10px] text-[11px] font-semibold transition-all cursor-pointer ${
+                            className={`relative flex items-center gap-2 px-2 py-1.5 rounded-xl text-[10px] ${
                               isSel
                                 ? isDarkFocus
-                                  ? "bg-[#2563EB] text-white shadow-sm"
-                                  : "bg-blue-50 text-[#2563EB]"
-                                : isDarkFocus
-                                ? "text-neutral-400 hover:bg-white/[0.05] hover:text-white"
-                                : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
+                                  ? "bg-[#1A1C24] border border-white/[0.1] font-semibold text-white"
+                                  : "bg-white border border-slate-200/80 font-semibold text-slate-900 shadow-xs"
+                                : "font-medium text-slate-500"
                             }`}
                           >
-                            <Icon className="w-3.5 h-3.5 shrink-0" />
+                            <ModIcon size={12} className={isSel ? "text-[#2563EB]" : "text-slate-400"} />
                             <span className="truncate">{mod.label}</span>
-                          </button>
+                            {isSel && (
+                              <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-blue-600 rounded-l-full shadow-[0_0_8px_rgba(37,99,235,0.45)]" />
+                            )}
+                          </div>
                         );
                       })}
                     </div>
                   </div>
 
-                  {/* Account Badge at bottom of Sidebar */}
-                  <div
-                    className={`rounded-[11px] p-2 border text-[10px] ${
-                      isDarkFocus
-                        ? "bg-white/[0.03] border-white/[0.07] text-neutral-300"
-                        : "bg-[#F8FAFC] border-[#E4E4E4] text-slate-700"
-                    }`}
-                  >
-                    <div className="font-bold truncate">Exness · #40892</div>
-                    <div className="flex items-center gap-1 text-[9px] text-emerald-600 font-semibold mt-0.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                      Connected · $37,530
+                  {/* Elite + Nikhil Harake Footer */}
+                  <div className="space-y-2">
+                    <div
+                      className={`rounded-xl border p-2 space-y-1.5 ${
+                        isDarkFocus
+                          ? "bg-amber-500/10 border-amber-500/25"
+                          : "bg-gradient-to-br from-amber-50 to-orange-50/75 border-amber-200/75"
+                      }`}
+                    >
+                      <div className="flex items-center justify-center gap-1 text-[10px] font-bold">
+                        <Crown size={10.5} className="text-amber-500" />
+                        <span>TradiFive</span>
+                        <span className="text-amber-600">Elite</span>
+                      </div>
+                      <div className="w-full h-5 rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-semibold flex items-center justify-center gap-1">
+                        <Sparkles size={9} />
+                        <span>Upgrade Elite</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between px-1 pt-1 border-t border-slate-200/60 dark:border-white/[0.06]">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <div className="relative w-6 h-6 rounded-full bg-slate-900 text-white text-[8.5px] font-bold flex items-center justify-center shrink-0">
+                          NH
+                          <span className="absolute -bottom-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 border border-white" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-[9.5px] font-semibold truncate">Nikhil Harake</div>
+                          <div className="text-[8px] text-emerald-600 font-medium">Online</div>
+                        </div>
+                      </div>
+                      <ChevronDown size={10} className="text-slate-400 shrink-0" />
                     </div>
                   </div>
                 </aside>
 
-                {/* Active Page Canvas */}
-                <div className="p-3.5 sm:p-4 pb-10 sm:pb-12 overflow-hidden">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={`${active.id}-${viewMode}`}
-                      initial={{ opacity: 0, y: 8, scale: 0.99 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -6, scale: 0.99 }}
-                      transition={{ duration: 0.22, ease: EASE_OUT }}
-                      className="space-y-3"
-                    >
-                      {/* 1. REAL DASHBOARD VIEW (Matches Dashboard.tsx Hero + 3 Graphs + Lower Bento) */}
-                      {active.id === "dashboard" && (
-                        <>
-                          {/* Top Hero Band */}
-                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-stretch">
-                            {/* Left: P&L + Timeframe Tabs + Win Ring */}
-                            <div
-                              className={`sm:col-span-6 rounded-[14px] p-3 border flex items-center justify-between gap-2 ${
-                                isDarkFocus
-                                  ? "bg-[#17171A] border-white/[0.08]"
-                                  : "bg-white border-[#E4E4E4]"
-                              }`}
-                            >
-                              <div className="min-w-0">
-                                <div className="inline-flex items-center p-0.5 rounded-[7px] bg-slate-100 dark:bg-white/[0.07] mb-1.5">
-                                  {(["7D", "30D", "ALL"] as const).map((tab) => (
-                                    <button
-                                      key={tab}
-                                      type="button"
-                                      onClick={() => setDashRange(tab)}
-                                      className={`px-1.5 py-0.5 rounded-[5px] text-[9px] font-bold cursor-pointer transition-colors ${
-                                        dashRange === tab
-                                          ? isDarkFocus
-                                            ? "bg-[#26262B] text-white shadow-sm"
-                                            : "bg-white text-slate-900 shadow-sm"
-                                          : "text-slate-500"
-                                      }`}
-                                    >
-                                      {tab}
-                                    </button>
-                                  ))}
-                                </div>
-                                <div className="text-[9.5px] font-medium text-slate-400">
-                                  Net Cumulative P&amp;L
-                                </div>
-                                <div className="text-[19px] font-extrabold tracking-tight tabular-nums leading-tight">
-                                  <AnimatedNumber
-                                    value={dStats.pnl}
-                                    duration={600}
-                                    format={(v) => `+$${Math.round(v).toLocaleString("en-US")}`}
-                                  />
-                                </div>
-                                <div className="text-[9.5px] text-slate-400 font-medium mt-0.5">
-                                  {dStats.wins}W / {dStats.losses}L · {dStats.wins + dStats.losses} trades
-                                </div>
-                              </div>
+                {/* 3. Right Main App Canvas (Static Interface Preview Only — pointer-events-none) */}
+                <div
+                  className={`flex-1 min-w-0 flex flex-col rounded-2xl border overflow-hidden ${
+                    isDarkFocus ? "bg-[#121318] border-white/[0.08]" : "bg-[#F8FAFC] border-slate-200/75"
+                  }`}
+                >
+                  {/* Top App Breadcrumb + XP Bar */}
+                  <div
+                    className={`h-9 border-b px-3.5 flex items-center justify-between gap-2 ${
+                      isDarkFocus ? "bg-[#17181E] border-white/[0.08]" : "bg-white/95 border-slate-200/70"
+                    }`}
+                  >
+                    <div className="text-[9.5px] text-slate-400 flex items-center gap-1">
+                      <span>Main Menu</span>
+                      <span>/</span>
+                      <span className={`font-semibold ${isDarkFocus ? "text-white" : "text-slate-800"}`}>
+                        {active.label}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="hidden sm:inline-flex items-center gap-1 h-5 px-2 rounded-full bg-amber-50 border border-amber-200/80 text-[9px] font-semibold text-amber-700">
+                        ★ 0 XP
+                      </span>
+                      <span
+                        className={`h-5 px-2 rounded-full border text-[9px] font-semibold inline-flex items-center ${
+                          isDarkFocus ? "bg-white/[0.05] border-white/[0.1] text-white" : "bg-white border-slate-200 text-slate-900"
+                        }`}
+                      >
+                        10/10 +
+                      </span>
+                      <span
+                        className={`h-5 px-2 rounded-full border text-[9px] font-semibold inline-flex items-center gap-1 ${
+                          isDarkFocus ? "bg-white/[0.05] border-white/[0.1] text-white" : "bg-white border-slate-200 text-slate-900"
+                        }`}
+                      >
+                        <Sparkles size={9} className="text-[#2563EB]" />
+                        <span>AI Coach</span>
+                      </span>
+                    </div>
+                  </div>
 
-                              <div className="relative w-[48px] h-[48px] shrink-0">
-                                <svg width={dashDonutSize} height={dashDonutSize} viewBox={`0 0 ${dashDonutSize} ${dashDonutSize}`} className="-rotate-90">
-                                  <circle cx={24} cy={24} r={dashRadius} fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.1)" : "#E2E8F0"} strokeWidth={4.5} />
-                                  <circle
-                                    cx={24}
-                                    cy={24}
-                                    r={dashRadius}
-                                    fill="none"
-                                    stroke="#10B981"
-                                    strokeWidth={4.5}
-                                    strokeLinecap="round"
-                                    strokeDasharray={dashCirc}
-                                    strokeDashoffset={dashOffset}
-                                    className="transition-[stroke-dashoffset] duration-500"
-                                  />
-                                </svg>
-                                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                  <span className="text-[10.5px] font-bold leading-none tabular-nums">{dStats.winPct}%</span>
-                                  <span className="text-[6.5px] uppercase text-slate-400">Win</span>
-                                </div>
-                              </div>
+                  {/* Page Body */}
+                  <div className="p-2.5 sm:p-3.5 pb-10 sm:pb-12">
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={`${active.id}-${viewMode}`}
+                        initial={{ opacity: 0, y: 8, scale: 0.99 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -6, scale: 0.99 }}
+                        transition={{ duration: 0.24, ease: EASE_OUT }}
+                        className="space-y-2.5"
+                      >
+                        {/* Shared App Page Header (Exact Pic 2 Header Bar) */}
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <div className="text-[14px] font-bold tracking-tight leading-tight">
+                              {active.label}
                             </div>
-
-                            {/* Right: 3 Metric Boxes + Pre-market Plan Strip */}
-                            <div className="sm:col-span-6 flex flex-col justify-between gap-2">
-                              <div className="grid grid-cols-3 gap-1.5">
-                                {[
-                                  { l: "Avg RR", v: dStats.avgRR },
-                                  { l: "Profit Factor", v: dStats.pf },
-                                  { l: "Avg W / L", v: dStats.avgWL },
-                                ].map((m) => (
-                                  <div
-                                    key={m.l}
-                                    className={`rounded-[11px] p-2 border text-center ${
-                                      isDarkFocus
-                                        ? "bg-[#17171A] border-white/[0.08]"
-                                        : "bg-white border-[#E4E4E4]"
-                                    }`}
-                                  >
-                                    <div className="text-[8.5px] text-slate-400">{m.l}</div>
-                                    <div className="text-[11px] font-bold tabular-nums mt-0.5 truncate">{m.v}</div>
-                                  </div>
-                                ))}
-                              </div>
-                              <div
-                                className={`rounded-[11px] px-3 py-2 border flex items-center justify-between text-[10.5px] font-semibold ${
-                                  isDarkFocus
-                                    ? "bg-[#17171A] border-white/[0.08] text-neutral-200"
-                                    : "bg-white border-[#E4E4E4] text-slate-700"
-                                }`}
-                              >
-                                <span className="flex items-center gap-1.5">
-                                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                                  Pre-market plan active · <span className="text-slate-400 font-normal">Bullish bias</span>
-                                </span>
-                                <ArrowRight size={11.5} className="text-slate-400" />
-                              </div>
+                            <div className="text-[9px] text-slate-400 font-medium">
+                              Fri, Nov 27, 2026
                             </div>
-                          </div>
-
-                          {/* Row 2: 3 Open Graphs Band (Cumulative P&L | Balance | TradiFive Score Radar) */}
-                          <div className="grid grid-cols-3 gap-2">
-                            <div
-                              className={`rounded-[13px] p-2.5 border ${
-                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between text-[9.5px] font-semibold mb-1.5">
-                                <span className="flex items-center gap-1">
-                                  <TrendingUp size={10.5} className="text-emerald-500" /> Cumulative P&amp;L
-                                </span>
-                                <span className="text-emerald-600 tabular-nums">+$12.5k</span>
-                              </div>
-                              <svg viewBox="0 0 120 44" className="w-full h-11 overflow-visible">
-                                <defs>
-                                  <linearGradient id="miniEquityFill" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#10B981" stopOpacity="0.28" />
-                                    <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-                                  </linearGradient>
-                                </defs>
-                                <path d="M0,38 L18,34 L34,36 L52,25 L70,27 L88,14 L104,10 L120,4 L120,44 L0,44 Z" fill="url(#miniEquityFill)" />
-                                <path d="M0,38 L18,34 L34,36 L52,25 L70,27 L88,14 L104,10 L120,4" fill="none" stroke="#10B981" strokeWidth="1.8" strokeLinecap="round" />
-                              </svg>
-                            </div>
-
-                            <div
-                              className={`rounded-[13px] p-2.5 border ${
-                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between text-[9.5px] font-semibold mb-1.5">
-                                <span>Account Balance</span>
-                                <span className="text-[#2563EB] tabular-nums">$37,530</span>
-                              </div>
-                              <svg viewBox="0 0 120 44" className="w-full h-11 overflow-visible">
-                                <defs>
-                                  <linearGradient id="miniBalFill" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="#2563EB" stopOpacity="0.22" />
-                                    <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
-                                  </linearGradient>
-                                </defs>
-                                <path d="M0,36 L24,30 L48,31 L72,21 L96,13 L120,6 L120,44 L0,44 Z" fill="url(#miniBalFill)" />
-                                <path d="M0,36 L24,30 L48,31 L72,21 L96,13 L120,6" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" />
-                              </svg>
-                            </div>
-
-                            <div
-                              className={`rounded-[13px] p-2.5 border flex items-center justify-between gap-1 ${
-                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
-                              }`}
-                            >
-                              <div>
-                                <div className="text-[9.5px] font-semibold">TradiFive Score</div>
-                                <div className="text-[15px] font-extrabold text-[#2563EB] tabular-nums mt-0.5">81<span className="text-[9px] text-slate-400 font-normal">/100</span></div>
-                                <div className="text-[8px] text-slate-400">6-axis radar</div>
-                              </div>
-                              <svg viewBox="0 0 60 56" className="w-11 h-11 shrink-0">
-                                <polygon points="30,4 52,16 52,40 30,52 8,40 8,16" fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.12)" : "#E2E8F0"} strokeWidth="1" />
-                                <polygon points="30,10 48,19 46,38 30,46 13,36 15,20" fill="rgba(37,99,235,0.22)" stroke="#2563EB" strokeWidth="1.5" />
-                              </svg>
-                            </div>
-                          </div>
-
-                          {/* Row 3: Lower Bento (Risk Guard + Discipline Streak + Calendar strip) */}
-                          <div className="grid grid-cols-3 gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setActiveId("risk-guard")}
-                              className={`rounded-[12px] p-2.5 border text-left cursor-pointer transition-all hover:border-[#2563EB]/60 ${
-                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between text-[9.5px] font-semibold">
-                                <span className="inline-flex items-center gap-1">
-                                  <ShieldCheck size={10.5} className="text-[#2563EB]" /> Risk guard
-                                </span>
-                                <span className="text-emerald-600">Armed</span>
-                              </div>
-                              <div className="text-[12px] font-bold mt-1 tabular-nums">0.8% / 3.0%</div>
-                              <div className="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 mt-1.5 overflow-hidden">
-                                <div className="h-full w-[26%] rounded-full bg-emerald-500" />
-                              </div>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setActiveId("ai-coach")}
-                              className={`rounded-[12px] p-2.5 border text-left cursor-pointer transition-all hover:border-[#2563EB]/60 ${
-                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between text-[9.5px] font-semibold">
-                                <span className="inline-flex items-center gap-1">
-                                  <Flame size={10.5} className="text-orange-500" /> Discipline
-                                </span>
-                                <span className="text-amber-600">Lv.12</span>
-                              </div>
-                              <div className="text-[12px] font-bold mt-1 tabular-nums">94 / 100</div>
-                              <div className="text-[8.5px] text-slate-400 mt-1">14d clean streak · +240 XP</div>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => setActiveId("reports")}
-                              className={`rounded-[12px] p-2.5 border text-left cursor-pointer transition-all hover:border-[#2563EB]/60 ${
-                                isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between text-[9.5px] font-semibold mb-1.5">
-                                <span>This Week P&amp;L</span>
-                                <span className="text-emerald-600">+$3.4k</span>
-                              </div>
-                              <div className="grid grid-cols-5 gap-1">
-                                {["+$840", "+$1.1k", "-$240", "+$960", "+$760"].map((d, idx) => (
-                                  <span
-                                    key={idx}
-                                    className={`py-1 rounded text-[7.5px] font-bold text-center ${
-                                      d.startsWith("-")
-                                        ? "bg-rose-500/15 text-rose-500"
-                                        : "bg-emerald-500/15 text-emerald-600"
-                                    }`}
-                                  >
-                                    {d.replace("+$", "+").replace("-$", "-")}
-                                  </span>
-                                ))}
-                              </div>
-                            </button>
-                          </div>
-                        </>
-                      )}
-
-                      {/* 2. REAL JOURNAL VIEW (Matches Journal.tsx + JournalMetrics + JournalTradesTable) */}
-                      {active.id === "journal" && (
-                        <>
-                          <div className="grid grid-cols-4 gap-1.5">
-                            {[
-                              { k: "Total Trades", v: "148" },
-                              { k: "Win Rate", v: "82%" },
-                              { k: "Profit Factor", v: "3.42" },
-                              { k: "Rule Adherence", v: "94%" },
-                            ].map((stat) => (
-                              <div
-                                key={stat.k}
-                                className={`rounded-[11px] p-2 border ${
-                                  isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
-                                }`}
-                              >
-                                <div className="text-[8.5px] text-slate-400 truncate">{stat.k}</div>
-                                <div className="text-[13px] font-bold mt-0.5 tabular-nums">{stat.v}</div>
-                              </div>
-                            ))}
                           </div>
 
                           <div
-                            className={`rounded-[14px] border overflow-hidden ${
-                              isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                            className={`hidden sm:flex items-center gap-1.5 rounded-full pl-2.5 pr-1 py-0.5 border text-[9px] ${
+                              isDarkFocus ? "bg-[#17181E] border-white/[0.08]" : "bg-white border-slate-200/80 shadow-2xs"
                             }`}
                           >
-                            <div
-                              className={`px-3 py-2 border-b flex items-center justify-between gap-2 ${
-                                isDarkFocus ? "border-white/[0.07] bg-white/[0.02]" : "border-[#E4E4E4] bg-[#FAFAFC]"
-                              }`}
-                            >
-                              <span className="text-[11px] font-bold">Auto-Synced MT5 Trades</span>
-                              <div className="inline-flex items-center gap-1">
-                                {(["ALL", "WIN", "LOSS"] as const).map((f) => (
-                                  <button
-                                    key={f}
-                                    type="button"
-                                    onClick={() => {
-                                      setJournalFilter(f);
-                                      setSelectedJournalIdx(0);
-                                    }}
-                                    className={`px-2 py-0.5 rounded-full text-[9px] font-bold cursor-pointer ${
-                                      journalFilter === f
-                                        ? "bg-[#2563EB] text-white"
-                                        : isDarkFocus
-                                        ? "text-neutral-400 hover:bg-white/[0.06]"
-                                        : "text-slate-500 hover:bg-slate-200/60"
-                                    }`}
-                                  >
-                                    {f}
-                                  </button>
-                                ))}
+                            <span className="inline-flex items-center gap-1 font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              Exness MT5 · Live
+                            </span>
+                            <span className="text-slate-300">|</span>
+                            <span className="font-mono text-slate-400">
+                              Equity <strong className={isDarkFocus ? "text-white" : "text-slate-800"}>$37,790</strong>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10 font-semibold">
+                              + Log trade
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10 font-semibold">
+                              Import
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full border border-slate-200/70 dark:border-white/10 font-semibold">
+                              Connect broker
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* ── VIEW 1: EXACT PIC 2 DASHBOARD ── */}
+                        {active.id === "dashboard" && (
+                          <>
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2.5 items-center">
+                              {/* Left: Net P&L + Timeframe Strip + 82% Donut */}
+                              <div className="lg:col-span-5 flex items-end justify-between gap-2 px-0.5">
+                                <div>
+                                  <div className="inline-flex items-center p-0.5 rounded-[8px] bg-slate-200/70 dark:bg-white/[0.08] mb-1.5 text-[9px] font-semibold">
+                                    <span className={`px-2 py-0.5 rounded-[6px] shadow-xs ${isDarkFocus ? "bg-[#26262B] text-white" : "bg-white text-slate-900"}`}>All</span>
+                                    <span className="px-1.5 py-0.5 text-slate-500">1D</span>
+                                    <span className="px-1.5 py-0.5 text-slate-500">7D</span>
+                                    <span className="px-1.5 py-0.5 text-slate-500">1M</span>
+                                  </div>
+                                  <div className="text-[9px] font-medium text-slate-400">Net P&amp;L · All time</div>
+                                  <div className="text-[24px] sm:text-[26px] font-bold tracking-tight text-[#2563EB] leading-none mt-0.5 font-mono tabular-nums">
+                                    +$12,530
+                                  </div>
+                                  <div className="text-[9px] text-slate-500 mt-1 font-medium">
+                                    14W / 3L · 17 closed trades
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1.5">
+                                  <div className="text-[8.5px] text-slate-400 flex items-center gap-1">
+                                    <span>Analytics →</span>
+                                    <span className={`rounded-md px-2 py-0.5 border text-[8.5px] font-semibold ${isDarkFocus ? "bg-white/[0.05] border-white/10 text-white" : "bg-white border-slate-200 text-slate-900"}`}>
+                                      Hide
+                                    </span>
+                                  </div>
+                                  <div className="relative w-11 h-11 shrink-0 flex items-center justify-center">
+                                    <svg className="w-11 h-11 -rotate-90" viewBox="0 0 44 44">
+                                      <circle cx="22" cy="22" r={dashDonutRadius} fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.12)" : "#E2E8F0"} strokeWidth="4" />
+                                      <circle cx="22" cy="22" r={dashDonutRadius} fill="none" stroke="#2563EB" strokeWidth="4" strokeLinecap="round" strokeDasharray={dashDonutCirc} strokeDashoffset={dashDonutOffset} />
+                                    </svg>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
+                                      <span className="text-[9.5px] font-bold font-mono">82%</span>
+                                      <span className="text-[6.5px] font-semibold text-slate-400">WIN</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Right: 3 Stat Cards + Pre-market Plan Strip */}
+                              <div className="lg:col-span-7 flex flex-col gap-1.5">
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  {[
+                                    { label: "Avg RR", val: "2.23R" },
+                                    { label: "Profit Factor", val: "16.10" },
+                                    { label: "Avg W / L", val: "$954.29 / $276.67" },
+                                  ].map((m) => (
+                                    <div
+                                      key={m.label}
+                                      className={`rounded-[12px] border px-2 py-2 text-center ${
+                                        isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                                      }`}
+                                    >
+                                      <div className="text-[8.5px] text-slate-400 font-medium">{m.label}</div>
+                                      <div className="text-[11px] sm:text-[12px] font-bold font-mono mt-0.5 truncate">{m.val}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div
+                                  className={`rounded-[12px] border px-3 py-1.5 flex items-center justify-between text-[10px] font-semibold text-[#2563EB] ${
+                                    isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"
+                                  }`}
+                                >
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    Start today&apos;s pre-market plan
+                                  </span>
+                                  <ArrowRight size={10.5} className="text-slate-400" />
+                                </div>
                               </div>
                             </div>
-                            <div className={`divide-y ${isDarkFocus ? "divide-white/[0.06]" : "divide-[#E4E4E4]/70"}`}>
-                              {filteredJournal.map((row, idx) => {
-                                const isSel = activeJournalRow.pair === row.pair;
-                                return (
-                                  <button
-                                    key={row.pair}
-                                    type="button"
-                                    onClick={() => setSelectedJournalIdx(idx)}
-                                    className={`w-full px-3 py-2 flex items-center justify-between text-left cursor-pointer transition-colors ${
-                                      isSel
-                                        ? isDarkFocus
-                                          ? "bg-[#2563EB]/15"
-                                          : "bg-blue-50/75"
-                                        : isDarkFocus
-                                        ? "hover:bg-white/[0.03]"
-                                        : "hover:bg-slate-50"
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2 min-w-0">
-                                      <span className="text-[11.5px] font-bold">{row.pair}</span>
-                                      <span
-                                        className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded ${
-                                          row.dir === "LONG"
-                                            ? "bg-emerald-500/15 text-emerald-600"
-                                            : "bg-slate-500/15 text-slate-400"
-                                        }`}
-                                      >
+
+                            {/* Middle 3 Chart Cards (Cumulative P&L | Account Balance | TRADIFIVE SCORE) */}
+                            <div className="grid grid-cols-3 gap-2">
+                              {/* Cumulative P&L */}
+                              <div className={`rounded-[13px] border p-2.5 flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex items-start justify-between text-[9.5px]">
+                                  <div>
+                                    <div className="font-bold flex items-center gap-1">
+                                      <TrendingUp size={10.5} className="text-emerald-500" /> Cumulative P&amp;L
+                                    </div>
+                                    <div className="text-[8px] text-slate-400">Closed trade equity curve</div>
+                                  </div>
+                                  <span className="font-bold text-[#2563EB] font-mono">+$12,530</span>
+                                </div>
+                                <svg viewBox="0 0 180 64" className="w-full h-14 my-1 overflow-visible">
+                                  <defs>
+                                    <linearGradient id="showcasePnlG" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="0%" stopColor="#2563EB" stopOpacity="0.22" />
+                                      <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
+                                    </linearGradient>
+                                  </defs>
+                                  <path d="M4,56 L30,48 L52,50 L74,40 L96,30 L118,34 L142,20 L166,12 L176,8 L176,56 Z" fill="url(#showcasePnlG)" />
+                                  <path d="M4,56 L30,48 L52,50 L74,40 L96,30 L118,34 L142,20 L166,12 L176,8" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" />
+                                </svg>
+                                <div className="flex justify-between text-[8px] text-slate-400 pt-1 border-t border-slate-100 dark:border-white/[0.06]">
+                                  <span>Win rate <strong className={isDarkFocus ? "text-white" : "text-slate-700"}>82%</strong></span>
+                                  <span>17 closed trades</span>
+                                </div>
+                              </div>
+
+                              {/* Account Balance */}
+                              <div className={`rounded-[13px] border p-2.5 flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex items-start justify-between text-[9.5px]">
+                                  <div>
+                                    <div className="font-bold">Account Balance</div>
+                                    <div className="text-[8px] text-slate-400">● Balance · ● Deposits</div>
+                                  </div>
+                                  <span className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 text-[8px] font-semibold">All</span>
+                                </div>
+                                <svg viewBox="0 0 180 64" className="w-full h-14 my-1 overflow-visible">
+                                  <line x1="4" y1="46" x2="176" y2="46" stroke="#94A3B8" strokeWidth="1" strokeDasharray="3 3" />
+                                  <path d="M4,46 L34,40 L64,41 L94,32 L124,25 L154,18 L176,10 L176,56 L4,56 Z" fill="url(#showcasePnlG)" />
+                                  <path d="M4,46 L34,40 L64,41 L94,32 L124,25 L154,18 L176,10" fill="none" stroke="#2563EB" strokeWidth="1.8" strokeLinecap="round" />
+                                </svg>
+                                <div className="flex justify-between text-[8px] pt-1 border-t border-slate-100 dark:border-white/[0.06]">
+                                  <span className="text-slate-400">Start $25k</span>
+                                  <span className="font-bold text-[#2563EB] font-mono">$37,530 (+50.1%)</span>
+                                </div>
+                              </div>
+
+                              {/* TRADIFIVE SCORE */}
+                              <div className={`rounded-[13px] border p-2.5 flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <div className="text-[9px] font-bold uppercase tracking-wider">TradiFive Score</div>
+                                    <div className="text-[7.5px] text-slate-400">17 trades scored</div>
+                                  </div>
+                                  <span className="text-[16px] font-bold font-mono leading-none">81</span>
+                                </div>
+                                <div className="flex items-center justify-center my-0.5">
+                                  <svg viewBox="0 0 120 68" className="w-24 h-12">
+                                    <polygon points="60,8 92,26 80,58 40,58 28,26" fill="none" stroke={isDarkFocus ? "rgba(255,255,255,0.14)" : "#E2E8F0"} strokeWidth="1" />
+                                    <polygon points="60,18 86,30 76,54 44,54 39,30" fill={isDarkFocus ? "rgba(37,99,235,0.22)" : "rgba(15,23,42,0.12)"} stroke={isDarkFocus ? "#3B82F6" : "#0F172A"} strokeWidth="1.4" />
+                                  </svg>
+                                </div>
+                                <div className="flex justify-between text-[8px] pt-1 border-t border-slate-100 dark:border-white/[0.06]">
+                                  <span className="font-semibold">● Consistency</span>
+                                  <span className="font-bold font-mono">100/100</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Bottom 4 Bento Row (P&L Calendar | Forex Factory News | Risk Guard | Discipline Lv 7) */}
+                            <div className="grid grid-cols-12 gap-2">
+                              <div className={`col-span-4 rounded-[12px] border p-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex items-center justify-between text-[8.5px] font-bold mb-1.5">
+                                  <span>P&amp;L calendar <span className="text-emerald-600 font-mono">+$12,530</span></span>
+                                  <span className="text-slate-400">Nov 2026</span>
+                                </div>
+                                <div className="grid grid-cols-7 gap-0.5">
+                                  {CALENDAR_DAYS.slice(4, 18).map((cell, idx) => (
+                                    <div
+                                      key={idx}
+                                      className={`h-6 rounded px-0.5 py-0.5 flex flex-col justify-between text-[6px] ${
+                                        cell.pos === true
+                                          ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                          : cell.pos === false
+                                          ? "bg-rose-500/15 text-rose-600 dark:text-rose-300"
+                                          : "bg-slate-100/70 dark:bg-white/[0.04] text-slate-400"
+                                      }`}
+                                    >
+                                      <span className="font-bold">{cell.d}</span>
+                                      {cell.pnl && <span className="font-mono truncate">{cell.pnl}</span>}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className={`col-span-4 rounded-[12px] border p-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex items-center justify-between text-[8.5px] font-bold mb-1.5">
+                                  <span>News <span className="font-normal text-slate-400">Forex Factory</span></span>
+                                  <span className="text-[#2563EB]">Today</span>
+                                </div>
+                                <div className="space-y-1 text-[8px]">
+                                  {[
+                                    { c: "USD", t: "Core PCE Price Index", tm: "13:30 UTC", dot: "bg-rose-500" },
+                                    { c: "USD", t: "Chicago PMI Flash", tm: "14:45 UTC", dot: "bg-amber-500" },
+                                    { c: "EUR", t: "ECB Liquidity Brief", tm: "15:00 UTC", dot: "bg-slate-400" },
+                                  ].map((n) => (
+                                    <div key={n.t} className="flex items-center justify-between px-1.5 py-1 rounded bg-slate-500/5">
+                                      <span className="flex items-center gap-1 truncate">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${n.dot}`} />
+                                        <strong>{n.c}</strong>
+                                        <span className="truncate text-slate-500">{n.t}</span>
+                                      </span>
+                                      <span className="text-slate-400 font-mono shrink-0">{n.tm}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="col-span-4 grid grid-cols-2 gap-1.5">
+                                <div className={`rounded-[12px] border p-2 flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                  <div className="flex items-center justify-between text-[8.5px] font-bold">
+                                    <span>Risk guard</span>
+                                    <span className="px-1 rounded bg-emerald-500/15 text-emerald-600 text-[7px]">Active</span>
+                                  </div>
+                                  <div>
+                                    <div className="text-[13px] font-bold font-mono leading-none">0.8%</div>
+                                    <div className="text-[7.5px] text-slate-400 mt-0.5">/ 3.0% limit</div>
+                                  </div>
+                                  <div className="h-1 rounded-full bg-slate-200 dark:bg-white/10 overflow-hidden">
+                                    <div className="h-full w-[27%] bg-emerald-500 rounded-full" />
+                                  </div>
+                                </div>
+
+                                <div className={`rounded-[12px] border p-2 flex flex-col justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                  <div className="flex items-center justify-between text-[8.5px] font-bold">
+                                    <span>Discipline</span>
+                                    <span className="px-1 rounded bg-amber-500/15 text-amber-600 text-[7px]">Lv 7</span>
+                                  </div>
+                                  <div>
+                                    <div className="text-[13px] font-bold font-mono leading-none">94</div>
+                                    <div className="text-[7.5px] text-slate-400 mt-0.5">/ 100 score</div>
+                                  </div>
+                                  <div className="text-[7.5px] text-emerald-600 font-semibold">14d streak</div>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+
+                        {/* ── VIEW 2: REAL SMART JOURNAL INTERFACE (Static Web User App View) ── */}
+                        {active.id === "journal" && (
+                          <div className="space-y-2.5">
+                            <div className="grid grid-cols-4 gap-2">
+                              {[
+                                { k: "Total Trades", v: "148" },
+                                { k: "Win Rate", v: "82%" },
+                                { k: "Profit Factor", v: "16.10" },
+                                { k: "Rule Adherence", v: "94%" },
+                              ].map((stat) => (
+                                <div key={stat.k} className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                  <div className="text-[8.5px] text-slate-400">{stat.k}</div>
+                                  <div className="text-[14px] font-bold font-mono mt-0.5">{stat.v}</div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className={`rounded-[14px] border overflow-hidden ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className={`px-3 py-2 border-b flex items-center justify-between ${isDarkFocus ? "border-white/[0.07]" : "border-[#E4E4E4] bg-[#FAFAFC]"}`}>
+                                <span className="text-[10.5px] font-bold">MT5 Synced Execution Ledger</span>
+                                <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-[8.5px] font-bold">100% Auto-Synced</span>
+                              </div>
+                              <div className={`divide-y ${isDarkFocus ? "divide-white/[0.06]" : "divide-[#E4E4E4]/70"}`}>
+                                {[
+                                  { pair: "XAU/USD", dir: "LONG", lot: "1.50L", tag: "NY Break & Retest", r: "+2.4R", pnl: "+$1,640", good: true },
+                                  { pair: "NAS100", dir: "SHORT", lot: "1.00L", tag: "London Sweep", r: "+1.8R", pnl: "+$1,210", good: true },
+                                  { pair: "EUR/USD", dir: "LONG", lot: "2.00L", tag: "Pre-News Fade", r: "-0.8R", pnl: "-$240", good: false },
+                                  { pair: "GBP/USD", dir: "LONG", lot: "1.25L", tag: "Order Block", r: "+2.1R", pnl: "+$1,120", good: true },
+                                ].map((row) => (
+                                  <div key={row.pair} className="px-3 py-2 flex items-center justify-between text-[10.5px]">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-bold">{row.pair}</span>
+                                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${row.dir === "LONG" ? "bg-emerald-500/15 text-emerald-600" : "bg-slate-500/15 text-slate-400"}`}>
                                         {row.dir}
                                       </span>
-                                      <span className="text-[10px] text-slate-400 truncate">
-                                        {row.lot} · {row.tag}
-                                      </span>
+                                      <span className="text-slate-400 text-[9.5px]">{row.lot} · {row.tag}</span>
                                     </div>
-                                    <div className="flex items-center gap-2.5 tabular-nums shrink-0">
-                                      <span className="text-[10px] font-mono text-slate-400">{row.r}</span>
-                                      <span
-                                        className={`text-[11.5px] font-bold ${
-                                          row.good ? "text-emerald-600" : "text-rose-500"
-                                        }`}
-                                      >
-                                        {row.pnl}
-                                      </span>
+                                    <div className="flex items-center gap-3 font-mono tabular-nums">
+                                      <span className="text-slate-400 text-[9.5px]">{row.r}</span>
+                                      <span className={`font-bold ${row.good ? "text-emerald-600" : "text-rose-500"}`}>{row.pnl}</span>
                                     </div>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            <div
-                              className={`px-3 py-1.5 border-t text-[10px] ${
-                                isDarkFocus
-                                  ? "border-white/[0.07] bg-white/[0.02] text-neutral-300"
-                                  : "border-[#E4E4E4] bg-[#FAFAFC] text-slate-600"
-                              }`}
-                            >
-                              <strong className="text-[#2563EB]">{activeJournalRow.pair} Audit:</strong> {activeJournalRow.note}
-                            </div>
-                          </div>
-                        </>
-                      )}
-
-                      {/* 3. REAL ANALYTICS VIEW */}
-                      {active.id === "analytics" && (
-                        <>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="text-[9.5px] text-slate-400">London Session</div>
-                              <div className="text-[15px] font-bold text-emerald-600 mt-0.5 tabular-nums">+$6,840</div>
-                              <div className="text-[9px] text-slate-400">84% win rate</div>
-                            </div>
-                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="text-[9.5px] text-slate-400">NY Open</div>
-                              <div className="text-[15px] font-bold text-emerald-600 mt-0.5 tabular-nums">+$4,920</div>
-                              <div className="text-[9px] text-slate-400">79% win rate</div>
-                            </div>
-                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="text-[9.5px] text-slate-400">Asian Session</div>
-                              <div className="text-[15px] font-bold mt-0.5 tabular-nums">+$770</div>
-                              <div className="text-[9px] text-slate-400">50% win rate</div>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                            <div className={`sm:col-span-7 rounded-[14px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="flex items-center justify-between text-[10px] font-semibold mb-2.5">
-                                <span>Hourly Expectancy Edge</span>
-                                <span className="text-[#2563EB]">Peak 13:30–16:00 UTC</span>
-                              </div>
-                              <div className="grid grid-cols-8 items-end gap-1.5 h-20">
-                                {[35, 58, 84, 96, 78, 44, 62, 32].map((h, i) => (
-                                  <div key={i} className="flex flex-col items-center gap-1 h-full justify-end">
-                                    <div
-                                      className={`w-full rounded-t-md ${i === 3 || i === 2 ? "bg-[#2563EB]" : "bg-blue-500/25"}`}
-                                      style={{ height: `${h}%` }}
-                                    />
-                                    <span className="text-[7.5px] text-slate-400">{i + 9}h</span>
                                   </div>
                                 ))}
                               </div>
                             </div>
-                            <div className={`sm:col-span-5 rounded-[14px] p-3 border space-y-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="text-[10px] font-semibold">Top Edge Drivers</div>
+                          </div>
+                        )}
+
+                        {/* ── VIEW 3: REAL ANALYTICS INTERFACE ── */}
+                        {active.id === "analytics" && (
+                          <div className="space-y-2.5">
+                            <div className="grid grid-cols-3 gap-2">
                               {[
-                                { label: "XAU/USD NY Sweep", pct: 86 },
-                                { label: "NAS100 London OB", pct: 74 },
-                                { label: "Rule Consistency", pct: 94 },
-                              ].map((bar) => (
-                                <div key={bar.label}>
-                                  <div className="flex justify-between text-[9px] mb-0.5">
-                                    <span className="text-slate-400">{bar.label}</span>
-                                    <span className="font-bold">{bar.pct}%</span>
+                                { s: "London Session", v: "+$6,840", sub: "84% win rate" },
+                                { s: "NY Open", v: "+$4,920", sub: "79% win rate" },
+                                { s: "Asian Session", v: "+$770", sub: "50% win rate" },
+                              ].map((c) => (
+                                <div key={c.s} className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                  <div className="text-[9px] text-slate-400">{c.s}</div>
+                                  <div className="text-[15px] font-bold font-mono text-emerald-600 mt-0.5">{c.v}</div>
+                                  <div className="text-[8.5px] text-slate-400">{c.sub}</div>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="grid grid-cols-12 gap-2">
+                              <div className={`col-span-7 rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex justify-between text-[9.5px] font-semibold mb-2">
+                                  <span>Hourly Expectancy Edge</span>
+                                  <span className="text-[#2563EB]">Peak 13:30–16:00 UTC</span>
+                                </div>
+                                <div className="grid grid-cols-8 items-end gap-1.5 h-20">
+                                  {[36, 58, 84, 96, 78, 44, 62, 32].map((h, i) => (
+                                    <div key={i} className="flex flex-col items-center gap-1 h-full justify-end">
+                                      <div className={`w-full rounded-t-md ${i === 3 || i === 2 ? "bg-[#2563EB]" : "bg-blue-500/25"}`} style={{ height: `${h}%` }} />
+                                      <span className="text-[7px] text-slate-400">{i + 9}h</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className={`col-span-5 rounded-[13px] p-3 border space-y-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="text-[9.5px] font-semibold">Top Setup Edge</div>
+                                {[
+                                  { label: "XAU/USD NY Sweep", pct: 86 },
+                                  { label: "NAS100 London OB", pct: 74 },
+                                  { label: "Rule Consistency", pct: 94 },
+                                ].map((b) => (
+                                  <div key={b.label}>
+                                    <div className="flex justify-between text-[8.5px] mb-0.5">
+                                      <span className="text-slate-400">{b.label}</span>
+                                      <span className="font-bold">{b.pct}%</span>
+                                    </div>
+                                    <div className="h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
+                                      <div className="h-full rounded-full bg-[#2563EB]" style={{ width: `${b.pct}%` }} />
+                                    </div>
                                   </div>
-                                  <div className="h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
-                                    <div className="h-full rounded-full bg-[#2563EB]" style={{ width: `${bar.pct}%` }} />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── VIEW 4: REAL RISK GUARD INTERFACE ── */}
+                        {active.id === "risk-guard" && (
+                          <div className="space-y-2.5">
+                            <div className={`rounded-[14px] p-3 border space-y-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-6 h-6 rounded-[8px] bg-blue-500/10 text-[#2563EB] flex items-center justify-center">
+                                    <ShieldCheck size={13} />
+                                  </span>
+                                  <div>
+                                    <div className="text-[11.5px] font-semibold leading-tight">Daily Trade Limit</div>
+                                    <div className="text-[9px] text-slate-400">Stop overtrading after max orders/day</div>
                                   </div>
+                                </div>
+                                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-[#2563EB] text-[9.5px] font-semibold">5/day · Armed</span>
+                              </div>
+                              <TradeSlotsBlobStrip total={5} completed={2} interactive={false} />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[10.5px] font-semibold">Daily Loss Limit</span>
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 text-[8px] font-bold">Armed</span>
+                                </div>
+                                <div className="text-[9.5px] text-slate-400 mb-1.5">0.8% drawn / 3.0% hard stop</div>
+                                <div className="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
+                                  <div className="h-full w-[26%] rounded-full bg-emerald-500" />
+                                </div>
+                              </div>
+                              <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[10.5px] font-semibold">Red-Folder News Lock</span>
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-600 text-[8px] font-bold">Armed</span>
+                                </div>
+                                <div className="text-[9.5px] text-slate-400">Auto-pauses 15m before US CPI (13:30 UTC)</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ── VIEW 5: REAL REPORTS & STATEMENTS INTERFACE ── */}
+                        {active.id === "reports" && (
+                          <div className="space-y-2.5">
+                            <div className={`rounded-[13px] p-3 border flex items-center justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                              <div>
+                                <div className="text-[11px] font-bold">November 2026 Verified Statement</div>
+                                <div className="text-[9.5px] text-slate-400 mt-0.5">Start $25,000.00 → Equity $37,530.00 (+50.1%)</div>
+                              </div>
+                              <span className="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-[#2563EB] text-[9.5px] font-bold">
+                                Broker Verified
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-7 gap-1">
+                              {[
+                                "+$620", "+$1.1k", "-$280", "+$940", "+$1.4k", "+$750", "+$1.6k",
+                                "+$890", "+$1.5k", "-$240", "+$980", "+$1.2k", "+$650", "+$1.4k",
+                              ].map((val, idx) => (
+                                <div
+                                  key={idx}
+                                  className={`rounded-lg py-2 text-center text-[8px] font-bold border ${
+                                    val.startsWith("-")
+                                      ? "bg-rose-500/10 border-rose-500/25 text-rose-500"
+                                      : "bg-emerald-500/10 border-emerald-500/25 text-emerald-600"
+                                  }`}
+                                >
+                                  {val}
                                 </div>
                               ))}
                             </div>
                           </div>
-                        </>
-                      )}
+                        )}
 
-                      {/* 4. REAL RISK GUARD VIEW (Matches RiskGuard.tsx Daily Trade Limit & Drawdown Protections) */}
-                      {active.id === "risk-guard" && (
-                        <div className="space-y-2.5">
-                          <div className={`rounded-[14px] p-3 border space-y-2 ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                            <div className="flex items-center justify-between gap-2">
-                              <div className="flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-[8px] bg-blue-500/10 text-[#2563EB] flex items-center justify-center">
-                                  <ShieldCheck size={13} />
-                                </span>
-                                <div>
-                                  <div className="text-[12px] font-semibold leading-tight">Daily Trade Limit</div>
-                                  <div className="text-[9.5px] text-slate-400">Stop overtrading after max orders/day</div>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-[#2563EB] text-[10px] font-semibold tabular-nums">
-                                  {rgCap}/day
-                                </span>
-                                <Switch checked={rgArmed} onCheckedChange={setRgArmed} size="sm" />
-                              </div>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[9.5px]">
-                              <span className="font-semibold">Today: {rgUsed} / {rgCap}</span>
-                              <span className={rgUsed >= rgCap ? "text-rose-500 font-bold" : "text-emerald-600 font-semibold"}>
-                                {rgUsed >= rgCap ? "Limit reached · Locked" : `${Math.max(0, rgCap - rgUsed)} left today`}
-                              </span>
-                            </div>
-                            <TradeSlotsBlobStrip
-                              total={rgCap}
-                              completed={rgUsed}
-                              interactive={true}
-                              onSelectCount={setRgUsed}
-                            />
-                            <div className="flex items-center justify-between pt-0.5">
-                              <span className="text-[10px] text-slate-400">Adjust cap live</span>
-                              <div className="flex items-center gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const next = Math.max(1, rgCap - 1);
-                                    setRgCap(next);
-                                    if (rgUsed > next) setRgUsed(next);
-                                  }}
-                                  className="tactile-white-pill w-6 h-6 rounded-[6px] font-bold text-slate-700 cursor-pointer"
-                                >
-                                  -
-                                </button>
-                                <span className="px-2 text-[11px] font-bold tabular-nums">{rgCap}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => setRgCap((v) => Math.min(8, v + 1))}
-                                  className="tactile-white-pill w-6 h-6 rounded-[6px] font-bold text-slate-700 cursor-pointer"
-                                >
-                                  +
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2">
+                        {/* ── VIEW 6: REAL TRADI FIVE AI COACH INTERFACE ── */}
+                        {active.id === "ai-coach" && (
+                          <div className="space-y-2.5">
                             <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-[11px] font-semibold">Daily Loss Limit</span>
-                                <Switch checked={rgLossArmed} onCheckedChange={setRgLossArmed} size="sm" />
+                              <div className="text-[9.5px] font-semibold text-slate-400 mb-1">
+                                Session Query: &ldquo;Where did my clean profits come from this week?&rdquo;
                               </div>
-                              <div className="text-[10px] text-slate-400 mb-1.5">0.8% drawn / 3.0% hard stop</div>
-                              <div className="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-white/10 overflow-hidden">
-                                <div className="h-full w-[26%] rounded-full bg-emerald-500" />
+                              <div className="flex items-center gap-1.5 text-[10px] font-bold text-[#2563EB] mb-1">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>TradiFive AI · Behavioral Session Debrief</span>
                               </div>
+                              <p className={`text-[11px] leading-relaxed ${isDarkFocus ? "text-neutral-300" : "text-slate-700"}`}>
+                                &ldquo;Your discipline held at <strong className={isDarkFocus ? "text-white" : "text-slate-900"}>94/100</strong>.
+                                Sticking to your first 2 NY Open setups generated <strong className="text-emerald-600">+89% of monthly gains</strong> with zero revenge trades.&rdquo;
+                              </p>
                             </div>
-                            <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-[11px] font-semibold">Red-Folder News Lock</span>
-                                <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 text-[8.5px] font-bold">Armed</span>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="text-[8.5px] text-slate-400">Next Focus Rule</div>
+                                <div className="text-[10.5px] font-bold mt-0.5">Hold winners to 2.0R before partial</div>
                               </div>
-                              <div className="text-[10px] text-slate-400">Auto-pauses 15m before US CPI (13:30 UTC)</div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 5. REAL REPORTS & CALENDAR VIEW */}
-                      {active.id === "reports" && (
-                        <div className="space-y-2.5">
-                          <div className={`rounded-[13px] p-3 border flex items-center justify-between ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                            <div>
-                              <div className="text-[11.5px] font-bold">November Verified Statement</div>
-                              <div className="text-[10px] text-slate-400 mt-0.5">
-                                Start $25,000.00 → Equity $37,530.00 (+50.1%)
+                              <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
+                                <div className="text-[8.5px] text-slate-400">Discipline Streak</div>
+                                <div className="text-[10.5px] font-bold text-emerald-600 mt-0.5">14 consecutive clean days</div>
                               </div>
                             </div>
-                            <span className="px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-[#2563EB] text-[10px] font-bold">
-                              Broker Verified
-                            </span>
                           </div>
-                          <div className="grid grid-cols-7 gap-1">
-                            {[
-                              "+$620", "+$1.1k", "-$280", "+$940", "+$1.4k", "+$750", "+$1.6k",
-                              "+$890", "+$1.5k", "-$240", "+$980", "+$1.2k", "+$650", "+$1.4k",
-                            ].map((val, idx) => (
-                              <div
-                                key={idx}
-                                className={`rounded-lg py-2 text-center text-[8.5px] font-bold border ${
-                                  val.startsWith("-")
-                                    ? "bg-rose-500/10 border-rose-500/25 text-rose-500"
-                                    : "bg-emerald-500/10 border-emerald-500/25 text-emerald-600"
-                                }`}
-                              >
-                                {val}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* 6. REAL TRADI FIVE AI COACH VIEW */}
-                      {active.id === "ai-coach" && (
-                        <div className="space-y-2.5">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {AI_PROMPTS.map((item, i) => (
-                              <button
-                                key={item.chip}
-                                type="button"
-                                onClick={() => setAiPromptIdx(i)}
-                                className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border cursor-pointer transition-colors ${
-                                  aiPromptIdx === i
-                                    ? "bg-[#2563EB] text-white border-[#2563EB]"
-                                    : isDarkFocus
-                                    ? "bg-[#17171A] border-white/[0.08] text-neutral-300"
-                                    : "bg-white border-[#E4E4E4] text-slate-600 hover:border-slate-300"
-                                }`}
-                              >
-                                {item.chip}
-                              </button>
-                            ))}
-                          </div>
-
-                          <div className={`rounded-[13px] p-3 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                            <div className="text-[10px] font-semibold text-slate-400 mb-1.5">
-                              You asked: <span className={isDarkFocus ? "text-white" : "text-slate-800"}>&ldquo;{aiItem.q}&rdquo;</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[10.5px] font-bold text-[#2563EB] mb-1">
-                              <Sparkles className="w-3.5 h-3.5" />
-                              <span>TradiFive AI · {aiItem.badge}</span>
-                            </div>
-                            <p className={`text-[11.5px] leading-relaxed ${isDarkFocus ? "text-neutral-300" : "text-slate-700"}`}>
-                              {aiItem.a}
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="text-[9px] text-slate-400">Next Focus Rule</div>
-                              <div className="text-[11px] font-bold mt-0.5">{aiItem.rule}</div>
-                            </div>
-                            <div className={`rounded-[12px] p-2.5 border ${isDarkFocus ? "bg-[#17171A] border-white/[0.08]" : "bg-white border-[#E4E4E4]"}`}>
-                              <div className="text-[9px] text-slate-400">Streak Status</div>
-                              <div className="text-[11px] font-bold text-emerald-600 mt-0.5">14 consecutive clean days</div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
+                        )}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
                 </div>
               </div>
             </div>
@@ -3027,7 +2983,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                       }`}
                     />
                     <div
-                      className={`w-7 h-[1.5px] transition-colors ${
+                      className={`w-6 h-[1.5px] transition-colors ${
                         isSelected ? "bg-[#2563EB]" : "bg-[#E4E4E4]"
                       }`}
                     />
@@ -3069,7 +3025,7 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
         </div>
 
         {/* Overlapping Floating Summary Card */}
-        <div className="relative z-20 -mt-5 sm:-mt-8 max-w-[760px] mx-auto pb-6 sm:pb-10">
+        <div className="relative z-20 -mt-5 sm:-mt-8 max-w-[780px] mx-auto pb-6 sm:pb-10">
           <div className="rounded-[20px] sm:rounded-[24px] bg-white border border-[#E4E4E4] shadow-[0_24px_60px_-15px_rgba(15,23,42,0.14)] p-4 sm:p-6">
             <AnimatePresence mode="wait">
               <motion.div
@@ -3400,75 +3356,85 @@ function ProblemSection() {
 
   return (
     <section id="problem" className="py-20 sm:py-24 px-4 sm:px-7 relative bg-white overflow-hidden">
-      {/* Crisp alpine mountain backdrop dissolving cleanly at top & bottom into white */}
+      {/* Vivid alpine mountain backdrop with crisp peak visibility + gentle top/bottom white dissolves */}
       <div className="pointer-events-none absolute inset-0 select-none" aria-hidden="true">
-        <img
+        <motion.img
           src="/mountain.jpg"
           alt=""
-          className="w-full h-full object-cover object-[46%_42%] opacity-[0.44] sm:opacity-[0.52]"
+          initial={{ opacity: 0, scale: 1.06 }}
+          whileInView={{ opacity: 0.86, scale: 1 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 1.05, ease: EASE_OUT }}
+          className="w-full h-full object-cover object-[46%_40%]"
         />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.55) 14%, rgba(255,255,255,0.08) 48%, rgba(255,255,255,0.55) 84%, #ffffff 100%)",
+              "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.22) 13%, rgba(255,255,255,0.0) 50%, rgba(255,255,255,0.24) 85%, #ffffff 100%)",
           }}
         />
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to right, rgba(255,255,255,0.72) 0%, rgba(255,255,255,0.22) 38%, rgba(255,255,255,0.58) 72%, rgba(255,255,255,0.78) 100%)",
+              "linear-gradient(to right, rgba(255,255,255,0.44) 0%, rgba(255,255,255,0.06) 40%, rgba(255,255,255,0.18) 70%, rgba(255,255,255,0.4) 100%)",
           }}
         />
       </div>
 
-      <div className="max-w-[1160px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-        <div className="lg:col-span-5 lg:sticky lg:top-28">
-          <SectionHeader
-            badge="The problem"
-            icon={AlertTriangle}
-            tone="rose"
-            align="left"
-            title="Most traders don't lack setups —"
-            subtitle="they lose to unguarded behavior."
-            description="Charts only show price. The real capital leaks happen in execution discipline right between setups."
-            className="mb-6"
-          />
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.45, delay: 0.3, ease: EASE_OUT }}
-            className="border-l-2 border-rose-500/80 pl-4 py-1 bg-white/65 rounded-r-lg text-[13px] text-slate-700 leading-relaxed"
-          >
-            Across MT5 retail &amp; prop accounts, over 70% of monthly equity drawdowns occur during unscheduled post-loss sessions.
-          </motion.div>
+      <div className="max-w-[1160px] mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+        <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-5">
+          <div className="rounded-2xl bg-white/75 backdrop-blur-md border border-white/90 p-5 sm:p-6 shadow-[0_14px_38px_-16px_rgba(15,23,42,0.12)]">
+            <SectionHeader
+              badge="The problem"
+              icon={AlertTriangle}
+              tone="rose"
+              align="left"
+              title="Most traders don't lack setups —"
+              subtitle="they lose to unguarded behavior."
+              description="Charts only show price. The real capital leaks happen in execution discipline right between setups."
+              className="mb-4"
+            />
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.25 }}
+              transition={{ duration: 0.5, delay: 0.28, ease: EASE_OUT }}
+              className="rounded-xl bg-rose-50/75 border border-rose-200/70 px-3.5 py-2.5 flex items-start gap-2.5 text-[12.5px] text-slate-700 leading-relaxed"
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+              <span>
+                Over <strong className="text-slate-900">70% of monthly equity drawdowns</strong> occur during unscheduled post-loss sessions.
+              </span>
+            </motion.div>
+          </div>
         </div>
 
-        <div className="lg:col-span-7 rounded-2xl bg-white/86 backdrop-blur-sm border border-[#E4E4E4] px-5 sm:px-7 divide-y divide-[#E4E4E4] shadow-[0_18px_48px_-22px_rgba(15,23,42,0.08)]">
+        <div className="lg:col-span-7 space-y-3">
           {PROBLEMS.map((p, idx) => (
             <motion.div
               key={p.num}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: idx * 0.05, ease: EASE_OUT }}
-              className="py-5 sm:py-6 flex items-start gap-5 sm:gap-7 group"
+              initial={{ opacity: 0, x: 20, y: 12 }}
+              whileInView={{ opacity: 1, x: 0, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              whileHover={{ y: -2, transition: { duration: 0.18, ease: EASE_OUT } }}
+              transition={{ duration: 0.45, delay: 0.08 + idx * 0.09, ease: EASE_OUT }}
+              className="rounded-2xl bg-white/86 backdrop-blur-md border border-[#E4E4E4] px-5 py-4 sm:py-4.5 shadow-[0_10px_30px_-16px_rgba(15,23,42,0.1)] hover:border-rose-200/90 hover:bg-white/95 transition-colors flex items-start gap-4 sm:gap-5 group"
             >
-              <span className="text-[13px] font-mono font-semibold text-slate-400 pt-0.5 tabular-nums shrink-0 group-hover:text-rose-500 transition-colors">
+              <span className="w-7 h-7 rounded-full bg-slate-100 group-hover:bg-rose-50 text-[11.5px] font-mono font-bold text-slate-500 group-hover:text-rose-600 flex items-center justify-center shrink-0 mt-0.5 transition-colors tabular-nums">
                 {p.num}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1.5">
-                  <h3 className="text-[17px] font-semibold tracking-[-0.015em] text-slate-900">
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                  <h3 className="text-[16px] font-semibold tracking-[-0.015em] text-slate-900">
                     {p.title}
                   </h3>
-                  <span className="text-[11.5px] font-medium text-rose-600 shrink-0">
+                  <span className="px-2.5 py-0.5 rounded-full bg-rose-50 border border-rose-200/70 text-[10.5px] font-semibold text-rose-600 shrink-0">
                     {p.impact}
                   </span>
                 </div>
-                <p className="text-[13.5px] text-slate-600 leading-relaxed font-normal">
+                <p className="text-[13px] text-slate-600 leading-relaxed font-normal">
                   {p.desc}
                 </p>
               </div>
@@ -4727,7 +4693,7 @@ export default function TradiFive() {
         onSignIn={handleSignIn}
         onSignUp={handleSignUp}
         onDownloadClick={() => navigate("/download")}
-        lightOnScroll={true}
+        lightOnScroll={false}
       />
 
       <main style={{ position: "relative", zIndex: 1 }}>

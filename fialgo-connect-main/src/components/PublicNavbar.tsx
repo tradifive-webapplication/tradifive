@@ -109,13 +109,24 @@ export default function PublicNavbar({
   const handleSignUp = onSignUp || (() => navigate("/login", { state: { mode: "signup" } }));
   void onDownloadClick;
 
-  void lightOnScroll;
-
   useEffect(() => {
     const h = () => {
       const y = window.scrollY;
       setScrolled(y > 20);
-      setInLightZone(Boolean(alwaysLight));
+
+      if (alwaysLight) {
+        setInLightZone(true);
+      } else if (lightOnScroll) {
+        // Flip navbar to White Mode only when the white HeroDashboard scrolls up to the navbar
+        const whiteAnchor = document.getElementById("hero-white-zone");
+        if (whiteAnchor) {
+          setInLightZone(whiteAnchor.getBoundingClientRect().top <= 84);
+        } else {
+          setInLightZone(y > 540);
+        }
+      } else {
+        setInLightZone(false);
+      }
 
       const deepDives = document.getElementById("deep-dives");
       const hideNavZone = document.getElementById("hide-nav-zone");
@@ -187,7 +198,7 @@ export default function PublicNavbar({
           font-size: 13px;
           font-weight: 500;
           text-decoration: none;
-          color: rgba(255, 255, 255, 0.65);
+          color: rgba(255, 255, 255, 0.88);
           transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
         }
@@ -320,10 +331,10 @@ export default function PublicNavbar({
           borderRadius: scrolled ? 999 : 0,
           background: inLightZone
             ? scrolled
-              ? "rgba(255, 255, 255, 0.86)"
+              ? "rgba(255, 255, 255, 0.90)"
               : "rgba(255, 255, 255, 0.72)"
             : scrolled
-              ? "rgba(8, 12, 24, 0.44)"
+              ? "rgba(8, 12, 24, 0.46)"
               : !(isHome || isAppActive)
                 ? "rgba(8, 12, 22, 0.85)"
                 : "transparent",
@@ -332,14 +343,14 @@ export default function PublicNavbar({
           border: scrolled
             ? inLightZone
               ? "1px solid rgba(15, 23, 42, 0.09)"
-              : "1px solid rgba(255, 255, 255, 0.16)"
+              : "1px solid rgba(255, 255, 255, 0.12)"
             : inLightZone
               ? "1px solid rgba(15, 23, 42, 0.05)"
               : "1px solid transparent",
           boxShadow: scrolled
             ? inLightZone
               ? "0 12px 32px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.92)"
-              : "0 12px 32px rgba(2, 6, 23, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.14)"
+              : "0 14px 36px rgba(2, 6, 23, 0.35), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
             : "none",
           display: "flex",
           alignItems: "center",
