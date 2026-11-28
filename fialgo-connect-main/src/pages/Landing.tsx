@@ -120,10 +120,10 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
       !isDeleting && typedLen === current.length
         ? 1900
         : isDeleting && typedLen === 0
-        ? 350
-        : isDeleting
-        ? 22
-        : 40;
+          ? 350
+          : isDeleting
+            ? 22
+            : 40;
 
     const timer = setTimeout(() => {
       if (!isDeleting && typedLen < current.length) {
@@ -225,8 +225,8 @@ function HeroAICoachBox({ onStart }: { onStart: () => void }) {
                   s === "All Accounts"
                     ? "MT5 #4829"
                     : s === "MT5 #4829"
-                    ? "Funded 100K"
-                    : "All Accounts"
+                      ? "Funded 100K"
+                      : "All Accounts"
                 )
               }
               className="h-8 px-2.5 sm:px-3 rounded-full border border-white/90 bg-white/95 hover:bg-white text-[11px] sm:text-[12px] font-medium text-slate-800 shadow-[0_1px_4px_rgba(15,23,42,0.06)] inline-flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0"
@@ -365,13 +365,13 @@ function AnimatedMetric({
     decimals > 0
       ? comma
         ? display.toLocaleString("en-US", {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
-          })
+          minimumFractionDigits: decimals,
+          maximumFractionDigits: decimals,
+        })
         : display.toFixed(decimals)
       : comma
-      ? Math.round(display).toLocaleString("en-US")
-      : String(Math.round(display));
+        ? Math.round(display).toLocaleString("en-US")
+        : String(Math.round(display));
 
   return (
     <>
@@ -767,11 +767,10 @@ function HeroDashboard({ onStart }: { onStart: () => void }) {
                         key={tf}
                         type="button"
                         onClick={() => setTimeframe(tf)}
-                        className={`relative px-2.5 py-0.5 rounded-[8px] text-[10px] font-semibold transition-colors cursor-pointer ${
-                          timeframe === tf
+                        className={`relative px-2.5 py-0.5 rounded-[8px] text-[10px] font-semibold transition-colors cursor-pointer ${timeframe === tf
                             ? "bg-white text-slate-900 shadow-[0_1px_4px_rgba(15,23,42,0.09)]"
                             : "text-slate-500 hover:text-slate-800"
-                        }`}
+                          }`}
                       >
                         {tf}
                       </button>
@@ -1166,22 +1165,20 @@ function HeroDashboard({ onStart }: { onStart: () => void }) {
                       <button
                         type="button"
                         onClick={() => setScoreWindow("30d")}
-                        className={`pb-0.5 cursor-pointer ${
-                          scoreWindow === "30d"
+                        className={`pb-0.5 cursor-pointer ${scoreWindow === "30d"
                             ? "font-semibold text-slate-900 border-b-[1.5px] border-slate-900"
                             : "text-slate-400"
-                        }`}
+                          }`}
                       >
                         30 days
                       </button>
                       <button
                         type="button"
                         onClick={() => setScoreWindow("all")}
-                        className={`pb-0.5 cursor-pointer ${
-                          scoreWindow === "all"
+                        className={`pb-0.5 cursor-pointer ${scoreWindow === "all"
                             ? "font-semibold text-slate-900 border-b-[1.5px] border-slate-900"
                             : "text-slate-400"
-                        }`}
+                          }`}
                       >
                         All time
                       </button>
@@ -1298,9 +1295,8 @@ function HeroDashboard({ onStart }: { onStart: () => void }) {
                     ].map(([val, lbl, active]) => (
                       <div
                         key={String(lbl)}
-                        className={`rounded-md py-1 ${
-                          active ? "bg-slate-100 border border-slate-200/70" : ""
-                        }`}
+                        className={`rounded-md py-1 ${active ? "bg-slate-100 border border-slate-200/70" : ""
+                          }`}
                       >
                         <div className="text-[9.5px] font-bold text-slate-900 font-mono">
                           {val}
@@ -1360,15 +1356,14 @@ function HeroDashboard({ onStart }: { onStart: () => void }) {
                         delay: Math.min(idx * 0.04, 0.8),
                         ease: EASE_OUT,
                       }}
-                      className={`h-8 rounded-md px-0.5 py-0.5 flex flex-col justify-between text-[7px] ${
-                        !cell.d
+                      className={`h-8 rounded-md px-0.5 py-0.5 flex flex-col justify-between text-[7px] ${!cell.d
                           ? "bg-transparent"
                           : cell.pos === true
-                          ? "bg-emerald-50/90 border border-emerald-200/70 text-emerald-800"
-                          : cell.pos === false
-                          ? "bg-rose-50/90 border border-rose-200/70 text-rose-700"
-                          : "bg-slate-50 border border-slate-100 text-slate-400"
-                      }`}
+                            ? "bg-emerald-50/90 border border-emerald-200/70 text-emerald-800"
+                            : cell.pos === false
+                              ? "bg-rose-50/90 border border-rose-200/70 text-rose-700"
+                              : "bg-slate-50 border border-slate-100 text-slate-400"
+                        }`}
                     >
                       <span className="font-semibold leading-none pl-0.5">{cell.d}</span>
                       {cell.pnl && (
@@ -1436,13 +1431,12 @@ function HeroDashboard({ onStart }: { onStart: () => void }) {
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
                           <span
-                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                              item.impact === "HIGH"
+                            className={`w-1.5 h-1.5 rounded-full shrink-0 ${item.impact === "HIGH"
                                 ? "bg-rose-500"
                                 : item.impact === "MED"
-                                ? "bg-amber-500"
-                                : "bg-slate-300"
-                            }`}
+                                  ? "bg-amber-500"
+                                  : "bg-slate-300"
+                              }`}
                           />
                           <span className="text-[9.5px] font-bold text-slate-700 shrink-0">
                             {item.ccy}
@@ -1721,9 +1715,8 @@ function Hero({ onStart }: { onStart: () => void; onSignIn: () => void }) {
           ].map(([x, y, s], i) => (
             <path
               key={`glint-${i}`}
-              d={`M${x} ${y - s} Q${x} ${y} ${x + s} ${y} Q${x} ${y} ${x} ${
-                y + s
-              } Q${x} ${y} ${x - s} ${y} Q${x} ${y} ${x} ${y - s} Z`}
+              d={`M${x} ${y - s} Q${x} ${y} ${x + s} ${y} Q${x} ${y} ${x} ${y + s
+                } Q${x} ${y} ${x - s} ${y} Q${x} ${y} ${x} ${y - s} Z`}
               fill={i % 2 === 0 ? "#FFFFFF" : "#BAE6FD"}
               opacity="0.9"
             />
@@ -2152,11 +2145,10 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   key={tab.id}
                   type="button"
                   onClick={() => setViewMode(tab.id)}
-                  className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-200 cursor-pointer ${
-                    isSelected
+                  className={`px-4 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-200 cursor-pointer ${isSelected
                       ? "bg-[#2563EB] text-white shadow-[0_3px_10px_rgba(37,99,235,0.35)]"
                       : "text-slate-600 hover:text-slate-900"
-                  }`}
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -2175,16 +2167,14 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                 key={mod.id}
                 type="button"
                 onClick={() => setActiveId(mod.id)}
-                className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[12px] font-semibold transition-all cursor-pointer ${
-                  isSelected
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-full border text-[12px] font-semibold transition-all cursor-pointer ${isSelected
                     ? "bg-white text-slate-900 border-[#2563EB] shadow-[0_6px_18px_rgba(37,99,235,0.16)]"
                     : "bg-white/95 text-slate-600 border-slate-200 hover:border-slate-300"
-                }`}
+                  }`}
               >
                 <span
-                  className={`w-6 h-6 rounded-lg inline-flex items-center justify-center shrink-0 ${
-                    isSelected ? "bg-[#0F172A] text-white" : "bg-slate-900 text-white"
-                  }`}
+                  className={`w-6 h-6 rounded-lg inline-flex items-center justify-center shrink-0 ${isSelected ? "bg-[#0F172A] text-white" : "bg-slate-900 text-white"
+                    }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
                 </span>
@@ -2206,18 +2196,16 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   <button
                     type="button"
                     onClick={() => setActiveId(mod.id)}
-                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-all duration-200 cursor-pointer ${
-                      isSelected
+                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-all duration-200 cursor-pointer ${isSelected
                         ? "border-[#2563EB] shadow-[0_10px_26px_rgba(37,99,235,0.18)] scale-[1.03]"
                         : "border-slate-200/90 shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
-                    }`}
+                      }`}
                   >
                     <span
-                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${
-                        isSelected
+                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${isSelected
                           ? "bg-[#0F172A] text-white"
                           : "bg-slate-900 text-white group-hover:bg-[#2563EB]"
-                      }`}
+                        }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
                     </span>
@@ -2228,16 +2216,14 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   {/* Connector hairline + node */}
                   <div className="flex items-center shrink-0">
                     <div
-                      className={`w-8 h-[1.5px] transition-colors ${
-                        isSelected ? "bg-[#2563EB]" : "bg-slate-200"
-                      }`}
+                      className={`w-8 h-[1.5px] transition-colors ${isSelected ? "bg-[#2563EB]" : "bg-slate-200"
+                        }`}
                     />
                     <span
-                      className={`w-2 h-2 rounded-full border-[1.5px] transition-colors ${
-                        isSelected
+                      className={`w-2 h-2 rounded-full border-[1.5px] transition-colors ${isSelected
                           ? "bg-[#2563EB] border-[#2563EB] shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"
                           : "bg-white border-slate-300"
-                      }`}
+                        }`}
                     />
                   </div>
                 </div>
@@ -2357,11 +2343,10 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                           <div className="flex items-center gap-2.5">
                             <span className="text-[11px] font-bold text-slate-900">{row.pair}</span>
                             <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
-                                row.dir === "LONG"
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${row.dir === "LONG"
                                   ? "bg-emerald-50 text-emerald-700"
                                   : "bg-slate-100 text-slate-700"
-                              }`}
+                                }`}
                             >
                               {row.dir}
                             </span>
@@ -2374,9 +2359,8 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                           <div className="flex items-center gap-3 tabular-nums">
                             <span className="text-[10.5px] font-semibold text-slate-500">{row.r}</span>
                             <span
-                              className={`text-[12px] font-bold ${
-                                row.good ? "text-emerald-600" : "text-rose-500"
-                              }`}
+                              className={`text-[12px] font-bold ${row.good ? "text-emerald-600" : "text-rose-500"
+                                }`}
                             >
                               {row.pnl}
                             </span>
@@ -2414,9 +2398,8 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                           {[35, 58, 82, 95, 76, 44, 62, 30].map((h, i) => (
                             <div
                               key={i}
-                              className={`rounded-t-md ${
-                                i === 3 || i === 2 ? "bg-[#2563EB]" : "bg-blue-100"
-                              }`}
+                              className={`rounded-t-md ${i === 3 || i === 2 ? "bg-[#2563EB]" : "bg-blue-100"
+                                }`}
                               style={{ height: `${h}%` }}
                             />
                           ))}
@@ -2474,11 +2457,10 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                         ].map((val, idx) => (
                           <div
                             key={idx}
-                            className={`rounded-md sm:rounded-lg py-1.5 sm:py-2 text-center text-[8px] sm:text-[9.5px] font-bold border ${
-                              val.startsWith("-")
+                            className={`rounded-md sm:rounded-lg py-1.5 sm:py-2 text-center text-[8px] sm:text-[9.5px] font-bold border ${val.startsWith("-")
                                 ? "bg-rose-50/90 border-rose-200 text-rose-600"
                                 : "bg-emerald-50/90 border-emerald-200 text-emerald-700"
-                            }`}
+                              }`}
                           >
                             {val}
                           </div>
@@ -2531,33 +2513,29 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                   {/* Connector node + hairline */}
                   <div className="flex items-center shrink-0">
                     <span
-                      className={`w-2 h-2 rounded-full border-[1.5px] transition-colors ${
-                        isSelected
+                      className={`w-2 h-2 rounded-full border-[1.5px] transition-colors ${isSelected
                           ? "bg-[#2563EB] border-[#2563EB] shadow-[0_0_0_3px_rgba(37,99,235,0.15)]"
                           : "bg-white border-slate-300"
-                      }`}
+                        }`}
                     />
                     <div
-                      className={`w-8 h-[1.5px] transition-colors ${
-                        isSelected ? "bg-[#2563EB]" : "bg-slate-200"
-                      }`}
+                      className={`w-8 h-[1.5px] transition-colors ${isSelected ? "bg-[#2563EB]" : "bg-slate-200"
+                        }`}
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => setActiveId(mod.id)}
-                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-all duration-200 cursor-pointer ${
-                      isSelected
+                    className={`group relative z-10 inline-flex items-center gap-2.5 pl-2.5 pr-4 py-2 rounded-full border bg-white transition-all duration-200 cursor-pointer ${isSelected
                         ? "border-[#2563EB] shadow-[0_10px_26px_rgba(37,99,235,0.18)] scale-[1.03]"
                         : "border-slate-200/90 shadow-[0_6px_18px_rgba(15,23,42,0.06)] hover:border-slate-300 hover:shadow-[0_10px_24px_rgba(15,23,42,0.09)]"
-                    }`}
+                      }`}
                   >
                     <span
-                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${
-                        isSelected
+                      className={`w-7 h-7 rounded-xl inline-flex items-center justify-center transition-colors ${isSelected
                           ? "bg-[#0F172A] text-white"
                           : "bg-slate-900 text-white group-hover:bg-[#2563EB]"
-                      }`}
+                        }`}
                     >
                       <Icon className="w-3.5 h-3.5" />
                     </span>
@@ -2615,9 +2593,8 @@ function OneSessionShowcase({ onStart }: { onStart: () => void }) {
                       {Array.from({ length: totalTicks }).map((_, idx) => (
                         <span
                           key={idx}
-                          className={`h-2.5 w-[3.5px] rounded-[1px] transition-colors ${
-                            idx < activeTicks ? "bg-[#2563EB]" : "bg-slate-200"
-                          }`}
+                          className={`h-2.5 w-[3.5px] rounded-[1px] transition-colors ${idx < activeTicks ? "bg-[#2563EB]" : "bg-slate-200"
+                            }`}
                         />
                       ))}
                     </div>
@@ -2732,9 +2709,8 @@ function SectionHeader({
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.25 }}
         transition={{ duration: 0.4, ease: EASE_OUT }}
-        className={`inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1 rounded-full bg-white border border-[#E4E4E4] shadow-[0_2px_10px_-3px_rgba(15,23,42,0.08)] mb-4 ${
-          isCenter ? "mx-auto" : ""
-        }`}
+        className={`inline-flex items-center gap-2 pl-1.5 pr-3.5 py-1 rounded-full bg-white border border-[#E4E4E4] shadow-[0_2px_10px_-3px_rgba(15,23,42,0.08)] mb-4 ${isCenter ? "mx-auto" : ""
+          }`}
       >
         <span className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ${toneStyles}`}>
           <Icon size={11} strokeWidth={2.2} />
@@ -2746,15 +2722,13 @@ function SectionHeader({
 
       <h2
         style={{ fontFamily: "'Manrope', 'Plus Jakarta Sans', sans-serif" }}
-        className={`text-[28px] sm:text-[42px] font-bold tracking-[-0.035em] leading-[1.1] text-slate-950 ${
-          isCenter ? "max-w-[780px] mx-auto" : ""
-        }`}
+        className={`text-[28px] sm:text-[42px] font-bold tracking-[-0.035em] leading-[1.1] text-slate-950 ${isCenter ? "max-w-[780px] mx-auto" : ""
+          }`}
       >
         {inlineSubtitle ? (
           <span
-            className={`inline-flex flex-wrap items-baseline gap-x-[0.26em] ${
-              isCenter ? "justify-center" : "justify-start"
-            }`}
+            className={`inline-flex flex-wrap items-baseline gap-x-[0.26em] ${isCenter ? "justify-center" : "justify-start"
+              }`}
           >
             <BlurText
               as="span"
@@ -2827,9 +2801,8 @@ function SectionHeader({
           whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.5, delay: 0.24, ease: EASE_OUT }}
-          className={`text-[15px] sm:text-[16px] font-normal text-slate-600 leading-[1.6] mt-4 ${
-            isCenter ? "max-w-[590px] mx-auto" : ""
-          }`}
+          className={`text-[15px] sm:text-[16px] font-normal text-slate-600 leading-[1.6] mt-4 ${isCenter ? "max-w-[590px] mx-auto" : ""
+            }`}
         >
           {description}
         </motion.p>
@@ -3408,20 +3381,18 @@ function FAQItem({
   return (
     <div
       onClick={() => setOpen(isOpen ? null : i)}
-      className={`rounded-2xl border p-5 sm:p-6 cursor-pointer transition-colors duration-150 ${
-        isOpen
+      className={`rounded-2xl border p-5 sm:p-6 cursor-pointer transition-colors duration-150 ${isOpen
           ? "bg-[#E4E4E4]/30 border-blue-300 shadow-xs"
           : "bg-white border-[#E4E4E4] hover:border-slate-300 shadow-2xs"
-      }`}
+        }`}
     >
       <div className="flex justify-between items-center gap-4">
         <h4 className="text-[15px] font-semibold text-slate-900">{f.q}</h4>
         <ChevronDown
           size={16}
           strokeWidth={1.75}
-          className={`text-slate-400 shrink-0 transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-slate-900" : ""
-          }`}
+          className={`text-slate-400 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 text-slate-900" : ""
+            }`}
         />
       </div>
       <AnimatePresence initial={false}>
